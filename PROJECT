@@ -1,0 +1,16 @@
+domain: contrib.fluxcd.io
+layout:
+- go.kubebuilder.io/v3
+projectName: test-terraform-controller
+repo: github.com/chanwit/tf-controller
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: contrib.fluxcd.io
+  group: infra
+  kind: Terraform
+  path: github.com/chanwit/tf-controller/api/v1alpha1
+  version: v1alpha1
+version: "3"

@@ -1,0 +1,34 @@
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - infra.contrib.fluxcd.io
+  resources:
+  - terraforms
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.contrib.fluxcd.io
+  resources:
+  - terraforms/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - infra.contrib.fluxcd.io
+  resources:
+  - terraforms/status
+  verbs:
+  - get
+  - patch
+  - update
