@@ -121,7 +121,6 @@ type TerraformSpec struct {
 	// +optional
 	Wait bool `json:"wait,omitempty"`
 
-
 	// A list of target secrets for the outputs to be written as.
 	// +optional
 	WriteOutputsToSecret *WriteOutputsToSecretSpec `json:"writeOutputsToSecret,omitempty"`

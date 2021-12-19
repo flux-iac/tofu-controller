@@ -11,11 +11,9 @@ require (
 	github.com/go-logr/logr v0.4.0
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/hashicorp/go-retryablehttp v0.6.8
-	github.com/hashicorp/go-version v1.3.0
-	github.com/hashicorp/hc-install v0.3.1
 	github.com/hashicorp/terraform-exec v0.15.0
-	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.15.0
+	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e // indirect
 	k8s.io/api v0.22.2
 	k8s.io/apimachinery v0.22.2
 	k8s.io/client-go v0.22.2
