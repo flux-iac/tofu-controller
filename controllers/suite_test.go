@@ -117,10 +117,6 @@ func TestMain(m *testing.M) {
 
 	// "preparing flux-system namespace"
 	fluxSystemNS := &corev1.Namespace{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "Namespace",
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "flux-system",
 		},

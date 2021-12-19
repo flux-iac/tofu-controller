@@ -25,10 +25,6 @@ func Test_000070_varsfrom_secret_and_controlled_outputs_test(t *testing.T) {
 	by("creating a new Git repository object")
 	updatedTime := time.Now()
 	testRepo := sourcev1.GitRepository{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "source.toolkit.fluxcd.io/v1beta1",
-			Kind:       "GitRepository",
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      sourceName,
 			Namespace: "flux-system",
@@ -87,10 +83,6 @@ func Test_000070_varsfrom_secret_and_controlled_outputs_test(t *testing.T) {
 
 	by("creating a new TF and attaching to the repo")
 	helloWorldTF := infrav1.Terraform{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "infra.contrib.fluxcd.io/v1alpha1",
-			Kind:       "Terraform",
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
 			Namespace: "flux-system",
