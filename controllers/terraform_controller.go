@@ -28,6 +28,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -65,6 +66,7 @@ import (
 type TerraformReconciler struct {
 	client.Client
 	httpClient      *retryablehttp.Client
+	// TODO EventRecorder
 	MetricsRecorder *metrics.Recorder
 	Scheme          *runtime.Scheme
 }
@@ -125,12 +127,12 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	// reconcile Terraform by applying the latest revision
-	reconciledKustomization, reconcileErr := r.reconcile(ctx, *terraform.DeepCopy(), source)
-	if err := r.patchStatus(ctx, req, reconciledKustomization.Status); err != nil {
+	reconciledTerraform, reconcileErr := r.reconcile(ctx, *terraform.DeepCopy(), source)
+	if err := r.patchStatus(ctx, req, reconciledTerraform.Status); err != nil {
 		log.Error(err, "unable to update status after reconciliation")
 		return ctrl.Result{Requeue: true}, err
 	}
-	r.recordReadiness(ctx, reconciledKustomization)
+	r.recordReadiness(ctx, reconciledTerraform)
 	// broadcast the reconciliation failure and requeue at the specified retry interval
 	if reconcileErr != nil {
 		log.Error(reconcileErr, fmt.Sprintf("Reconciliation failed after %s, next try in %s",
@@ -138,7 +140,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			terraform.GetRetryInterval().String()),
 			"revision",
 			source.GetArtifact().Revision)
-		// TODO r.event(ctx, reconciledKustomization, source.GetArtifact().Revision, events.EventSeverityError, reconcileErr.Error(), nil)
+		// TODO r.event(ctx, reconciledTerraform, source.GetArtifact().Revision, events.EventSeverityError, reconcileErr.Error(), nil)
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	}
 	return ctrl.Result{}, nil
@@ -208,6 +210,7 @@ func (r *TerraformReconciler) reconcile(
 			err.Error(),
 		), err
 	}
+
 	if _, err := os.Stat(dirPath); err != nil {
 		err = fmt.Errorf("terraform path not found: %w", err)
 		return infrav1.TerraformNotReady(
@@ -265,27 +268,17 @@ terraform {
 		return terraform, err
 	}
 
-	/*
-		// TODO terraform binary should be install once
-		installer := &releases.ExactVersion{
-			Product: product.Terraform,
-			Version: version.Must(version.NewVersion("1.0.6")),
-		}
-		execPath, err := installer.Install(ctx)
-		if err != nil {
-			err = fmt.Errorf("error installing Terraform: %s", err)
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.TFExecInstallFailedReason,
-				err.Error(),
-			), err
-		}
-		log.Info("terraform installed", "execPath", execPath)
-	*/
-
 	// TODO configurable somehow by the controller
-	execPath := "/tmp/terraform/terraform"
+	execPath, err := exec.LookPath("terraform")
+	if err != nil {
+		err = fmt.Errorf("cannot find Terraform binary: %s in %s", err, os.Getenv("PATH"))
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.TFExecNewFailedReason,
+			err.Error(),
+		), err
+	}
 
 	workingDir := dirPath
 	tf, err := tfexec.NewTerraform(workingDir, execPath)
@@ -333,7 +326,11 @@ terraform {
 }
 
 func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terraform, tf *tfexec.Terraform, revision string) (infrav1.Terraform, error) {
-	// log := logr.FromContext(ctx)
+
+	const (
+		TFPlanName = "tfplan"
+		SavedPlanSecretLabel = "savedPlan"
+	)
 
 	tfplanSecretKey := types.NamespacedName{Namespace: terraform.Namespace, Name: "tfplan-default-" + terraform.Name}
 	tfplanSecret := corev1.Secret{}
@@ -348,10 +345,11 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		), err
 	}
 
-	if tfplanSecret.Labels["savedPlan"] != terraform.Status.Plan.Pending {
+
+	if tfplanSecret.Labels[SavedPlanSecretLabel] != terraform.Status.Plan.Pending {
 		err = fmt.Errorf("error pending plan and plan's name in the secret are not matched: %s != %s",
 			terraform.Status.Plan.Pending,
-			tfplanSecret.Labels["savedPlan"])
+			tfplanSecret.Labels[SavedPlanSecretLabel])
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
@@ -360,8 +358,8 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		), err
 	}
 
-	tfplan := tfplanSecret.Data["tfplan"]
-	err = ioutil.WriteFile(filepath.Join(tf.WorkingDir(), "tfplan"), tfplan, 0644)
+	tfplan := tfplanSecret.Data[TFPlanName]
+	err = ioutil.WriteFile(filepath.Join(tf.WorkingDir(), TFPlanName), tfplan, 0644)
 	if err != nil {
 		err = fmt.Errorf("error saving plan file to disk: %s", err)
 		return infrav1.TerraformNotReady(
@@ -372,7 +370,9 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		), err
 	}
 
-	if err := tf.Apply(ctx, tfexec.DirOrPlan("tfplan")); err != nil {
+	tf.SetStdout(os.Stderr)
+	tf.SetStdout(os.Stderr)
+	if err := tf.Apply(ctx, tfexec.DirOrPlan(TFPlanName)); err != nil {
 		err = fmt.Errorf("error running Apply: %s", err)
 		return infrav1.TerraformNotReady(
 			terraform,
@@ -392,6 +392,8 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 			err.Error(),
 		), err
 	}
+	tf.SetStdout(nil)
+	tf.SetStdout(nil)
 
 	outputs, err := tf.Output(ctx)
 	if err != nil {
@@ -459,10 +461,6 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		}
 
 		outputSecret := &corev1.Secret{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "Secret",
-				APIVersion: "v1",
-			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      terraform.Spec.WriteOutputsToSecret.Name,
 				Namespace: terraform.GetNamespace(),

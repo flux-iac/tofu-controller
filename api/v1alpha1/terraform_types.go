@@ -124,6 +124,9 @@ type TerraformSpec struct {
 	// A list of target secrets for the outputs to be written as.
 	// +optional
 	WriteOutputsToSecret *WriteOutputsToSecretSpec `json:"writeOutputsToSecret,omitempty"`
+
+	// +optional
+	// PushSpec *PushSpec `json:"pushSpec,omitempty"`
 }
 
 type PlanStatus struct {
