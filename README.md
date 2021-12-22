@@ -25,13 +25,15 @@ spec:
 
 ### Plan and manually approve
 
-```yaml
+```diff
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
   name: hello-world
   namespace: flux-system
 spec:
+- approvePlan: "auto"
++ approvePlan: "" # or you can omit this field 
   path: ./terraform-hello-world-example
   sourceRef:
     kind: GitRepository
@@ -41,14 +43,15 @@ spec:
 
 then use field `approvePlan` to approve the plan so that it apply the plan to create real resources.
 
-```yaml
+```diff
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
   name: hello-world
   namespace: flux-system
 spec:
-  approvePlan: "plan-main-b8e362c206" # the format is plan-$(branch name)-$(10 digits of commit)
+- approvePlan: ""
++ approvePlan: "plan-main-b8e362c206" # the format is plan-$(branch name)-$(10 digits of commit)
   path: ./terraform-hello-world-example
   sourceRef:
     kind: GitRepository
