@@ -1,20 +1,16 @@
-# permissions for end users to edit terraforms.
+# permissions for end users to view kustomizations.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: terraform-editor-role
+  name: tf-viewer-role
 rules:
 - apiGroups:
   - infra.contrib.fluxcd.io
   resources:
   - terraforms
   verbs:
-  - create
-  - delete
   - get
   - list
-  - patch
-  - update
   - watch
 - apiGroups:
   - infra.contrib.fluxcd.io

@@ -1,40 +1,38 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  labels:
-    control-plane: controller-manager
-  name: system
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: controller-manager
-  namespace: system
+  name: tf-controller
+  namespace: flux-system
   labels:
-    control-plane: controller-manager
+    control-plane: tf-controller
 spec:
   selector:
     matchLabels:
-      control-plane: controller-manager
+      control-plane: tf-controller
   replicas: 1
   template:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: manager
       labels:
-        control-plane: controller-manager
+        control-plane: tf-controller
     spec:
+      terminationGracePeriodSeconds: 10
       securityContext:
-        runAsNonRoot: true
+        fsGroup: 1337
       containers:
-      - command:
-        - /manager
+      - name: manager
+        image: chanwit/tf-controller
+        command:
+        - /sbin/tini
+        - --
+        - tf-controller
         args:
         - --leader-elect
-        image: controller:latest
-        name: manager
         securityContext:
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         livenessProbe:
           httpGet:
             path: /healthz
@@ -51,10 +49,14 @@ spec:
         # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
         resources:
           limits:
-            cpu: 500m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1Gi
           requests:
-            cpu: 10m
+            cpu: 100m
             memory: 64Mi
-      serviceAccountName: controller-manager
-      terminationGracePeriodSeconds: 10
+        volumeMounts:
+          - name: temp
+            mountPath: /tmp
+      volumes:
+        - name: temp
+          emptyDir: {}

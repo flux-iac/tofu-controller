@@ -7,6 +7,23 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - secrets
+  - serviceaccounts
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
   - infra.contrib.fluxcd.io
   resources:
   - terraforms
@@ -23,6 +40,10 @@ rules:
   resources:
   - terraforms/finalizers
   verbs:
+  - create
+  - delete
+  - get
+  - patch
   - update
 - apiGroups:
   - infra.contrib.fluxcd.io
@@ -32,3 +53,19 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - source.toolkit.fluxcd.io
+  resources:
+  - buckets
+  - gitrepositories
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - source.toolkit.fluxcd.io
+  resources:
+  - buckets/status
+  - gitrepositories/status
+  verbs:
+  - get

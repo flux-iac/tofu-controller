@@ -65,7 +65,7 @@ import (
 // TerraformReconciler reconciles a Terraform object
 type TerraformReconciler struct {
 	client.Client
-	httpClient      *retryablehttp.Client
+	httpClient *retryablehttp.Client
 	// TODO EventRecorder
 	MetricsRecorder *metrics.Recorder
 	Scheme          *runtime.Scheme
@@ -73,7 +73,11 @@ type TerraformReconciler struct {
 
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms/finalizers,verbs=update
+//+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms/finalizers,verbs=get;create;update;patch;delete
+// +kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=buckets;gitrepositories,verbs=get;list;watch
+// +kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=buckets/status;gitrepositories/status,verbs=get
+// +kubebuilder:rbac:groups="",resources=configmaps;secrets;serviceaccounts,verbs=get;list;watch
+// +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -328,7 +332,7 @@ terraform {
 func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terraform, tf *tfexec.Terraform, revision string) (infrav1.Terraform, error) {
 
 	const (
-		TFPlanName = "tfplan"
+		TFPlanName           = "tfplan"
 		SavedPlanSecretLabel = "savedPlan"
 	)
 
@@ -344,7 +348,6 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 			err.Error(),
 		), err
 	}
-
 
 	if tfplanSecret.Labels[SavedPlanSecretLabel] != terraform.Status.Plan.Pending {
 		err = fmt.Errorf("error pending plan and plan's name in the secret are not matched: %s != %s",
