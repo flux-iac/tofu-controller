@@ -28,3 +28,5 @@ DESIGN.md
 controllers/data/terraform-hello-env/
 controllers/data/terraform-hello-world-example/
 controllers/data/terratest-master.tar.gz
+/config/crd/bases/buckets.yaml
+/config/crd/bases/gitrepositories.yaml
