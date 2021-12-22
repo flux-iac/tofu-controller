@@ -51,9 +51,9 @@ func init() {
 
 func main() {
 	var (
-		metricsAddr string
+		metricsAddr          string
 		enableLeaderElection bool
-		probeAddr string
+		probeAddr            string
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
