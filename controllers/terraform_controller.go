@@ -140,6 +140,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		log.Error(err, "unable to update status after reconciliation")
 		return ctrl.Result{Requeue: true}, err
 	}
+
 	r.recordReadiness(ctx, reconciledTerraform)
 	// broadcast the reconciliation failure and requeue at the specified retry interval
 	if reconcileErr != nil {
@@ -389,7 +390,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		), err
 	}
 
-	terraform = infrav1.TerraformApplied(terraform, "Terraform Apply Run Successfully")
+	terraform = infrav1.TerraformApplied(terraform, revision, "Terraform Apply Run Successfully")
 	if err := r.Status().Update(ctx, &terraform); err != nil {
 		err = fmt.Errorf("error recording apply status: %s", err)
 		return infrav1.TerraformNotReady(
@@ -619,7 +620,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 			), err
 		}
 
-		terraform = infrav1.TerraformPlannedWithChanges(terraform, planRev, "Terraform Plan Generated Successfully")
+		terraform = infrav1.TerraformPlannedWithChanges(terraform, revision, planRev, "Terraform Plan Generated Successfully")
 
 		tfplanData := map[string][]byte{"tfplan": tfplan}
 		tfplanSecret := &corev1.Secret{
@@ -647,7 +648,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		}
 		err = r.Client.Create(ctx, tfplanSecret)
 	} else {
-		terraform = infrav1.TerraformPlannedNoChanges(terraform, "Terraform Plan No Changed")
+		terraform = infrav1.TerraformPlannedNoChanges(terraform, revision, "Terraform Plan No Changed")
 	}
 
 	err = r.Status().Update(ctx, &terraform)
@@ -670,6 +671,18 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		bucketIndexKey        string = ".metadata.bucket"
 		SingleInstance               = 1
 	)
+
+	// Index the Kustomizations by the GitRepository references they (may) point at.
+	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, gitRepositoryIndexKey,
+		r.indexBy(sourcev1.GitRepositoryKind)); err != nil {
+		return fmt.Errorf("failed setting index fields: %w", err)
+	}
+
+	// Index the Kustomizations by the Bucket references they (may) point at.
+	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, bucketIndexKey,
+		r.indexBy(sourcev1.BucketKind)); err != nil {
+		return fmt.Errorf("failed setting index fields: %w", err)
+	}
 
 	// Configure the retryable http client used for fetching artifacts.
 	// By default it retries 10 times within a 3.5 minutes window.
@@ -886,4 +899,23 @@ func (r *TerraformReconciler) verifyArtifact(artifact *sourcev1.Artifact, buf *b
 	}
 
 	return nil
+}
+
+func (r *TerraformReconciler) indexBy(kind string) func(o client.Object) []string {
+	return func(o client.Object) []string {
+		terraform, ok := o.(*infrav1.Terraform)
+		if !ok {
+			panic(fmt.Sprintf("Expected a Kustomization, got %T", o))
+		}
+
+		if terraform.Spec.SourceRef.Kind == kind {
+			namespace := terraform.GetNamespace()
+			if terraform.Spec.SourceRef.Namespace != "" {
+				namespace = terraform.Spec.SourceRef.Namespace
+			}
+			return []string{fmt.Sprintf("%s/%s", namespace, terraform.Spec.SourceRef.Name)}
+		}
+
+		return nil
+	}
 }

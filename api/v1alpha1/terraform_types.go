@@ -250,30 +250,39 @@ func TerraformOutputAvailable(terraform Terraform, availableOutputs []string, me
 	return terraform
 }
 
-func TerraformApplied(terraform Terraform, message string) Terraform {
+func TerraformApplied(terraform Terraform, revision string, message string) Terraform {
 	meta.SetResourceCondition(&terraform, "Apply", metav1.ConditionTrue, "TerraformAppliedSucceed", message)
 	plan := terraform.Status.Plan.Pending
 	(&terraform).Status.Plan = PlanStatus{
 		LastApplied: plan,
 		Pending:     "",
 	}
+	if revision != "" {
+		(&terraform).Status.LastAppliedRevision = revision
+	}
 	return terraform
 }
 
-func TerraformPlannedWithChanges(terraform Terraform, planRev string, message string) Terraform {
+func TerraformPlannedWithChanges(terraform Terraform, revision string, planRev string, message string) Terraform {
 	meta.SetResourceCondition(&terraform, "Plan", metav1.ConditionTrue, "TerraformPlannedSucceed", message)
 	(&terraform).Status.Plan = PlanStatus{
 		LastApplied: terraform.Status.Plan.LastApplied,
 		Pending:     fmt.Sprintf("plan-%s", planRev),
 	}
+	if revision != "" {
+		(&terraform).Status.LastAttemptedRevision = revision
+	}
 	return terraform
 }
 
-func TerraformPlannedNoChanges(terraform Terraform, message string) Terraform {
+func TerraformPlannedNoChanges(terraform Terraform, revision string, message string) Terraform {
 	meta.SetResourceCondition(&terraform, "Plan", metav1.ConditionFalse, "TerraformPlannedSucceed", message)
 	(&terraform).Status.Plan = PlanStatus{
 		LastApplied: terraform.Status.Plan.LastApplied,
 		Pending:     "",
+	}
+	if revision != "" {
+		(&terraform).Status.LastAttemptedRevision = revision
 	}
 	return terraform
 }

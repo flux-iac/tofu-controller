@@ -27,6 +27,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	"strings"
 	"testing"
 	"time"
@@ -109,6 +110,10 @@ func TestMain(m *testing.M) {
 	server.RouteToHandler("GET", "/file.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/terraform-hello-world-example.tar.gz")
 	})
+	server.RouteToHandler("GET", "/2222.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/terraform-hello-world-example-2.tar.gz")
+	})
+
 	// "defining a URL for the TF hello vars BLOB to be used as a Source Controller's artifact"
 	server.RouteToHandler("GET", "/env.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/terraform-hello-env.tar.gz")
@@ -135,8 +140,9 @@ func TestMain(m *testing.M) {
 	}
 
 	err = (&TerraformReconciler{
-		Client: k8sManager.GetClient(),
-		Scheme: k8sManager.GetScheme(),
+		Client:       k8sManager.GetClient(),
+		Scheme:       k8sManager.GetScheme(),
+		StatusPoller: polling.NewStatusPoller(k8sManager.GetClient(), k8sManager.GetRESTMapper()),
 	}).SetupWithManager(k8sManager)
 	if err != nil {
 		panic(err.Error())
