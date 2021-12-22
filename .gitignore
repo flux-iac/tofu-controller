@@ -31,3 +31,4 @@ controllers/data/terratest-master.tar.gz
 /config/crd/bases/buckets.yaml
 /config/crd/bases/gitrepositories.yaml
 /config/release/
+example/
