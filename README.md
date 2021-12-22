@@ -2,6 +2,60 @@
 
 A Terraform controller for Flux
 
+## Quick start
+
+Here's a simple example of how to GitOps-ify your Terraform resources with TF controller and Flux.
+
+### Auto-mode
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io
+kind: Terraform
+metadata:
+  name: hello-world
+  namespace: flux-system
+spec:
+  approvePlan: "auto"
+  path: ./terraform-hello-world-example
+  sourceRef:
+    kind: GitRepository
+    name: infra-repo
+    namespace: flux-system
+```
+
+### Plan and manually approve
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: hello-world
+  namespace: flux-system
+spec:
+  path: ./terraform-hello-world-example
+  sourceRef:
+    kind: GitRepository
+    name: infra-repo
+    namespace: flux-system
+```
+
+then use field `approvePlan` to approve the plan so that it apply the plan to create real resources.
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: hello-world
+  namespace: flux-system
+spec:
+  approvePlan: "plan-main-b8e362c206" # the format is plan-$(branch name)-$(10 digits of commit)
+  path: ./terraform-hello-world-example
+  sourceRef:
+    kind: GitRepository
+    name: infra-repo
+    namespace: flux-system
+```
+
 ## Roadmap
 
 ### Q1 2022
@@ -12,7 +66,7 @@ A Terraform controller for Flux
   
 ### Q2 2022  
    
-  * Interop with Kustomization controller's health checks (via Output)
+  * Interop with Kustomization controller's health checks (via the Output resources)
   * Interop with Notification controller's Events and Alert
 
 ### Q3 2022
