@@ -33,6 +33,12 @@ spec:
         - --log-level=info
         - --log-encoding=json
         - --enable-leader-election
+        ports:
+        - containerPort: 8080
+          name: http-prom
+        - containerPort: 9440
+          name: healthz
+          protocol: TCP
         env:
         - name: RUNTIME_NAMESPACE
           valueFrom:
@@ -41,18 +47,14 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8081
-          initialDelaySeconds: 15
-          periodSeconds: 20
         readinessProbe:
           httpGet:
             path: /readyz
-            port: 8081
-          initialDelaySeconds: 5
-          periodSeconds: 10
+            port: healthz
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: healthz
         # TODO(user): Configure the resources accordingly based on the project requirements.
         # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
         resources:
