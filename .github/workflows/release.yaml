@@ -1,0 +1,90 @@
+name: release
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'image tag prefix'
+        default: 'rc'
+        required: true
+
+env:
+  CONTROLLER: ${{ github.event.repository.name }}
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Kustomize
+        uses: fluxcd/pkg/actions/kustomize@main
+      - name: Prepare
+        id: prep
+        run: |
+          VERSION="${{ github.event.inputs.tag }}-${GITHUB_SHA::8}"
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF/refs\/tags\//}
+          fi
+          echo ::set-output name=BUILD_DATE::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          echo ::set-output name=VERSION::${VERSION}
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+      - name: Setup Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          buildkitd-flags: "--debug"
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: chanwit
+          password: ${{ secrets.GHCR_TOKEN }}
+      # - name: Login to Docker Hub
+      #  uses: docker/login-action@v1
+      #  with:
+      #    username: chanwit
+      #    password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Publish multi-arch container image
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          builder: ${{ steps.buildx.outputs.name }}
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64 #,linux/arm/v7,linux/arm64
+          tags: |
+            ghcr.io/chanwit/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
+          labels: |
+            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.prep.outputs.VERSION }}
+            org.opencontainers.image.created=${{ steps.prep.outputs.BUILD_DATE }}
+      - name: Check images
+        run: |
+          docker buildx imagetools inspect docker.io/fluxcd/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
+          docker buildx imagetools inspect ghcr.io/fluxcd/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
+          docker pull ghcr.io/chanwit/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
+      - name: Generate release manifests
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          mkdir -p config/release
+          kustomize build ./config/crd > ./config/release/${{ env.CONTROLLER }}.crds.yaml
+          kustomize build ./config/rbac > ./config/release/${{ env.CONTROLLER }}.rbac.yaml
+          kustomize build ./config/manager > ./config/release/${{ env.CONTROLLER }}.deployment.yaml
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: ncipollo/release-action@v1
+        with:
+          prerelease: true
+          artifacts: "config/release/*.yaml"
+          artifactContentType: "text/plain"
+          body: |
+            [CHANGELOG](https://github.com/chanwit/${{ env.CONTROLLER }}/blob/main/CHANGELOG.md)
+          token: ${{ secrets.GITHUB_TOKEN }}

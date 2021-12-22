@@ -134,3 +134,11 @@ GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
 rm -rf $$TMP_DIR ;\
 }
 endef
+
+.PHONY: release-manifests
+release-manifests:
+	rm -rf ./config/release || true
+	mkdir ./config/release
+	kustomize build ./config/crd > ./config/release/tf-controller.crds.yaml
+	kustomize build ./config/rbac > ./config/release/tf-controller.rbac.yaml
+	kustomize build ./config/manager > ./config/release/tf-controller.deployment.yaml
