@@ -157,6 +157,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 }
 
 func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
+	// Do not optimize this. We'll add other criteria later to infer plan actions
 	if terraform.Status.Plan.Pending == "" {
 		return true
 	} else if terraform.Status.Plan.Pending != "" {
@@ -457,8 +458,11 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		// not specified .spec.writeOutputsToSecret.outputs means export all
 		if len(wots.Outputs) == 0 {
 			for output, v := range outputs {
-				bytes, _ := json.Marshal(v)
-				data[output] = bytes
+				outputBytes, err := json.Marshal(v)
+				if err != nil {
+					return terraform, err
+				}
+				data[output] = outputBytes
 			}
 		} else {
 			// filter only defined output
