@@ -182,6 +182,16 @@ func findKubeConfig(e *envtest.Environment) (string, error) {
 	return "", fmt.Errorf("file not found")
 }
 
+func when(text string) {
+	preamble := "\x1b[1mWHEN\x1b[0m"
+	fmt.Fprintln(os.Stderr, preamble+" "+text)
+}
+
+func it(text string) {
+	preamble := "\x1b[1mIT\x1b[0m"
+	fmt.Fprintln(os.Stderr, preamble+" "+text)
+}
+
 func by(text string) {
 	preamble := "\x1b[1mSTEP\x1b[0m"
 	fmt.Fprintln(os.Stderr, preamble+": "+text)
