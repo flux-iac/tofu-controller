@@ -152,7 +152,8 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		// TODO r.event(ctx, reconciledTerraform, source.GetArtifact().Revision, events.EventSeverityError, reconcileErr.Error(), nil)
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	}
-	return ctrl.Result{}, nil
+
+	return ctrl.Result{RequeueAfter: terraform.Spec.Interval.Duration}, nil
 }
 
 func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
