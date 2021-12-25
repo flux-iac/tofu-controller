@@ -950,3 +950,42 @@ func (r *TerraformReconciler) indexBy(kind string) func(o client.Object) []strin
 		return nil
 	}
 }
+
+func (r *TerraformReconciler) event(ctx context.Context, terraform infrav1.Terraform, revision, severity, msg string, metadata map[string]string) {
+	log := logr.FromContext(ctx)
+
+	annotations := map[string]string{
+		infrav1.GroupVersion.Group + "/revision": revision,
+	}
+
+	eventType := "Normal"
+	if severity == events.EventSeverityError {
+		eventType = "Warning"
+	}
+
+	r.EventRecorder.AnnotatedEventf(&terraform, annotations, eventType, severity, msg)
+
+	if r.ExternalEventRecorder != nil {
+		objRef, err := reference.GetReference(r.Scheme, &terraform)
+		if err != nil {
+			log.Error(err, "unable to send event")
+			return
+		}
+		if metadata == nil {
+			metadata = map[string]string{}
+		}
+		if revision != "" {
+			metadata["revision"] = revision
+		}
+
+		reason := severity
+		if c := apimeta.FindStatusCondition(terraform.Status.Conditions, meta.ReadyCondition); c != nil {
+			reason = c.Reason
+		}
+
+		if err := r.ExternalEventRecorder.Eventf(*objRef, metadata, severity, reason, msg); err != nil {
+			log.Error(err, "unable to send event")
+			return
+		}
+	}
+}
