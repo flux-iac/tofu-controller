@@ -46,6 +46,7 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/terraform-exec/tfexec"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -614,6 +615,34 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 			), err
 		}
 
+		// not the first generated plan, delete the old plan first
+		if terraform.Status.Plan.LastApplied != "" {
+			objectKey := types.NamespacedName{Name: "tfplan-default-" + terraform.Name, Namespace: terraform.GetNamespace()}
+			var obj corev1.Secret
+			err := r.Client.Get(ctx, objectKey, &obj)
+			if err != nil {
+				if errors.IsNotFound(err) {
+					// IsNotFound is normal. So ignore it.
+				} else {
+					return infrav1.TerraformNotReady(
+						terraform,
+						revision,
+						infrav1.TFExecPlanFailedReason,
+						err.Error(),
+					), err
+				}
+			}
+			err = r.Client.Delete(ctx, &obj)
+			if err != nil {
+				return infrav1.TerraformNotReady(
+					terraform,
+					revision,
+					infrav1.TFExecPlanFailedReason,
+					err.Error(),
+				), err
+			}
+		}
+
 		terraform = infrav1.TerraformPlannedWithChanges(terraform, revision, "Terraform Plan Generated Successfully")
 		tfplanData := map[string][]byte{"tfplan": tfplan}
 		tfplanSecret := &corev1.Secret{
@@ -640,6 +669,15 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 			Data: tfplanData,
 		}
 		err = r.Client.Create(ctx, tfplanSecret)
+		if err != nil {
+			err = fmt.Errorf("error recording plan status: %s", err)
+			return infrav1.TerraformNotReady(
+				terraform,
+				revision,
+				infrav1.TFExecPlanFailedReason,
+				err.Error(),
+			), err
+		}
 	} else {
 		terraform = infrav1.TerraformPlannedNoChanges(terraform, revision, "Terraform Plan No Changed")
 	}
