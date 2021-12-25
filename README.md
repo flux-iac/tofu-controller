@@ -1,15 +1,30 @@
 # tf-controller
 
-A Terraform controller for Flux
+`tf-controller` is an experimental controller for Flux to reconcile Terraform resources.
 
 ## Quick start
 
-Here's a simple example of how to GitOps-ify your Terraform resources with TF controller and Flux.
+Here's a simple example of how to GitOps-ify your Terraform resources with `tf-controller` and Flux.
+
+### Define source
+
+```yaml
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: GitRepository
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  interval: 30s
+  url: https://github.com/tf-controller/helloworld
+  ref:
+    branch: main
+```
 
 ### Auto-mode
 
 ```yaml
-apiVersion: infra.contrib.fluxcd.io
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
   name: hello-world
@@ -23,7 +38,7 @@ spec:
     namespace: flux-system
 ```
 
-### Plan and manually approve
+### Plan and manual approval
 
 ```diff
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
