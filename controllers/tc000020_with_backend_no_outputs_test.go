@@ -16,6 +16,10 @@ import (
 // +kubebuilder:docs-gen:collapse=Imports
 
 func Test_0000020_with_backend_no_outputs_test(t *testing.T) {
+
+	when("creating a Terraform object with the auto approve mode, with the backend configured, and having a GitRepository attached to it")
+	it("should obtain the TF program's blob from the Source, unpack it, plan it, and apply it correctly with an output available, and a correct tfstate should be stored as a Secret.")
+
 	const (
 		sourceName    = "test-tf-with-backend-no-output"
 		terraformName = "helloworld-with-backend-no-outputs"

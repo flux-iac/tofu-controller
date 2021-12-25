@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/fluxcd/pkg/apis/meta"
@@ -263,7 +264,8 @@ func TerraformApplied(terraform Terraform, revision string, message string) Terr
 	return terraform
 }
 
-func TerraformPlannedWithChanges(terraform Terraform, revision string, planRev string, message string) Terraform {
+func TerraformPlannedWithChanges(terraform Terraform, revision string, message string) Terraform {
+	planRev := strings.Replace(revision, "/", "-", 1)
 	meta.SetResourceCondition(&terraform, "Plan", metav1.ConditionTrue, "TerraformPlannedSucceed", message)
 	(&terraform).Status.Plan = PlanStatus{
 		LastApplied: terraform.Status.Plan.LastApplied,

@@ -120,7 +120,7 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    "Plan",
 		"Reason":  "TerraformPlannedSucceed",
-		"Pending": "plan-master-b8e362c206",
+		"Pending": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 	}))
 
 	by("checking that the planned secret got created")
@@ -136,15 +136,15 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 			"TFPlanEmpty": string(tfplanSecret.Data["tfplan"]) == "",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":   "plan-master-b8e362c206",
+		"SavedPlan":   "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 		"TFPlanEmpty": false,
 	}))
 
-	by("manually approving the plan.")
+	by("manually approving the plan with partial commit.")
 	createdHelloWorldTF.Spec.ApprovePlan = "plan-master-b8e362c206"
 	g.Expect(k8sClient.Update(ctx, &createdHelloWorldTF)).Should(Succeed())
 
-	by("checking that the applied status of the TF program Successfully, and plan-1 is applied")
+	by("checking that the applied status of the TF program Successfully, and plan-master-b8e362c206 is applied")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -163,7 +163,7 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            "Apply",
 		"Reason":          "TerraformAppliedSucceed",
-		"LastAppliedPlan": "plan-master-b8e362c206",
+		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 	}))
 	// TODO check Output condition
 

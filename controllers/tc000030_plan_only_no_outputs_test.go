@@ -121,7 +121,7 @@ func Test_0000030_plan_only_no_outputs_test(t *testing.T) {
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    "Plan",
 		"Reason":  "TerraformPlannedSucceed",
-		"Pending": "plan-master-b8e362c206",
+		"Pending": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 	}))
 
 	by("checking that the planned secret got created")
@@ -137,7 +137,7 @@ func Test_0000030_plan_only_no_outputs_test(t *testing.T) {
 			"TFPlanEmpty": string(tfplanSecret.Data["tfplan"]) == "",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":   "plan-master-b8e362c206",
+		"SavedPlan":   "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 		"TFPlanEmpty": false,
 	}))
 }

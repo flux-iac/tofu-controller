@@ -127,7 +127,7 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    "Plan",
 		"Reason":  "TerraformPlannedSucceed",
-		"Pending": "plan-master-b8e362c206",
+		"Pending": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 		"Message": "Terraform Plan Generated Successfully",
 	}))
 
@@ -144,7 +144,7 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 			"TFPlanEmpty": string(tfplanSecret.Data["tfplan"]) == "",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":   "plan-master-b8e362c206",
+		"SavedPlan":   "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 		"TFPlanEmpty": false,
 	}))
 
@@ -171,7 +171,7 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            "Apply",
 		"Reason":          "TerraformAppliedSucceed",
-		"LastAppliedPlan": "plan-master-b8e362c206",
+		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 	}))
 	// TODO check Output condition
 
@@ -253,7 +253,7 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            "Plan",
 		"Reason":          "TerraformPlannedSucceed",
-		"LastAppliedPlan": "plan-master-b8e362c206",
-		"Pending":         "plan-master-ed22ced771",
+		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"Pending":         "plan-master-ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
 	}))
 }

@@ -167,11 +167,14 @@ func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
 }
 
 func (r *TerraformReconciler) shouldApply(terraform infrav1.Terraform) bool {
+	// Do no optimize this logic, as we'd like to understand the explanation of the behaviour.
 	if terraform.Spec.ApprovePlan == "" {
 		return false
 	} else if terraform.Spec.ApprovePlan == "auto" && terraform.Status.Plan.Pending != "" {
 		return true
 	} else if terraform.Spec.ApprovePlan == terraform.Status.Plan.Pending {
+		return true
+	} else if strings.HasPrefix(terraform.Status.Plan.Pending, terraform.Spec.ApprovePlan) {
 		return true
 	}
 	return false
@@ -611,22 +614,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 			), err
 		}
 
-		var planRev string
-		parts := strings.SplitN(revision, "/", 2)
-		if len(parts) == 2 {
-			planRev = parts[0] + "-" + parts[1][0:10]
-		} else {
-			err = fmt.Errorf("revision is in the wrong format: %s", revision)
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.TFExecPlanFailedReason,
-				err.Error(),
-			), err
-		}
-
-		terraform = infrav1.TerraformPlannedWithChanges(terraform, revision, planRev, "Terraform Plan Generated Successfully")
-
+		terraform = infrav1.TerraformPlannedWithChanges(terraform, revision, "Terraform Plan Generated Successfully")
 		tfplanData := map[string][]byte{"tfplan": tfplan}
 		tfplanSecret := &corev1.Secret{
 			TypeMeta: metav1.TypeMeta{
