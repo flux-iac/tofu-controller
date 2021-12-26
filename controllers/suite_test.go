@@ -140,9 +140,10 @@ func TestMain(m *testing.M) {
 	}
 
 	err = (&TerraformReconciler{
-		Client:       k8sManager.GetClient(),
-		Scheme:       k8sManager.GetScheme(),
-		StatusPoller: polling.NewStatusPoller(k8sManager.GetClient(), k8sManager.GetRESTMapper()),
+		Client:        k8sManager.GetClient(),
+		Scheme:        k8sManager.GetScheme(),
+		EventRecorder: k8sManager.GetEventRecorderFor("tf-controller"),
+		StatusPoller:  polling.NewStatusPoller(k8sManager.GetClient(), k8sManager.GetRESTMapper()),
 	}).SetupWithManager(k8sManager)
 	if err != nil {
 		panic(err.Error())

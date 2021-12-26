@@ -105,7 +105,7 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 			return -1
 		}
 		return len(createdHelloWorldTF.Status.Conditions)
-	}, timeout*3, interval).Should(Equal(1))
+	}, timeout*3, interval).ShouldNot(BeZero())
 
 	by("checking that the planned status of the TF program is created successfully")
 	g.Eventually(func() map[string]interface{} {
@@ -116,17 +116,17 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Plan" {
 				return map[string]interface{}{
-					"Type":    createdHelloWorldTF.Status.Conditions[0].Type,
-					"Reason":  createdHelloWorldTF.Status.Conditions[0].Reason,
+					"Type":    c.Type,
+					"Reason":  c.Reason,
 					"Pending": createdHelloWorldTF.Status.Plan.Pending,
-					"Message": createdHelloWorldTF.Status.Conditions[0].Message,
+					"Message": c.Message,
 				}
 			}
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    "Plan",
-		"Reason":  "TerraformPlannedSucceed",
+		"Reason":  "TerraformPlannedWithChanges",
 		"Pending": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 		"Message": "Terraform Plan Generated Successfully",
 	}))
@@ -263,6 +263,6 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 		"Reason":          "TerraformAppliedSucceed",
 		"LastAppliedPlan": "plan-master-ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
 		"Pending":         "",
-		"Message":         "Terraform Apply Run Successfully",
+		"Message":         "Terraform Applied Successfully",
 	}))
 }

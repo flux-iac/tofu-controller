@@ -121,19 +121,24 @@ func Test_0000010_no_outputs_test(t *testing.T) {
 
 	it("should have its plan reconciled")
 	by("checking that the Plan's Status of the TF program is Planned Succeed.")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
-		return map[string]interface{}{
-			"Type":    createdHelloWorldTF.Status.Conditions[0].Type,
-			"Reason":  createdHelloWorldTF.Status.Conditions[0].Reason,
-			"Message": createdHelloWorldTF.Status.Conditions[0].Message,
+		for _, c := range createdHelloWorldTF.Status.Conditions {
+			if c.Type == "Plan" {
+				return map[string]interface{}{
+					"Type":    c.Type,
+					"Reason":  c.Reason,
+					"Message": c.Message,
+				}
+			}
 		}
+		return createdHelloWorldTF.Status
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    "Plan",
-		"Reason":  "TerraformPlannedSucceed",
+		"Reason":  "TerraformPlannedWithChanges",
 		"Message": "Terraform Plan Generated Successfully",
 	}))
 
@@ -166,6 +171,7 @@ func Test_0000010_no_outputs_test(t *testing.T) {
 				return map[string]interface{}{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
+					"Message":         c.Message,
 					"LastAppliedPlan": createdHelloWorldTF.Status.Plan.LastApplied,
 				}
 			}
@@ -174,6 +180,7 @@ func Test_0000010_no_outputs_test(t *testing.T) {
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            "Apply",
 		"Reason":          "TerraformAppliedSucceed",
+		"Message":         "Terraform Applied Successfully",
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 	}))
 	// TODO check Output condition

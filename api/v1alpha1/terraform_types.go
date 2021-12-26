@@ -206,17 +206,17 @@ const (
 	TerraformFinalizer        = "finalizers.tf.contrib.fluxcd.io"
 	MaxConditionMessageLength = 20000
 	DisabledValue             = "disabled"
-	HealthyCondition          = "Healthy"
 
 	// ArtifactFailedReason represents the fact that the
 	// source artifact download failed.
 	ArtifactFailedReason = "ArtifactFailed"
 
-	TFExecInstallFailedReason = "TFExecInstallFailed"
-	TFExecNewFailedReason     = "TFExecNewFailed"
-	TFExecInitFailedReason    = "TFExecInitFailed"
-	TFExecPlanFailedReason    = "TFExecPlanFailed"
-	TFExecApplyFailedReason   = "TFExecApplyFailed"
+	TFExecNewFailedReason      = "TFExecNewFailed"
+	TFExecInitFailedReason     = "TFExecInitFailed"
+	TFExecPlanFailedReason     = "TFExecPlanFailed"
+	TFExecApplyFailedReason    = "TFExecApplyFailed"
+	TFExecOutputFailedReason   = "TFExecOutputFailed"
+	OutputsWritingFailedReason = "OutputsWritingFailed"
 )
 
 // SetKustomizationReadiness sets the ReadyCondition, ObservedGeneration, and LastAttemptedRevision, on the Kustomization.
@@ -240,14 +240,22 @@ func SetTerraformReadiness(terraform *Terraform, status metav1.ConditionStatus, 
 	terraform.Status.LastAttemptedRevision = revision
 }
 
-func TerraformApplying(terraform Terraform, message string) Terraform {
+func TerraformApplying(terraform Terraform, revision string, message string) Terraform {
 	meta.SetResourceCondition(&terraform, "Apply", metav1.ConditionUnknown, meta.ProgressingReason, message)
+	if revision != "" {
+		(&terraform).Status.LastAppliedRevision = revision
+	}
 	return terraform
 }
 
-func TerraformOutputAvailable(terraform Terraform, availableOutputs []string, message string) Terraform {
-	meta.SetResourceCondition(&terraform, "Output", metav1.ConditionTrue, "TerraformOutputAvailable", message)
+func TerraformOutputsAvailable(terraform Terraform, availableOutputs []string, message string) Terraform {
+	meta.SetResourceCondition(&terraform, "Output", metav1.ConditionTrue, "TerraformOutputsAvailable", message)
 	(&terraform).Status.AvailableOutputs = availableOutputs
+	return terraform
+}
+
+func TerraformOutputsWritten(terraform Terraform, message string) Terraform {
+	meta.SetResourceCondition(&terraform, "Output", metav1.ConditionTrue, "TerraformOutputsWritten", message)
 	return terraform
 }
 
@@ -266,7 +274,7 @@ func TerraformApplied(terraform Terraform, revision string, message string) Terr
 
 func TerraformPlannedWithChanges(terraform Terraform, revision string, message string) Terraform {
 	planRev := strings.Replace(revision, "/", "-", 1)
-	meta.SetResourceCondition(&terraform, "Plan", metav1.ConditionTrue, "TerraformPlannedSucceed", message)
+	meta.SetResourceCondition(&terraform, "Plan", metav1.ConditionTrue, "TerraformPlannedWithChanges", message)
 	(&terraform).Status.Plan = PlanStatus{
 		LastApplied: terraform.Status.Plan.LastApplied,
 		Pending:     fmt.Sprintf("plan-%s", planRev),
@@ -274,11 +282,13 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, message s
 	if revision != "" {
 		(&terraform).Status.LastAttemptedRevision = revision
 	}
+
+	SetTerraformReadiness(&terraform, metav1.ConditionUnknown, "TerraformPlannedWithChanges", message, revision)
 	return terraform
 }
 
 func TerraformPlannedNoChanges(terraform Terraform, revision string, message string) Terraform {
-	meta.SetResourceCondition(&terraform, "Plan", metav1.ConditionFalse, "TerraformPlannedSucceed", message)
+	meta.SetResourceCondition(&terraform, "Plan", metav1.ConditionFalse, "TerraformPlannedNoChanges", message)
 	(&terraform).Status.Plan = PlanStatus{
 		LastApplied: terraform.Status.Plan.LastApplied,
 		Pending:     "",
@@ -286,6 +296,8 @@ func TerraformPlannedNoChanges(terraform Terraform, revision string, message str
 	if revision != "" {
 		(&terraform).Status.LastAttemptedRevision = revision
 	}
+
+	SetTerraformReadiness(&terraform, metav1.ConditionTrue, "TerraformPlannedNoChanges", message, revision)
 	return terraform
 }
 

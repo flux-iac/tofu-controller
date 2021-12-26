@@ -30,6 +30,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sort"
 	"strings"
 	"time"
@@ -102,17 +103,40 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	// Record suspended status metric
+	defer r.recordSuspensionMetric(ctx, terraform)
+
+	// Add our finalizer if it does not exist
+	if !controllerutil.ContainsFinalizer(&terraform, infrav1.TerraformFinalizer) {
+		controllerutil.AddFinalizer(&terraform, infrav1.TerraformFinalizer)
+		if err := r.Update(ctx, &terraform); err != nil {
+			log.Error(err, "unable to register finalizer")
+			return ctrl.Result{}, err
+		}
+	}
+
+	// Examine if the object is under deletion
+	if !terraform.ObjectMeta.DeletionTimestamp.IsZero() {
+		return r.finalize(ctx, terraform)
+	}
+
+	// Return early if the Kustomization is suspended.
+	if terraform.Spec.Suspend {
+		log.Info("Reconciliation is suspended for this object")
+		return ctrl.Result{}, nil
+	}
+
 	// resolve source reference
-	source, err := r.getSource(ctx, terraform)
+	sourceObj, err := r.getSource(ctx, terraform)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			msg := fmt.Sprintf("Source '%s' not found", terraform.Spec.SourceRef.String())
 			terraform = infrav1.TerraformNotReady(terraform, "", infrav1.ArtifactFailedReason, msg)
-			if err := r.patchStatus(ctx, req, terraform.Status); err != nil {
+			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
 				log.Error(err, "unable to update status for source not found")
 				return ctrl.Result{Requeue: true}, err
 			}
-			r.recordReadiness(ctx, terraform)
+			r.recordReadinessMetric(ctx, terraform)
 			log.Info(msg)
 			// do not requeue immediately, when the source is created the watcher should trigger a reconciliation
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
@@ -122,38 +146,39 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 	}
 
-	if source.GetArtifact() == nil {
+	if sourceObj.GetArtifact() == nil {
 		msg := "Source is not ready, artifact not found"
 		terraform = infrav1.TerraformNotReady(terraform, "", infrav1.ArtifactFailedReason, msg)
-		if err := r.patchStatus(ctx, req, terraform.Status); err != nil {
+		if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
 			log.Error(err, "unable to update status for artifact not found")
 			return ctrl.Result{Requeue: true}, err
 		}
-		r.recordReadiness(ctx, terraform)
+		r.recordReadinessMetric(ctx, terraform)
 		log.Info(msg)
 		// do not requeue immediately, when the artifact is created the watcher should trigger a reconciliation
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	}
 
 	// reconcile Terraform by applying the latest revision
-	reconciledTerraform, reconcileErr := r.reconcile(ctx, *terraform.DeepCopy(), source)
-	if err := r.patchStatus(ctx, req, reconciledTerraform.Status); err != nil {
+	reconciledTerraform, reconcileErr := r.reconcile(ctx, *terraform.DeepCopy(), sourceObj)
+	if err := r.patchStatus(ctx, req.NamespacedName, reconciledTerraform.Status); err != nil {
 		log.Error(err, "unable to update status after reconciliation")
 		return ctrl.Result{Requeue: true}, err
 	}
+	r.recordReadinessMetric(ctx, reconciledTerraform)
 
-	r.recordReadiness(ctx, reconciledTerraform)
 	// broadcast the reconciliation failure and requeue at the specified retry interval
 	if reconcileErr != nil {
 		log.Error(reconcileErr, fmt.Sprintf("Reconciliation failed after %s, next try in %s",
 			time.Since(reconcileStart).String(),
 			terraform.GetRetryInterval().String()),
 			"revision",
-			source.GetArtifact().Revision)
-		// TODO r.event(ctx, reconciledTerraform, source.GetArtifact().Revision, events.EventSeverityError, reconcileErr.Error(), nil)
+			sourceObj.GetArtifact().Revision)
+		r.fireEvent(ctx, reconciledTerraform, sourceObj.GetArtifact().Revision, events.EventSeverityError, reconcileErr.Error(), nil)
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	}
 
+	// next reconcile is .Spec.Interval in the future
 	return ctrl.Result{RequeueAfter: terraform.Spec.Interval.Duration}, nil
 }
 
@@ -181,13 +206,25 @@ func (r *TerraformReconciler) shouldApply(terraform infrav1.Terraform) bool {
 	return false
 }
 
-func (r *TerraformReconciler) reconcile(
-	ctx context.Context,
-	terraform infrav1.Terraform,
-	source sourcev1.Source) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) shouldWriteOutputs(terraform infrav1.Terraform, outputs map[string]tfexec.OutputMeta) bool {
+	if terraform.Spec.WriteOutputsToSecret != nil && len(outputs) > 0 {
+		return true
+	}
+
+	return false
+}
+
+func (r *TerraformReconciler) reconcile(ctx context.Context, terraform infrav1.Terraform, sourceObj sourcev1.Source) (infrav1.Terraform, error) {
 
 	log := logr.FromContext(ctx)
-	revision := source.GetArtifact().Revision
+	revision := sourceObj.GetArtifact().Revision
+	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
+
+	terraform = infrav1.TerraformProgressing(terraform, "Terraform Initializing")
+	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+		log.Error(err, "unable to update status before Terraform initialization")
+		return terraform, err
+	}
 
 	// create tmp dir
 	tmpDir, err := os.MkdirTemp("", fmt.Sprintf("%s-%s-", terraform.Namespace, terraform.Name))
@@ -201,10 +238,11 @@ func (r *TerraformReconciler) reconcile(
 		), err
 	}
 	defer os.RemoveAll(tmpDir)
+
 	log.Info("tmpDir created", "tmpDir", tmpDir)
 
 	// download artifact and extract files
-	err = r.download(source.GetArtifact(), tmpDir)
+	err = r.download(sourceObj.GetArtifact(), tmpDir)
 	if err != nil {
 		return infrav1.TerraformNotReady(
 			terraform,
@@ -320,7 +358,7 @@ terraform {
 		), err
 	}
 
-	log.Info("init terraform")
+	log.Info("tfexec init terraform")
 	// Progress to Initialized
 
 	if r.shouldPlan(terraform) {
@@ -328,182 +366,52 @@ terraform {
 		if err != nil {
 			return terraform, err
 		}
+
+		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			log.Error(err, "unable to update status after planing")
+			return terraform, err
+		}
+
 	}
 
+	outputs := map[string]tfexec.OutputMeta{}
 	if r.shouldApply(terraform) {
-		terraform, err = r.apply(ctx, terraform, tf, revision)
+		terraform, err = r.apply(ctx, terraform, tf, revision, &outputs)
 		if err != nil {
+			return terraform, err
+		}
+
+		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			log.Error(err, "unable to update status after applying")
 			return terraform, err
 		}
 	}
 
-	return terraform, nil
-}
-
-func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terraform, tf *tfexec.Terraform, revision string) (infrav1.Terraform, error) {
-
-	const (
-		TFPlanName           = "tfplan"
-		SavedPlanSecretLabel = "savedPlan"
-	)
-
-	tfplanSecretKey := types.NamespacedName{Namespace: terraform.Namespace, Name: "tfplan-default-" + terraform.Name}
-	tfplanSecret := corev1.Secret{}
-	err := r.Get(ctx, tfplanSecretKey, &tfplanSecret)
-	if err != nil {
-		err = fmt.Errorf("error getting plan secret: %s", err)
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			infrav1.TFExecApplyFailedReason,
-			err.Error(),
-		), err
-	}
-
-	if tfplanSecret.Labels[SavedPlanSecretLabel] != terraform.Status.Plan.Pending {
-		err = fmt.Errorf("error pending plan and plan's name in the secret are not matched: %s != %s",
-			terraform.Status.Plan.Pending,
-			tfplanSecret.Labels[SavedPlanSecretLabel])
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			infrav1.TFExecApplyFailedReason,
-			err.Error(),
-		), err
-	}
-
-	tfplan := tfplanSecret.Data[TFPlanName]
-	err = ioutil.WriteFile(filepath.Join(tf.WorkingDir(), TFPlanName), tfplan, 0644)
-	if err != nil {
-		err = fmt.Errorf("error saving plan file to disk: %s", err)
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			infrav1.TFExecApplyFailedReason,
-			err.Error(),
-		), err
-	}
-
-	tf.SetStdout(os.Stderr)
-	tf.SetStdout(os.Stderr)
-	if err := tf.Apply(ctx, tfexec.DirOrPlan(TFPlanName)); err != nil {
-		err = fmt.Errorf("error running Apply: %s", err)
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			infrav1.TFExecApplyFailedReason,
-			err.Error(),
-		), err
-	}
-
-	terraform = infrav1.TerraformApplied(terraform, revision, "Terraform Apply Run Successfully")
-	if err := r.Status().Update(ctx, &terraform); err != nil {
-		err = fmt.Errorf("error recording apply status: %s", err)
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			infrav1.TFExecApplyFailedReason,
-			err.Error(),
-		), err
-	}
-	tf.SetStdout(nil)
-	tf.SetStdout(nil)
-
-	outputs, err := tf.Output(ctx)
-	if err != nil {
-		// TODO should not be this Error
-		// warning-like status is enough
-		err = fmt.Errorf("error running Show: %s", err)
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			infrav1.ArtifactFailedReason,
-			err.Error(),
-		), err
-	}
-
-	var availableOutputs []string
-	for k := range outputs {
-		availableOutputs = append(availableOutputs, k)
-	}
-	if len(availableOutputs) > 0 {
-		sort.Strings(availableOutputs)
-		terraform = infrav1.TerraformOutputAvailable(terraform, availableOutputs, "Terraform Outputs Available")
-		err = r.Status().Update(ctx, &terraform)
+	if r.shouldWriteOutputs(terraform, outputs) {
+		terraform, err = r.writeOutput(ctx, terraform, outputs, revision)
 		if err != nil {
-			err = fmt.Errorf("error updating Output condition: %s", err)
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.ArtifactFailedReason,
-				err.Error(),
-			), err
-		}
-	}
-
-	/*
-		state, err := tf.Show(context.Background())
-		if err != nil {
-			err = fmt.Errorf("error running Show: %s", err)
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.ArtifactFailedReason,
-				err.Error(),
-			), err
-		}
-		fmt.Println(state.FormatVersion) // "0.1"
-	*/
-
-	if terraform.Spec.WriteOutputsToSecret != nil {
-		wots := terraform.Spec.WriteOutputsToSecret
-		data := map[string][]byte{}
-
-		// not specified .spec.writeOutputsToSecret.outputs means export all
-		if len(wots.Outputs) == 0 {
-			for output, v := range outputs {
-				outputBytes, err := json.Marshal(v)
-				if err != nil {
-					return terraform, err
-				}
-				data[output] = outputBytes
-			}
-		} else {
-			// filter only defined output
-			for _, output := range wots.Outputs {
-				v := outputs[output]
-				bytes, _ := json.Marshal(v)
-				data[output] = bytes
-			}
+			return terraform, err
 		}
 
-		outputSecret := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      terraform.Spec.WriteOutputsToSecret.Name,
-				Namespace: terraform.GetNamespace(),
-				OwnerReferences: []metav1.OwnerReference{
-					{
-						APIVersion: terraform.APIVersion,
-						Kind:       terraform.Kind,
-						Name:       terraform.GetName(),
-						UID:        terraform.GetUID(),
-					},
-				},
-			},
-			Type: corev1.SecretTypeOpaque,
-			Data: data,
-		}
-
-		err = r.Client.Create(ctx, outputSecret)
-		if err != nil {
-			// TODO how to handle this kind of error?
+		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			log.Error(err, "unable to update status after writing outputs")
 			return terraform, err
 		}
 	}
+
 	return terraform, nil
 }
 
 func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraform, tf *tfexec.Terraform, revision string) (infrav1.Terraform, error) {
+
+	log := logr.FromContext(ctx)
+	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
+
+	terraform = infrav1.TerraformProgressing(terraform, "Terraform Planning")
+	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+		log.Error(err, "unable to update status before Terraform planning")
+		return terraform, err
+	}
 
 	vars := map[string]string{}
 	if len(terraform.Spec.Vars) > 0 {
@@ -682,17 +590,193 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		terraform = infrav1.TerraformPlannedNoChanges(terraform, revision, "Terraform Plan No Changed")
 	}
 
-	err = r.Status().Update(ctx, &terraform)
+	return terraform, nil
+}
+
+func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terraform, tf *tfexec.Terraform, revision string, outputs *map[string]tfexec.OutputMeta) (infrav1.Terraform, error) {
+
+	const (
+		TFPlanName           = "tfplan"
+		SavedPlanSecretLabel = "savedPlan"
+	)
+
+	log := logr.FromContext(ctx)
+	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
+
+	terraform = infrav1.TerraformProgressing(terraform, "Terraform Applying")
+	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+		log.Error(err, "unable to update status before Terraform applying")
+		return terraform, err
+	}
+
+	tfplanSecretKey := types.NamespacedName{Namespace: terraform.Namespace, Name: "tfplan-default-" + terraform.Name}
+	tfplanSecret := corev1.Secret{}
+	err := r.Get(ctx, tfplanSecretKey, &tfplanSecret)
 	if err != nil {
-		err = fmt.Errorf("error recording plan status: %s", err)
+		err = fmt.Errorf("error getting plan secret: %s", err)
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
-			infrav1.TFExecPlanFailedReason,
+			infrav1.TFExecApplyFailedReason,
 			err.Error(),
 		), err
 	}
+
+	if tfplanSecret.Labels[SavedPlanSecretLabel] != terraform.Status.Plan.Pending {
+		err = fmt.Errorf("error pending plan and plan's name in the secret are not matched: %s != %s",
+			terraform.Status.Plan.Pending,
+			tfplanSecret.Labels[SavedPlanSecretLabel])
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.TFExecApplyFailedReason,
+			err.Error(),
+		), err
+	}
+
+	tfplan := tfplanSecret.Data[TFPlanName]
+	err = ioutil.WriteFile(filepath.Join(tf.WorkingDir(), TFPlanName), tfplan, 0644)
+	if err != nil {
+		err = fmt.Errorf("error saving plan file to disk: %s", err)
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.TFExecApplyFailedReason,
+			err.Error(),
+		), err
+	}
+
+	terraform = infrav1.TerraformApplying(terraform, revision, "Terraform Apply Started")
+	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+		log.Error(err, "error recording apply status: %s", err)
+		return terraform, err
+	}
+
+	tf.SetStdout(os.Stderr)
+	tf.SetStderr(os.Stderr)
+	if err := tf.Apply(ctx, tfexec.DirOrPlan(TFPlanName)); err != nil {
+		err = fmt.Errorf("error running Apply: %s", err)
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.TFExecApplyFailedReason,
+			err.Error(),
+		), err
+	}
+
+	terraform = infrav1.TerraformApplied(terraform, revision, "Terraform Applied Successfully")
+	tf.SetStdout(nil)
+	tf.SetStderr(nil)
+
+	*outputs, err = tf.Output(ctx)
+	if err != nil {
+		// TODO should not be this Error
+		// warning-like status is enough
+		err = fmt.Errorf("error running Output: %s", err)
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.TFExecOutputFailedReason,
+			err.Error(),
+		), err
+	}
+
+	var availableOutputs []string
+	for k := range *outputs {
+		availableOutputs = append(availableOutputs, k)
+	}
+	if len(availableOutputs) > 0 {
+		sort.Strings(availableOutputs)
+		terraform = infrav1.TerraformOutputsAvailable(terraform, availableOutputs, "Terraform Outputs Available")
+	}
+
 	return terraform, nil
+}
+
+func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1.Terraform, outputs map[string]tfexec.OutputMeta, revision string) (infrav1.Terraform, error) {
+	/*
+		state, err := tf.Show(context.Background())
+		if err != nil {
+			err = fmt.Errorf("error running Show: %s", err)
+			return infrav1.TerraformNotReady(
+				terraform,
+				revision,
+				infrav1.ArtifactFailedReason,
+				err.Error(),
+			), err
+		}
+		fmt.Println(state.FormatVersion) // "0.1"
+	*/
+	wots := terraform.Spec.WriteOutputsToSecret
+	data := map[string][]byte{}
+
+	// not specified .spec.writeOutputsToSecret.outputs means export all
+	if len(wots.Outputs) == 0 {
+		for output, v := range outputs {
+			outputBytes, err := json.Marshal(v)
+			if err != nil {
+				return terraform, err
+			}
+			data[output] = outputBytes
+		}
+	} else {
+		// filter only defined output
+		for _, output := range wots.Outputs {
+			v := outputs[output]
+			dataBytes, _ := json.Marshal(v)
+			data[output] = dataBytes
+		}
+	}
+
+	objectKey := types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.Spec.WriteOutputsToSecret.Name}
+	var outputSecret corev1.Secret
+
+	if err := r.Client.Get(ctx, objectKey, &outputSecret); err == nil {
+		if err := r.Client.Delete(ctx, &outputSecret); err != nil {
+			return infrav1.TerraformNotReady(
+				terraform,
+				revision,
+				infrav1.OutputsWritingFailedReason,
+				err.Error(),
+			), err
+		}
+	} else if apierrors.IsNotFound(err) == false {
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.OutputsWritingFailedReason,
+			err.Error(),
+		), err
+	}
+
+	outputSecret = corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      terraform.Spec.WriteOutputsToSecret.Name,
+			Namespace: terraform.GetNamespace(),
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					APIVersion: terraform.APIVersion,
+					Kind:       terraform.Kind,
+					Name:       terraform.GetName(),
+					UID:        terraform.GetUID(),
+				},
+			},
+		},
+		Type: corev1.SecretTypeOpaque,
+		Data: data,
+	}
+
+	err := r.Client.Create(ctx, &outputSecret)
+	if err != nil {
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.OutputsWritingFailedReason,
+			err.Error(),
+		), err
+	}
+
+	return infrav1.TerraformOutputsWritten(terraform, "Terraform Outputs Written"), nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -779,7 +863,7 @@ func (r *TerraformReconciler) requestsForRevisionChangeOf(indexKey string) func(
 }
 
 func (r *TerraformReconciler) getSource(ctx context.Context, terraform infrav1.Terraform) (sourcev1.Source, error) {
-	var source sourcev1.Source
+	var sourceObj sourcev1.Source
 	sourceNamespace := terraform.GetNamespace()
 	if terraform.Spec.SourceRef.Namespace != "" {
 		sourceNamespace = terraform.Spec.SourceRef.Namespace
@@ -794,26 +878,26 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform infrav1.T
 		err := r.Client.Get(ctx, namespacedName, &repository)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				return source, err
+				return sourceObj, err
 			}
-			return source, fmt.Errorf("unable to get source '%s': %w", namespacedName, err)
+			return sourceObj, fmt.Errorf("unable to get source '%s': %w", namespacedName, err)
 		}
-		source = &repository
+		sourceObj = &repository
 	case sourcev1.BucketKind:
 		var bucket sourcev1.Bucket
 		err := r.Client.Get(ctx, namespacedName, &bucket)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				return source, err
+				return sourceObj, err
 			}
-			return source, fmt.Errorf("unable to get source '%s': %w", namespacedName, err)
+			return sourceObj, fmt.Errorf("unable to get source '%s': %w", namespacedName, err)
 		}
-		source = &bucket
+		sourceObj = &bucket
 	default:
-		return source, fmt.Errorf("source `%s` kind '%s' not supported",
+		return sourceObj, fmt.Errorf("source `%s` kind '%s' not supported",
 			terraform.Spec.SourceRef.Name, terraform.Spec.SourceRef.Kind)
 	}
-	return source, nil
+	return sourceObj, nil
 }
 
 func (r *TerraformReconciler) download(artifact *sourcev1.Artifact, tmpDir string) error {
@@ -858,28 +942,29 @@ func (r *TerraformReconciler) download(artifact *sourcev1.Artifact, tmpDir strin
 	return nil
 }
 
-func (r *TerraformReconciler) recordReadiness(ctx context.Context, kustomization infrav1.Terraform) {
+func (r *TerraformReconciler) recordReadinessMetric(ctx context.Context, terraform infrav1.Terraform) {
 	if r.MetricsRecorder == nil {
 		return
 	}
 	log := logr.FromContext(ctx)
 
-	objRef, err := reference.GetReference(r.Scheme, &kustomization)
+	objRef, err := reference.GetReference(r.Scheme, &terraform)
 	if err != nil {
 		log.Error(err, "unable to record readiness metric")
 		return
 	}
-	if rc := apimeta.FindStatusCondition(kustomization.Status.Conditions, meta.ReadyCondition); rc != nil {
-		r.MetricsRecorder.RecordCondition(*objRef, *rc, !kustomization.DeletionTimestamp.IsZero())
+	if rc := apimeta.FindStatusCondition(terraform.Status.Conditions, meta.ReadyCondition); rc != nil {
+		r.MetricsRecorder.RecordCondition(*objRef, *rc,
+			!terraform.DeletionTimestamp.IsZero())
 	} else {
 		r.MetricsRecorder.RecordCondition(*objRef, metav1.Condition{
 			Type:   meta.ReadyCondition,
 			Status: metav1.ConditionUnknown,
-		}, !kustomization.DeletionTimestamp.IsZero())
+		}, !terraform.DeletionTimestamp.IsZero())
 	}
 }
 
-func (r *TerraformReconciler) recordSuspension(ctx context.Context, terraform infrav1.Terraform) {
+func (r *TerraformReconciler) recordSuspensionMetric(ctx context.Context, terraform infrav1.Terraform) {
 	if r.MetricsRecorder == nil {
 		return
 	}
@@ -898,9 +983,9 @@ func (r *TerraformReconciler) recordSuspension(ctx context.Context, terraform in
 	}
 }
 
-func (r *TerraformReconciler) patchStatus(ctx context.Context, req ctrl.Request, newStatus infrav1.TerraformStatus) error {
+func (r *TerraformReconciler) patchStatus(ctx context.Context, objectKey types.NamespacedName, newStatus infrav1.TerraformStatus) error {
 	var terraform infrav1.Terraform
-	if err := r.Get(ctx, req.NamespacedName, &terraform); err != nil {
+	if err := r.Get(ctx, objectKey, &terraform); err != nil {
 		return err
 	}
 
@@ -951,7 +1036,7 @@ func (r *TerraformReconciler) indexBy(kind string) func(o client.Object) []strin
 	}
 }
 
-func (r *TerraformReconciler) event(ctx context.Context, terraform infrav1.Terraform, revision, severity, msg string, metadata map[string]string) {
+func (r *TerraformReconciler) fireEvent(ctx context.Context, terraform infrav1.Terraform, revision, severity, msg string, metadata map[string]string) {
 	log := logr.FromContext(ctx)
 
 	annotations := map[string]string{
@@ -988,4 +1073,8 @@ func (r *TerraformReconciler) event(ctx context.Context, terraform infrav1.Terra
 			return
 		}
 	}
+}
+
+func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Terraform) (ctrl.Result, error) {
+	return ctrl.Result{}, nil
 }

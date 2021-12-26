@@ -157,7 +157,7 @@ func Test_0000020_with_backend_no_outputs_test(t *testing.T) {
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":   "Output",
-		"Reason": "TerraformOutputAvailable",
+		"Reason": "TerraformOutputsAvailable",
 	}))
 
 	by("checking that we have outputs available in the TF object")

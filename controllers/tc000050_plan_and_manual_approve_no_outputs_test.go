@@ -104,7 +104,7 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 			return -1
 		}
 		return len(createdHelloWorldTF.Status.Conditions)
-	}, timeout*3, interval).Should(Equal(1))
+	}, timeout*3, interval).ShouldNot(BeZero())
 
 	by("checking that the planned status of the TF program is created successfully")
 	g.Eventually(func() map[string]interface{} {
@@ -112,14 +112,19 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 		if err != nil {
 			return nil
 		}
-		return map[string]interface{}{
-			"Type":    createdHelloWorldTF.Status.Conditions[0].Type,
-			"Reason":  createdHelloWorldTF.Status.Conditions[0].Reason,
-			"Pending": createdHelloWorldTF.Status.Plan.Pending,
+		for _, c := range createdHelloWorldTF.Status.Conditions {
+			if c.Type == "Plan" {
+				return map[string]interface{}{
+					"Type":    c.Type,
+					"Reason":  c.Reason,
+					"Pending": createdHelloWorldTF.Status.Plan.Pending,
+				}
+			}
 		}
+		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    "Plan",
-		"Reason":  "TerraformPlannedSucceed",
+		"Reason":  "TerraformPlannedWithChanges",
 		"Pending": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 	}))
 
