@@ -31,7 +31,7 @@ metadata:
   namespace: flux-system
 spec:
   approvePlan: "auto"
-  path: ./terraform-hello-world-example
+  path: ./
   sourceRef:
     kind: GitRepository
     name: helloworld
@@ -44,15 +44,15 @@ spec:
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
-  name: hello-world
+  name: helloworld
   namespace: flux-system
 spec:
 - approvePlan: "auto"
 + approvePlan: "" # or you can omit this field 
-  path: ./terraform-hello-world-example
+  path: ./
   sourceRef:
     kind: GitRepository
-    name: infra-repo
+    name: helloworld
     namespace: flux-system
 ```
 
@@ -66,11 +66,11 @@ metadata:
   namespace: flux-system
 spec:
 - approvePlan: ""
-+ approvePlan: "plan-main-b8e362c206" # the format is plan-$(branch name)-$(10 digits of commit)
-  path: ./terraform-hello-world-example
++ approvePlan: "plan-main-b8e362c206" # first 8 digits of a commit hash is enough
+  path: ./
   sourceRef:
     kind: GitRepository
-    name: infra-repo
+    name: helloworld
     namespace: flux-system
 ```
 

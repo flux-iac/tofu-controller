@@ -110,8 +110,8 @@ type TerraformSpec struct {
 	// +optional
 	Timeout *metav1.Duration `json:"timeout,omitempty"`
 
-	// Force instructs the controller to recreate resources
-	// when patching fails due to an immutable field change.
+	// Force instructs the controller to unconditionally
+	// re-plan and re-apply TF resources. Defaults to false.
 	// +kubebuilder:default:=false
 	// +optional
 	Force bool `json:"force,omitempty"`
