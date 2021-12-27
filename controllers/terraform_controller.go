@@ -242,7 +242,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, terraform infrav1.T
 	log.Info("tmpDir created", "tmpDir", tmpDir)
 
 	// download artifact and extract files
-	err = r.download(sourceObj.GetArtifact(), tmpDir)
+	err = r.downloadAndExtract(sourceObj.GetArtifact(), tmpDir)
 	if err != nil {
 		return infrav1.TerraformNotReady(
 			terraform,
@@ -900,7 +900,7 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform infrav1.T
 	return sourceObj, nil
 }
 
-func (r *TerraformReconciler) download(artifact *sourcev1.Artifact, tmpDir string) error {
+func (r *TerraformReconciler) downloadAndExtract(artifact *sourcev1.Artifact, tmpDir string) error {
 	artifactURL := artifact.URL
 	if hostname := os.Getenv("SOURCE_CONTROLLER_LOCALHOST"); hostname != "" {
 		u, err := url.Parse(artifactURL)
