@@ -254,8 +254,10 @@ func TerraformOutputsAvailable(terraform Terraform, availableOutputs []string, m
 	return terraform
 }
 
-func TerraformOutputsWritten(terraform Terraform, message string) Terraform {
+func TerraformOutputsWritten(terraform Terraform, revision string, message string) Terraform {
 	meta.SetResourceCondition(&terraform, "Output", metav1.ConditionTrue, "TerraformOutputsWritten", message)
+
+	SetTerraformReadiness(&terraform, metav1.ConditionTrue, "TerraformOutputsWritten", message, revision)
 	return terraform
 }
 

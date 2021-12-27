@@ -184,6 +184,10 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
 	// Do not optimize this. We'll add other criteria later to infer plan actions
+	if terraform.Spec.Force {
+		return true
+	}
+
 	if terraform.Status.Plan.Pending == "" {
 		return true
 	} else if terraform.Status.Plan.Pending != "" {
@@ -194,6 +198,10 @@ func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
 
 func (r *TerraformReconciler) shouldApply(terraform infrav1.Terraform) bool {
 	// Do no optimize this logic, as we'd like to understand the explanation of the behaviour.
+	if terraform.Spec.Force {
+		return true
+	}
+
 	if terraform.Spec.ApprovePlan == "" {
 		return false
 	} else if terraform.Spec.ApprovePlan == "auto" && terraform.Status.Plan.Pending != "" {
@@ -429,7 +437,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		if vf.Kind == "Secret" {
 			var s corev1.Secret
 			err := r.Get(ctx, objectKey, &s)
-			if err != nil && vf.Optional == true {
+			if err != nil && vf.Optional == false {
 				return infrav1.TerraformNotReady(
 					terraform,
 					revision,
@@ -450,7 +458,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		} else if vf.Kind == "ConfigMap" {
 			var cm corev1.ConfigMap
 			err := r.Get(ctx, objectKey, &cm)
-			if err != nil && vf.Optional == true {
+			if err != nil && vf.Optional == false {
 				return infrav1.TerraformNotReady(
 					terraform,
 					revision,
@@ -776,7 +784,7 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 		), err
 	}
 
-	return infrav1.TerraformOutputsWritten(terraform, "Terraform Outputs Written"), nil
+	return infrav1.TerraformOutputsWritten(terraform, revision, "Terraform Outputs Written"), nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
