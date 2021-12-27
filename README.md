@@ -27,14 +27,14 @@ spec:
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
-  name: hello-world
+  name: helloworld
   namespace: flux-system
 spec:
   approvePlan: "auto"
   path: ./terraform-hello-world-example
   sourceRef:
     kind: GitRepository
-    name: infra-repo
+    name: helloworld
     namespace: flux-system
 ```
 
