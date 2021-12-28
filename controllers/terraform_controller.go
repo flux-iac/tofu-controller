@@ -508,6 +508,10 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	}
 
 	opts := []tfexec.PlanOption{tfexec.Out("tfplan")}
+	if terraform.Spec.Destroy {
+		opts = append(opts, tfexec.Destroy(true))
+	}
+
 	drifted, err := tf.Plan(ctx, opts...)
 	if err != nil {
 		err = fmt.Errorf("error running Plan: %s", err)
@@ -757,36 +761,40 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 		), err
 	}
 
-	block := true
-	outputSecret = corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      terraform.Spec.WriteOutputsToSecret.Name,
-			Namespace: terraform.GetNamespace(),
-			OwnerReferences: []metav1.OwnerReference{
-				{
-					APIVersion:         terraform.APIVersion,
-					Kind:               terraform.Kind,
-					Name:               terraform.GetName(),
-					UID:                terraform.GetUID(),
-					BlockOwnerDeletion: &block,
+	if len(data) == 0 || terraform.Spec.Destroy == true {
+		return infrav1.TerraformOutputsWritten(terraform, revision, "Terraform No Outputs Written"), nil
+	} else {
+		block := true
+		outputSecret = corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      terraform.Spec.WriteOutputsToSecret.Name,
+				Namespace: terraform.GetNamespace(),
+				OwnerReferences: []metav1.OwnerReference{
+					{
+						APIVersion:         terraform.APIVersion,
+						Kind:               terraform.Kind,
+						Name:               terraform.GetName(),
+						UID:                terraform.GetUID(),
+						BlockOwnerDeletion: &block,
+					},
 				},
 			},
-		},
-		Type: corev1.SecretTypeOpaque,
-		Data: data,
+			Type: corev1.SecretTypeOpaque,
+			Data: data,
+		}
+
+		err := r.Client.Create(ctx, &outputSecret)
+		if err != nil {
+			return infrav1.TerraformNotReady(
+				terraform,
+				revision,
+				infrav1.OutputsWritingFailedReason,
+				err.Error(),
+			), err
+		}
+		return infrav1.TerraformOutputsWritten(terraform, revision, "Terraform Outputs Written"), nil
 	}
 
-	err := r.Client.Create(ctx, &outputSecret)
-	if err != nil {
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			infrav1.OutputsWritingFailedReason,
-			err.Error(),
-		), err
-	}
-
-	return infrav1.TerraformOutputsWritten(terraform, revision, "Terraform Outputs Written"), nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

@@ -56,6 +56,10 @@ spec:
                   secretSuffix:
                     type: string
                 type: object
+              destroy:
+                description: Destroy produces a destroy plan. Applying the plan will
+                  destroy all resources.
+                type: boolean
               force:
                 default: false
                 description: Force instructs the controller to unconditionally re-plan
@@ -354,6 +358,8 @@ spec:
                 type: integer
               plan:
                 properties:
+                  isDestroyPlan:
+                    type: boolean
                   lastApplied:
                     type: string
                   pending:

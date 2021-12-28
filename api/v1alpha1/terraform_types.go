@@ -62,6 +62,10 @@ type TerraformSpec struct {
 	// +optional
 	ApprovePlan string `json:"approvePlan,omitempty"`
 
+	// Destroy produces a destroy plan. Applying the plan will destroy all resources.
+	// +optional
+	Destroy bool `json:"destroy,omitempty"`
+
 	// +optional
 	BackendConfig *BackendConfigSpec `json:"backendConfig,omitempty"`
 
@@ -136,6 +140,9 @@ type PlanStatus struct {
 
 	// +optional
 	Pending string `json:"pending,omitempty"`
+
+	// +optional
+	IsDestroyPlan bool `json:"isDestroyPlan,omitempty"`
 }
 
 // TerraformStatus defines the observed state of Terraform
@@ -263,10 +270,10 @@ func TerraformOutputsWritten(terraform Terraform, revision string, message strin
 
 func TerraformApplied(terraform Terraform, revision string, message string) Terraform {
 	meta.SetResourceCondition(&terraform, "Apply", metav1.ConditionTrue, "TerraformAppliedSucceed", message)
-	plan := terraform.Status.Plan.Pending
 	(&terraform).Status.Plan = PlanStatus{
-		LastApplied: plan,
-		Pending:     "",
+		LastApplied:   terraform.Status.Plan.Pending,
+		Pending:       "",
+		IsDestroyPlan: terraform.Status.Plan.IsDestroyPlan,
 	}
 	if revision != "" {
 		(&terraform).Status.LastAppliedRevision = revision
@@ -278,8 +285,9 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, message s
 	planRev := strings.Replace(revision, "/", "-", 1)
 	meta.SetResourceCondition(&terraform, "Plan", metav1.ConditionTrue, "TerraformPlannedWithChanges", message)
 	(&terraform).Status.Plan = PlanStatus{
-		LastApplied: terraform.Status.Plan.LastApplied,
-		Pending:     fmt.Sprintf("plan-%s", planRev),
+		LastApplied:   terraform.Status.Plan.LastApplied,
+		Pending:       fmt.Sprintf("plan-%s", planRev),
+		IsDestroyPlan: terraform.Spec.Destroy,
 	}
 	if revision != "" {
 		(&terraform).Status.LastAttemptedRevision = revision
@@ -292,8 +300,9 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, message s
 func TerraformPlannedNoChanges(terraform Terraform, revision string, message string) Terraform {
 	meta.SetResourceCondition(&terraform, "Plan", metav1.ConditionFalse, "TerraformPlannedNoChanges", message)
 	(&terraform).Status.Plan = PlanStatus{
-		LastApplied: terraform.Status.Plan.LastApplied,
-		Pending:     "",
+		LastApplied:   terraform.Status.Plan.LastApplied,
+		Pending:       "",
+		IsDestroyPlan: terraform.Spec.Destroy,
 	}
 	if revision != "" {
 		(&terraform).Status.LastAttemptedRevision = revision
