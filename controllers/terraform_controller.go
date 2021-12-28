@@ -757,16 +757,18 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 		), err
 	}
 
+	block := true
 	outputSecret = corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraform.Spec.WriteOutputsToSecret.Name,
 			Namespace: terraform.GetNamespace(),
 			OwnerReferences: []metav1.OwnerReference{
 				{
-					APIVersion: terraform.APIVersion,
-					Kind:       terraform.Kind,
-					Name:       terraform.GetName(),
-					UID:        terraform.GetUID(),
+					APIVersion:         terraform.APIVersion,
+					Kind:               terraform.Kind,
+					Name:               terraform.GetName(),
+					UID:                terraform.GetUID(),
+					BlockOwnerDeletion: &block,
 				},
 			},
 		},
@@ -1084,5 +1086,45 @@ func (r *TerraformReconciler) fireEvent(ctx context.Context, terraform infrav1.T
 }
 
 func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Terraform) (ctrl.Result, error) {
+	planObjectKey := types.NamespacedName{Namespace: terraform.GetNamespace(), Name: "tfplan-default-" + terraform.Name}
+	var planSecret corev1.Secret
+	if err := r.Client.Get(ctx, planObjectKey, &planSecret); err == nil {
+		if err := r.Client.Delete(ctx, &planSecret); err != nil {
+			// transient failure
+			return ctrl.Result{Requeue: true}, err
+		}
+	} else if apierrors.IsNotFound(err) {
+		// it's ok. ignored
+	} else {
+		// transient failure
+		return ctrl.Result{Requeue: true}, err
+	}
+
+	if terraform.Spec.WriteOutputsToSecret != nil && terraform.Spec.WriteOutputsToSecret.Name != "" {
+		outputsObjectKey := types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.Spec.WriteOutputsToSecret.Name}
+		var outputsSecret corev1.Secret
+		if err := r.Client.Get(ctx, outputsObjectKey, &outputsSecret); err == nil {
+			if err := r.Client.Delete(ctx, &outputsSecret); err != nil {
+				// transient failure
+				return ctrl.Result{Requeue: true}, err
+			}
+		} else if apierrors.IsNotFound(err) {
+			// it's ok. ignored
+		} else {
+			// transient failure
+			return ctrl.Result{Requeue: true}, err
+		}
+	}
+
+	// Record deleted status
+	r.recordReadinessMetric(ctx, terraform)
+
+	// Remove our finalizer from the list and update it
+	controllerutil.RemoveFinalizer(&terraform, infrav1.TerraformFinalizer)
+	if err := r.Update(ctx, &terraform); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Stop reconciliation as the object is being deleted
 	return ctrl.Result{}, nil
 }

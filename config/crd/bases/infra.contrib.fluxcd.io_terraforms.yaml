@@ -58,8 +58,8 @@ spec:
                 type: object
               force:
                 default: false
-                description: Force instructs the controller to recreate resources
-                  when patching fails due to an immutable field change.
+                description: Force instructs the controller to unconditionally re-plan
+                  and re-apply TF resources. Defaults to false.
                 type: boolean
               interval:
                 description: The interval at which to reconcile the Terraform.
