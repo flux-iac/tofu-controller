@@ -121,6 +121,10 @@ func TestMain(m *testing.M) {
 	server.RouteToHandler("GET", "/env.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/terraform-hello-env.tar.gz")
 	})
+	server.RouteToHandler("GET", "/tf-k8s-configmap.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-k8s-configmap.tar.gz")
+	})
+
 	server.Start()
 
 	// "preparing flux-system namespace"

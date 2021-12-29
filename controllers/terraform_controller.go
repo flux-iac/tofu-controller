@@ -222,6 +222,14 @@ func (r *TerraformReconciler) shouldWriteOutputs(terraform infrav1.Terraform, ou
 	return false
 }
 
+type LocalPrintfer struct {
+	logger logr.Logger
+}
+
+func (l LocalPrintfer) Printf(format string, v ...interface{}) {
+	l.logger.Info(fmt.Sprintf(format, v...))
+}
+
 func (r *TerraformReconciler) reconcile(ctx context.Context, terraform infrav1.Terraform, sourceObj sourcev1.Source) (infrav1.Terraform, error) {
 
 	log := logr.FromContext(ctx)
@@ -352,6 +360,9 @@ terraform {
 			err.Error(),
 		), err
 	}
+	tf.SetStdout(os.Stdout)
+	tf.SetStderr(os.Stderr)
+	tf.SetLogger(&LocalPrintfer{logger: log})
 
 	log.Info("new terraform", "workingDir", workingDir)
 
@@ -664,8 +675,6 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		return terraform, err
 	}
 
-	tf.SetStdout(os.Stderr)
-	tf.SetStderr(os.Stderr)
 	if err := tf.Apply(ctx, tfexec.DirOrPlan(TFPlanName)); err != nil {
 		err = fmt.Errorf("error running Apply: %s", err)
 		return infrav1.TerraformNotReady(
@@ -677,8 +686,6 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	}
 
 	terraform = infrav1.TerraformApplied(terraform, revision, "Terraform Applied Successfully")
-	tf.SetStdout(nil)
-	tf.SetStderr(nil)
 
 	*outputs, err = tf.Output(ctx)
 	if err != nil {
