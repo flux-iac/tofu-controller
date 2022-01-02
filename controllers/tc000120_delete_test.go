@@ -123,7 +123,7 @@ func Test_0000120_delete_test(t *testing.T) {
 	expectedOutputValue := map[string]string{
 		"Name":        "tf-output-" + terraformName,
 		"Namespace":   "flux-system",
-		"Value":       "{\"sensitive\":false,\"type\":\"string\",\"value\":\"Hello, World!\"}",
+		"Value":       "Hello, World!",
 		"OwnerRef[0]": string(createdHelloWorldTF.UID),
 	}
 	g.Eventually(func() (map[string]string, error) {

@@ -37,14 +37,19 @@ import (
 */
 // WriteOutputsToSecretSpec defines where to store outputs, and which outputs to be stored.
 type WriteOutputsToSecretSpec struct {
-	// Secret name
+	// Name is the name of the Secret to be written
+	// +required
 	Name string `json:"name"`
 
-	// Empty list means all
-	Outputs []string `json:"outputs"`
+	// Outputs contain the selected names of outputs to be written
+	// to the secret. Empty array means writing all outputs, which is default.
+	// +optional
+	Outputs []string `json:"outputs,omitempty"`
 }
 
 type Variable struct {
+	// Name is the name of the variable
+	// +required
 	Name string `json:"name"`
 
 	// +optional
@@ -80,10 +85,6 @@ type TerraformSpec struct {
 	// +required
 	Interval metav1.Duration `json:"interval"`
 
-	// A list of resources to be included in the health assessment.
-	// +optional
-	// HealthChecks []meta.NamespacedObjectKindReference `json:"healthChecks,omitempty"`
-
 	// The interval at which to retry a previously failed reconciliation.
 	// When not specified, the controller uses the TerraformSpec.Interval
 	// value to retry failures.
@@ -95,36 +96,20 @@ type TerraformSpec struct {
 	// +optional
 	Path string `json:"path,omitempty"`
 
-	// The name of the Kubernetes service account to impersonate
-	// when reconciling this Kustomization.
-	// +optional
-	ServiceAccountName string `json:"serviceAccountName,omitempty"`
-
-	// Reference of the source where the kustomization file is.
+	// SourceRef is the reference of the source where the Terraform files are stored.
 	// +required
 	SourceRef CrossNamespaceSourceReference `json:"sourceRef"`
 
-	// This flag tells the controller to suspend subsequent kustomize executions,
+	// Suspend is to tell the controller to suspend subsequent TF executions,
 	// it does not apply to already started executions. Defaults to false.
 	// +optional
 	Suspend bool `json:"suspend,omitempty"`
-
-	// Timeout for validation, apply and health checking operations.
-	// Defaults to 'Interval' duration.
-	// +optional
-	Timeout *metav1.Duration `json:"timeout,omitempty"`
 
 	// Force instructs the controller to unconditionally
 	// re-plan and re-apply TF resources. Defaults to false.
 	// +kubebuilder:default:=false
 	// +optional
 	Force bool `json:"force,omitempty"`
-
-	// Wait instructs the controller to check the health of all the reconciled resources.
-	// When enabled, the HealthChecks are ignored. Defaults to false.
-	// +kubebuilder:default:=false
-	// +optional
-	Wait bool `json:"wait,omitempty"`
 
 	// A list of target secrets for the outputs to be written as.
 	// +optional
@@ -226,21 +211,7 @@ const (
 	OutputsWritingFailedReason = "OutputsWritingFailed"
 )
 
-// SetKustomizationReadiness sets the ReadyCondition, ObservedGeneration, and LastAttemptedRevision, on the Kustomization.
-func SetTerraformInit(terraform *Terraform, status metav1.ConditionStatus, reason, message string, revision string) {
-	meta.SetResourceCondition(terraform, "Initialization", status, reason, trimString(message, MaxConditionMessageLength))
-	terraform.Status.ObservedGeneration = terraform.Generation
-	terraform.Status.LastAttemptedRevision = revision
-}
-
-// SetKustomizationReadiness sets the ReadyCondition, ObservedGeneration, and LastAttemptedRevision, on the Kustomization.
-func SetTerraformApply(terraform *Terraform, status metav1.ConditionStatus, reason, message string, revision string) {
-	meta.SetResourceCondition(terraform, "Apply", status, reason, trimString(message, MaxConditionMessageLength))
-	terraform.Status.ObservedGeneration = terraform.Generation
-	terraform.Status.LastAttemptedRevision = revision
-}
-
-// SetKustomizationReadiness sets the ReadyCondition, ObservedGeneration, and LastAttemptedRevision, on the Kustomization.
+// SetTerraformReadiness sets the ReadyCondition, ObservedGeneration, and LastAttemptedRevision, on the Terraform.
 func SetTerraformReadiness(terraform *Terraform, status metav1.ConditionStatus, reason, message string, revision string) {
 	meta.SetResourceCondition(terraform, meta.ReadyCondition, status, reason, trimString(message, MaxConditionMessageLength))
 	terraform.Status.ObservedGeneration = terraform.Generation
@@ -312,32 +283,20 @@ func TerraformPlannedNoChanges(terraform Terraform, revision string, message str
 	return terraform
 }
 
-// TerraformProgressing resets the conditions of the given Kustomization to a single
+// TerraformProgressing resets the conditions of the given Terraform to a single
 // ReadyCondition with status ConditionUnknown.
 func TerraformProgressing(terraform Terraform, message string) Terraform {
 	meta.SetResourceCondition(&terraform, meta.ReadyCondition, metav1.ConditionUnknown, meta.ProgressingReason, message)
 	return terraform
 }
 
-// TerraformNotReady registers a failed apply attempt of the given Kustomization.
+// TerraformNotReady registers a failed apply attempt of the given Terraform.
 func TerraformNotReady(terraform Terraform, revision, reason, message string) Terraform {
 	SetTerraformReadiness(&terraform, metav1.ConditionFalse, reason, trimString(message, MaxConditionMessageLength), revision)
 	if revision != "" {
 		terraform.Status.LastAttemptedRevision = revision
 	}
 	return terraform
-}
-
-// GetTimeout returns the timeout with default.
-func (in Terraform) GetTimeout() time.Duration {
-	duration := in.Spec.Interval.Duration - 30*time.Second
-	if in.Spec.Timeout != nil {
-		duration = in.Spec.Timeout.Duration
-	}
-	if duration < 30*time.Second {
-		return 30 * time.Second
-	}
-	return duration
 }
 
 // GetRetryInterval returns the retry interval

@@ -77,13 +77,9 @@ spec:
                   When not specified, the controller uses the TerraformSpec.Interval
                   value to retry failures.
                 type: string
-              serviceAccountName:
-                description: The name of the Kubernetes service account to impersonate
-                  when reconciling this Kustomization.
-                type: string
               sourceRef:
-                description: Reference of the source where the kustomization file
-                  is.
+                description: SourceRef is the reference of the source where the Terraform
+                  files are stored.
                 properties:
                   apiVersion:
                     description: API version of the referent.
@@ -106,19 +102,16 @@ spec:
                 - name
                 type: object
               suspend:
-                description: This flag tells the controller to suspend subsequent
-                  kustomize executions, it does not apply to already started executions.
+                description: Suspend is to tell the controller to suspend subsequent
+                  TF executions, it does not apply to already started executions.
                   Defaults to false.
                 type: boolean
-              timeout:
-                description: Timeout for validation, apply and health checking operations.
-                  Defaults to 'Interval' duration.
-                type: string
               vars:
                 description: List of input variables to set for the Terraform program.
                 items:
                   properties:
                     name:
+                      description: Name is the name of the variable
                       type: string
                     value:
                       type: string
@@ -238,27 +231,22 @@ spec:
                 - kind
                 - name
                 type: object
-              wait:
-                default: false
-                description: Wait instructs the controller to check the health of
-                  all the reconciled resources. When enabled, the HealthChecks are
-                  ignored. Defaults to false.
-                type: boolean
               writeOutputsToSecret:
                 description: A list of target secrets for the outputs to be written
                   as.
                 properties:
                   name:
-                    description: Secret name
+                    description: Name is the name of the Secret to be written
                     type: string
                   outputs:
-                    description: Empty list means all
+                    description: Outputs contain the selected names of outputs to
+                      be written to the secret. Empty array means writing all outputs,
+                      which is default.
                     items:
                       type: string
                     type: array
                 required:
                 - name
-                - outputs
                 type: object
             required:
             - interval

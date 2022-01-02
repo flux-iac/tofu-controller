@@ -14,6 +14,7 @@ require (
 	github.com/hashicorp/terraform-exec v0.15.0
 	github.com/onsi/gomega v1.15.0
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/zclconf/go-cty v1.9.1 // indirect
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e // indirect
 	k8s.io/api v0.22.2
 	k8s.io/apimachinery v0.22.2

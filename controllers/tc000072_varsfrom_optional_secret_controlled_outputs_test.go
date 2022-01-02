@@ -142,7 +142,7 @@ func Test_000072_varsfrom_optional_secret_and_controlled_outputs_test(t *testing
 	expectedOutputValue := map[string]string{
 		"Name":        "tf-output-" + terraformName,
 		"Namespace":   "flux-system",
-		"Value":       "{\"sensitive\":false,\"type\":\"string\",\"value\":\"Hello, World!\"}",
+		"Value":       "Hello, World!",
 		"OwnerRef[0]": string(helloWorldTF.UID),
 	}
 	g.Eventually(func() (map[string]string, error) {
@@ -210,7 +210,7 @@ func Test_000072_varsfrom_optional_secret_and_controlled_outputs_test(t *testing
 	expectedOutputValue = map[string]string{
 		"Name":        "tf-output-" + terraformName,
 		"Namespace":   "flux-system",
-		"Value":       "{\"sensitive\":false,\"type\":\"string\",\"value\":\"Hello, my secret cat!\"}",
+		"Value":       "Hello, my secret cat!",
 		"OwnerRef[0]": string(helloWorldTF.UID),
 	}
 	g.Eventually(func() (map[string]string, error) {

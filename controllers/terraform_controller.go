@@ -46,6 +46,8 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/terraform-exec/tfexec"
+	"github.com/zclconf/go-cty/cty"
+	ctyjson "github.com/zclconf/go-cty/cty/json"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -713,37 +715,55 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 }
 
 func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1.Terraform, outputs map[string]tfexec.OutputMeta, revision string) (infrav1.Terraform, error) {
-	/*
-		state, err := tf.Show(context.Background())
-		if err != nil {
-			err = fmt.Errorf("error running Show: %s", err)
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.ArtifactFailedReason,
-				err.Error(),
-			), err
-		}
-		fmt.Println(state.FormatVersion) // "0.1"
-	*/
+
 	wots := terraform.Spec.WriteOutputsToSecret
 	data := map[string][]byte{}
 
-	// not specified .spec.writeOutputsToSecret.outputs means export all
+	// if not specified .spec.writeOutputsToSecret.outputs,
+	// then it means export all outputs
 	if len(wots.Outputs) == 0 {
 		for output, v := range outputs {
-			outputBytes, err := json.Marshal(v)
+			ct, err := ctyjson.UnmarshalType(v.Type)
 			if err != nil {
 				return terraform, err
 			}
-			data[output] = outputBytes
+			// if it's a string, we can embed it directly into Secret's data
+			if ct == cty.String {
+				cv, err := ctyjson.Unmarshal(v.Value, ct)
+				if err != nil {
+					return terraform, err
+				}
+				data[output] = []byte(cv.AsString())
+			} else {
+				outputBytes, err := json.Marshal(v)
+				if err != nil {
+					return terraform, err
+				}
+				data[output] = outputBytes
+			}
 		}
 	} else {
 		// filter only defined output
 		for _, output := range wots.Outputs {
 			v := outputs[output]
-			dataBytes, _ := json.Marshal(v)
-			data[output] = dataBytes
+			ct, err := ctyjson.UnmarshalType(v.Type)
+			if err != nil {
+				return terraform, err
+			}
+			// if it's a string, we can embed it directly into Secret's data
+			if ct == cty.String {
+				cv, err := ctyjson.Unmarshal(v.Value, ct)
+				if err != nil {
+					return terraform, err
+				}
+				data[output] = []byte(cv.AsString())
+			} else {
+				outputBytes, err := json.Marshal(v)
+				if err != nil {
+					return terraform, err
+				}
+				data[output] = outputBytes
+			}
 		}
 	}
 

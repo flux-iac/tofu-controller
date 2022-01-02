@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	corev1 "k8s.io/api/core/v1"
 	"testing"
 	"time"
 
@@ -9,17 +10,16 @@ import (
 
 	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_000090_varsfrom_override_and_controlled_outputs_test(t *testing.T) {
+func Test_0000041_all_outputs_test(t *testing.T) {
 	const (
-		sourceName    = "tf-env-override-controlled-output"
-		terraformName = "helloworld-env-override-controlled-output"
+		sourceName    = "test-tf-controller-all-output"
+		terraformName = "helloworld-all-output"
 	)
 	g := NewWithT(t)
 	ctx := context.Background()
@@ -54,12 +54,12 @@ func Test_000090_varsfrom_override_and_controlled_outputs_test(t *testing.T) {
 				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
-		URL: server.URL() + "/env.tar.gz",
+		URL: server.URL() + "/file.tar.gz",
 		Artifact: &sourcev1.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
-			URL:            server.URL() + "/env.tar.gz",
+			URL:            server.URL() + "/file.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-			Checksum:       "d021eda9b869586f5a43ad1ba7f21e4bf9b3970443236755463f22824b525316",
+			Checksum:       "80ddfd18eb96f7d31cadc1a8a5171c6e2d95df3f6c23b0ed9cd8dddf6dba1406",
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
@@ -70,19 +70,6 @@ func Test_000090_varsfrom_override_and_controlled_outputs_test(t *testing.T) {
 	createdRepo := &sourcev1.GitRepository{}
 	g.Expect(k8sClient.Get(ctx, gitRepoKey, createdRepo)).Should(Succeed())
 
-	by("preparing my-vars secret")
-	myVars := corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "my-overridden-vars",
-			Namespace: "flux-system",
-		},
-		Data: map[string][]byte{
-			"subject": []byte("my overridden cat"),
-		},
-		Type: corev1.SecretTypeOpaque,
-	}
-	g.Expect(k8sClient.Create(ctx, &myVars)).Should(Succeed())
-
 	by("creating a new TF and attaching to the repo")
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
@@ -91,24 +78,15 @@ func Test_000090_varsfrom_override_and_controlled_outputs_test(t *testing.T) {
 		},
 		Spec: infrav1.TerraformSpec{
 			ApprovePlan: "auto",
-			Path:        "./terraform-hello-env",
+			Path:        "./terraform-hello-world-example",
 			SourceRef: infrav1.CrossNamespaceSourceReference{
 				Kind:      "GitRepository",
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
-			Vars: []infrav1.Variable{
-				{Name: "subject", Value: "my cat"},
-			},
-			VarsFrom: &infrav1.VarsReference{
-				Kind: "Secret",
-				Name: "my-overridden-vars",
-			},
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
 				Name: "tf-output-" + terraformName,
-				Outputs: []string{
-					"hello_world",
-				},
+				// NOTE comment out only. Please not remove this line: Outputs: []string{},
 			},
 		},
 	}
@@ -142,7 +120,7 @@ func Test_000090_varsfrom_override_and_controlled_outputs_test(t *testing.T) {
 	expectedOutputValue := map[string]string{
 		"Name":        "tf-output-" + terraformName,
 		"Namespace":   "flux-system",
-		"Value":       "Hello, my overridden cat!",
+		"Value":       "Hello, World!",
 		"OwnerRef[0]": string(createdHelloWorldTF.UID),
 	}
 	g.Eventually(func() (map[string]string, error) {

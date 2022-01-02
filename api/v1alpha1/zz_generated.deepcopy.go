@@ -164,11 +164,6 @@ func (in *TerraformSpec) DeepCopyInto(out *TerraformSpec) {
 		**out = **in
 	}
 	out.SourceRef = in.SourceRef
-	if in.Timeout != nil {
-		in, out := &in.Timeout, &out.Timeout
-		*out = new(metav1.Duration)
-		**out = **in
-	}
 	if in.WriteOutputsToSecret != nil {
 		in, out := &in.WriteOutputsToSecret, &out.WriteOutputsToSecret
 		*out = new(WriteOutputsToSecretSpec)
