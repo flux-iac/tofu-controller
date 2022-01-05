@@ -244,11 +244,13 @@ func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Ready" && c.Status == metav1.ConditionFalse {
 				lines := strings.Split(c.Message, "\n")
-				return map[string]string{
-					"Type":    c.Type,
-					"Status":  string(metav1.ConditionFalse),
-					"Reason":  infrav1.DriftDetectedReason,
-					"Message": lines[1],
+				if len(lines) > 2 {
+					return map[string]string{
+						"Type":    c.Type,
+						"Status":  string(metav1.ConditionFalse),
+						"Reason":  infrav1.DriftDetectedReason,
+						"Message": lines[1],
+					}
 				}
 			}
 		}
