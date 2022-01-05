@@ -17,15 +17,16 @@ import (
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_000100_applied_resource_should_transit_back_to_plan_when_source_changed_test(t *testing.T) {
+func Test_0000140_auto_applied_resource_should_transit_to_plan_then_apply_when_drift_detected_test(t *testing.T) {
 	const (
-		sourceName    = "gr-source-changed-manual-approve-no-output"
-		terraformName = "tf-source-changed-manual-approve-no-output"
+		sourceName    = "gr-drift-detected-auto-approve-no-output"
+		terraformName = "tf-drift-detected-auto-approve-no-output"
 	)
-	ctx := context.Background()
 	g := NewWithT(t)
-	by("creating a new Git repository object")
-	updatedTime := time.Now()
+	ctx := context.Background()
+
+	given("a GitRepository")
+	by("defining a new GitRepository object")
 	testRepo := sourcev1.GitRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      sourceName,
@@ -40,9 +41,12 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 			GitImplementation: "go-git",
 		},
 	}
+	by("creating the GitRepository object")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
 
-	by("setting the git repo status object, the URL, and the correct checksum")
+	given("that the GitRepository got reconciled")
+	by("setting the GitRepository's status, with the BLOB's URL, and the correct checksum")
+	updatedTime := time.Now()
 	testRepo.Status = sourcev1.GitRepositoryStatus{
 		ObservedGeneration: int64(1),
 		Conditions: []metav1.Condition{
@@ -54,42 +58,54 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
-		URL: server.URL() + "/file.tar.gz",
+		URL: server.URL() + "/tf-k8s-configmap.tar.gz",
 		Artifact: &sourcev1.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
-			URL:            server.URL() + "/file.tar.gz",
+			URL:            server.URL() + "/tf-k8s-configmap.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-			Checksum:       "80ddfd18eb96f7d31cadc1a8a5171c6e2d95df3f6c23b0ed9cd8dddf6dba1406", // must be the real checksum value
+			Checksum:       "c3bf30bad9621b5110a3761a70754170d1dae6c525a63098b6ec9919efac3555", // must be the real checksum value
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
 	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
 
-	by("checking that the status and its URL gets reconciled")
-	gitRepoKey := types.NamespacedName{Namespace: "flux-system", Name: sourceName}
-	createdRepo := sourcev1.GitRepository{}
-	g.Expect(k8sClient.Get(ctx, gitRepoKey, &createdRepo)).Should(Succeed())
+	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
+	g.Expect(err).Should(BeNil())
 
-	by("creating a new TF and attaching to the repo, with no approve")
+	given("a Terraform object with auto approve, and attaching it to the GitRepository object")
+	by("creating a new TF resource and attaching to the repo via sourceRef")
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
 			Namespace: "flux-system",
 		},
 		Spec: infrav1.TerraformSpec{
-			Path: "./terraform-hello-world-example",
+			BackendConfig: &infrav1.BackendConfigSpec{
+				SecretSuffix:    terraformName,
+				InClusterConfig: false,
+				ConfigPath:      testEnvKubeConfigPath,
+			},
+			ApprovePlan: "auto",
+			Interval:    metav1.Duration{Duration: 5 * time.Second},
+			Path:        "./tf-k8s-configmap",
 			SourceRef: infrav1.CrossNamespaceSourceReference{
 				Kind:      "GitRepository",
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
+			Vars: []infrav1.Variable{
+				{Name: "kubeconfig", Value: testEnvKubeConfigPath},
+				{Name: "context", Value: "envtest"},
+				{Name: "config_name", Value: "cm-" + terraformName},
+			},
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 
+	it("should be created")
+	by("checking that the hello world TF got created")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
 	createdHelloWorldTF := infrav1.Terraform{}
-	by("checking that the hello world TF get created")
 	g.Eventually(func() bool {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -98,17 +114,19 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 		return true
 	}, timeout, interval).Should(BeTrue())
 
-	by("checking that the TF condition got created")
+	it("should have conditions reconciled")
+	by("checking that the hello world TF's status conditions has some elements")
 	g.Eventually(func() int {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return -1
 		}
 		return len(createdHelloWorldTF.Status.Conditions)
-	}, timeout*3, interval).ShouldNot(BeZero())
+	}, timeout, interval).ShouldNot(BeZero())
 
-	by("checking that the planned status of the TF program is created successfully")
-	g.Eventually(func() map[string]interface{} {
+	it("should have its plan reconciled")
+	by("checking that the Plan's Status of the TF program is Planned Succeed.")
+	g.Eventually(func() interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
@@ -118,20 +136,19 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 				return map[string]interface{}{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
-					"Pending": createdHelloWorldTF.Status.Plan.Pending,
 					"Message": c.Message,
 				}
 			}
 		}
-		return nil
+		return createdHelloWorldTF.Status
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    "Plan",
 		"Reason":  "TerraformPlannedWithChanges",
-		"Pending": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 		"Message": "Terraform Plan Generated Successfully",
 	}))
 
-	by("checking that the planned secret got created")
+	it("should generate the Secret containing the plan named with branch and commit id")
+	by("checking that the Secret contains plan-master-b8e362c206 in its labels")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
 	tfplanSecret := corev1.Secret{}
 	g.Eventually(func() map[string]interface{} {
@@ -140,19 +157,15 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 			return nil
 		}
 		return map[string]interface{}{
-			"SavedPlan":   tfplanSecret.Labels["savedPlan"],
-			"TFPlanEmpty": string(tfplanSecret.Data["tfplan"]) == "",
+			"SavedPlan":         tfplanSecret.Labels["savedPlan"],
+			"Is TFPlan empty ?": string(tfplanSecret.Data["tfplan"]) == "",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":   "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-		"TFPlanEmpty": false,
+		"SavedPlan":         "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"Is TFPlan empty ?": false,
 	}))
 
-	by("manually approving the plan.")
-	createdHelloWorldTF.Spec.ApprovePlan = "plan-master-b8e362c206"
-	g.Expect(k8sClient.Update(ctx, &createdHelloWorldTF)).Should(Succeed())
-
-	by("checking that the applied status of the TF program Successfully, and plan-1 is applied")
+	by("checking that the applied status of the TF program Successfully, and plan-master-b8e3 is applied")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -163,6 +176,7 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 				return map[string]interface{}{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
+					"Message":         c.Message,
 					"LastAppliedPlan": createdHelloWorldTF.Status.Plan.LastApplied,
 				}
 			}
@@ -171,6 +185,7 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            "Apply",
 		"Reason":          "TerraformAppliedSucceed",
+		"Message":         "Terraform Applied Successfully",
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 	}))
 	// TODO check Output condition
@@ -182,12 +197,13 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 			return nil
 		}
 		return createdHelloWorldTF.Status.AvailableOutputs
-	}, timeout, interval).Should(Equal([]string{"hello_world"}))
+	}, timeout, interval).Should(Equal([]string{"api_host"}))
 
 	// We're testing out side Kubernetes
+	// so we have to disable in-cluster backend
 	if os.Getenv("DISABLE_TF_K8S_BACKEND") == "1" {
 		// So we're expecting that there must be no "tfstate-default-${terraformName}" secret
-		by("checking that we're testing the controller locally, then there should be no secret generated by default")
+		by("getting the tfstate and we should see it")
 		tfStateKey := types.NamespacedName{Namespace: "flux-system", Name: "tfstate-default-" + terraformName}
 		tfStateSecret := corev1.Secret{}
 		g.Eventually(func() string {
@@ -196,56 +212,78 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 				return err.Error()
 			}
 			return tfStateSecret.Name
-		}, timeout, interval).Should(Equal("secrets \"tfstate-default-tf-source-changed-manual-approve-no-output\" not found"))
+		}, timeout, interval).Should(Equal("tfstate-default-tf-drift-detected-auto-approve-no-output"))
 	} else {
 		// TODO there's must be the default tfstate secret
 	}
 
-	updatedTime = time.Now()
-	by("changing source to a new revision")
-	testRepo.Status = sourcev1.GitRepositoryStatus{
-		ObservedGeneration: int64(2),
-		Conditions: []metav1.Condition{
-			{
-				Type:               "Ready",
-				Status:             metav1.ConditionTrue,
-				LastTransitionTime: metav1.Time{Time: updatedTime},
-				Reason:             "GitOperationSucceed",
-				Message:            "Fetched revision: master/ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
-			},
-		},
-		URL: server.URL() + "/2222.tar.gz",
-		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/ed22ced771a0056455a2fbb8e362c206e3d0cbb7.tar.gz",
-			URL:            server.URL() + "/2222.tar.gz",
-			Revision:       "master/ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
-			Checksum:       "525802635a47a5ae3f9c058a2b958aac0daef08efbe100a4fc16833df5201b94", // must be the real checksum value
-			LastUpdateTime: metav1.Time{Time: updatedTime},
-		},
-	}
-	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
+	cmPayloadKey := types.NamespacedName{Namespace: "default", Name: "cm-" + terraformName}
+	var cmPayload corev1.ConfigMap
+	g.Eventually(func() string {
+		err := k8sClient.Get(ctx, cmPayloadKey, &cmPayload)
+		if err != nil {
+			return ""
+		}
+		return cmPayload.Name
+	}, timeout, interval).Should(Equal("cm-" + terraformName))
 
-	by("checking that the status of the TF object must be transitioned to planned")
+	updatedTime = time.Now()
+	by("deleting configmap to create a drift")
+	g.Expect(k8sClient.Delete(ctx, &cmPayload)).Should(Succeed())
+
+	by("checking that the drift got detected, applying is progressing")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Plan" {
+			if c.Type == "Ready" {
 				return map[string]interface{}{
-					"Type":            c.Type,
-					"Reason":          c.Reason,
-					"Pending":         createdHelloWorldTF.Status.Plan.Pending,
-					"LastAppliedPlan": createdHelloWorldTF.Status.Plan.LastApplied,
+					"Type":    c.Type,
+					"Reason":  c.Reason,
+					"Message": c.Message,
 				}
 			}
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":            "Plan",
-		"Reason":          "TerraformPlannedWithChanges",
-		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-		"Pending":         "plan-master-ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
+		"Type":    "Ready",
+		"Reason":  "Progressing",
+		"Message": "Terraform Applying",
 	}))
+
+	by("checking that the status of the TF object then must be transitioned to applied")
+	g.Eventually(func() map[string]interface{} {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return nil
+		}
+		for _, c := range createdHelloWorldTF.Status.Conditions {
+			if c.Type == "Apply" {
+				return map[string]interface{}{
+					"Type":            c.Type,
+					"Reason":          c.Reason,
+					"Pending":         createdHelloWorldTF.Status.Plan.Pending,
+					"LastAppliedPlan": createdHelloWorldTF.Status.Plan.LastApplied,
+					"Message":         c.Message,
+				}
+			}
+		}
+		return nil
+	}, timeout, interval).Should(Equal(map[string]interface{}{
+		"Type":            "Apply",
+		"Reason":          "TerraformAppliedSucceed",
+		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"Pending":         "",
+		"Message":         "Terraform Applied Successfully",
+	}))
+
+	g.Eventually(func() string {
+		err := k8sClient.Get(ctx, cmPayloadKey, &cmPayload)
+		if err != nil {
+			return ""
+		}
+		return cmPayload.Name
+	}, timeout, interval).Should(Equal("cm-" + terraformName))
 }

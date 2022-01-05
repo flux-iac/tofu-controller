@@ -205,6 +205,10 @@ const (
 
 	TFExecNewFailedReason      = "TFExecNewFailed"
 	TFExecInitFailedReason     = "TFExecInitFailed"
+	VarsGenerationFailedReason = "VarsGenerationFailed"
+	DriftDetectionFailedReason = "DriftDetectionFailed"
+	DriftDetectedReason        = "DriftDetected"
+	NoDriftReason              = "NoDrift"
 	TFExecPlanFailedReason     = "TFExecPlanFailed"
 	TFExecApplyFailedReason    = "TFExecApplyFailed"
 	TFExecOutputFailedReason   = "TFExecOutputFailed"
@@ -221,7 +225,7 @@ func SetTerraformReadiness(terraform *Terraform, status metav1.ConditionStatus, 
 func TerraformApplying(terraform Terraform, revision string, message string) Terraform {
 	meta.SetResourceCondition(&terraform, "Apply", metav1.ConditionUnknown, meta.ProgressingReason, message)
 	if revision != "" {
-		(&terraform).Status.LastAppliedRevision = revision
+		(&terraform).Status.LastAttemptedRevision = revision
 	}
 	return terraform
 }
@@ -296,6 +300,16 @@ func TerraformNotReady(terraform Terraform, revision, reason, message string) Te
 	if revision != "" {
 		terraform.Status.LastAttemptedRevision = revision
 	}
+	return terraform
+}
+
+func TerraformDriftDetected(terraform Terraform, revision, reason, message string) Terraform {
+	SetTerraformReadiness(&terraform, metav1.ConditionFalse, reason, trimString(message, MaxConditionMessageLength), revision)
+	return terraform
+}
+
+func TerraformNoDrift(terraform Terraform, revision, reason, message string) Terraform {
+	SetTerraformReadiness(&terraform, metav1.ConditionTrue, reason, trimString(message, MaxConditionMessageLength), revision)
 	return terraform
 }
 

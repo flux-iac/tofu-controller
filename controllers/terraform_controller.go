@@ -169,8 +169,16 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 	r.recordReadinessMetric(ctx, reconciledTerraform)
 
-	// broadcast the reconciliation failure and requeue at the specified retry interval
-	if reconcileErr != nil {
+	if reconcileErr != nil && reconcileErr.Error() == infrav1.DriftDetectedReason {
+		log.Error(reconcileErr, fmt.Sprintf("Drift detected after %s, next try in %s",
+			time.Since(reconcileStart).String(),
+			terraform.GetRetryInterval().String()),
+			"revision",
+			sourceObj.GetArtifact().Revision)
+		r.fireEvent(ctx, reconciledTerraform, sourceObj.GetArtifact().Revision, events.EventSeverityError, reconcileErr.Error(), nil)
+		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
+	} else if reconcileErr != nil {
+		// broadcast the reconciliation failure and requeue at the specified retry interval
 		log.Error(reconcileErr, fmt.Sprintf("Reconciliation failed after %s, next try in %s",
 			time.Since(reconcileStart).String(),
 			terraform.GetRetryInterval().String()),
@@ -182,6 +190,33 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// next reconcile is .Spec.Interval in the future
 	return ctrl.Result{RequeueAfter: terraform.Spec.Interval.Duration}, nil
+}
+
+func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, revision string) bool {
+	// not support when Destroy == true
+	if terraform.Spec.Destroy == true {
+		return false
+	}
+
+	// new object
+	if terraform.Status.LastAppliedRevision == "" {
+		return false
+	}
+
+	// source change, so we will not detect drift
+	if terraform.Status.LastAppliedRevision != revision {
+		return false
+	}
+
+	if terraform.Status.LastAppliedRevision == terraform.Status.LastAttemptedRevision && terraform.Status.Plan.Pending == "" {
+		return true
+	}
+
+	return false
+}
+
+func (r *TerraformReconciler) forceOrAutoApply(terraform infrav1.Terraform) bool {
+	return terraform.Spec.Force || terraform.Spec.ApprovePlan == "auto"
 }
 
 func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
@@ -379,8 +414,39 @@ terraform {
 		), err
 	}
 
-	log.Info("tfexec init terraform")
-	// Progress to Initialized
+	log.Info("tfexec initialized terraform")
+
+	if terraform, err := r.generateVarsForTF(ctx, terraform, tf, revision); err != nil {
+		return terraform, err
+	}
+
+	log.Info("generated var files from spec")
+
+	if r.shouldDetectDrift(terraform, revision) {
+
+		terraform, driftDetectionErr := r.detectDrift(ctx, terraform, tf, revision)
+
+		// immediately return if no drift - reconciliation will retry normally
+		if driftDetectionErr == nil {
+			return terraform, nil
+		}
+
+		// immediately return if err is not about drift
+		if driftDetectionErr.Error() != infrav1.DriftDetectedReason {
+			return terraform, driftDetectionErr
+		}
+
+		// immediately return if drift is detected but it's not "force" or "auto"
+		if driftDetectionErr.Error() == infrav1.DriftDetectedReason && !r.forceOrAutoApply(terraform) {
+			return terraform, driftDetectionErr
+		}
+
+		// ok, patch and continue
+		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			log.Error(err, "unable to update status after drift detection")
+			return terraform, err
+		}
+	}
 
 	if r.shouldPlan(terraform) {
 		terraform, err = r.plan(ctx, terraform, tf, revision)
@@ -423,6 +489,43 @@ terraform {
 	return terraform, nil
 }
 
+func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1.Terraform, tf *tfexec.Terraform, revision string) (infrav1.Terraform, error) {
+	const (
+		driftFilename = "tfdrift"
+	)
+
+	drifted, err := tf.Plan(ctx, tfexec.Out(driftFilename), tfexec.Refresh(true))
+	if err != nil {
+		err = fmt.Errorf("error running Plan: %s", err)
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.DriftDetectionFailedReason,
+			err.Error(),
+		), err
+	}
+
+	if drifted {
+
+		rawOutput, err := tf.ShowPlanFileRaw(ctx, driftFilename)
+		if err != nil {
+			return infrav1.TerraformNotReady(
+				terraform,
+				revision,
+				infrav1.DriftDetectionFailedReason,
+				err.Error(),
+			), err
+		}
+
+		// If drift detected & we use the auto mode, then we continue
+		terraform = infrav1.TerraformDriftDetected(terraform, revision, infrav1.DriftDetectedReason, rawOutput)
+		return terraform, fmt.Errorf(infrav1.DriftDetectedReason)
+	} else {
+		terraform = infrav1.TerraformNoDrift(terraform, revision, infrav1.NoDriftReason, "No Terraform Drift detected")
+		return terraform, nil
+	}
+}
+
 func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraform, tf *tfexec.Terraform, revision string) (infrav1.Terraform, error) {
 
 	log := logr.FromContext(ctx)
@@ -432,92 +535,6 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
 		log.Error(err, "unable to update status before Terraform planning")
 		return terraform, err
-	}
-
-	vars := map[string]string{}
-	if len(terraform.Spec.Vars) > 0 {
-		for _, v := range terraform.Spec.Vars {
-			vars[v.Name] = v.Value
-		}
-	}
-	// varsFrom overwrite vars
-	if terraform.Spec.VarsFrom != nil {
-		vf := terraform.Spec.VarsFrom
-		objectKey := types.NamespacedName{
-			Namespace: terraform.Namespace,
-			Name:      vf.Name,
-		}
-		if vf.Kind == "Secret" {
-			var s corev1.Secret
-			err := r.Get(ctx, objectKey, &s)
-			if err != nil && vf.Optional == false {
-				return infrav1.TerraformNotReady(
-					terraform,
-					revision,
-					infrav1.TFExecPlanFailedReason,
-					err.Error(),
-				), err
-			}
-			// if VarsKeys is null, use all
-			if vf.VarsKeys == nil {
-				for key, val := range s.Data {
-					vars[key] = string(val)
-				}
-			} else {
-				for _, key := range vf.VarsKeys {
-					vars[key] = string(s.Data[key])
-				}
-			}
-		} else if vf.Kind == "ConfigMap" {
-			var cm corev1.ConfigMap
-			err := r.Get(ctx, objectKey, &cm)
-			if err != nil && vf.Optional == false {
-				return infrav1.TerraformNotReady(
-					terraform,
-					revision,
-					infrav1.TFExecPlanFailedReason,
-					err.Error(),
-				), err
-			}
-			// if VarsKeys is null, use all
-			if vf.VarsKeys == nil {
-				for key, val := range cm.Data {
-					vars[key] = val
-				}
-				for key, val := range cm.BinaryData {
-					vars[key] = string(val)
-				}
-			} else {
-				for _, key := range vf.VarsKeys {
-					if val, ok := cm.Data[key]; ok {
-						vars[key] = val
-					}
-					if val, ok := cm.BinaryData[key]; ok {
-						vars[key] = string(val)
-					}
-				}
-			}
-		}
-	}
-
-	jsonBytes, err := json.Marshal(vars)
-	if err != nil {
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			infrav1.TFExecPlanFailedReason,
-			err.Error(),
-		), err
-	}
-	varFilePath := filepath.Join(tf.WorkingDir(), "generated.auto.tfvars.json")
-	if err := ioutil.WriteFile(varFilePath, jsonBytes, 0644); err != nil {
-		err = fmt.Errorf("error generating var file: %s", err)
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			infrav1.TFExecPlanFailedReason,
-			err.Error(),
-		), err
 	}
 
 	opts := []tfexec.PlanOption{tfexec.Out("tfplan")}
@@ -613,6 +630,97 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		}
 	} else {
 		terraform = infrav1.TerraformPlannedNoChanges(terraform, revision, "Terraform Plan No Changed")
+	}
+
+	return terraform, nil
+}
+
+func (r *TerraformReconciler) generateVarsForTF(ctx context.Context, terraform infrav1.Terraform, tf *tfexec.Terraform, revision string) (infrav1.Terraform, error) {
+	vars := map[string]string{}
+	if len(terraform.Spec.Vars) > 0 {
+		for _, v := range terraform.Spec.Vars {
+			vars[v.Name] = v.Value
+		}
+	}
+	// varsFrom overwrite vars
+	if terraform.Spec.VarsFrom != nil {
+		vf := terraform.Spec.VarsFrom
+		objectKey := types.NamespacedName{
+			Namespace: terraform.Namespace,
+			Name:      vf.Name,
+		}
+		if vf.Kind == "Secret" {
+			var s corev1.Secret
+			err := r.Get(ctx, objectKey, &s)
+			if err != nil && vf.Optional == false {
+				return infrav1.TerraformNotReady(
+					terraform,
+					revision,
+					infrav1.VarsGenerationFailedReason,
+					err.Error(),
+				), err
+			}
+			// if VarsKeys is null, use all
+			if vf.VarsKeys == nil {
+				for key, val := range s.Data {
+					vars[key] = string(val)
+				}
+			} else {
+				for _, key := range vf.VarsKeys {
+					vars[key] = string(s.Data[key])
+				}
+			}
+		} else if vf.Kind == "ConfigMap" {
+			var cm corev1.ConfigMap
+			err := r.Get(ctx, objectKey, &cm)
+			if err != nil && vf.Optional == false {
+				return infrav1.TerraformNotReady(
+					terraform,
+					revision,
+					infrav1.VarsGenerationFailedReason,
+					err.Error(),
+				), err
+			}
+			// if VarsKeys is null, use all
+			if vf.VarsKeys == nil {
+				for key, val := range cm.Data {
+					vars[key] = val
+				}
+				for key, val := range cm.BinaryData {
+					vars[key] = string(val)
+				}
+			} else {
+				for _, key := range vf.VarsKeys {
+					if val, ok := cm.Data[key]; ok {
+						vars[key] = val
+					}
+					if val, ok := cm.BinaryData[key]; ok {
+						vars[key] = string(val)
+					}
+				}
+			}
+		}
+	}
+
+	jsonBytes, err := json.Marshal(vars)
+	if err != nil {
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.VarsGenerationFailedReason,
+			err.Error(),
+		), err
+	}
+
+	varFilePath := filepath.Join(tf.WorkingDir(), "generated.auto.tfvars.json")
+	if err := ioutil.WriteFile(varFilePath, jsonBytes, 0644); err != nil {
+		err = fmt.Errorf("error generating var file: %s", err)
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.VarsGenerationFailedReason,
+			err.Error(),
+		), err
 	}
 
 	return terraform, nil

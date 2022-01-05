@@ -74,11 +74,6 @@ func Test_0000130_destroy_no_outputs_test(t *testing.T) {
 	}
 	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
 
-	// by("checking that the status and its URL gets reconciled")
-	// gitRepoKey := types.NamespacedName{Namespace: "flux-system", Name: sourceName}
-	// createdRepo := sourcev1.GitRepository{}
-	// g.Expect(k8sClient.Get(ctx, gitRepoKey, &createdRepo)).Should(Succeed())
-
 	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
 	g.Expect(err).Should(BeNil())
 
