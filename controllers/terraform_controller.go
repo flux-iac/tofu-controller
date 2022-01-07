@@ -122,7 +122,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return r.finalize(ctx, terraform)
 	}
 
-	// Return early if the Kustomization is suspended.
+	// Return early if the Terraform is suspended.
 	if terraform.Spec.Suspend {
 		log.Info("Reconciliation is suspended for this object")
 		return ctrl.Result{}, nil
@@ -940,13 +940,13 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		SingleInstance               = 1
 	)
 
-	// Index the Kustomizations by the GitRepository references they (may) point at.
+	// Index the Terraforms by the GitRepository references they (may) point at.
 	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, gitRepositoryIndexKey,
 		r.indexBy(sourcev1.GitRepositoryKind)); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
-	// Index the Kustomizations by the Bucket references they (may) point at.
+	// Index the Terraforms by the Bucket references they (may) point at.
 	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, bucketIndexKey,
 		r.indexBy(sourcev1.BucketKind)); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)

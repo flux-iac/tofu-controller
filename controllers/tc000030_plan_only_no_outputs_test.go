@@ -17,6 +17,9 @@ import (
 // +kubebuilder:docs-gen:collapse=Imports
 
 func Test_0000030_plan_only_no_outputs_test(t *testing.T) {
+	Spec("This spec describes the planning behaviour of a Terraform resource in the manual mode.")
+	It("should be reconciled, planned successfully, and stopped to wait for a manual approve.")
+
 	const (
 		sourceName    = "test-tf-controller-w-plan-no-output"
 		terraformName = "helloworld-w-plan-no-outputs"
@@ -24,7 +27,8 @@ func Test_0000030_plan_only_no_outputs_test(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
 
-	by("creating a new Git repository object")
+	Given("a GitRepository")
+	By("defining a new GitRepository resource.")
 	updatedTime := time.Now()
 	testRepo := sourcev1.GitRepository{
 		ObjectMeta: metav1.ObjectMeta{
@@ -40,9 +44,13 @@ func Test_0000030_plan_only_no_outputs_test(t *testing.T) {
 			GitImplementation: "go-git",
 		},
 	}
+
+	By("creating the GitRepository resource in the cluster.")
+	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
 
-	by("setting the git repo status object, the URL, and the correct checksum")
+	Given("the GitRepository's reconciled status.")
+	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
 	testRepo.Status = sourcev1.GitRepositoryStatus{
 		ObservedGeneration: int64(1),
 		Conditions: []metav1.Condition{
@@ -63,14 +71,16 @@ func Test_0000030_plan_only_no_outputs_test(t *testing.T) {
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
+	It("should be updated successfully.")
 	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
 
-	by("checking that the status and its URL gets reconciled")
+	By("checking that the status and its URL gets reconciled")
 	gitRepoKey := types.NamespacedName{Namespace: "flux-system", Name: sourceName}
 	createdRepo := sourcev1.GitRepository{}
 	g.Expect(k8sClient.Get(ctx, gitRepoKey, &createdRepo)).Should(Succeed())
 
-	by("creating a new TF and attaching to the repo, with no approve plan")
+	Given("a Terraform resource with manual approve, attached to the given GitRepository")
+	By("creating a new TF resource and attaching to the repo via `sourceRef`, with no .spec.approvePlan specified.")
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
@@ -85,11 +95,12 @@ func Test_0000030_plan_only_no_outputs_test(t *testing.T) {
 			},
 		},
 	}
+	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 
+	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
 	createdHelloWorldTF := infrav1.Terraform{}
-	by("checking that the hello world TF get created")
 	g.Eventually(func() bool {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -98,7 +109,8 @@ func Test_0000030_plan_only_no_outputs_test(t *testing.T) {
 		return true
 	}, timeout, interval).Should(BeTrue())
 
-	by("checking that the TF condition got created")
+	It("should be reconciled and contain some status conditions.")
+	By("checking that the TF resource's status conditions has some elements.")
 	g.Eventually(func() int {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -107,7 +119,8 @@ func Test_0000030_plan_only_no_outputs_test(t *testing.T) {
 		return len(createdHelloWorldTF.Status.Conditions)
 	}, timeout*3, interval).ShouldNot(BeZero())
 
-	by("checking that the planned status of the TF program is created successfully")
+	It("should be planned.")
+	By("checking that the Plan's reason of the TF resource become `TerraformPlannedWithChanges`.")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -129,7 +142,8 @@ func Test_0000030_plan_only_no_outputs_test(t *testing.T) {
 		"Pending": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 	}))
 
-	by("checking that the planned secret got created")
+	It("should generate the Secret containing the plan named with branch and commit id.")
+	By("checking that the Secret contains plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb in its labels.")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
 	tfplanSecret := corev1.Secret{}
 	g.Eventually(func() map[string]interface{} {

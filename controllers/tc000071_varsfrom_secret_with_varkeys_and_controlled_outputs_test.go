@@ -22,7 +22,7 @@ func Test_000071_varsfrom_secret_with_varkeys_and_controlled_outputs_test(t *tes
 	g := NewWithT(t)
 	ctx := context.Background()
 
-	by("creating a new Git repository object")
+	By("creating a new Git repository object")
 	updatedTime := time.Now()
 	testRepo := sourcev1.GitRepository{
 		ObjectMeta: metav1.ObjectMeta{
@@ -40,7 +40,7 @@ func Test_000071_varsfrom_secret_with_varkeys_and_controlled_outputs_test(t *tes
 	}
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
 
-	by("setting the git repo status object, the URL, and the correct checksum")
+	By("setting the git repo status object, the URL, and the correct checksum")
 	testRepo.Status = sourcev1.GitRepositoryStatus{
 		ObservedGeneration: int64(1),
 		Conditions: []metav1.Condition{
@@ -63,12 +63,12 @@ func Test_000071_varsfrom_secret_with_varkeys_and_controlled_outputs_test(t *tes
 	}
 	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
 
-	by("checking that the status and its URL gets reconciled")
+	By("checking that the status and its URL gets reconciled")
 	gitRepoKey := types.NamespacedName{Namespace: "flux-system", Name: sourceName}
 	createdRepo := &sourcev1.GitRepository{}
 	g.Expect(k8sClient.Get(ctx, gitRepoKey, createdRepo)).Should(Succeed())
 
-	by("preparing my-vars secret")
+	By("preparing my-vars secret")
 	myVars := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-vars-" + terraformName,
@@ -82,7 +82,7 @@ func Test_000071_varsfrom_secret_with_varkeys_and_controlled_outputs_test(t *tes
 	}
 	g.Expect(k8sClient.Create(ctx, &myVars)).Should(Succeed())
 
-	by("creating a new TF and attaching to the repo")
+	By("creating a new TF and attaching to the repo")
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
@@ -112,10 +112,10 @@ func Test_000071_varsfrom_secret_with_varkeys_and_controlled_outputs_test(t *tes
 	}
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 
-	by("checking that the hello world TF got created")
+	By("checking that the hello world TF got created")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
 	createdHelloWorldTF := infrav1.Terraform{}
-	// We'll need to retry getting this newly created Terraform, given that creation may not immediately happen.
+	// We'll need to retry getting this newly created Terraform, Given that creation may not immediately happen.
 	g.Eventually(func() bool {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -124,7 +124,7 @@ func Test_000071_varsfrom_secret_with_varkeys_and_controlled_outputs_test(t *tes
 		return true
 	}, timeout, interval).Should(BeTrue())
 
-	by("checking that the TF output secret contains a binary data")
+	By("checking that the TF output secret contains a binary data")
 	outputKey := types.NamespacedName{Namespace: "flux-system", Name: "tf-output-" + terraformName}
 	outputSecret := corev1.Secret{}
 	g.Eventually(func() (int, error) {
@@ -135,7 +135,7 @@ func Test_000071_varsfrom_secret_with_varkeys_and_controlled_outputs_test(t *tes
 		return len(outputSecret.Data), nil
 	}, timeout, interval).Should(Equal(1))
 
-	by("checking that the TF output secrets contains the correct output provisioned by the TF hello world")
+	By("checking that the TF output secrets contains the correct output provisioned By the TF hello world")
 	// Value is a JSON representation of TF's OutputMeta
 	expectedOutputValue := map[string]string{
 		"Name":        "tf-output-" + terraformName,

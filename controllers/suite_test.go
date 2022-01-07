@@ -7,7 +7,7 @@ You may obtain a copy of the License at
 
     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
+Unless required By applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
@@ -190,12 +190,12 @@ func findKubeConfig(e *envtest.Environment) (string, error) {
 	return "", fmt.Errorf("file not found")
 }
 
-func spec(text string) {
+func Spec(text string) {
 	preamble := "\x1b[1mSPEC\x1b[0m"
 	fmt.Fprintln(os.Stderr, preamble+": "+text)
 }
 
-func given(text string) {
+func Given(text string) {
 	preamble := "\x1b[1mGIVEN\x1b[0m"
 	fmt.Fprintln(os.Stderr, preamble+": "+text)
 }
@@ -205,12 +205,12 @@ func when(text string) {
 	fmt.Fprintln(os.Stderr, preamble+": "+text)
 }
 
-func it(text string) {
+func It(text string) {
 	preamble := "\x1b[1mIT\x1b[0m"
 	fmt.Fprintln(os.Stderr, preamble+" "+text)
 }
 
-func by(text string) {
+func By(text string) {
 	preamble := "\x1b[1mBY\x1b[0m"
 	fmt.Fprintln(os.Stderr, preamble+": "+text)
 }

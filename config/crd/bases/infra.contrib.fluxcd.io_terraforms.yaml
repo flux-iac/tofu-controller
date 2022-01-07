@@ -201,6 +201,9 @@ spec:
                   type: object
                 type: array
               varsFrom:
+                description: VarsReference contain a reference of a Secret or a ConfigMap
+                  to generate variables for Terraform resources based on its data,
+                  selectively by varsKey.
                 properties:
                   kind:
                     description: Kind of the values referent, valid values are ('Secret',
@@ -216,13 +219,13 @@ spec:
                     minLength: 1
                     type: string
                   optional:
-                    description: Optional marks this ValuesReference as optional.
-                      When set, a not found error for the values reference is ignored,
-                      but any ValuesKey, TargetPath or transient error will still
-                      result in a reconciliation failure.
+                    description: Optional marks this VarsReference as optional. When
+                      set, a not found error for the values reference is ignored,
+                      but any VarsKey or transient error will still result in a reconciliation
+                      failure.
                     type: boolean
                   varsKeys:
-                    description: ValuesKey is the data key where the values.yaml or
+                    description: VarsKeys is the data key where the values.yaml or
                       a specific value can be found at. Defaults to all keys.
                     items:
                       type: string

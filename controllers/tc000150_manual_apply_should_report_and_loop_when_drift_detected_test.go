@@ -26,8 +26,8 @@ func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t
 	g := NewWithT(t)
 	ctx := context.Background()
 
-	given("a GitRepository")
-	by("defining a new GitRepository object")
+	Given("a GitRepository")
+	By("defining a new GitRepository object")
 	testRepo := sourcev1.GitRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      sourceName,
@@ -42,11 +42,11 @@ func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t
 			GitImplementation: "go-git",
 		},
 	}
-	by("creating the GitRepository object")
+	By("creating the GitRepository object")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
 
-	given("that the GitRepository got reconciled")
-	by("setting the GitRepository's status, with the BLOB's URL, and the correct checksum")
+	Given("that the GitRepository got reconciled")
+	By("setting the GitRepository's status, with the BLOB's URL, and the correct checksum")
 	updatedTime := time.Now()
 	testRepo.Status = sourcev1.GitRepositoryStatus{
 		ObservedGeneration: int64(1),
@@ -73,8 +73,8 @@ func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t
 	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
 	g.Expect(err).Should(BeNil())
 
-	given("a Terraform object with auto approve, and attaching it to the GitRepository object")
-	by("creating a new TF resource and attaching to the repo via sourceRef")
+	Given("a Terraform object with auto approve, and attaching it to the GitRepository object")
+	By("creating a new TF resource and attaching to the repo via sourceRef")
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
@@ -103,8 +103,8 @@ func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t
 	}
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 
-	it("should be created")
-	by("checking that the hello world TF got created")
+	It("should be created")
+	By("checking that the hello world TF got created")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
 	createdHelloWorldTF := infrav1.Terraform{}
 	g.Eventually(func() bool {
@@ -115,8 +115,8 @@ func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t
 		return true
 	}, timeout, interval).Should(BeTrue())
 
-	it("should have conditions reconciled")
-	by("checking that the hello world TF's status conditions has some elements")
+	It("should have conditions reconciled")
+	By("checking that the hello world TF's status conditions has some elements")
 	g.Eventually(func() int {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -125,8 +125,8 @@ func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t
 		return len(createdHelloWorldTF.Status.Conditions)
 	}, timeout, interval).ShouldNot(BeZero())
 
-	it("should have its plan reconciled")
-	by("checking that the Plan's Status of the TF program is Planned Succeed.")
+	It("should have its plan reconciled")
+	By("checking that the Plan's Status of the TF program is Planned Succeed.")
 	g.Eventually(func() interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -148,8 +148,8 @@ func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t
 		"Message": "Terraform Plan Generated Successfully",
 	}))
 
-	it("should generate the Secret containing the plan named with branch and commit id")
-	by("checking that the Secret contains plan-master-b8e362c206 in its labels")
+	It("should generate the Secret containing the plan named with branch and commit id")
+	By("checking that the Secret contains plan-master-b8e362c206 in its labels")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
 	tfplanSecret := corev1.Secret{}
 	g.Eventually(func() map[string]interface{} {
@@ -169,7 +169,7 @@ func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t
 	createdHelloWorldTF.Spec.ApprovePlan = "plan-master-b8e362c206"
 	g.Expect(k8sClient.Update(ctx, &createdHelloWorldTF)).Should(Succeed())
 
-	by("checking that the applied status of the TF program Successfully, and plan-master-b8e3 is applied")
+	By("checking that the applied status of the TF program Successfully, and plan-master-b8e3 is applied")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -194,7 +194,7 @@ func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t
 	}))
 	// TODO check Output condition
 
-	by("checking that we have outputs available in the TF object")
+	By("checking that we have outputs available in the TF object")
 	g.Eventually(func() []string {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -207,7 +207,7 @@ func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t
 	// so we have to disable in-cluster backend
 	if os.Getenv("DISABLE_TF_K8S_BACKEND") == "1" {
 		// So we're expecting that there must be no "tfstate-default-${terraformName}" secret
-		by("getting the tfstate and we should see it")
+		By("getting the tfstate and we should see it")
 		tfStateKey := types.NamespacedName{Namespace: "flux-system", Name: "tfstate-default-" + terraformName}
 		tfStateSecret := corev1.Secret{}
 		g.Eventually(func() string {
@@ -232,10 +232,10 @@ func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t
 	}, timeout, interval).Should(Equal("cm-" + terraformName))
 
 	updatedTime = time.Now()
-	by("deleting configmap to create a drift")
+	By("deleting configmap to create a drift")
 	g.Expect(k8sClient.Delete(ctx, &cmPayload)).Should(Succeed())
 
-	by("checking that the drift got detected, applying is progressing")
+	By("checking that the drift got detected, applying is progressing")
 	g.Eventually(func() map[string]string {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {

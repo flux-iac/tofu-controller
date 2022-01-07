@@ -32,6 +32,8 @@ func (s *CrossNamespaceSourceReference) String() string {
 	return fmt.Sprintf("%s/%s", s.Kind, s.Name)
 }
 
+// VarsReference contain a reference of a Secret or a ConfigMap to generate
+// variables for Terraform resources based on its data, selectively by varsKey.
 type VarsReference struct {
 	// Kind of the values referent, valid values are ('Secret', 'ConfigMap').
 	// +kubebuilder:validation:Enum=Secret;ConfigMap
@@ -45,13 +47,13 @@ type VarsReference struct {
 	// +required
 	Name string `json:"name"`
 
-	// ValuesKey is the data key where the values.yaml or a specific value can be
+	// VarsKeys is the data key where the values.yaml or a specific value can be
 	// found at. Defaults to all keys.
 	// +optional
 	VarsKeys []string `json:"varsKeys,omitempty"`
 
-	// Optional marks this ValuesReference as optional. When set, a not found error
-	// for the values reference is ignored, but any ValuesKey, TargetPath or
+	// Optional marks this VarsReference as optional. When set, a not found error
+	// for the values reference is ignored, but any VarsKey or
 	// transient error will still result in a reconciliation failure.
 	// +optional
 	Optional bool `json:"optional,omitempty"`

@@ -16,10 +16,9 @@ import (
 // +kubebuilder:docs-gen:collapse=Imports
 
 func Test_0000011_bad_tar_gz_no_outputs_test(t *testing.T) {
-	spec("Terraform object got a bad tar.gz file will report the error and stop reconcile.")
+	Spec("This spec describes the behaviour of a Terraform resource that obtains a bad tar.gz file blob from its Source reference.")
+	It("should report the error and stop reconcile.")
 
-	// when("creating a Terraform object with the auto approve mode, and having a GitRepository attached to it.")
-	it("should obtain the TF program's blob from the Source, unpack it, but fail, then report the error")
 	const (
 		sourceName    = "test-tf-controller-bad-tar-gz-no-output"
 		terraformName = "bad-tar-gz-no-outputs"
@@ -27,8 +26,8 @@ func Test_0000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
 
-	given("a GitRepository")
-	by("defining a new GitRepository object")
+	Given("a GitRepository")
+	By("defining a new GitRepository resource")
 	testRepo := sourcev1.GitRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      sourceName,
@@ -43,11 +42,13 @@ func Test_0000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 			GitImplementation: "go-git",
 		},
 	}
-	by("creating the GitRepository object")
+
+	By("creating the GitRepository resource in the cluster.")
+	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
 
-	given("that the GitRepository got reconciled")
-	by("setting the GitRepository's status, adding the BLOB's URL for the bad.tar.gz with the correct checksum")
+	Given("the GitRepository's reconciled status.")
+	By("setting the GitRepository's status, with the downloadable *bad* BLOB's URL, with the correct checksum.")
 	updatedTime := time.Now()
 	testRepo.Status = sourcev1.GitRepositoryStatus{
 		ObservedGeneration: int64(1),
@@ -69,10 +70,11 @@ func Test_0000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
+	It("should be updated successfully.")
 	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
 
-	given("a Terraform object with auto approve, and attaching it to the bad GitRepository object")
-	by("creating a new TF resource and attaching to the repo via sourceRef")
+	Given("a Terraform object with auto approve, and attaching it to the bad GitRepository resource.")
+	By("creating a new TF resource and attaching to the bad repo via `sourceRef`.")
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
@@ -88,10 +90,10 @@ func Test_0000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 			},
 		},
 	}
+	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 
-	it("should be created")
-	by("checking that the hello world TF got created")
+	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
 	createdHelloWorldTF := infrav1.Terraform{}
 	g.Eventually(func() bool {
@@ -102,8 +104,8 @@ func Test_0000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 		return true
 	}, timeout, interval).Should(BeTrue())
 
-	it("should have a condition reconciled")
-	by("checking that the hello world TF's status conditions has 1 element")
+	It("should be reconciled and contain some status conditions.")
+	By("checking that the TF resource's status conditions has 1 element.")
 	g.Eventually(func() int {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -112,8 +114,8 @@ func Test_0000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 		return len(createdHelloWorldTF.Status.Conditions)
 	}, timeout, interval).Should(Equal(1))
 
-	it("should have an error")
-	by("checking that the Ready Status of the TF program reporting the artifact error.")
+	It("should be an error")
+	By("checking that the Ready's reason of the TF resource become `ArtifactFailed`.")
 	g.Eventually(func() interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {

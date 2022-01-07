@@ -17,6 +17,9 @@ import (
 // +kubebuilder:docs-gen:collapse=Imports
 
 func Test_0000040_controlled_outputs_test(t *testing.T) {
+	Spec("This spec describes the behaviour of a Terraform resource when it is controlled the set of outputs.")
+	It("should be reconciled and have a specific set of outputs.")
+
 	const (
 		sourceName    = "test-tf-controller-controlled-output"
 		terraformName = "helloworld-controlled-output"
@@ -24,7 +27,8 @@ func Test_0000040_controlled_outputs_test(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
 
-	by("creating a new Git repository object")
+	Given("a GitRepository")
+	By("defining a new GitRepository resource.")
 	updatedTime := time.Now()
 	testRepo := sourcev1.GitRepository{
 		ObjectMeta: metav1.ObjectMeta{
@@ -40,9 +44,13 @@ func Test_0000040_controlled_outputs_test(t *testing.T) {
 			GitImplementation: "go-git",
 		},
 	}
+
+	By("creating the GitRepository resource in the cluster.")
+	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
 
-	by("setting the git repo status object, the URL, and the correct checksum")
+	Given("the GitRepository's reconciled status")
+	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
 	testRepo.Status = sourcev1.GitRepositoryStatus{
 		ObservedGeneration: int64(1),
 		Conditions: []metav1.Condition{
@@ -63,14 +71,18 @@ func Test_0000040_controlled_outputs_test(t *testing.T) {
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
+
+	It("should be updated successfully.")
 	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
 
-	by("checking that the status and its URL gets reconciled")
+	By("checking that the status and its URL gets reconciled.")
 	gitRepoKey := types.NamespacedName{Namespace: "flux-system", Name: sourceName}
 	createdRepo := &sourcev1.GitRepository{}
 	g.Expect(k8sClient.Get(ctx, gitRepoKey, createdRepo)).Should(Succeed())
 
-	by("creating a new TF and attaching to the repo")
+	Given("a Terraform resource with auto approve, with controlled output, attached to the given GitRepository resource")
+	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
+	By("specifying the .spec.writeOutputsToSecret to output only `hello_world` output.")
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
@@ -92,12 +104,12 @@ func Test_0000040_controlled_outputs_test(t *testing.T) {
 			},
 		},
 	}
+	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 
-	by("checking that the hello world TF got created")
+	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
 	createdHelloWorldTF := infrav1.Terraform{}
-	// We'll need to retry getting this newly created Terraform, given that creation may not immediately happen.
 	g.Eventually(func() bool {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -106,7 +118,8 @@ func Test_0000040_controlled_outputs_test(t *testing.T) {
 		return true
 	}, timeout, interval).Should(BeTrue())
 
-	by("checking that the TF output secret contains a binary data")
+	It("should be reconciled and produce the correct output secret.")
+	By("checking that the named output secret contains a binary data.")
 	outputKey := types.NamespacedName{Namespace: "flux-system", Name: "tf-output-" + terraformName}
 	outputSecret := corev1.Secret{}
 	g.Eventually(func() (int, error) {
@@ -117,8 +130,7 @@ func Test_0000040_controlled_outputs_test(t *testing.T) {
 		return len(outputSecret.Data), nil
 	}, timeout, interval).Should(Equal(1))
 
-	by("checking that the TF output secrets contains the correct output provisioned by the TF hello world")
-	// Value is a JSON representation of TF's OutputMeta
+	By("checking that the output secret contains the correct output data, provisioned by the TF resource.")
 	expectedOutputValue := map[string]string{
 		"Name":        "tf-output-" + terraformName,
 		"Namespace":   "flux-system",

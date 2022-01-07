@@ -18,10 +18,9 @@ import (
 // +kubebuilder:docs-gen:collapse=Imports
 
 func Test_0000010_no_outputs_test(t *testing.T) {
-	spec("Terraform object with no backend, with auto approve, will be reconciled to have available outputs.")
+	Spec("This spec describes the behaviour of a Terraform resource with no backend, and `auto` approve.")
+	It("should be reconciled to have available outputs.")
 
-	// when("creating a Terraform object with the auto approve mode, and having a GitRepository attached to it.")
-	it("should obtain the TF program's blob from the Source, unpack it, plan it, and apply it correctly with an output available, and there must be *NO* tfstate Secret because no backend specified.")
 	const (
 		sourceName    = "test-tf-controller-no-output"
 		terraformName = "helloworld-no-outputs"
@@ -29,8 +28,8 @@ func Test_0000010_no_outputs_test(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
 
-	given("a GitRepository")
-	by("defining a new GitRepository object")
+	Given("a GitRepository")
+	By("defining a new GitRepository resource.")
 	testRepo := sourcev1.GitRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      sourceName,
@@ -45,11 +44,13 @@ func Test_0000010_no_outputs_test(t *testing.T) {
 			GitImplementation: "go-git",
 		},
 	}
-	by("creating the GitRepository object")
+
+	By("creating the GitRepository resource in the cluster.")
+	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
 
-	given("that the GitRepository got reconciled")
-	by("setting the GitRepository's status, with the BLOB's URL, and the correct checksum")
+	Given("the GitRepository's reconciled status.")
+	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
 	updatedTime := time.Now()
 	testRepo.Status = sourcev1.GitRepositoryStatus{
 		ObservedGeneration: int64(1),
@@ -71,15 +72,12 @@ func Test_0000010_no_outputs_test(t *testing.T) {
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
+
+	It("should be updated successfully.")
 	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
 
-	// by("checking that the status and its URL gets reconciled")
-	// gitRepoKey := types.NamespacedName{Namespace: "flux-system", Name: sourceName}
-	// createdRepo := sourcev1.GitRepository{}
-	// g.Expect(k8sClient.Get(ctx, gitRepoKey, &createdRepo)).Should(Succeed())
-
-	given("a Terraform object with auto approve, and attaching it to the GitRepository object")
-	by("creating a new TF resource and attaching to the repo via sourceRef")
+	Given("a Terraform resource with auto approve, attached to the given GitRepository resource.")
+	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
@@ -95,10 +93,10 @@ func Test_0000010_no_outputs_test(t *testing.T) {
 			},
 		},
 	}
+	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 
-	it("should be created")
-	by("checking that the hello world TF got created")
+	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
 	createdHelloWorldTF := infrav1.Terraform{}
 	g.Eventually(func() bool {
@@ -109,8 +107,8 @@ func Test_0000010_no_outputs_test(t *testing.T) {
 		return true
 	}, timeout, interval).Should(BeTrue())
 
-	it("should have conditions reconciled")
-	by("checking that the hello world TF's status conditions has some elements")
+	It("should be reconciled and contain some status conditions.")
+	By("checking that the TF resource's status conditions has some elements.")
 	g.Eventually(func() int {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -119,8 +117,8 @@ func Test_0000010_no_outputs_test(t *testing.T) {
 		return len(createdHelloWorldTF.Status.Conditions)
 	}, timeout, interval).ShouldNot(BeZero())
 
-	it("should have its plan reconciled")
-	by("checking that the Plan's Status of the TF program is Planned Succeed.")
+	It("should be planned.")
+	By("checking that the Plan's reason of the TF resource become `TerraformPlannedWithChanges`.")
 	g.Eventually(func() interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -142,8 +140,8 @@ func Test_0000010_no_outputs_test(t *testing.T) {
 		"Message": "Terraform Plan Generated Successfully",
 	}))
 
-	it("should generate the Secret containing the plan named with branch and commit id")
-	by("checking that the Secret contains plan-master-b8e362c206 in its labels")
+	It("should generate the Secret containing the plan named with branch and commit id.")
+	By("checking that the Secret contains plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb in its labels.")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
 	tfplanSecret := corev1.Secret{}
 	g.Eventually(func() map[string]interface{} {
@@ -160,7 +158,8 @@ func Test_0000010_no_outputs_test(t *testing.T) {
 		"Is TFPlan empty ?": false,
 	}))
 
-	by("checking that the applied status of the TF program Successfully, and plan-master-b8e3 is applied")
+	It("should contain an Apply condition saying that the plan were apply successfully.")
+	By("checking that the reason of the Apply condition is TerraformAppliedSucceed, and the LastAppliedPlan is the plan.")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -183,9 +182,9 @@ func Test_0000010_no_outputs_test(t *testing.T) {
 		"Message":         "Terraform Applied Successfully",
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 	}))
-	// TODO check Output condition
 
-	by("checking that we have outputs available in the TF object")
+	It("should have an available output.")
+	By("checking that the Terraform resource's .status.availableOutputs contains hello_world as an output name.")
 	g.Eventually(func() []string {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -194,11 +193,9 @@ func Test_0000010_no_outputs_test(t *testing.T) {
 		return createdHelloWorldTF.Status.AvailableOutputs
 	}, timeout, interval).Should(Equal([]string{"hello_world"}))
 
-	// We're testing out side Kubernetes
-	// so we have to disable in-cluster backend
 	if os.Getenv("DISABLE_TF_K8S_BACKEND") == "1" {
-		// So we're expecting that there must be no "tfstate-default-${terraformName}" secret
-		by("checking that we're testing the controller locally, then there should be no secret generated by default")
+		It("should not produce a Secret because the controller runs locally, outside Kubernetes.")
+		By("checking there are no secret generated by default.")
 		tfStateKey := types.NamespacedName{Namespace: "flux-system", Name: "tfstate-default-" + terraformName}
 		tfStateSecret := corev1.Secret{}
 		g.Eventually(func() string {
