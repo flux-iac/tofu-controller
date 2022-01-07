@@ -1,8 +1,18 @@
 # Changelog
 
-All notable changes to this project are documented in this file.
+All notable changes of this project are documented in this file.
 
-## 0.3.0
+## v0.3.1
+
+**Release date:** 2022-01-07
+
+This pre-release ships with the following changes.
+
+Improvements:
+  * Upgrade the Terraform binary tp v1.1.3.
+  * Improve the spec documentation of the test files. 
+
+## v0.3.0
 
 **Release date:** 2022-01-05
 
