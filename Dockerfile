@@ -19,8 +19,8 @@ COPY controllers/ controllers/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o tf-controller main.go
 
-ADD https://releases.hashicorp.com/terraform/1.1.2/terraform_1.1.2_linux_amd64.zip /terraform_1.1.2_linux_amd64.zip
-RUN unzip -q /terraform_1.1.2_linux_amd64.zip
+ADD https://releases.hashicorp.com/terraform/1.1.3/terraform_1.1.3_linux_amd64.zip /terraform_1.1.3_linux_amd64.zip
+RUN unzip -q /terraform_1.1.3_linux_amd64.zip
 
 
 FROM alpine:3.14
