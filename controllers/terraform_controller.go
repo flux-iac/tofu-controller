@@ -800,7 +800,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 
 	if err := tf.Apply(ctx, tfexec.DirOrPlan(TFPlanName)); err != nil {
 		err = fmt.Errorf("error running Apply: %s", err)
-		return infrav1.TerraformNotReady(
+		return infrav1.TerraformAppliedFailResetPlanAndNotReady(
 			terraform,
 			revision,
 			infrav1.TFExecApplyFailedReason,

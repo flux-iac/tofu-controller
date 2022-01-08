@@ -310,6 +310,13 @@ func TerraformNotReady(terraform Terraform, revision, reason, message string) Te
 	return terraform
 }
 
+func TerraformAppliedFailResetPlanAndNotReady(terraform Terraform, revision, reason, message string) Terraform {
+	meta.SetResourceCondition(&terraform, "Apply", metav1.ConditionFalse, "TerraformAppliedFail", message)
+	terraform = TerraformNotReady(terraform, revision, reason, message)
+	terraform.Status.Plan.Pending = ""
+	return terraform
+}
+
 func TerraformDriftDetected(terraform Terraform, revision, reason, message string) Terraform {
 	SetTerraformReadiness(&terraform, metav1.ConditionFalse, reason, trimString(message, MaxConditionMessageLength), revision)
 	return terraform
