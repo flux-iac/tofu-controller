@@ -208,7 +208,15 @@ func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, rev
 		return false
 	}
 
+	// thing worked normally, no change pending
+	// then, we do drift detection
 	if terraform.Status.LastAppliedRevision == terraform.Status.LastAttemptedRevision && terraform.Status.Plan.Pending == "" {
+		return true
+	}
+
+	// last time source changed with non-TF file, so we planned but no changes
+	// this time, it needs drift detection
+	if terraform.Status.LastPlannedRevision == terraform.Status.LastAttemptedRevision && terraform.Status.Plan.Pending == "" {
 		return true
 	}
 
