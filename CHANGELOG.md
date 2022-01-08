@@ -2,6 +2,16 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.4.1
+
+**Release date:** 2022-01-09
+
+This pre-release contains the following changes.
+
+Improvements:
+  * Improve `shouldDetectDrift` logic. 
+  * Improve the behaviour of the auto mode t0 be started over from planning when the `apply` process fail because of entity exists externally, as specified by [tc000170](controllers/tc000170_if_apply_error_we_should_delete_the_plan_and_start_over_test.go).
+
 ## v0.4.0
 
 **Release date:** 2022-01-08
