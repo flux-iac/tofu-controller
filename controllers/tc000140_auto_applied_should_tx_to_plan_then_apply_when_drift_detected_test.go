@@ -285,5 +285,5 @@ func Test_0000140_auto_applied_resource_should_transit_to_plan_then_apply_when_d
 			return ""
 		}
 		return cmPayload.Name
-	}, timeout, interval).Should(Equal("cm-" + terraformName))
+	}, timeout*3, interval).Should(Equal("cm-" + terraformName))
 }
