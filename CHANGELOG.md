@@ -2,6 +2,16 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.4.0
+
+**Release date:** 2022-01-08
+
+This pre-release contains the following changes.
+
+Improvements:
+  * Introduce `.status.lastPlannedRevision` to handle a case of source changes by non TF-files, as specified by [tc000160](controllers/tc000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_test.go)
+  * Improve `shouldDetectDrift` logic using `.status.lastPlannedRevision`.
+  
 ## v0.3.1
 
 **Release date:** 2022-01-07
