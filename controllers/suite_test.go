@@ -124,6 +124,9 @@ func TestMain(m *testing.M) {
 	server.RouteToHandler("GET", "/tf-k8s-configmap.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/tf-k8s-configmap.tar.gz")
 	})
+	server.RouteToHandler("GET", "/tf-k8s-configmap-unrelated-change.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-k8s-configmap-unrelated-change.tar.gz")
+	})
 
 	server.Start()
 

@@ -629,7 +629,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 			), err
 		}
 	} else {
-		terraform = infrav1.TerraformPlannedNoChanges(terraform, revision, "Terraform Plan No Changed")
+		terraform = infrav1.TerraformPlannedNoChanges(terraform, revision, "Terraform Plan No Changes")
 	}
 
 	return terraform, nil

@@ -150,6 +150,11 @@ type TerraformStatus struct {
 	// +optional
 	LastAttemptedRevision string `json:"lastAttemptedRevision,omitempty"`
 
+	// LastPlannedRevision is the revision used by the last planning process.
+	// The result could be either no plan change or a new plan generated.
+	// +optional
+	LastPlannedRevision string `json:"lastPlannedRevision,omitempty"`
+
 	// +optional
 	AvailableOutputs []string `json:"availableOutputs,omitempty"`
 
@@ -266,6 +271,7 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, message s
 	}
 	if revision != "" {
 		(&terraform).Status.LastAttemptedRevision = revision
+		(&terraform).Status.LastPlannedRevision = revision
 	}
 
 	SetTerraformReadiness(&terraform, metav1.ConditionUnknown, "TerraformPlannedWithChanges", message, revision)
@@ -281,6 +287,7 @@ func TerraformPlannedNoChanges(terraform Terraform, revision string, message str
 	}
 	if revision != "" {
 		(&terraform).Status.LastAttemptedRevision = revision
+		(&terraform).Status.LastPlannedRevision = revision
 	}
 
 	SetTerraformReadiness(&terraform, metav1.ConditionTrue, "TerraformPlannedNoChanges", message, revision)
