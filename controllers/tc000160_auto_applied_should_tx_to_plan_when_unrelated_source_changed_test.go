@@ -194,7 +194,7 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 	}
 	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
 
-	By("checking that the planned secret should state the same.")
+	By("checking that the planned secret should be updated, even with no change - because we did plan.")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
 	tfplanSecret := corev1.Secret{}
 	g.Eventually(func() map[string]interface{} {
@@ -207,7 +207,7 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 			"TFPlanEmpty": string(tfplanSecret.Data["tfplan"]) == "",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":   "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"SavedPlan":   "plan-master-ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
 		"TFPlanEmpty": false,
 	}))
 
