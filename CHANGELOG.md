@@ -2,6 +2,15 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.4.3
+
+**Release date:** 2022-01-09
+
+This pre-release contains the following changes.
+
+Improvements:
+  * Improve `shouldDetectDrift` logic for new objects
+
 ## v0.4.2
 
 **Release date:** 2022-01-09
