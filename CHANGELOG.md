@@ -2,6 +2,16 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.4.2
+
+**Release date:** 2022-01-09
+
+This pre-release contains the following changes.
+
+Improvements:
+  * Add resource's shortName
+  * Add display columns to the CRD.
+
 ## v0.4.1
 
 **Release date:** 2022-01-09
