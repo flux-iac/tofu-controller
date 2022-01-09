@@ -191,7 +191,7 @@ func Test_000072_varsfrom_optional_secret_and_controlled_outputs_test(t *testing
 		return helloWorldTF.Status
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Reason":  "TerraformOutputsWritten",
-		"Message": "Terraform Outputs Written",
+		"Message": "Outputs written: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 		"Status":  metav1.ConditionTrue,
 		"Type":    "Ready",
 	}))

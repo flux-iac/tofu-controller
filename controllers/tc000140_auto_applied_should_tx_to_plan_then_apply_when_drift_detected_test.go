@@ -144,7 +144,7 @@ func Test_0000140_auto_applied_resource_should_transit_to_plan_then_apply_when_d
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    "Plan",
 		"Reason":  "TerraformPlannedWithChanges",
-		"Message": "Terraform Plan Generated Successfully",
+		"Message": "Plan generated",
 	}))
 
 	It("should generate the Secret containing the plan named with branch and commit id")
@@ -185,7 +185,7 @@ func Test_0000140_auto_applied_resource_should_transit_to_plan_then_apply_when_d
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            "Apply",
 		"Reason":          "TerraformAppliedSucceed",
-		"Message":         "Terraform Applied Successfully",
+		"Message":         "Applied successfully",
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 	}))
 	// TODO check Output condition
@@ -250,7 +250,7 @@ func Test_0000140_auto_applied_resource_should_transit_to_plan_then_apply_when_d
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    "Ready",
 		"Reason":  "Progressing",
-		"Message": "Terraform Applying",
+		"Message": "Applying",
 	}))
 
 	By("checking that the status of the TF object then must be transitioned to applied")
@@ -276,7 +276,7 @@ func Test_0000140_auto_applied_resource_should_transit_to_plan_then_apply_when_d
 		"Reason":          "TerraformAppliedSucceed",
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 		"Pending":         "",
-		"Message":         "Terraform Applied Successfully",
+		"Message":         "Applied successfully",
 	}))
 
 	g.Eventually(func() string {

@@ -145,7 +145,7 @@ func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    "Plan",
 		"Reason":  "TerraformPlannedWithChanges",
-		"Message": "Terraform Plan Generated Successfully",
+		"Message": "Plan generated",
 	}))
 
 	It("should generate the Secret containing the plan named with branch and commit id")
@@ -189,7 +189,7 @@ func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            "Apply",
 		"Reason":          "TerraformAppliedSucceed",
-		"Message":         "Terraform Applied Successfully",
+		"Message":         "Applied successfully",
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 	}))
 	// TODO check Output condition
@@ -249,7 +249,7 @@ func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t
 						"Type":    c.Type,
 						"Status":  string(metav1.ConditionFalse),
 						"Reason":  infrav1.DriftDetectedReason,
-						"Message": lines[1],
+						"Line[1]": lines[1],
 					}
 				}
 			}
@@ -259,7 +259,7 @@ func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t
 		"Type":    "Ready",
 		"Status":  string(metav1.ConditionFalse),
 		"Reason":  infrav1.DriftDetectedReason,
-		"Message": "Note: Objects have changed outside of Terraform",
+		"Line[1]": "Note: Objects have changed outside of Terraform",
 	}))
 
 }

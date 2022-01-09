@@ -248,7 +248,7 @@ func TerraformOutputsAvailable(terraform Terraform, availableOutputs []string, m
 func TerraformOutputsWritten(terraform Terraform, revision string, message string) Terraform {
 	meta.SetResourceCondition(&terraform, "Output", metav1.ConditionTrue, "TerraformOutputsWritten", message)
 
-	SetTerraformReadiness(&terraform, metav1.ConditionTrue, "TerraformOutputsWritten", message, revision)
+	SetTerraformReadiness(&terraform, metav1.ConditionTrue, "TerraformOutputsWritten", message+": "+revision, revision)
 	return terraform
 }
 
@@ -262,6 +262,8 @@ func TerraformApplied(terraform Terraform, revision string, message string) Terr
 	if revision != "" {
 		(&terraform).Status.LastAppliedRevision = revision
 	}
+
+	SetTerraformReadiness(&terraform, metav1.ConditionTrue, "TerraformAppliedSucceed", message+": "+revision, revision)
 	return terraform
 }
 
@@ -278,7 +280,7 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, message s
 		(&terraform).Status.LastPlannedRevision = revision
 	}
 
-	SetTerraformReadiness(&terraform, metav1.ConditionUnknown, "TerraformPlannedWithChanges", message, revision)
+	SetTerraformReadiness(&terraform, metav1.ConditionUnknown, "TerraformPlannedWithChanges", message+": "+revision, revision)
 	return terraform
 }
 
@@ -294,7 +296,7 @@ func TerraformPlannedNoChanges(terraform Terraform, revision string, message str
 		(&terraform).Status.LastPlannedRevision = revision
 	}
 
-	SetTerraformReadiness(&terraform, metav1.ConditionTrue, "TerraformPlannedNoChanges", message, revision)
+	SetTerraformReadiness(&terraform, metav1.ConditionTrue, "TerraformPlannedNoChanges", message+": "+revision, revision)
 	return terraform
 }
 
@@ -327,7 +329,7 @@ func TerraformDriftDetected(terraform Terraform, revision, reason, message strin
 }
 
 func TerraformNoDrift(terraform Terraform, revision, reason, message string) Terraform {
-	SetTerraformReadiness(&terraform, metav1.ConditionTrue, reason, trimString(message, MaxConditionMessageLength), revision)
+	SetTerraformReadiness(&terraform, metav1.ConditionTrue, reason, message+": "+revision, revision)
 	return terraform
 }
 

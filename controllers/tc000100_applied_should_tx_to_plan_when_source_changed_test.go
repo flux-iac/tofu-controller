@@ -128,7 +128,7 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 		"Type":    "Plan",
 		"Reason":  "TerraformPlannedWithChanges",
 		"Pending": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-		"Message": "Terraform Plan Generated Successfully",
+		"Message": "Plan generated",
 	}))
 
 	By("checking that the planned secret got created")

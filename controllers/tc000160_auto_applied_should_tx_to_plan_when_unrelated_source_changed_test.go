@@ -240,6 +240,6 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 		"LastPlannedRevision":   "master/ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
 		"LastAppliedPlan":       "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 		"Pending":               "",
-		"Message":               "Terraform Plan No Changes",
+		"Message":               "Plan no changes",
 	}))
 }

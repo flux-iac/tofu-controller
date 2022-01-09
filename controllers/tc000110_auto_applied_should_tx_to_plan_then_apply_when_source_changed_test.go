@@ -128,7 +128,7 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 		"Type":    "Plan",
 		"Reason":  "TerraformPlannedWithChanges",
 		"Pending": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-		"Message": "Terraform Plan Generated Successfully",
+		"Message": "Plan generated",
 	}))
 
 	By("checking that the planned secret got created")
@@ -263,6 +263,6 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 		"Reason":          "TerraformAppliedSucceed",
 		"LastAppliedPlan": "plan-master-ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
 		"Pending":         "",
-		"Message":         "Terraform Applied Successfully",
+		"Message":         "Applied successfully",
 	}))
 }

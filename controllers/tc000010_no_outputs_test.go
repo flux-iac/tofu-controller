@@ -137,7 +137,7 @@ func Test_0000010_no_outputs_test(t *testing.T) {
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    "Plan",
 		"Reason":  "TerraformPlannedWithChanges",
-		"Message": "Terraform Plan Generated Successfully",
+		"Message": "Plan generated",
 	}))
 
 	It("should generate the Secret containing the plan named with branch and commit id.")
@@ -179,7 +179,7 @@ func Test_0000010_no_outputs_test(t *testing.T) {
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            "Apply",
 		"Reason":          "TerraformAppliedSucceed",
-		"Message":         "Terraform Applied Successfully",
+		"Message":         "Applied successfully",
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 	}))
 

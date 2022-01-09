@@ -283,7 +283,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, terraform infrav1.T
 	revision := sourceObj.GetArtifact().Revision
 	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
 
-	terraform = infrav1.TerraformProgressing(terraform, "Terraform Initializing")
+	terraform = infrav1.TerraformProgressing(terraform, "Initializing")
 	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
 		log.Error(err, "unable to update status before Terraform initialization")
 		return terraform, err
@@ -531,7 +531,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 		terraform = infrav1.TerraformDriftDetected(terraform, revision, infrav1.DriftDetectedReason, rawOutput)
 		return terraform, fmt.Errorf(infrav1.DriftDetectedReason)
 	} else {
-		terraform = infrav1.TerraformNoDrift(terraform, revision, infrav1.NoDriftReason, "No Terraform Drift detected")
+		terraform = infrav1.TerraformNoDrift(terraform, revision, infrav1.NoDriftReason, "No drift")
 		return terraform, nil
 	}
 }
@@ -642,9 +642,9 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	}
 
 	if drifted {
-		terraform = infrav1.TerraformPlannedWithChanges(terraform, revision, "Terraform Plan Generated Successfully")
+		terraform = infrav1.TerraformPlannedWithChanges(terraform, revision, "Plan generated")
 	} else {
-		terraform = infrav1.TerraformPlannedNoChanges(terraform, revision, "Terraform Plan No Changes")
+		terraform = infrav1.TerraformPlannedNoChanges(terraform, revision, "Plan no changes")
 	}
 
 	return terraform, nil
@@ -751,7 +751,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	log := logr.FromContext(ctx)
 	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
 
-	terraform = infrav1.TerraformProgressing(terraform, "Terraform Applying")
+	terraform = infrav1.TerraformProgressing(terraform, "Applying")
 	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
 		log.Error(err, "unable to update status before Terraform applying")
 		return terraform, err
@@ -794,7 +794,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		), err
 	}
 
-	terraform = infrav1.TerraformApplying(terraform, revision, "Terraform Apply Started")
+	terraform = infrav1.TerraformApplying(terraform, revision, "Apply started")
 	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
 		log.Error(err, "error recording apply status: %s", err)
 		return terraform, err
@@ -810,7 +810,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		), err
 	}
 
-	terraform = infrav1.TerraformApplied(terraform, revision, "Terraform Applied Successfully")
+	terraform = infrav1.TerraformApplied(terraform, revision, "Applied successfully")
 
 	*outputs, err = tf.Output(ctx)
 	if err != nil {
@@ -831,7 +831,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	}
 	if len(availableOutputs) > 0 {
 		sort.Strings(availableOutputs)
-		terraform = infrav1.TerraformOutputsAvailable(terraform, availableOutputs, "Terraform Outputs Available")
+		terraform = infrav1.TerraformOutputsAvailable(terraform, availableOutputs, "Outputs available")
 	}
 
 	return terraform, nil
@@ -912,7 +912,7 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 	}
 
 	if len(data) == 0 || terraform.Spec.Destroy == true {
-		return infrav1.TerraformOutputsWritten(terraform, revision, "Terraform No Outputs Written"), nil
+		return infrav1.TerraformOutputsWritten(terraform, revision, "No Outputs written"), nil
 	} else {
 		block := true
 		outputSecret = corev1.Secret{
@@ -942,7 +942,7 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 				err.Error(),
 			), err
 		}
-		return infrav1.TerraformOutputsWritten(terraform, revision, "Terraform Outputs Written"), nil
+		return infrav1.TerraformOutputsWritten(terraform, revision, "Outputs written"), nil
 	}
 
 }
