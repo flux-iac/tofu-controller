@@ -54,10 +54,11 @@ const (
 )
 
 var (
-	cfg       *rest.Config
-	k8sClient client.Client
-	testEnv   *envtest.Environment
-	server    *ghttp.Server
+	cfg        *rest.Config
+	k8sClient  client.Client
+	testEnv    *envtest.Environment
+	server     *ghttp.Server
+	reconciler *TerraformReconciler
 )
 
 var (
@@ -149,12 +150,13 @@ func TestMain(m *testing.M) {
 		panic(err.Error())
 	}
 
-	err = (&TerraformReconciler{
+	reconciler = &TerraformReconciler{
 		Client:        k8sManager.GetClient(),
 		Scheme:        k8sManager.GetScheme(),
 		EventRecorder: k8sManager.GetEventRecorderFor("tf-controller"),
 		StatusPoller:  polling.NewStatusPoller(k8sManager.GetClient(), k8sManager.GetRESTMapper()),
-	}).SetupWithManager(k8sManager)
+	}
+	err = reconciler.SetupWithManager(k8sManager)
 	if err != nil {
 		panic(err.Error())
 	}
