@@ -2,6 +2,16 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.5.0
+
+**Release date:** 2022-01-09
+
+This pre-release contains the following changes.
+
+Improvements:
+  * Improve status messages.
+  * `shouldDetectDrift` is now specified by [tc000180](controllers/tc000180_should_detect_drift_test.go)
+
 ## v0.4.3
 
 **Release date:** 2022-01-09
