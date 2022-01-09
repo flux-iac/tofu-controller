@@ -199,7 +199,9 @@ func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, rev
 	}
 
 	// new object
-	if terraform.Status.LastAppliedRevision == "" {
+	if terraform.Status.LastAppliedRevision == "" &&
+		terraform.Status.LastPlannedRevision == "" &&
+		terraform.Status.LastAttemptedRevision == "" {
 		return false
 	}
 
