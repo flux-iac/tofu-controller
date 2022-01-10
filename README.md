@@ -21,6 +21,16 @@
 
 ## Quick start
 
+Before using TF-controller, please install Flux by using either `flux install` or `flux bootstrap`.
+Here's how to install TF-controller manually,
+
+```shell script
+export TF_CON_VER=v0.5.0
+kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
+kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
+kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
+```
+
 Here's a simple example of how to GitOps-ify your Terraform resources with `tf-controller` and Flux.
 
 ### Define source
