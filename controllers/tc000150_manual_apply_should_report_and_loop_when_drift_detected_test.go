@@ -18,7 +18,7 @@ import (
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_0000150_manual_apply_should_report_and_loop_when_drift_detected_test(t *testing.T) {
+func Test_000150_manual_apply_should_report_and_loop_when_drift_detected_test(t *testing.T) {
 	const (
 		sourceName    = "gr-drift-detected-manual-approve-no-output"
 		terraformName = "tf-drift-detected-manual-approve-no-output"

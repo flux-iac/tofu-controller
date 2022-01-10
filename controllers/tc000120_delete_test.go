@@ -17,7 +17,7 @@ import (
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_0000120_delete_test(t *testing.T) {
+func Test_000120_delete_test(t *testing.T) {
 	const (
 		sourceName    = "test-tf-controller-delete"
 		terraformName = "helloworld-delete"

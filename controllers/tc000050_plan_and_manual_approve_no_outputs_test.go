@@ -150,6 +150,28 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 		"Pending": planId,
 	}))
 
+	By("checking the message of the ready status contains $planId.")
+	g.Eventually(func() map[string]interface{} {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return nil
+		}
+		for _, c := range createdHelloWorldTF.Status.Conditions {
+			if c.Type == "Ready" {
+				return map[string]interface{}{
+					"Type":    c.Type,
+					"Reason":  c.Reason,
+					"Message": c.Message,
+				}
+			}
+		}
+		return nil
+	}, timeout, interval).Should(Equal(map[string]interface{}{
+		"Type":    "Ready",
+		"Reason":  "TerraformPlannedWithChanges",
+		"Message": "Plan generated: " + planId,
+	}))
+
 	By("checking that the planned secret is created.")
 	By("checking that the label of the planned secret is the $planId.")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}

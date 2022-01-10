@@ -18,7 +18,7 @@ import (
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_0000130_destroy_no_outputs_test(t *testing.T) {
+func Test_000130_destroy_no_outputs_test(t *testing.T) {
 	Spec("Terraform object with no backend, auto approve, will be reconciled to have available outputs.")
 
 	// when("creating a Terraform object with the auto approve mode, and having a GitRepository attached to it.")

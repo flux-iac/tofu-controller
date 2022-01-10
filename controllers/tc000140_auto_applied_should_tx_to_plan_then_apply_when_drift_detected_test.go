@@ -17,7 +17,7 @@ import (
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_0000140_auto_applied_resource_should_transit_to_plan_then_apply_when_drift_detected_test(t *testing.T) {
+func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_drift_detected_test(t *testing.T) {
 	const (
 		sourceName    = "gr-drift-detected-auto-approve-no-output"
 		terraformName = "tf-drift-detected-auto-approve-no-output"
