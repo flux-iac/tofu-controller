@@ -269,11 +269,11 @@ func TerraformApplied(terraform Terraform, revision string, message string) Terr
 
 func TerraformPlannedWithChanges(terraform Terraform, revision string, message string) Terraform {
 	planRev := strings.Replace(revision, "/", "-", 1)
-	planName := fmt.Sprintf("plan-%s", planRev)
+	planId := fmt.Sprintf("plan-%s", planRev)
 	meta.SetResourceCondition(&terraform, "Plan", metav1.ConditionTrue, "TerraformPlannedWithChanges", message)
 	(&terraform).Status.Plan = PlanStatus{
 		LastApplied:   terraform.Status.Plan.LastApplied,
-		Pending:       planName,
+		Pending:       planId,
 		IsDestroyPlan: terraform.Spec.Destroy,
 	}
 	if revision != "" {
@@ -281,7 +281,15 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, message s
 		(&terraform).Status.LastPlannedRevision = revision
 	}
 
-	SetTerraformReadiness(&terraform, metav1.ConditionUnknown, "TerraformPlannedWithChanges", message+": "+planName, revision)
+	shortPlanId := planId
+	parts := strings.SplitN(revision, "/", 2)
+	if len(parts) == 2 {
+		if len(parts[1]) >= 10 {
+			shortPlanId = fmt.Sprintf("plan-%s-%s", parts[0], parts[1][0:10])
+		}
+	}
+	approveMessage := fmt.Sprintf("%s: set approvePlan: \"%s\" to approve this plan.", message, shortPlanId)
+	SetTerraformReadiness(&terraform, metav1.ConditionUnknown, "TerraformPlannedWithChanges", approveMessage, revision)
 	return terraform
 }
 

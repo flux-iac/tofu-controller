@@ -166,10 +166,10 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout*3, interval).Should(Equal(map[string]interface{}{
 		"Type":    "Ready",
 		"Reason":  "TerraformPlannedWithChanges",
-		"Message": "Plan generated: " + planId,
+		"Message": "Plan generated: set approvePlan: \"plan-master-b8e362c206\" to approve this plan.",
 	}))
 
 	By("checking that the planned secret is created.")
