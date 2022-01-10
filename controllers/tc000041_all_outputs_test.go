@@ -16,7 +16,7 @@ import (
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_0000041_all_outputs_test(t *testing.T) {
+func Test_000041_all_outputs_test(t *testing.T) {
 	Spec("This spec describes the behaviour of a Terraform resource when not specified a list of output to .spec.writeOutputsToSecret.")
 	It("should be reconciled and write all outputs to the output secret.")
 

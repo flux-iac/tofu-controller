@@ -15,7 +15,7 @@ import (
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_0000011_bad_tar_gz_no_outputs_test(t *testing.T) {
+func Test_000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 	Spec("This spec describes the behaviour of a Terraform resource that obtains a bad tar.gz file blob from its Source reference.")
 	It("should report the error and stop reconcile.")
 

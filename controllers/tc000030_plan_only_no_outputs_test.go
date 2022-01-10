@@ -16,7 +16,7 @@ import (
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_0000030_plan_only_no_outputs_test(t *testing.T) {
+func Test_000030_plan_only_no_outputs_test(t *testing.T) {
 	Spec("This spec describes the planning behaviour of a Terraform resource in the manual mode.")
 	It("should be reconciled, planned successfully, and stopped to wait for a manual approve.")
 

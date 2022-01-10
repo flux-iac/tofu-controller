@@ -16,7 +16,7 @@ import (
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_0000040_controlled_outputs_test(t *testing.T) {
+func Test_000040_controlled_outputs_test(t *testing.T) {
 	Spec("This spec describes the behaviour of a Terraform resource when it is controlled the set of outputs.")
 	It("should be reconciled and have a specific set of outputs.")
 

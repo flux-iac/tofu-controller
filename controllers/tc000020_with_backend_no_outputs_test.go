@@ -15,7 +15,7 @@ import (
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_0000020_with_backend_no_outputs_test(t *testing.T) {
+func Test_000020_with_backend_no_outputs_test(t *testing.T) {
 	Spec("This spec describes the behaviour of a Terraform resource with backend configured, and `auto` approve.")
 	It("should be reconciled from the plan state, to the apply state and have a correct TFSTATE stored inside the cluster as a Secret.")
 

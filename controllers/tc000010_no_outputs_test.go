@@ -17,7 +17,7 @@ import (
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_0000010_no_outputs_test(t *testing.T) {
+func Test_000010_no_outputs_test(t *testing.T) {
 	Spec("This spec describes the behaviour of a Terraform resource with no backend, and `auto` approve.")
 	It("should be reconciled to have available outputs.")
 
