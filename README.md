@@ -83,11 +83,13 @@ spec:
   * Support the GitOps way to "apply"
   * Drift detection
   * Support auto-apply so that the reconciliation detect drifts and always make changes
+  * Test coverage reaching 70%
 
 ### Q2 2022  
   * Interop with Notification controller's Events and Alert   
   * Interop with Kustomization controller's health checks (via the Output resources)
+  * Test coverage reaching 75%
 
 ### Q3 2022
   * Write back and show plan in PRs
-
+  * Test coverage reaching 80%
