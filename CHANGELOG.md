@@ -2,6 +2,15 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.5.1
+
+**Release date:** 2022-01-10
+
+This pre-release contains the following changes.
+
+Improvements:
+  * Improve UX for plan generation. Plan name is shown in the message, so that it can be used for an approval, as amended in [tc000050](controllers/tc000050_plan_and_manual_approve_no_outputs_test.go).
+
 ## v0.5.0
 
 **Release date:** 2022-01-09
