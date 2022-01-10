@@ -17,7 +17,7 @@
 
 | Version | Terraform | Source Controller | Flux v2 |
 |:-------:|:---------:|:-----------------:|:-------:|
-| v0.5.0  | v1.1.3    | v0.19.2           | v0.24.x |
+| v0.5.1  | v1.1.3    | v0.19.2           | v0.24.x |
 
 ## Quick start
 
@@ -25,7 +25,7 @@ Before using TF-controller, please install Flux by using either `flux install` o
 Here's how to install TF-controller manually,
 
 ```shell script
-export TF_CON_VER=v0.5.0
+export TF_CON_VER=v0.5.1
 kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
 kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
 kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
