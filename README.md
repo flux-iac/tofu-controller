@@ -2,6 +2,23 @@
 
 `tf-controller` is an experimental controller for Flux to reconcile Terraform resources.
 
+## Features
+  
+  * **Fully GitOps Automation for Terraform**: With setting `.spec.approvePlan=true`, it allows the `Terraform` object 
+   to fully perform GitOps reconciliation for your Terraform resources. The controller performs `plan`, `apply`, and stores 
+   the `TFSTATE` of the applied resources as a Secret inside the cluster. Then, after `.spec.interval` passes, 
+   the controller performs drift detection to check if there is a drift occurred between the live system, 
+   and your Terraform resources. If a drift happens, the plan to fix that drift will be created and applied automatically. 
+   This feature is available since v0.3.0. 
+  * **Drift detection**: This feature is a part of the GitOps automation feature. The controller detects and fixes drift
+   for your infrastructures, based on the Terraform resources and their `TFSTATE`. This feature is available since v0.5.0.  
+
+## Dependencies
+
+| Version | Terraform | Source Controller | Flux v2 |
+|:-------:|:---------:|:-----------------:|:-------:|
+| v0.5.0  | v1.1.3    | v0.19.2           | v0.24.x |
+
 ## Quick start
 
 Here's a simple example of how to GitOps-ify your Terraform resources with `tf-controller` and Flux.
