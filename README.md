@@ -91,6 +91,9 @@ spec:
     namespace: flux-system
 ```
 
+## Examples
+  * A Terraform GitOps with Flux to automatic reconcile your [AWS IAM Policies](https://github.com/tf-controller/aws-iam-policies). 
+
 ## Roadmap
 
 ### Q1 2022
