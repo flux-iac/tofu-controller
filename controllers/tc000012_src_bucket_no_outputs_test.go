@@ -202,7 +202,7 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 				return err.Error()
 			}
 			return tfStateSecret.Name
-		}, timeout, interval).Should(Equal("secrets \"tfstate-default-helloworld-no-outputs\" not found"))
+		}, timeout, interval).Should(Equal("secrets \"tfstate-default-src-bucket-helloworld-no-outputs\" not found"))
 	} else {
 		// TODO there's must be the default tfstate secret
 	}
