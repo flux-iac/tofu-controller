@@ -9,4 +9,4 @@ generatorOptions:
 images:
   - name: chanwit/tf-controller
     newName: ghcr.io/chanwit/tf-controller
-    newTag: v0.5.2
+    newTag: v0.6.0-rc.0
