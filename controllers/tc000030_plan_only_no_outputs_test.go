@@ -87,7 +87,8 @@ func Test_000030_plan_only_no_outputs_test(t *testing.T) {
 			Namespace: "flux-system",
 		},
 		Spec: infrav1.TerraformSpec{
-			Path: "./terraform-hello-world-example",
+			Path:     "./terraform-hello-world-example",
+			Interval: metav1.Duration{Duration: 3 * time.Second},
 			SourceRef: infrav1.CrossNamespaceSourceReference{
 				Kind:      "GitRepository",
 				Name:      sourceName,
@@ -140,6 +141,31 @@ func Test_000030_plan_only_no_outputs_test(t *testing.T) {
 		"Type":    "Plan",
 		"Reason":  "TerraformPlannedWithChanges",
 		"Pending": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+	}))
+
+	time.Sleep(5 * time.Second)
+
+	It("should be stopped.")
+	By("checking the ready condition is still Plan after 5 seconds.")
+	g.Eventually(func() map[string]interface{} {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return nil
+		}
+		for _, c := range createdHelloWorldTF.Status.Conditions {
+			if c.Type == "Ready" {
+				return map[string]interface{}{
+					"Type":    c.Type,
+					"Reason":  c.Reason,
+					"Message": c.Message,
+				}
+			}
+		}
+		return nil
+	}, timeout, interval).Should(Equal(map[string]interface{}{
+		"Type":    "Ready",
+		"Reason":  "TerraformPlannedWithChanges",
+		"Message": "Plan generated: set approvePlan: \"plan-master-b8e362c206\" to approve this plan.",
 	}))
 
 	It("should generate the Secret containing the plan named with branch and commit id.")
