@@ -10,6 +10,9 @@ This pre-release contains the following changes.
 
 Improvements:
   * Correct the manual approval behaviour, as amended in [tc000030](controllers/tc000030_plan_only_no_outputs_test.go).
+  * Upgrade Go to 1.17.6
+  * Upgrade Source controller to v0.20.1
+  * Support Flux v2 0.25.x
 
 ## v0.5.2
 
