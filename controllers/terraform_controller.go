@@ -97,7 +97,7 @@ type TerraformReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
 func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := logr.FromContext(ctx)
+	log := ctrl.LoggerFrom(ctx)
 	reconcileStart := time.Now()
 
 	var terraform infrav1.Terraform
@@ -290,7 +290,7 @@ func (l LocalPrintfer) Printf(format string, v ...interface{}) {
 
 func (r *TerraformReconciler) reconcile(ctx context.Context, terraform infrav1.Terraform, sourceObj sourcev1.Source) (infrav1.Terraform, error) {
 
-	log := logr.FromContext(ctx)
+	log := ctrl.LoggerFrom(ctx)
 	revision := sourceObj.GetArtifact().Revision
 	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
 
@@ -549,7 +549,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 
 func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraform, tf *tfexec.Terraform, revision string) (infrav1.Terraform, error) {
 
-	log := logr.FromContext(ctx)
+	log := ctrl.LoggerFrom(ctx)
 	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
 
 	terraform = infrav1.TerraformProgressing(terraform, "Terraform Planning")
@@ -759,7 +759,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		SavedPlanSecretLabel = "savedPlan"
 	)
 
-	log := logr.FromContext(ctx)
+	log := ctrl.LoggerFrom(ctx)
 	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
 
 	terraform = infrav1.TerraformProgressing(terraform, "Applying")
@@ -1125,7 +1125,7 @@ func (r *TerraformReconciler) recordReadinessMetric(ctx context.Context, terrafo
 	if r.MetricsRecorder == nil {
 		return
 	}
-	log := logr.FromContext(ctx)
+	log := ctrl.LoggerFrom(ctx)
 
 	objRef, err := reference.GetReference(r.Scheme, &terraform)
 	if err != nil {
@@ -1147,7 +1147,7 @@ func (r *TerraformReconciler) recordSuspensionMetric(ctx context.Context, terraf
 	if r.MetricsRecorder == nil {
 		return
 	}
-	log := logr.FromContext(ctx)
+	log := ctrl.LoggerFrom(ctx)
 
 	objRef, err := reference.GetReference(r.Scheme, &terraform)
 	if err != nil {
@@ -1216,7 +1216,7 @@ func (r *TerraformReconciler) indexBy(kind string) func(o client.Object) []strin
 }
 
 func (r *TerraformReconciler) fireEvent(ctx context.Context, terraform infrav1.Terraform, revision, severity, msg string, metadata map[string]string) {
-	log := logr.FromContext(ctx)
+	log := ctrl.LoggerFrom(ctx)
 
 	annotations := map[string]string{
 		infrav1.GroupVersion.Group + "/revision": revision,
