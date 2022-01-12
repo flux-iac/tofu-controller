@@ -4,7 +4,7 @@
 
 ## Features
   
-  * **Fully GitOps Automation for Terraform**: With setting `.spec.approvePlan=true`, it allows a `Terraform` object 
+  * **Fully GitOps Automation for Terraform**: With setting `.spec.approvePlan=auto`, it allows a `Terraform` object 
    to be reconciled and act as the representation of your Terraform resources. The TF-controller uses the spec of 
    the `Terraform` object to perform `plan`, `apply` its associated Terraform resources. It then stores 
    the `TFSTATE` of the applied resources as a `Secret` inside the Kubernetes cluster. After `.spec.interval` passes, 
