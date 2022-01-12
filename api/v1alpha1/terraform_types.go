@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"github.com/fluxcd/pkg/apis/meta"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -56,7 +56,7 @@ type Variable struct {
 	Value string `json:"value,omitempty"`
 
 	// +optional
-	ValueFrom *v1.EnvVarSource `json:"valueFrom,omitempty"`
+	ValueFrom *corev1.EnvVarSource `json:"valueFrom,omitempty"`
 }
 
 // TerraformSpec defines the desired state of Terraform
@@ -123,6 +123,9 @@ type TerraformSpec struct {
 
 	// +optional
 	// PushSpec *PushSpec `json:"pushSpec,omitempty"`
+
+	// +optional
+	CliConfigSecretRef *corev1.SecretReference `json:"cliConfiguration,omitempty"`
 }
 
 type PlanStatus struct {
@@ -195,6 +198,11 @@ type TerraformList struct {
 
 // BackendConfigSpec is for specifying configuration for Terraform's Kubernetes backend
 type BackendConfigSpec struct {
+
+	// Disable is to completely disable the backend configuration.
+	// +optional
+	Disable bool `json:"disable"`
+
 	// +optional
 	SecretSuffix string `json:"secretSuffix"`
 
