@@ -4,20 +4,27 @@
 
 ## Features
   
-  * **Fully GitOps Automation for Terraform**: With setting `.spec.approvePlan=true`, it allows the `Terraform` object 
-   to fully perform GitOps reconciliation for your Terraform resources. The controller performs `plan`, `apply`, and stores 
-   the `TFSTATE` of the applied resources as a Secret inside the cluster. Then, after `.spec.interval` passes, 
-   the controller performs drift detection to check if there is a drift occurred between the live system, 
-   and your Terraform resources. If a drift happens, the plan to fix that drift will be created and applied automatically. 
-   This feature is available since v0.3.0. 
+  * **Fully GitOps Automation for Terraform**: With setting `.spec.approvePlan=true`, it allows a `Terraform` object 
+   to be reconciled and act as the representation of your Terraform resources. The TF-controller uses the spec of 
+   the `Terraform` object to perform `plan`, `apply` its associated Terraform resources. It then stores 
+   the `TFSTATE` of the applied resources as a `Secret` inside the Kubernetes cluster. After `.spec.interval` passes, 
+   the controller performs drift detection to check if there is a drift occurred between your live system, 
+   and your Terraform resources. If a drift occurs, the plan to fix that drift will be generated and applied automatically. 
+   _This feature is available since v0.3.0._
   * **Drift detection**: This feature is a part of the GitOps automation feature. The controller detects and fixes drift
-   for your infrastructures, based on the Terraform resources and their `TFSTATE`. This feature is available since v0.5.0.  
+   for your infrastructures, based on the Terraform resources and their `TFSTATE`. _This feature is available since v0.5.0._
+  * **Plan and Manual Approve**: This feature allows you to separate the `plan`, out of the `apply` step, just like 
+   the Terraform workflow you are familiar with. A good thing about this is that it is done in a GitOps way. When a plan 
+   is generated, the controller shows you a message like **'set approvePlan: "plan-main-123" to apply this plan.'**. 
+   You make change to the field `.spec.approvePlan`, commit and push to tell the TF-controller to apply the plan for you.
+   With this GitOps workflow, you can optionally create and push this change to a new branch for your team member to 
+   review and approve too. _This feature is available since v0.6.0._
 
 ## Dependencies
 
 | Version | Terraform | Source Controller | Flux v2 |
 |:-------:|:---------:|:-----------------:|:-------:|
-| v0.5.2  | v1.1.3    | v0.19.2           | v0.24.x |
+| v0.6.0  | v1.1.3    | v0.19.2           | v0.24.x |
 
 ## Quick start
 
@@ -25,7 +32,7 @@ Before using TF-controller, please install Flux by using either `flux install` o
 Here's how to install TF-controller manually,
 
 ```shell script
-export TF_CON_VER=v0.5.2
+export TF_CON_VER=v0.6.0
 kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
 kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
 kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
