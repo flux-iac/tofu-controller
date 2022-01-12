@@ -2,6 +2,15 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.6.0
+
+**Release date:** 2022-01-12
+
+This pre-release contains the following changes.
+
+Improvements:
+  * Correct the manual approval behaviour, as amended in [tc000030](controllers/tc000030_plan_only_no_outputs_test.go).
+
 ## v0.5.2
 
 **Release date:** 2022-01-11
