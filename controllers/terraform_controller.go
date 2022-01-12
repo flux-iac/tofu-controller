@@ -30,10 +30,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sort"
 	"strings"
 	"time"
+
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
 	securejoin "github.com/cyphar/filepath-securejoin"
@@ -204,6 +205,11 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 }
 
 func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, revision string) bool {
+	// return false when drift detection is disabled
+	if terraform.Spec.DisableDriftDetection == true {
+		return false
+	}
+
 	// not support when Destroy == true
 	if terraform.Spec.Destroy == true {
 		return false
