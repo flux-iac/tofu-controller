@@ -128,6 +128,12 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, nil
 	}
 
+	// Return early if it's manually mode and pending
+	if terraform.Status.Plan.Pending != "" && !r.forceOrAutoApply(terraform) && !r.shouldApply(terraform) {
+		log.Info("Reconciliation is stopped to wait for a manual approve")
+		return ctrl.Result{}, nil
+	}
+
 	// resolve source reference
 	sourceObj, err := r.getSource(ctx, terraform)
 	if err != nil {
@@ -186,6 +192,11 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			sourceObj.GetArtifact().Revision)
 		r.fireEvent(ctx, reconciledTerraform, sourceObj.GetArtifact().Revision, events.EventSeverityError, reconcileErr.Error(), nil)
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
+	}
+
+	if reconciledTerraform.Status.Plan.Pending != "" && !r.forceOrAutoApply(reconciledTerraform) {
+		log.Info("Reconciliation is stopped to wait for a manual approve")
+		return ctrl.Result{}, nil
 	}
 
 	// next reconcile is .Spec.Interval in the future
