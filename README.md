@@ -22,9 +22,10 @@
 
 ## Dependencies
 
-| Version | Terraform | Source Controller | Flux v2 |
-|:-------:|:---------:|:-----------------:|:-------:|
-| v0.6.0  | v1.1.3    | v0.19.2           | v0.24.x |
+| Version  | Terraform | Source Controller | Flux v2 |
+|:--------:|:---------:|:-----------------:|:-------:|
+|**v0.6.0**| v1.1.3    | v0.20.1           | v0.25.x |
+| v0.5.2   | v1.1.3    | v0.19.2           | v0.24.x |
 
 ## Quick start
 
