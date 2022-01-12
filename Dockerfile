@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.16 as builder
+FROM golang:1.17 as builder
 
 RUN apt-get update && apt-get install -y unzip
 
@@ -23,7 +23,7 @@ ADD https://releases.hashicorp.com/terraform/1.1.3/terraform_1.1.3_linux_amd64.z
 RUN unzip -q /terraform_1.1.3_linux_amd64.zip
 
 
-FROM alpine:3.14
+FROM alpine:3.15
 
 LABEL org.opencontainers.image.source="https://github.com/chanwit/tf-controller"
 
