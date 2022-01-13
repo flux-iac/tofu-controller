@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"crypto/sha1"
 	"crypto/sha256"
@@ -1302,4 +1303,51 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 
 	// Stop reconciliation as the object is being deleted
 	return ctrl.Result{}, nil
+}
+
+func (r *TerraformReconciler) encodePlan(terraform infrav1.Terraform, tfplan []byte) ([]byte, error) {
+	e := terraform.Annotations["encoding"]
+
+	switch e {
+	case "gzip":
+		var buf bytes.Buffer
+		w := gzip.NewWriter(&buf)
+
+		_, err := w.Write(tfplan)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := w.Close(); err != nil {
+			return nil, err
+		}
+		return buf.Bytes(), nil
+	default:
+		return nil, fmt.Errorf("%q encoding method is not valid or supported", e)
+	}
+}
+
+func (r *TerraformReconciler) decodePlan(terraform infrav1.Terraform, encodedPlan []byte) ([]byte, error) {
+	e := terraform.Annotations["encoding"]
+
+	switch e {
+	case "gzip":
+		r := bytes.NewReader(encodedPlan)
+		gr, err := gzip.NewReader(r)
+		if err != nil {
+			return nil, err
+		}
+
+		o, err := ioutil.ReadAll(gr)
+		if err != nil {
+			return nil, err
+		}
+
+		if err = gr.Close(); err != nil {
+			return nil, err
+		}
+		return o, nil
+	default:
+		return nil, fmt.Errorf("%q encoding method is not valid or supported", e)
+	}
 }
