@@ -8,5 +8,5 @@ roleRef:
   name: cluster-admin
 subjects:
   - kind: ServiceAccount
-    name: default
+    name: controller
     namespace: system
