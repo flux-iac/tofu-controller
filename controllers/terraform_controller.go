@@ -624,6 +624,18 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	planRev := strings.Replace(revision, "/", "-", 1)
 	planName := "plan-" + planRev
 
+	if _, hasEncoding := terraform.ObjectMeta.Annotations["encoding"]; hasEncoding {
+		tfplan, err = r.encodePlan(terraform, tfplan)
+		if err != nil {
+			return infrav1.TerraformNotReady(
+				terraform,
+				revision,
+				infrav1.TFExecPlanFailedReason,
+				err.Error(),
+			), err
+		}
+	}
+
 	tfplanData := map[string][]byte{"tfplan": tfplan}
 	tfplanSecret = corev1.Secret{
 		TypeMeta: metav1.TypeMeta{
@@ -801,6 +813,19 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	}
 
 	tfplan := tfplanSecret.Data[TFPlanName]
+
+	if _, hasEncoding := terraform.ObjectMeta.Annotations["encoding"]; hasEncoding {
+		tfplan, err = r.decodePlan(terraform, tfplan)
+		if err != nil {
+			return infrav1.TerraformNotReady(
+				terraform,
+				revision,
+				infrav1.TFExecApplyFailedReason,
+				err.Error(),
+			), err
+		}
+	}
+
 	err = ioutil.WriteFile(filepath.Join(tf.WorkingDir(), TFPlanName), tfplan, 0644)
 	if err != nil {
 		err = fmt.Errorf("error saving plan file to disk: %s", err)
