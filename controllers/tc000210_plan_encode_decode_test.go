@@ -13,7 +13,7 @@ import (
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_000210_plan_encode_decode(t *testing.T) {
+func Test_000210_plan_encode_decode_test(t *testing.T) {
 	Spec("This spec describes behaviour when encoding method is specified")
 
 	g := NewWithT(t)
