@@ -3,13 +3,13 @@
 `tf-controller` is an experimental controller for Flux to reconcile Terraform resources.
 
 ## Features
-
-  * **Fully GitOps Automation for Terraform**: With setting `.spec.approvePlan=true`, it allows a `Terraform` object
-   to be reconciled and act as the representation of your Terraform resources. The TF-controller uses the spec of
-   the `Terraform` object to perform `plan`, `apply` its associated Terraform resources. It then stores
-   the `TFSTATE` of the applied resources as a `Secret` inside the Kubernetes cluster. After `.spec.interval` passes,
-   the controller performs drift detection to check if there is a drift occurred between your live system,
-   and your Terraform resources. If a drift occurs, the plan to fix that drift will be generated and applied automatically.
+  
+  * **Fully GitOps Automation for Terraform**: With setting `.spec.approvePlan=auto`, it allows a `Terraform` object 
+   to be reconciled and act as the representation of your Terraform resources. The TF-controller uses the spec of 
+   the `Terraform` object to perform `plan`, `apply` its associated Terraform resources. It then stores 
+   the `TFSTATE` of the applied resources as a `Secret` inside the Kubernetes cluster. After `.spec.interval` passes, 
+   the controller performs drift detection to check if there is a drift occurred between your live system, 
+   and your Terraform resources. If a drift occurs, the plan to fix that drift will be generated and applied automatically. 
    _This feature is available since v0.3.0._
   * **Drift detection**: This feature is a part of the GitOps automation feature. The controller detects and fixes drift
    for your infrastructures, based on the Terraform resources and their `TFSTATE`. _This feature is available since v0.5.0._
