@@ -137,11 +137,11 @@ You can use `eksctl` to associate an OIDC provider with your EKS cluster:
 
 `eksctl utils associate-iam-oidc-provider --cluster CLUSTER_NAME --approve`
 
-Then follow the instructions here to add a trust policy to the IAM role which grants the necessary permissions for Terraform: `https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html` (if you have installed the controller following the README then the `namespace:serviceaccountname` will be `flux-system:tf-manager`).
+Then follow the instructions here to add a trust policy to the IAM role which grants the necessary permissions for Terraform: `https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html` (if you have installed the controller following the README then the `namespace:serviceaccountname` will be `flux-system:tf-controller`).
 
 Finally, annotate the ServiceAccount in your cluster:
 
-` kubectl -n flux-system serviceaccount tf-manager eks.amazon.com/role-arn=ROLE_ARN`
+` kubectl -n flux-system serviceaccount tf-controller eks.amazon.com/role-arn=ROLE_ARN`
 
 ## Examples
   * A Terraform GitOps with Flux to automatic reconcile your [AWS IAM Policies](https://github.com/tf-controller/aws-iam-policies).
