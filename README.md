@@ -3,13 +3,13 @@
 `tf-controller` is an experimental controller for Flux to reconcile Terraform resources.
 
 ## Features
-  
-  * **Fully GitOps Automation for Terraform**: With setting `.spec.approvePlan=auto`, it allows a `Terraform` object 
-   to be reconciled and act as the representation of your Terraform resources. The TF-controller uses the spec of 
-   the `Terraform` object to perform `plan`, `apply` its associated Terraform resources. It then stores 
-   the `TFSTATE` of the applied resources as a `Secret` inside the Kubernetes cluster. After `.spec.interval` passes, 
-   the controller performs drift detection to check if there is a drift occurred between your live system, 
-   and your Terraform resources. If a drift occurs, the plan to fix that drift will be generated and applied automatically. 
+
+  * **Fully GitOps Automation for Terraform**: With setting `.spec.approvePlan=auto`, it allows a `Terraform` object
+   to be reconciled and act as the representation of your Terraform resources. The TF-controller uses the spec of
+   the `Terraform` object to perform `plan`, `apply` its associated Terraform resources. It then stores
+   the `TFSTATE` of the applied resources as a `Secret` inside the Kubernetes cluster. After `.spec.interval` passes,
+   the controller performs drift detection to check if there is a drift occurred between your live system,
+   and your Terraform resources. If a drift occurs, the plan to fix that drift will be generated and applied automatically.
    _This feature is available since v0.3.0._
   * **Drift detection**: This feature is a part of the GitOps automation feature. The controller detects and fixes drift
    for your infrastructures, based on the Terraform resources and their `TFSTATE`. _This feature is available since v0.5.0._
@@ -129,6 +129,19 @@ spec:
     namespace: flux-system
 ```
 
+### Use with AWS EKS IRSA
+
+AWS Elastic Kubernetes offers IRSA as a mechanism by which to provide credentials for the Terraform controller.
+
+You can use `eksctl` to associate an OIDC provider with your EKS cluster:
+
+`eksctl utils associate-iam-oidc-provider --cluster CLUSTER_NAME --approve`
+
+Then follow the instructions here to add a trust policy to the IAM role which grants the necessary permissions for Terraform: `https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html` (if you have installed the controller following the README then the `namespace:serviceaccountname` will be `flux-system:tf-controller`).
+
+Finally, annotate the ServiceAccount in your cluster:
+
+` kubectl -n flux-system serviceaccount tf-controller eks.amazon.com/role-arn=ROLE_ARN`
 
 ## Examples
   * A Terraform GitOps with Flux to automatic reconcile your [AWS IAM Policies](https://github.com/tf-controller/aws-iam-policies).
