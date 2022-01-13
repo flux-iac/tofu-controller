@@ -72,6 +72,12 @@ spec:
                 description: Destroy produces a destroy plan. Applying the plan will
                   destroy all resources.
                 type: boolean
+              disableDriftDetection:
+                default: false
+                description: Disable automatic drift detection. Drift detection may
+                  be resource intensive in the context of a large cluster or complex
+                  Terraform statefile. Defaults to false.
+                type: boolean
               force:
                 default: false
                 description: Force instructs the controller to unconditionally re-plan
