@@ -533,7 +533,6 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 	}
 
 	if drifted {
-
 		rawOutput, err := tf.ShowPlanFileRaw(ctx, driftFilename)
 		if err != nil {
 			return infrav1.TerraformNotReady(
@@ -547,10 +546,10 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 		// If drift detected & we use the auto mode, then we continue
 		terraform = infrav1.TerraformDriftDetected(terraform, revision, infrav1.DriftDetectedReason, rawOutput)
 		return terraform, fmt.Errorf(infrav1.DriftDetectedReason)
-	} else {
-		terraform = infrav1.TerraformNoDrift(terraform, revision, infrav1.NoDriftReason, "No drift")
-		return terraform, nil
 	}
+
+	terraform = infrav1.TerraformNoDrift(terraform, revision, infrav1.NoDriftReason, "No drift")
+	return terraform, nil
 }
 
 func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraform, tf *tfexec.Terraform, revision string) (infrav1.Terraform, error) {
