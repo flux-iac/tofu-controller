@@ -115,6 +115,12 @@ type TerraformSpec struct {
 	// +optional
 	WriteOutputsToSecret *WriteOutputsToSecretSpec `json:"writeOutputsToSecret,omitempty"`
 
+	// Disable automatic drift detection. Drift detection may be resource intensive in
+	// the context of a large cluster or complex Terraform statefile. Defaults to false.
+	// +kubebuilder:default:=false
+	// +optional
+	DisableDriftDetection bool `json:"disableDriftDetection,omitempty"`
+
 	// +optional
 	// PushSpec *PushSpec `json:"pushSpec,omitempty"`
 }
