@@ -1,14 +1,15 @@
 package controllers
 
 import (
+	"os"
+	"testing"
+
 	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"os"
-	"testing"
 
 	"context"
 	"time"
@@ -182,12 +183,14 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 			return nil
 		}
 		return map[string]interface{}{
-			"SavedPlan":   tfplanSecret.Labels["savedPlan"],
-			"TFPlanEmpty": string(tfplanSecret.Data["tfplan"]) == "",
+			"SavedPlan":             tfplanSecret.Labels["savedPlan"],
+			"TFPlanEmpty":           string(tfplanSecret.Data["tfplan"]) == "",
+			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":   planId,
-		"TFPlanEmpty": false,
+		"SavedPlan":             planId,
+		"TFPlanEmpty":           false,
+		"HasEncodingAnnotation": true,
 	}))
 
 	By("setting the .spec.approvePlan to be plan-main- and a part of commit id (b8e362c206) to approve the plan.")
