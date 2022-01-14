@@ -158,12 +158,14 @@ func Test_000150_manual_apply_should_report_and_loop_when_drift_detected_test(t 
 			return nil
 		}
 		return map[string]interface{}{
-			"SavedPlan":         tfplanSecret.Labels["savedPlan"],
-			"Is TFPlan empty ?": string(tfplanSecret.Data["tfplan"]) == "",
+			"SavedPlan":             tfplanSecret.Labels["savedPlan"],
+			"Is TFPlan empty ?":     string(tfplanSecret.Data["tfplan"]) == "",
+			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":         "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-		"Is TFPlan empty ?": false,
+		"SavedPlan":             "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"Is TFPlan empty ?":     false,
+		"HasEncodingAnnotation": true,
 	}))
 
 	createdHelloWorldTF.Spec.ApprovePlan = "plan-master-b8e362c206"

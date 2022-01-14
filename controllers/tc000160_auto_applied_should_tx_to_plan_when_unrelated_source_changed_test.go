@@ -203,12 +203,14 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 			return nil
 		}
 		return map[string]interface{}{
-			"SavedPlan":   tfplanSecret.Labels["savedPlan"],
-			"TFPlanEmpty": string(tfplanSecret.Data["tfplan"]) == "",
+			"SavedPlan":             tfplanSecret.Labels["savedPlan"],
+			"TFPlanEmpty":           string(tfplanSecret.Data["tfplan"]) == "",
+			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":   "plan-master-ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
-		"TFPlanEmpty": false,
+		"SavedPlan":             "plan-master-ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
+		"TFPlanEmpty":           false,
+		"HasEncodingAnnotation": true,
 	}))
 
 	By("checking that the status of the TF resource must be transitioned to planned, no change.")
