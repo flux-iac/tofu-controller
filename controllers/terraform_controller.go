@@ -623,16 +623,14 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	planRev := strings.Replace(revision, "/", "-", 1)
 	planName := "plan-" + planRev
 
-	if _, hasEncoding := terraform.ObjectMeta.Annotations["encoding"]; hasEncoding {
-		tfplan, err = r.encodePlan(terraform, tfplan)
-		if err != nil {
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.TFExecPlanFailedReason,
-				err.Error(),
-			), err
-		}
+	tfplan, err = r.gzipEncode(tfplan)
+	if err != nil {
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.TFExecPlanFailedReason,
+			err.Error(),
+		), err
 	}
 
 	tfplanData := map[string][]byte{"tfplan": tfplan}
@@ -646,6 +644,9 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 			Namespace: terraform.GetNamespace(),
 			Labels: map[string]string{
 				"savedPlan": planName,
+			},
+			Annotations: map[string]string{
+				"encoding": "gzip",
 			},
 			OwnerReferences: []metav1.OwnerReference{
 				{
@@ -813,16 +814,14 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 
 	tfplan := tfplanSecret.Data[TFPlanName]
 
-	if _, hasEncoding := terraform.ObjectMeta.Annotations["encoding"]; hasEncoding {
-		tfplan, err = r.decodePlan(terraform, tfplan)
-		if err != nil {
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.TFExecApplyFailedReason,
-				err.Error(),
-			), err
-		}
+	tfplan, err = r.gzipDecode(tfplan)
+	if err != nil {
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.TFExecApplyFailedReason,
+			err.Error(),
+		), err
 	}
 
 	err = ioutil.WriteFile(filepath.Join(tf.WorkingDir(), TFPlanName), tfplan, 0644)
@@ -1329,49 +1328,35 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 	return ctrl.Result{}, nil
 }
 
-func (r *TerraformReconciler) encodePlan(terraform infrav1.Terraform, tfplan []byte) ([]byte, error) {
-	e := terraform.Annotations["encoding"]
+func (r *TerraformReconciler) gzipEncode(tfplan []byte) ([]byte, error) {
+	var buf bytes.Buffer
+	w := gzip.NewWriter(&buf)
 
-	switch e {
-	case "gzip":
-		var buf bytes.Buffer
-		w := gzip.NewWriter(&buf)
-
-		_, err := w.Write(tfplan)
-		if err != nil {
-			return nil, err
-		}
-
-		if err := w.Close(); err != nil {
-			return nil, err
-		}
-		return buf.Bytes(), nil
-	default:
-		return nil, fmt.Errorf("%q encoding method is not valid or supported", e)
+	_, err := w.Write(tfplan)
+	if err != nil {
+		return nil, err
 	}
+
+	if err := w.Close(); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (r *TerraformReconciler) decodePlan(terraform infrav1.Terraform, encodedPlan []byte) ([]byte, error) {
-	e := terraform.Annotations["encoding"]
-
-	switch e {
-	case "gzip":
-		r := bytes.NewReader(encodedPlan)
-		gr, err := gzip.NewReader(r)
-		if err != nil {
-			return nil, err
-		}
-
-		o, err := ioutil.ReadAll(gr)
-		if err != nil {
-			return nil, err
-		}
-
-		if err = gr.Close(); err != nil {
-			return nil, err
-		}
-		return o, nil
-	default:
-		return nil, fmt.Errorf("%q encoding method is not valid or supported", e)
+func (r *TerraformReconciler) gzipDecode(encodedPlan []byte) ([]byte, error) {
+	re := bytes.NewReader(encodedPlan)
+	gr, err := gzip.NewReader(re)
+	if err != nil {
+		return nil, err
 	}
+
+	o, err := ioutil.ReadAll(gr)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = gr.Close(); err != nil {
+		return nil, err
+	}
+	return o, nil
 }

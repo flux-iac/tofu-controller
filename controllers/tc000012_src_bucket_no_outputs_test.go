@@ -148,12 +148,14 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 			return nil
 		}
 		return map[string]interface{}{
-			"SavedPlan":         tfplanSecret.Labels["savedPlan"],
-			"Is TFPlan empty ?": string(tfplanSecret.Data["tfplan"]) == "",
+			"SavedPlan":             tfplanSecret.Labels["savedPlan"],
+			"Is TFPlan empty ?":     string(tfplanSecret.Data["tfplan"]) == "",
+			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":         "plan-822c3dd335579b435b5ada924d6f38b227412a5c",
-		"Is TFPlan empty ?": false,
+		"SavedPlan":             "plan-822c3dd335579b435b5ada924d6f38b227412a5c",
+		"Is TFPlan empty ?":     false,
+		"HasEncodingAnnotation": true,
 	}))
 
 	It("should contain an Apply condition saying that the plan were apply successfully.")
