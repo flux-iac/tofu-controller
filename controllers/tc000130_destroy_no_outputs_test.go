@@ -2,10 +2,11 @@ package controllers
 
 import (
 	"context"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"os"
 	"testing"
 	"time"
+
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	. "github.com/onsi/gomega"
 
@@ -162,12 +163,14 @@ func Test_000130_destroy_no_outputs_test(t *testing.T) {
 			return nil
 		}
 		return map[string]interface{}{
-			"SavedPlan":         tfplanSecret.Labels["savedPlan"],
-			"Is TFPlan empty ?": string(tfplanSecret.Data["tfplan"]) == "",
+			"SavedPlan":             tfplanSecret.Labels["savedPlan"],
+			"Is TFPlan empty ?":     string(tfplanSecret.Data["tfplan"]) == "",
+			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":         "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-		"Is TFPlan empty ?": false,
+		"SavedPlan":             "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"Is TFPlan empty ?":     false,
+		"HasEncodingAnnotation": true,
 	}))
 
 	By("checking that the applied status of the TF program Successfully, and plan-master-b8e3 is applied")
