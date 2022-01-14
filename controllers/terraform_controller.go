@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"crypto/sha1"
 	"crypto/sha256"
@@ -622,6 +623,16 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	planRev := strings.Replace(revision, "/", "-", 1)
 	planName := "plan-" + planRev
 
+	tfplan, err = r.gzipEncode(tfplan)
+	if err != nil {
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.TFExecPlanFailedReason,
+			err.Error(),
+		), err
+	}
+
 	tfplanData := map[string][]byte{"tfplan": tfplan}
 	tfplanSecret = corev1.Secret{
 		TypeMeta: metav1.TypeMeta{
@@ -633,6 +644,9 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 			Namespace: terraform.GetNamespace(),
 			Labels: map[string]string{
 				"savedPlan": planName,
+			},
+			Annotations: map[string]string{
+				"encoding": "gzip",
 			},
 			OwnerReferences: []metav1.OwnerReference{
 				{
@@ -799,6 +813,17 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	}
 
 	tfplan := tfplanSecret.Data[TFPlanName]
+
+	tfplan, err = r.gzipDecode(tfplan)
+	if err != nil {
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.TFExecApplyFailedReason,
+			err.Error(),
+		), err
+	}
+
 	err = ioutil.WriteFile(filepath.Join(tf.WorkingDir(), TFPlanName), tfplan, 0644)
 	if err != nil {
 		err = fmt.Errorf("error saving plan file to disk: %s", err)
@@ -1301,4 +1326,37 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 
 	// Stop reconciliation as the object is being deleted
 	return ctrl.Result{}, nil
+}
+
+func (r *TerraformReconciler) gzipEncode(tfplan []byte) ([]byte, error) {
+	var buf bytes.Buffer
+	w := gzip.NewWriter(&buf)
+
+	_, err := w.Write(tfplan)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := w.Close(); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (r *TerraformReconciler) gzipDecode(encodedPlan []byte) ([]byte, error) {
+	re := bytes.NewReader(encodedPlan)
+	gr, err := gzip.NewReader(re)
+	if err != nil {
+		return nil, err
+	}
+
+	o, err := ioutil.ReadAll(gr)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = gr.Close(); err != nil {
+		return nil, err
+	}
+	return o, nil
 }
