@@ -112,30 +112,6 @@ func Test_000201_auto_approve_with_disabled_drift_detection(t *testing.T) {
 		return true
 	}, timeout, interval).Should(BeTrue())
 
-	By("checking that the planned status of the TF program is created successfully")
-	g.Eventually(func() map[string]interface{} {
-		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
-		if err != nil {
-			return nil
-		}
-		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Plan" {
-				return map[string]interface{}{
-					"Type":    c.Type,
-					"Reason":  c.Reason,
-					"Pending": createdHelloWorldTF.Status.Plan.Pending,
-					"Message": c.Message,
-				}
-			}
-		}
-		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":    "Plan",
-		"Reason":  "TerraformPlannedWithChanges",
-		"Pending": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-		"Message": "Plan generated",
-	}))
-
 	By("checking that the plan was applied successfully")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
