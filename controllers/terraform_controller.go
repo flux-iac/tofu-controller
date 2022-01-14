@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"crypto/sha1"
 	"crypto/sha256"
@@ -623,7 +624,10 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	planName := "plan-" + planRev
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 50a2fbcf9fb707c843005d918e7bfa11366207e8
 	tfplan, err = r.gzipEncode(tfplan)
 	if err != nil {
 		return infrav1.TerraformNotReady(
@@ -634,7 +638,10 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		), err
 	}
 
+<<<<<<< HEAD
 >>>>>>> 6743602 (add gzip encoding annotation to tfplan secret and update tests)
+=======
+>>>>>>> 50a2fbcf9fb707c843005d918e7bfa11366207e8
 	tfplanData := map[string][]byte{"tfplan": tfplan}
 	tfplanSecret = corev1.Secret{
 		TypeMeta: metav1.TypeMeta{
@@ -815,8 +822,6 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	}
 
 	tfplan := tfplanSecret.Data[TFPlanName]
-<<<<<<< HEAD
-=======
 
 	tfplan, err = r.gzipDecode(tfplan)
 	if err != nil {
@@ -828,7 +833,6 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		), err
 	}
 
->>>>>>> 6743602 (add gzip encoding annotation to tfplan secret and update tests)
 	err = ioutil.WriteFile(filepath.Join(tf.WorkingDir(), TFPlanName), tfplan, 0644)
 	if err != nil {
 		err = fmt.Errorf("error saving plan file to disk: %s", err)
