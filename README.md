@@ -129,27 +129,6 @@ spec:
     namespace: flux-system
 ```
 
-### Gzip Encode Terraform Plan
-
-Due to the size limitation of a Kubernetes `Secret` of 1 MB, gzip is useful to compress the outputted terraform plan:
-
-```yaml
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
-kind: Terraform
-metadata:
-  name: helloworld
-  namespace: flux-system
-  annotations:
-    encoding: "gzip"
-spec:
-  approvePlan: "auto"
-  path: ./
-  sourceRef:
-    kind: GitRepository
-    name: helloworld
-    namespace: flux-system
-```
-
 ### Use with AWS EKS IRSA
 
 AWS Elastic Kubernetes offers IRSA as a mechanism by which to provide credentials for the Terraform controller.
