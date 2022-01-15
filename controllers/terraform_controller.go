@@ -632,14 +632,20 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 	}
 
 	if drifted {
-		rawOutput, err := tf.ShowPlanFileRaw(ctx, driftFilename)
-		if err != nil {
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.DriftDetectionFailedReason,
-				err.Error(),
-			), err
+		var rawOutput string
+		if r.backendCompletelyDisable(terraform) {
+			rawOutput = "not available"
+		} else {
+			var err error
+			rawOutput, err = tf.ShowPlanFileRaw(ctx, driftFilename)
+			if err != nil {
+				return infrav1.TerraformNotReady(
+					terraform,
+					revision,
+					infrav1.DriftDetectionFailedReason,
+					err.Error(),
+				), err
+			}
 		}
 
 		// If drift detected & we use the auto mode, then we continue
