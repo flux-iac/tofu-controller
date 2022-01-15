@@ -130,12 +130,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, nil
 	}
 
-	// Return early if it's manually mode and pending
-	if terraform.Status.Plan.Pending != "" && !r.forceOrAutoApply(terraform) && !r.shouldApply(terraform) {
-		log.Info("Reconciliation is stopped to wait for a manual approve")
-		return ctrl.Result{}, nil
-	}
-
 	// resolve source reference
 	sourceObj, err := r.getSource(ctx, terraform)
 	if err != nil {
@@ -167,6 +161,22 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		log.Info(msg)
 		// do not requeue immediately, when the artifact is created the watcher should trigger a reconciliation
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
+	}
+
+	// If revision is changed, and there's no intend to apply,
+	// we should clear the Pending Plan to trigger re-plan
+	if sourceObj.GetArtifact().Revision != terraform.Status.LastAttemptedRevision && !r.shouldApply(terraform) {
+		terraform.Status.Plan.Pending = ""
+		if err := r.Status().Update(ctx, &terraform); err != nil {
+			log.Error(err, "unable to update status to clear pending plan (revision != last attempted)")
+			return ctrl.Result{Requeue: true}, err
+		}
+	}
+
+	// Return early if it's manually mode and pending
+	if terraform.Status.Plan.Pending != "" && !r.forceOrAutoApply(terraform) && !r.shouldApply(terraform) {
+		log.Info("reconciliation is stopped to wait for a manual approve")
+		return ctrl.Result{}, nil
 	}
 
 	// reconcile Terraform by applying the latest revision
