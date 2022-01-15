@@ -29,6 +29,7 @@ controllers/data/terraform-hello-env/
 controllers/data/terraform-hello-world-example/
 controllers/data/tf-k8s-configmap/
 controllers/data/tf-k8s-configmap-unrelated-change/
+controllers/data/tfc-helloworld/
 controllers/data/terratest-master.tar.gz
 
 /config/crd/bases/buckets.yaml

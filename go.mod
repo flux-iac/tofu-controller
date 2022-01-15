@@ -99,3 +99,5 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.0 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
+
+replace github.com/hashicorp/terraform-exec v0.15.0 => github.com/tf-controller/terraform-exec v0.15.1-0.20220114135154-c06c64609ee0
