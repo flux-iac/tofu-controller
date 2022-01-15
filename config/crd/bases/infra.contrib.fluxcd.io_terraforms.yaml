@@ -71,7 +71,7 @@ spec:
                   secretSuffix:
                     type: string
                 type: object
-              cliConfiguration:
+              cliConfigSecretRef:
                 description: SecretReference represents a Secret Reference. It has
                   enough information to retrieve secret in any namespace
                 properties:
