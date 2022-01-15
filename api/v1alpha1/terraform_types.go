@@ -125,7 +125,7 @@ type TerraformSpec struct {
 	// PushSpec *PushSpec `json:"pushSpec,omitempty"`
 
 	// +optional
-	CliConfigSecretRef *corev1.SecretReference `json:"cliConfiguration,omitempty"`
+	CliConfigSecretRef *corev1.SecretReference `json:"cliConfigSecretRef,omitempty"`
 }
 
 type PlanStatus struct {
