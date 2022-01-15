@@ -1,6 +1,6 @@
 # tf-controller
 
-`tf-controller` is an experimental controller for Flux to reconcile Terraform resources.
+`tf-controller` is an experimental controller for Flux to reconcile Terraform resources in the GitOps-way.
 
 ## Features
 
@@ -32,7 +32,7 @@
 Before using TF-controller, please install Flux by using either `flux install` or `flux bootstrap`.
 Here's how to install TF-controller manually,
 
-```shell script
+```shell
 export TF_CON_VER=v0.6.0
 kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
 kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
@@ -131,20 +131,28 @@ spec:
 
 ### Use with AWS EKS IRSA
 
-AWS Elastic Kubernetes offers IRSA as a mechanism by which to provide credentials for the Terraform controller.
+AWS Elastic Kubernetes Service (EKS) offers IAM Roles for Service Accounts (IRSA) as a mechanism by which to provide 
+credentials for the Terraform controller.
 
-You can use `eksctl` to associate an OIDC provider with your EKS cluster:
+You can use `eksctl` to associate an OIDC provider with your EKS cluster, for example:
 
-`eksctl utils associate-iam-oidc-provider --cluster CLUSTER_NAME --approve`
+```shell
+eksctl utils associate-iam-oidc-provider --cluster CLUSTER_NAME --approve
+```
 
-Then follow the instructions here to add a trust policy to the IAM role which grants the necessary permissions for Terraform: `https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html` (if you have installed the controller following the README then the `namespace:serviceaccountname` will be `flux-system:tf-controller`).
+Then follow the instructions here to add a trust policy to the IAM role which grants the necessary permissions 
+for Terraform: `https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html`. 
+Please note that if you have installed the controller following the README, then the `namespace:serviceaccountname` 
+will be `flux-system:tf-controller`. You'll obtain a Role ARN to use in the next step.
 
-Finally, annotate the ServiceAccount in your cluster:
+Finally, annotate the ServiceAccount with the obtained Role ARN in your cluster:
 
-` kubectl -n flux-system serviceaccount tf-controller eks.amazon.com/role-arn=ROLE_ARN`
+```shell
+kubectl -n flux-system serviceaccount tf-controller eks.amazon.com/role-arn=ROLE_ARN
+```
 
 ## Examples
-  * A Terraform GitOps with Flux to automatic reconcile your [AWS IAM Policies](https://github.com/tf-controller/aws-iam-policies).
+  * A Terraform GitOps with Flux to automatically reconcile your [AWS IAM Policies](https://github.com/tf-controller/aws-iam-policies).
 
 ## Roadmap
 
@@ -155,13 +163,14 @@ Finally, annotate the ServiceAccount in your cluster:
   * Support the GitOps way to "apply"
   * Drift detection
   * Support auto-apply so that the reconciliation detect drifts and always make changes
+  * Interop with Kustomization controller's health checks
   * Test coverage reaching 70%
 
 ### Q2 2022
   * Interop with Notification controller's Events and Alert
-  * Interop with Kustomization controller's health checks (via the Output resources)
+  * Write back and show plan in PRs
   * Test coverage reaching 75%
 
 ### Q3 2022
-  * Write back and show plan in PRs
+  * Performance and scalability
   * Test coverage reaching 80%
