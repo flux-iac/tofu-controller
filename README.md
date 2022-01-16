@@ -161,6 +161,7 @@ kubectl annotate -n flux-system serviceaccount tf-controller eks.amazon.com/role
 
 ## Examples
   * A Terraform GitOps with Flux to automatically reconcile your [AWS IAM Policies](https://github.com/tf-controller/aws-iam-policies).
+  * How to manage an existing EKS cluster, the GitOps way [An EKS scaling example](https://github.com/tf-controller/eks-scaling).
 
 ## Roadmap
 
