@@ -22,18 +22,18 @@
 
 ## Dependencies
 
-| Version  | Terraform | Source Controller | Flux v2 |
-|:--------:|:---------:|:-----------------:|:-------:|
-|**v0.6.0**| v1.1.3    | v0.20.1           | v0.25.x |
-| v0.5.2   | v1.1.3    | v0.19.2           | v0.24.x |
+|  Version   | Terraform | Source Controller | Flux v2 |
+|:----------:|:---------:|:-----------------:|:-------:|
+| **v0.7.0** | v1.1.3    | v0.20.1           | v0.25.x |
+|   v0.6.0   | v1.1.3    | v0.20.1           | v0.25.x |
 
 ## Quick start
 
 Before using TF-controller, please install Flux by using either `flux install` or `flux bootstrap`.
-Here's how to install TF-controller manually,
+After that you can install TF-controller. Here's how to install it manually,
 
 ```shell
-export TF_CON_VER=v0.6.0
+export TF_CON_VER=v0.7.0
 kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
 kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
 kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
@@ -42,6 +42,8 @@ kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF
 Here's a simple example of how to GitOps-ify your Terraform resources with `tf-controller` and Flux.
 
 ### Define source
+
+First, we need to define a source (`GitRepostory`, or `Bucket`) using the Source controller's resource, for example:
 
 ```yaml
 apiVersion: source.toolkit.fluxcd.io/v1beta1
@@ -56,7 +58,10 @@ spec:
     branch: main
 ```
 
-### Auto-mode
+### The GitOps Automation mode
+
+The GitOps automation mode could be enabled by setting `.spec.approvePlan=auto`. In this mode, Terraform resources will be planned,
+and automatically applied for you.
 
 ```yaml
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
@@ -75,6 +80,8 @@ spec:
 
 ### Plan and manual approval
 
+For the plan & manual approval workflow, please either set `.spec.approvePlan` to be the blank value, or omit the field. 
+
 ```diff
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
 kind: Terraform
@@ -82,8 +89,8 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-- approvePlan: "auto"
 + approvePlan: "" # or you can omit this field
+- approvePlan: "auto"
   path: ./
   sourceRef:
     kind: GitRepository
@@ -91,7 +98,8 @@ spec:
     namespace: flux-system
 ```
 
-then use field `approvePlan` to approve the plan so that it apply the plan to create real resources.
+Then the controller will tell you how to use field `.spec.approvePlan` to approve the plan.
+After making change and push, it will apply the plan to create real resources.
 
 ```diff
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
@@ -100,8 +108,8 @@ metadata:
   name: hello-world
   namespace: flux-system
 spec:
-- approvePlan: ""
 + approvePlan: "plan-main-b8e362c206" # first 8 digits of a commit hash is enough
+- approvePlan: ""
   path: ./
   sourceRef:
     kind: GitRepository
@@ -140,8 +148,8 @@ You can use `eksctl` to associate an OIDC provider with your EKS cluster, for ex
 eksctl utils associate-iam-oidc-provider --cluster CLUSTER_NAME --approve
 ```
 
-Then follow the instructions here to add a trust policy to the IAM role which grants the necessary permissions 
-for Terraform: `https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html`. 
+Then follow the instructions [here](https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html) 
+to add a trust policy to the IAM role which grants the necessary permissions for Terraform. 
 Please note that if you have installed the controller following the README, then the `namespace:serviceaccountname` 
 will be `flux-system:tf-controller`. You'll obtain a Role ARN to use in the next step.
 
