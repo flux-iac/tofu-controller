@@ -2,6 +2,21 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.7.0
+
+**Release date:** 2022-01-16
+
+This pre-release contains the following changes.
+
+New Features:
+  * Add flag to allow disabling drift detection `.spec.disableDriftDetection` (@phoban01)
+  * Add field to allow specifying TF client configuration `.spec.cliConfigurationSecretRef` and disable backend completely `.spec.backendConfig.disable` (@chanwit)
+  
+Improvements:
+  * Add documentation on how to use TF-controller with EKS IRSA (@phoban01)
+  * Support gzip encoding for `tfplan` (@tomhuang12)
+  * Improve re-plan behaviour (@chanwit)
+
 ## v0.6.0
 
 **Release date:** 2022-01-12
