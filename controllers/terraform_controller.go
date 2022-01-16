@@ -1129,11 +1129,10 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentReconciles int, httpRetry int) error {
 	const (
 		gitRepositoryIndexKey string = ".metadata.gitRepository"
 		bucketIndexKey        string = ".metadata.bucket"
-		SingleInstance               = 1
 	)
 
 	// Index the Terraforms by the GitRepository references they (may) point at.
@@ -1153,7 +1152,7 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	httpClient := retryablehttp.NewClient()
 	httpClient.RetryWaitMin = 5 * time.Second
 	httpClient.RetryWaitMax = 30 * time.Second
-	httpClient.RetryMax = 10 // TODO opts.HTTPRetry
+	httpClient.RetryMax = httpRetry
 	httpClient.Logger = nil
 	r.httpClient = httpClient
 
@@ -1171,8 +1170,7 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(bucketIndexKey)),
 			builder.WithPredicates(SourceRevisionChangePredicate{}),
 		).
-		// SingleInstance makes it serialization
-		WithOptions(controller.Options{MaxConcurrentReconciles: SingleInstance}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: maxConcurrentReconciles}).
 		Complete(r)
 }
 

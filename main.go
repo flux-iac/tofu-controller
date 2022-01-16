@@ -73,7 +73,7 @@ func main() {
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&eventsAddr, "events-addr", "", "The address of the events receiver.")
 	flag.StringVar(&healthAddr, "health-addr", ":9440", "The address the health endpoint binds to.")
-	flag.IntVar(&concurrent, "concurrent", 4, "The number of concurrent kustomize reconciles.")
+	flag.IntVar(&concurrent, "concurrent", 4, "The number of concurrent terraform reconciles.")
 	flag.DurationVar(&requeueDependency, "requeue-dependency", 30*time.Second, "The interval at which failing dependencies are reevaluated.")
 	flag.BoolVar(&watchAllNamespaces, "watch-all-namespaces", true,
 		"Watch for custom resources in all namespaces, if set to false it will only watch the runtime namespace.")
@@ -132,7 +132,7 @@ func main() {
 		ExternalEventRecorder: eventRecorder,
 		MetricsRecorder:       metricsRecorder,
 		StatusPoller:          polling.NewStatusPoller(mgr.GetClient(), mgr.GetRESTMapper()),
-	}).SetupWithManager(mgr); err != nil {
+	}).SetupWithManager(mgr, concurrent, httpRetry); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Terraform")
 		os.Exit(1)
 	}
