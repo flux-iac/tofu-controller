@@ -1,6 +1,8 @@
-# tf-controller
+# TF-controller for Flux: Use GitOps at your own pace
 
 `tf-controller` is an experimental controller for Flux to reconcile Terraform resources in the GitOps-way.
+You don't need to GitOps-ify everything. With the power of Flux together with Terraform, 
+TF-controller allows you to use GitOps at your own pace.
 
 ## Features
 
