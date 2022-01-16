@@ -156,7 +156,7 @@ will be `flux-system:tf-controller`. You'll obtain a Role ARN to use in the next
 Finally, annotate the ServiceAccount with the obtained Role ARN in your cluster:
 
 ```shell
-kubectl -n flux-system serviceaccount tf-controller eks.amazon.com/role-arn=ROLE_ARN
+kubectl annotate -n flux-system serviceaccount tf-controller eks.amazon.com/role-arn=ROLE_ARN
 ```
 
 ## Examples
