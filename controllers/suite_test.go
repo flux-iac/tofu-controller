@@ -159,7 +159,8 @@ func TestMain(m *testing.M) {
 		EventRecorder: k8sManager.GetEventRecorderFor("tf-controller"),
 		StatusPoller:  polling.NewStatusPoller(k8sManager.GetClient(), k8sManager.GetRESTMapper()),
 	}
-	err = reconciler.SetupWithManager(k8sManager)
+	// We use 1 concurrent and 10s httpRetry in the test
+	err = reconciler.SetupWithManager(k8sManager, 1, 10)
 	if err != nil {
 		panic(err.Error())
 	}
