@@ -34,6 +34,7 @@ spec:
         - --log-level=info
         - --log-encoding=json
         - --enable-leader-election
+        - --concurrent=1
         ports:
         - containerPort: 8080
           name: http-prom
@@ -63,7 +64,7 @@ spec:
             cpu: 1000m
             memory: 1Gi
           requests:
-            cpu: 100m
+            cpu: 200m
             memory: 64Mi
         volumeMounts:
           - name: temp
