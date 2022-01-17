@@ -97,9 +97,11 @@ func Test_000080_varsfrom_configmap_and_controlled_outputs_test(t *testing.T) {
 				Namespace: "flux-system",
 			},
 			// TODO change to a better type
-			VarsFrom: &infrav1.VarsReference{
-				Kind: "ConfigMap",
-				Name: "my-vars",
+			VarsFrom: []infrav1.VarsReference{
+				{
+					Kind: "ConfigMap",
+					Name: "my-vars",
+				},
 			},
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
 				Name: "tf-output-" + terraformName,

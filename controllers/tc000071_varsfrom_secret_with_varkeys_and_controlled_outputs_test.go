@@ -2,14 +2,15 @@ package controllers
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"testing"
-	"time"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
@@ -97,10 +98,12 @@ func Test_000071_varsfrom_secret_with_varkeys_and_controlled_outputs_test(t *tes
 				Namespace: "flux-system",
 			},
 			// TODO change to a better type
-			VarsFrom: &infrav1.VarsReference{
-				Kind:     "Secret",
-				Name:     "my-vars-" + terraformName,
-				VarsKeys: []string{"subject"},
+			VarsFrom: []infrav1.VarsReference{
+				{
+					Kind:     "Secret",
+					Name:     "my-vars-" + terraformName,
+					VarsKeys: []string{"subject"},
+				},
 			},
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
 				Name: "tf-output-" + terraformName,
