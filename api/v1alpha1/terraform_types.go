@@ -78,8 +78,11 @@ type TerraformSpec struct {
 	// +optional
 	Vars []Variable `json:"vars,omitempty"`
 
+	// List of references to a Secret or a ConfigMap to generate variables for
+	// Terraform resources based on its data, selectively by varsKey. Values of the later
+	// Secret / ConfigMap with the samek keys will override those of the former.
 	// +optional
-	VarsFrom *VarsReference `json:"varsFrom,omitempty"`
+	VarsFrom []VarsReference `json:"varsFrom,omitempty"`
 
 	// The interval at which to reconcile the Terraform.
 	// +required
