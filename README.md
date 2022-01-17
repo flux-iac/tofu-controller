@@ -1,26 +1,28 @@
-# TF-controller for Flux: Use GitOps at your own pace
+# TF-controller for Flux: GitOps everything at your own pace
 
 `tf-controller` is an experimental controller for Flux to reconcile Terraform resources in the GitOps-way.
 You don't need to GitOps-ify everything. With the power of Flux together with Terraform, 
-TF-controller allows you to use GitOps at your own pace.
+TF-controller allows you to GitOps everything, in the Kubernetes and Terraform universe, at your own pace.
 
 ## Features
 
   * **Fully GitOps Automation for Terraform**: With setting `.spec.approvePlan=auto`, it allows a `Terraform` object
-   to be reconciled and act as the representation of your Terraform resources. The TF-controller uses the spec of
-   the `Terraform` object to perform `plan`, `apply` its associated Terraform resources. It then stores
-   the `TFSTATE` of the applied resources as a `Secret` inside the Kubernetes cluster. After `.spec.interval` passes,
-   the controller performs drift detection to check if there is a drift occurred between your live system,
-   and your Terraform resources. If a drift occurs, the plan to fix that drift will be generated and applied automatically.
-   _This feature is available since v0.3.0._
+    to be reconciled and act as the representation of your Terraform resources. The TF-controller uses the spec of
+    the `Terraform` object to perform `plan`, `apply` its associated Terraform resources. It then stores
+    the `TFSTATE` of the applied resources as a `Secret` inside the Kubernetes cluster. After `.spec.interval` passes,
+    the controller performs drift detection to check if there is a drift occurred between your live system,
+    and your Terraform resources. If a drift occurs, the plan to fix that drift will be generated and applied automatically.
+    _This feature is available since v0.3.0._
   * **Drift detection**: This feature is a part of the GitOps automation feature. The controller detects and fixes drift
-   for your infrastructures, based on the Terraform resources and their `TFSTATE`. _This feature is available since v0.5.0._
+    for your infrastructures, based on the Terraform resources and their `TFSTATE`. _This feature is available since v0.5.0._ 
+    Drift detection is enabled by default. You can use the field `.spec.disableDriftDetection` to disable this behaviour.
+    _This feature is available since v0.7.0._
   * **Plan and Manual Approve**: This feature allows you to separate the `plan`, out of the `apply` step, just like
-   the Terraform workflow you are familiar with. A good thing about this is that it is done in a GitOps way. When a plan
-   is generated, the controller shows you a message like **'set approvePlan: "plan-main-123" to apply this plan.'**.
-   You make change to the field `.spec.approvePlan`, commit and push to tell the TF-controller to apply the plan for you.
-   With this GitOps workflow, you can optionally create and push this change to a new branch for your team member to
-   review and approve too. _This feature is available since v0.6.0._
+    the Terraform workflow you are familiar with. A good thing about this is that it is done in a GitOps way. When a plan
+    is generated, the controller shows you a message like **'set approvePlan: "plan-main-123" to apply this plan.'**.
+    You make change to the field `.spec.approvePlan`, commit and push to tell the TF-controller to apply the plan for you.
+    With this GitOps workflow, you can optionally create and push this change to a new branch for your team member to
+    review and approve too. _This feature is available since v0.6.0._
 
 ## Dependencies
 
@@ -31,8 +33,8 @@ TF-controller allows you to use GitOps at your own pace.
 
 ## Quick start
 
-Before using TF-controller, please install Flux by using either `flux install` or `flux bootstrap`.
-After that you can install TF-controller. Here's how to install it manually,
+Before using TF-controller, you have to install Flux by using either `flux install` or `flux bootstrap` command.
+After that you can install TF-controller manually by:
 
 ```shell
 export TF_CON_VER=v0.7.0
@@ -41,11 +43,11 @@ kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF
 kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
 ```
 
-Here's a simple example of how to GitOps-ify your Terraform resources with `tf-controller` and Flux.
+Here's a simple example of how to GitOps your Terraform resources with TF-controller and Flux.
 
 ### Define source
 
-First, we need to define a source (`GitRepostory`, or `Bucket`) using the Source controller's resource, for example:
+First, we need to define a Source controller's source (`GitRepostory`, or `Bucket`), for example:
 
 ```yaml
 apiVersion: source.toolkit.fluxcd.io/v1beta1
@@ -80,7 +82,7 @@ spec:
     namespace: flux-system
 ```
 
-### Plan and manual approval
+### The manual mode: plan and manual apply
 
 For the plan & manual approval workflow, please either set `.spec.approvePlan` to be the blank value, or omit the field. 
 
@@ -163,7 +165,7 @@ kubectl annotate -n flux-system serviceaccount tf-controller eks.amazon.com/role
 
 ## Examples
   * A Terraform GitOps with Flux to automatically reconcile your [AWS IAM Policies](https://github.com/tf-controller/aws-iam-policies).
-  * How to manage an existing EKS cluster, the GitOps way [An EKS scaling example](https://github.com/tf-controller/eks-scaling).
+  * GitOps an existing EKS cluster, by partially import its nodegroup and manage it with TF-controller: [An EKS scaling example](https://github.com/tf-controller/eks-scaling).
 
 ## Roadmap
 
