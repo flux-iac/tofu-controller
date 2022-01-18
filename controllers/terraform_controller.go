@@ -254,7 +254,7 @@ func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, rev
 }
 
 func (r *TerraformReconciler) forceOrAutoApply(terraform infrav1.Terraform) bool {
-	return terraform.Spec.Force || terraform.Spec.ApprovePlan == "auto"
+	return terraform.Spec.Force || terraform.Spec.ApprovePlan == infrav1.ApprovePlanAutoValue
 }
 
 func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
@@ -279,7 +279,7 @@ func (r *TerraformReconciler) shouldApply(terraform infrav1.Terraform) bool {
 
 	if terraform.Spec.ApprovePlan == "" {
 		return false
-	} else if terraform.Spec.ApprovePlan == "auto" && terraform.Status.Plan.Pending != "" {
+	} else if terraform.Spec.ApprovePlan == infrav1.ApprovePlanAutoValue && terraform.Status.Plan.Pending != "" {
 		return true
 	} else if terraform.Spec.ApprovePlan == terraform.Status.Plan.Pending {
 		return true
@@ -540,7 +540,6 @@ terraform {
 	log.Info("generated var files from spec")
 
 	if r.shouldDetectDrift(terraform, revision) {
-
 		terraform, driftDetectionErr := r.detectDrift(ctx, terraform, tf, revision)
 
 		// immediately return if no drift - reconciliation will retry normally
@@ -563,6 +562,12 @@ terraform {
 			log.Error(err, "unable to update status after drift detection")
 			return terraform, err
 		}
+	}
+
+	// return early if we're in drift-detection-only mode
+	if terraform.Spec.ApprovePlan == infrav1.ApprovePlanDisableValue {
+		log.Info("approve plan disabled")
+		return terraform, nil
 	}
 
 	if r.shouldPlan(terraform) {

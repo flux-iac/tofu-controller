@@ -224,6 +224,8 @@ const (
 	TerraformFinalizer        = "finalizers.tf.contrib.fluxcd.io"
 	MaxConditionMessageLength = 20000
 	DisabledValue             = "disabled"
+	ApprovePlanAutoValue      = "auto"
+	ApprovePlanDisableValue   = "disable"
 
 	// ArtifactFailedReason represents the fact that the
 	// source artifact download failed.
