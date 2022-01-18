@@ -254,7 +254,7 @@ func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, rev
 }
 
 func (r *TerraformReconciler) forceOrAutoApply(terraform infrav1.Terraform) bool {
-	return terraform.Spec.Force || terraform.Spec.ApprovePlan == "auto"
+	return terraform.Spec.Force || terraform.Spec.ApprovePlan == infrav1.ApprovePlanAutoValue
 }
 
 func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
@@ -279,7 +279,7 @@ func (r *TerraformReconciler) shouldApply(terraform infrav1.Terraform) bool {
 
 	if terraform.Spec.ApprovePlan == "" {
 		return false
-	} else if terraform.Spec.ApprovePlan == "auto" && terraform.Status.Plan.Pending != "" {
+	} else if terraform.Spec.ApprovePlan == infrav1.ApprovePlanAutoValue && terraform.Status.Plan.Pending != "" {
 		return true
 	} else if terraform.Spec.ApprovePlan == terraform.Status.Plan.Pending {
 		return true
