@@ -540,7 +540,6 @@ terraform {
 	log.Info("generated var files from spec")
 
 	if r.shouldDetectDrift(terraform, revision) {
-
 		terraform, driftDetectionErr := r.detectDrift(ctx, terraform, tf, revision)
 
 		// immediately return if no drift - reconciliation will retry normally
