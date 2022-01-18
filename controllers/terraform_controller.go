@@ -565,6 +565,12 @@ terraform {
 		}
 	}
 
+	// return early if we're in drift-detection-only mode
+	if terraform.Spec.ApprovePlan == infrav1.ApprovePlanDisableValue {
+		log.Info("approve plan disabled")
+		return terraform, nil
+	}
+
 	if r.shouldPlan(terraform) {
 		terraform, err = r.plan(ctx, terraform, tf, revision)
 		if err != nil {
