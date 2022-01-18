@@ -100,9 +100,11 @@ func Test_000090_varsfrom_override_and_controlled_outputs_test(t *testing.T) {
 			Vars: []infrav1.Variable{
 				{Name: "subject", Value: "my cat"},
 			},
-			VarsFrom: &infrav1.VarsReference{
-				Kind: "Secret",
-				Name: "my-overridden-vars",
+			VarsFrom: []infrav1.VarsReference{
+				{
+					Kind: "Secret",
+					Name: "my-overridden-vars",
+				},
 			},
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
 				Name: "tf-output-" + terraformName,

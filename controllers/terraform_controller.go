@@ -810,8 +810,7 @@ func (r *TerraformReconciler) generateVarsForTF(ctx context.Context, terraform i
 		}
 	}
 	// varsFrom overwrite vars
-	if terraform.Spec.VarsFrom != nil {
-		vf := terraform.Spec.VarsFrom
+	for _, vf := range terraform.Spec.VarsFrom {
 		objectKey := types.NamespacedName{
 			Namespace: terraform.Namespace,
 			Name:      vf.Name,
