@@ -20,8 +20,8 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 	Spec("This spec describes setting drift detection only mode which will skip the plan and apply stages")
 
 	const (
-		sourceName    = "test-tf-drift-detection-only-mode"
-		terraformName = "helloworld-no-outputs"
+		sourceName    = "gr-drift-detection-only-mode"
+		terraformName = "tr-drift-detection-only-mode"
 	)
 
 	g := NewWithT(t)
