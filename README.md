@@ -174,20 +174,20 @@ kubectl annotate -n flux-system serviceaccount tf-controller eks.amazon.com/role
 ## Roadmap
 
 ### Q1 2022
-  * Terraform outputs as Kubernetes Secrets
-  * Secret and ConfigMap as input variables
-  * Support the GitOps way to "plan" / "re-plan"
-  * Support the GitOps way to "apply"
-  * Drift detection
-  * Support auto-apply so that the reconciliation detect drifts and always make changes
-  * Interop with Kustomization controller's health checks
-  * Test coverage reaching 70%
+  [ ] Terraform outputs as Kubernetes Secrets
+  [ ] Secret and ConfigMap as input variables
+  [ ] Support the GitOps way to "plan" / "re-plan"
+  [x] Support the GitOps way to "apply"
+  [x] Drift detection
+  [x] Support auto-apply so that the reconciliation detect drifts and always make changes
+  [x] Interop with Kustomization controller's health checks
+  [ ] Test coverage reaching 70%
 
 ### Q2 2022
-  * Interop with Notification controller's Events and Alert
-  * Write back and show plan in PRs
-  * Test coverage reaching 75%
+  [ ] Interop with Notification controller's Events and Alert
+  [ ] Write back and show plan in PRs
+  [ ] Test coverage reaching 75%
 
 ### Q3 2022
-  * Performance and scalability
-  * Test coverage reaching 80%
+  [ ] Performance and scalability
+  [ ] Test coverage reaching 80%
