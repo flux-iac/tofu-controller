@@ -121,6 +121,25 @@ spec:
     namespace: flux-system
 ```
 
+### The drift detection only mode: plan and apply will be skipped
+
+To only run drift detection, skipping the plan and apply stages, set `.spec.approvePlan` to `disable`.
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: hello-world
+  namespace: flux-system
+spec:
+  approvePlan: "disable"
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+```
+
 ### Disable Drift Detection
 
 Drift detection is enabled by default. Use the `.spec.disableDriftDetection` field to disable:
@@ -181,11 +200,11 @@ to be an array of object, like this:
 
 You can pass variables to Terraform using the `vars` and `varsFrom` fields.
 
-Inline variables can be set using `vars`. The `varsFrom` field accepts a list of ConfigMaps / Secrets. 
+Inline variables can be set using `vars`. The `varsFrom` field accepts a list of ConfigMaps / Secrets.
 You may use the `varsKeys` property of `varsFrom` to select specific keys from the input or omit this field
 to select all keys from the input source.
 
-Note that in the case of the same variable key being passed multiple times, the controller will use 
+Note that in the case of the same variable key being passed multiple times, the controller will use
 the lattermost instance of the key passed to `varsFrom`.
 
 ```yaml
