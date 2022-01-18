@@ -165,11 +165,28 @@ kubectl annotate -n flux-system serviceaccount tf-controller eks.amazon.com/role
 
 ### Setting Terraform Variables
 
-You can passing variables to Terraform using the `vars` and `varsFrom` fields.
+**This is a breaking change for the `v1alpha1` API.** Users who are upgrading from TF-controller <= 0.7.0 require updating `varsFrom`,
+from a single object:
+```yaml
+  varsFrom:
+    kind: ConfigMap
+    name: cluster-config
+```
+to be an array of object, like this:
+```yaml
+  varsFrom:
+  - kind: ConfigMap
+    name: cluster-config
+```
 
-Inline variables can be set using `vars`. The `varsFrom` field accepts a list of ConfigMaps / Secrets. You may use the `varsKeys` property of `varsFrom` to select specific keys from the input or omit this field to select all keys from the input source.
+You can pass variables to Terraform using the `vars` and `varsFrom` fields.
 
-Note that in the case of the same variable key being passed multiple times, the controller will use the lattermost instance of the key passed to `varsFrom`.
+Inline variables can be set using `vars`. The `varsFrom` field accepts a list of ConfigMaps / Secrets. 
+You may use the `varsKeys` property of `varsFrom` to select specific keys from the input or omit this field
+to select all keys from the input source.
+
+Note that in the case of the same variable key being passed multiple times, the controller will use 
+the lattermost instance of the key passed to `varsFrom`.
 
 ```yaml
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
