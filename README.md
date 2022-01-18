@@ -1,7 +1,7 @@
 # TF-controller for Flux: GitOps everything at your own pace
 
 `tf-controller` is an experimental controller for Flux to reconcile Terraform resources in the GitOps-way.
-You don't need to GitOps-ify everything. With the power of Flux together with Terraform, 
+You don't need to GitOps-ify everything. With the power of Flux together with Terraform,
 TF-controller allows you to GitOps everything, in the Kubernetes and Terraform universe, at your own pace.
 
 ## Features
@@ -14,7 +14,7 @@ TF-controller allows you to GitOps everything, in the Kubernetes and Terraform u
     and your Terraform resources. If a drift occurs, the plan to fix that drift will be generated and applied automatically.
     _This feature is available since v0.3.0._
   * **Drift detection**: This feature is a part of the GitOps automation feature. The controller detects and fixes drift
-    for your infrastructures, based on the Terraform resources and their `TFSTATE`. _This feature is available since v0.5.0._ 
+    for your infrastructures, based on the Terraform resources and their `TFSTATE`. _This feature is available since v0.5.0._
     Drift detection is enabled by default. You can use the field `.spec.disableDriftDetection` to disable this behaviour.
     _This feature is available since v0.7.0._
   * **Plan and Manual Approve**: This feature allows you to separate the `plan`, out of the `apply` step, just like
@@ -84,7 +84,7 @@ spec:
 
 ### The manual mode: plan and manual apply
 
-For the plan & manual approval workflow, please either set `.spec.approvePlan` to be the blank value, or omit the field. 
+For the plan & manual approval workflow, please either set `.spec.approvePlan` to be the blank value, or omit the field.
 
 ```diff
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
@@ -143,7 +143,7 @@ spec:
 
 ### Use with AWS EKS IRSA
 
-AWS Elastic Kubernetes Service (EKS) offers IAM Roles for Service Accounts (IRSA) as a mechanism by which to provide 
+AWS Elastic Kubernetes Service (EKS) offers IAM Roles for Service Accounts (IRSA) as a mechanism by which to provide
 credentials for the Terraform controller.
 
 You can use `eksctl` to associate an OIDC provider with your EKS cluster, for example:
@@ -152,15 +152,50 @@ You can use `eksctl` to associate an OIDC provider with your EKS cluster, for ex
 eksctl utils associate-iam-oidc-provider --cluster CLUSTER_NAME --approve
 ```
 
-Then follow the instructions [here](https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html) 
-to add a trust policy to the IAM role which grants the necessary permissions for Terraform. 
-Please note that if you have installed the controller following the README, then the `namespace:serviceaccountname` 
+Then follow the instructions [here](https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html)
+to add a trust policy to the IAM role which grants the necessary permissions for Terraform.
+Please note that if you have installed the controller following the README, then the `namespace:serviceaccountname`
 will be `flux-system:tf-controller`. You'll obtain a Role ARN to use in the next step.
 
 Finally, annotate the ServiceAccount with the obtained Role ARN in your cluster:
 
 ```shell
 kubectl annotate -n flux-system serviceaccount tf-controller eks.amazon.com/role-arn=ROLE_ARN
+```
+
+### Setting Terraform Variables
+
+You can passing variables to Terraform using the `vars` and `varsFrom` fields.
+
+Inline variables can be set using `vars`. The `varsFrom` field accepts a list of ConfigMaps / Secrets. You may use the `varsKeys` property of `varsFrom` to select specific keys from the input or omit this field to select all keys from the input source.
+
+Note that in the case of the same variable key being passed multiple times, the controller will use the lattermost instance of the key passed to `varsFrom`.
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: "auto"
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  vars:
+    region: us-east-1
+    env: dev
+    instanceType: t3-small
+  varsFrom:
+  - kind: ConfigMap
+    name: cluster-config
+    varsKeys:
+      - nodeCount
+      - instanceType
+  - kind: Secret
+    name: cluster-creds
 ```
 
 ## Examples
