@@ -54,12 +54,12 @@ func Test_000073_varsfrom_accepts_many_secrets(t *testing.T) {
 				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
-		URL: server.URL() + "/env.tar.gz",
+		URL: server.URL() + "/tf-multi-var.tar.gz",
 		Artifact: &sourcev1.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
-			URL:            server.URL() + "/env.tar.gz",
+			URL:            server.URL() + "/tf-multi-var.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-			Checksum:       "d021eda9b869586f5a43ad1ba7f21e4bf9b3970443236755463f22824b525316",
+			Checksum:       "52fbbf10455df51136a0c43e0f548c01acdbafca5cbad12c787612e47a4aa815",
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
@@ -70,74 +70,83 @@ func Test_000073_varsfrom_accepts_many_secrets(t *testing.T) {
 	createdRepo := &sourcev1.GitRepository{}
 	g.Expect(k8sClient.Get(ctx, gitRepoKey, createdRepo)).Should(Succeed())
 
-	By("preparing vars secrets")
-	for name, value := range map[string]string{
-		"secret-1": "secret-1-value",
-		"secret-2": "secret-2-value",
-	} {
+	By("preparing vars configMaps")
+	secretData := []struct {
+		name string
+		data map[string]string
+	}{
+		{
+			name: "s1",
+			data: map[string]string{
+				"cluster_name": "garfield",
+			},
+		},
+		{
+			name: "s2",
+			data: map[string]string{
+				"region":      "eu-west-1",
+				"environment": "dev",
+			},
+		},
+	}
+	for _, s := range secretData {
 		secret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
+				Name:      s.name,
 				Namespace: "flux-system",
 			},
-			Data: map[string][]byte{
-				"subject": []byte(value),
-			},
-			Type: corev1.SecretTypeOpaque,
+			StringData: s.data,
 		}
 		g.Expect(k8sClient.Create(ctx, secret)).Should(Succeed())
 	}
 
 	By("creating a new TF and attaching to the repo")
-	helloWorldTF := infrav1.Terraform{
+	testTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
 			Namespace: "flux-system",
 		},
 		Spec: infrav1.TerraformSpec{
 			ApprovePlan: "auto",
-			Path:        "./terraform-hello-env",
+			Path:        "./tf-multi-var-with-outputs",
 			SourceRef: infrav1.CrossNamespaceSourceReference{
 				Kind:      "GitRepository",
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
-			Vars: []infrav1.Variable{
-				{Name: "subject", Value: "my cat"},
-			},
 			VarsFrom: []infrav1.VarsReference{
 				{
 					Kind: "Secret",
-					Name: "secret-1",
+					Name: "s1",
 				},
 				{
-					Kind: "Secret",
-					Name: "secret-2",
+					Kind:     "Secret",
+					Name:     "s2",
+					VarsKeys: []string{"environment", "region"},
 				},
 			},
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
 				Name: "tf-output-" + terraformName,
 				Outputs: []string{
-					"hello_world",
+					"cluster_id",
 				},
 			},
 		},
 	}
-	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
+	g.Expect(k8sClient.Create(ctx, &testTF)).Should(Succeed())
 
-	By("checking that the hello world TF got created")
-	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
-	createdHelloWorldTF := infrav1.Terraform{}
-	// We'll need to retry getting this newly created Terraform, Given that creation may not immediately happen.
+	By("checking that the terraform resource got created")
+	testTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
+	testTFInstance := infrav1.Terraform{}
 	g.Eventually(func() bool {
-		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		err := k8sClient.Get(ctx, testTFKey, &testTFInstance)
 		if err != nil {
 			return false
 		}
 		return true
 	}, timeout, interval).Should(BeTrue())
 
-	By("checking that the TF output secret contains a binary data")
+	By("checking that the TF output secret contains binary data")
 	outputKey := types.NamespacedName{Namespace: "flux-system", Name: "tf-output-" + terraformName}
 	outputSecret := corev1.Secret{}
 	g.Eventually(func() (int, error) {
@@ -148,17 +157,17 @@ func Test_000073_varsfrom_accepts_many_secrets(t *testing.T) {
 		return len(outputSecret.Data), nil
 	}, timeout, interval).Should(Equal(1))
 
-	By("checking that the TF output secrets contains the correct output provisioned by the TF hello world")
+	By("checking that the TF output secret contains the correct output provisioned by the TF resource")
 	// Value is a JSON representation of TF's OutputMeta
 	expectedOutputValue := map[string]string{
 		"Name":        "tf-output-" + terraformName,
 		"Namespace":   "flux-system",
-		"Value":       "Hello, secret-2-value!",
-		"OwnerRef[0]": string(createdHelloWorldTF.UID),
+		"Value":       "dev-eu-west-1-garfield",
+		"OwnerRef[0]": string(testTFInstance.UID),
 	}
 	g.Eventually(func() (map[string]string, error) {
 		err := k8sClient.Get(ctx, outputKey, &outputSecret)
-		value := string(outputSecret.Data["hello_world"])
+		value := string(outputSecret.Data["cluster_id"])
 		return map[string]string{
 			"Name":        outputSecret.Name,
 			"Namespace":   outputSecret.Namespace,
