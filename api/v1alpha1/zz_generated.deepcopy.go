@@ -155,8 +155,10 @@ func (in *TerraformSpec) DeepCopyInto(out *TerraformSpec) {
 	}
 	if in.VarsFrom != nil {
 		in, out := &in.VarsFrom, &out.VarsFrom
-		*out = new(VarsReference)
-		(*in).DeepCopyInto(*out)
+		*out = make([]VarsReference, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 	out.Interval = in.Interval
 	if in.RetryInterval != nil {

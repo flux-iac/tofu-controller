@@ -235,39 +235,45 @@ spec:
                   type: object
                 type: array
               varsFrom:
-                description: VarsReference contain a reference of a Secret or a ConfigMap
-                  to generate variables for Terraform resources based on its data,
-                  selectively by varsKey.
-                properties:
-                  kind:
-                    description: Kind of the values referent, valid values are ('Secret',
-                      'ConfigMap').
-                    enum:
-                    - Secret
-                    - ConfigMap
-                    type: string
-                  name:
-                    description: Name of the values referent. Should reside in the
-                      same namespace as the referring resource.
-                    maxLength: 253
-                    minLength: 1
-                    type: string
-                  optional:
-                    description: Optional marks this VarsReference as optional. When
-                      set, a not found error for the values reference is ignored,
-                      but any VarsKey or transient error will still result in a reconciliation
-                      failure.
-                    type: boolean
-                  varsKeys:
-                    description: VarsKeys is the data key where the values.yaml or
-                      a specific value can be found at. Defaults to all keys.
-                    items:
+                description: List of references to a Secret or a ConfigMap to generate
+                  variables for Terraform resources based on its data, selectively
+                  by varsKey. Values of the later Secret / ConfigMap with the samek
+                  keys will override those of the former.
+                items:
+                  description: VarsReference contain a reference of a Secret or a
+                    ConfigMap to generate variables for Terraform resources based
+                    on its data, selectively by varsKey.
+                  properties:
+                    kind:
+                      description: Kind of the values referent, valid values are ('Secret',
+                        'ConfigMap').
+                      enum:
+                      - Secret
+                      - ConfigMap
                       type: string
-                    type: array
-                required:
-                - kind
-                - name
-                type: object
+                    name:
+                      description: Name of the values referent. Should reside in the
+                        same namespace as the referring resource.
+                      maxLength: 253
+                      minLength: 1
+                      type: string
+                    optional:
+                      description: Optional marks this VarsReference as optional.
+                        When set, a not found error for the values reference is ignored,
+                        but any VarsKey or transient error will still result in a
+                        reconciliation failure.
+                      type: boolean
+                    varsKeys:
+                      description: VarsKeys is the data key where the values.yaml
+                        or a specific value can be found at. Defaults to all keys.
+                      items:
+                        type: string
+                      type: array
+                  required:
+                  - kind
+                  - name
+                  type: object
+                type: array
               writeOutputsToSecret:
                 description: A list of target secrets for the outputs to be written
                   as.
