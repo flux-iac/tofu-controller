@@ -19,18 +19,20 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/onsi/gomega/ghttp"
+	"io"
 	"io/ioutil"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
-	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/onsi/gomega/ghttp"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 
 	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -70,8 +72,16 @@ var (
 
 func TestMain(m *testing.M) {
 	var err error
+	var logSink io.Writer
 
-	logf.SetLogger(zap.New(zap.WriteTo(os.Stderr), zap.UseDevMode(false)))
+	logSink = os.Stderr
+
+	if os.Getenv("DISABLE_K8S_LOGS") == "1" {
+		logSink = io.Discard
+	}
+
+	logf.SetLogger(zap.New(zap.WriteTo(logSink), zap.UseDevMode(false)))
+
 	ctx, cancel = context.WithCancel(context.TODO())
 	// "bootstrapping test environment"
 	testEnv = &envtest.Environment{
