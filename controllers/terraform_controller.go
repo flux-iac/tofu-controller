@@ -507,9 +507,12 @@ terraform {
 		}
 	}
 
-	tf.SetStdout(os.Stdout)
-	tf.SetStderr(os.Stderr)
-	tf.SetLogger(&LocalPrintfer{logger: log})
+	disableTestLogging := os.Getenv("DISABLE_TF_LOGS") == "1"
+	if !disableTestLogging {
+		tf.SetStdout(os.Stdout)
+		tf.SetStderr(os.Stderr)
+		tf.SetLogger(&LocalPrintfer{logger: log})
+	}
 
 	log.Info("new terraform", "workingDir", workingDir)
 

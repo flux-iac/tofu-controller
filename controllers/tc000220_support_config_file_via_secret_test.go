@@ -149,7 +149,7 @@ credentials "app.terraform.io" {
 			}
 		}
 		return helloWorldTF.Status
-	}, timeout*6, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    "Plan",
 		"Reason":  "TerraformPlannedWithChanges",
 		"Message": "Plan generated",
@@ -191,7 +191,7 @@ credentials "app.terraform.io" {
 			}
 		}
 		return nil
-	}, timeout*6, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            "Apply",
 		"Reason":          "TerraformAppliedSucceed",
 		"Message":         "Applied successfully",
@@ -219,7 +219,7 @@ credentials "app.terraform.io" {
 			}
 		}
 		return nil
-	}, timeout*12, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            "Apply",
 		"Reason":          "TerraformAppliedSucceed",
 		"Message":         "Applied successfully",
