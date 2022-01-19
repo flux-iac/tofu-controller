@@ -1,8 +1,17 @@
 # TF-controller for Flux: GitOps everything at your own pace
 
-`tf-controller` is an experimental controller for Flux to reconcile Terraform resources in the GitOps-way.
-You don't need to GitOps-ify everything. With the power of Flux together with Terraform,
-TF-controller allows you to GitOps everything, in the Kubernetes and Terraform universe, at your own pace.
+TF-controller is an experimental controller for Flux to reconcile Terraform resources in the GitOps-way. 
+With the power of Flux together with Terraform, TF-controller allows you to GitOps everything, in the Kubernetes and 
+Terraform universe, at your own pace.
+
+"At your own pace" means you don't need to GitOps-ify everything at once. 
+
+TF-controller comes with many GitOps models that allow you to: 
+  1. GitOps your Terraform resources from the provision step, like a whole EKS cluster.
+  2. GitOps parts of your existing infrastructure resources. For example, you have an existing EKS cluster. 
+     You can choose to GitOps only its nodegroup, or its security group. 
+  3. You have a TFSTATE file, and you'd like to use GitOps enforce this TFSTATE, without adjusting anything else.
+  4. You have a TFSTATE file, and you'd like to use GitOps just for drift detection, so you can decide to do things later when a drift occurs.
 
 ## Features
 
