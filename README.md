@@ -7,15 +7,15 @@ Terraform universe, at your own pace.
 "At your own pace" means you don't need to GitOps-ify everything at once. 
 
 TF-controller comes with many GitOps models that allow you to: 
-  1. GitOps your Terraform resources from the provision step, like a whole EKS cluster.
-  2. GitOps parts of your existing infrastructure resources. For example, you have an existing EKS cluster. 
+  1. **Full GitOps Automation Model:** GitOps your Terraform resources from the provision steps to the enforcement steps, like a whole EKS cluster.
+  2. **Hybrid GitOps Automation Model:** GitOps parts of your existing infrastructure resources. For example, you have an existing EKS cluster. 
      You can choose to GitOps only its nodegroup, or its security group. 
-  3. You have a TFSTATE file, and you'd like to use GitOps enforce this TFSTATE, without adjusting anything else.
-  4. You have a TFSTATE file, and you'd like to use GitOps just for drift detection, so you can decide to do things later when a drift occurs.
+  3. **State Enforcement Model:** You have a TFSTATE file, and you'd like to use GitOps enforce it, without changing anything else.
+  4. **Drift Detection Model:** You have a TFSTATE file, and you'd like to use GitOps just for drift detection, so you can decide to do things later when a drift occurs.
 
 ## Features
 
-  * **Fully GitOps Automation for Terraform**: With setting `.spec.approvePlan=auto`, it allows a `Terraform` object
+  * **Full GitOps Automation for Terraform**: With setting `.spec.approvePlan=auto`, it allows a `Terraform` object
     to be reconciled and act as the representation of your Terraform resources. The TF-controller uses the spec of
     the `Terraform` object to perform `plan`, `apply` its associated Terraform resources. It then stores
     the `TFSTATE` of the applied resources as a `Secret` inside the Kubernetes cluster. After `.spec.interval` passes,
