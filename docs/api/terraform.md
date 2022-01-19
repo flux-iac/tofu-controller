@@ -223,7 +223,7 @@ bool
 <td>
 <code>metadata</code><br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
 </a>
 </em>
@@ -426,7 +426,7 @@ the context of a large cluster or complex Terraform statefile. Defaults to false
 <td>
 <code>cliConfigSecretRef</code><br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretreference-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#secretreference-v1-core">
 Kubernetes core/v1.SecretReference
 </a>
 </em>
@@ -651,7 +651,7 @@ the context of a large cluster or complex Terraform statefile. Defaults to false
 <td>
 <code>cliConfigSecretRef</code><br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretreference-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#secretreference-v1-core">
 Kubernetes core/v1.SecretReference
 </a>
 </em>
@@ -712,7 +712,7 @@ int64
 <td>
 <code>conditions</code><br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#condition-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#condition-v1-meta">
 []Kubernetes meta/v1.Condition
 </a>
 </em>
@@ -829,7 +829,7 @@ string
 <td>
 <code>valueFrom</code><br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvarsource-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#envvarsource-v1-core">
 Kubernetes core/v1.EnvVarSource
 </a>
 </em>
