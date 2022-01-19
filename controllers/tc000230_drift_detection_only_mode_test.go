@@ -171,7 +171,7 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 			}
 		}
 		return createdTFResource.Status
-	}, timeout*2, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":   "Ready",
 		"Status": metav1.ConditionTrue,
 		"Reason": infrav1.NoDriftReason,
@@ -198,7 +198,7 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 			}
 		}
 		return createdTFResource.Status
-	}, timeout*2, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":   "Ready",
 		"Status": metav1.ConditionTrue,
 		"Reason": infrav1.NoDriftReason,
@@ -234,7 +234,7 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 			}
 		}
 		return createdTFResource.Status
-	}, timeout*2, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":   "Ready",
 		"Status": metav1.ConditionFalse,
 		"Reason": infrav1.DriftDetectedReason,

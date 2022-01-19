@@ -49,7 +49,9 @@ func init() {
 }
 
 const (
-	timeout  = time.Second * 10
+	// longer timeout duration is helpful to avoid flakiness when
+	// asserting on k8s resources created via Terraform
+	timeout  = time.Second * 30
 	interval = time.Millisecond * 500
 )
 

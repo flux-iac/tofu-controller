@@ -18,9 +18,8 @@ func Test_000201_auto_approve_with_disabled_drift_detection(t *testing.T) {
 	Spec("This spec describes behaviour when drift detection is disabled")
 
 	const (
-		sourceName     = "drift-detect-auto-approve"
-		terraformName  = "tf-drift-detect-auto-approve"
-		tfSyncInterval = time.Second * 10
+		sourceName    = "drift-detect-auto-approve"
+		terraformName = "tf-drift-detect-auto-approve"
 	)
 
 	g := NewWithT(t)
@@ -83,7 +82,7 @@ func Test_000201_auto_approve_with_disabled_drift_detection(t *testing.T) {
 			Namespace: "flux-system",
 		},
 		Spec: infrav1.TerraformSpec{
-			Interval:              metav1.Duration{Duration: tfSyncInterval},
+			Interval:              metav1.Duration{Duration: time.Second * 5},
 			ApprovePlan:           "auto",
 			DisableDriftDetection: true,
 			Path:                  "./terraform-hello-world-example",
@@ -157,5 +156,5 @@ func Test_000201_auto_approve_with_disabled_drift_detection(t *testing.T) {
 			}
 		}
 		return false
-	}, tfSyncInterval*2, interval).Should(BeTrue())
+	}, timeout, interval).Should(BeTrue())
 }

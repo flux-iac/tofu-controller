@@ -134,7 +134,7 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 			return -1
 		}
 		return len(createdHelloWorldTF.Status.Conditions)
-	}, timeout*3, interval).ShouldNot(BeZero())
+	}, timeout, interval).ShouldNot(BeZero())
 
 	By("checking that the applied status of the TF program Successfully, and plan-master-b8e362c206e is applied")
 	g.Eventually(func() map[string]interface{} {
