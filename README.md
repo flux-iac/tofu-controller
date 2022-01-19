@@ -43,6 +43,19 @@ kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF
 kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
 ```
 
+Alternatively, you can install via Helm:
+
+```shell
+# Add tf-controller helm repository to local
+helm repo add tf-controller https://tf-controller.github.io/charts/
+
+# Install tf-controller
+helm upgrade -i tf-controller tf-controller/tf-controller \
+    --namespace flux-system
+```
+
+For details on configurable parameters of the TF-controller chart, please see [chart readme](https://github.com/tf-controller/charts/blob/main/charts/tf-controller/README.md).
+
 Here's a simple example of how to GitOps your Terraform resources with TF-controller and Flux.
 
 ### Define source
