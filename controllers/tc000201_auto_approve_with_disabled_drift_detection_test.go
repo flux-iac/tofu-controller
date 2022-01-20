@@ -43,6 +43,7 @@ func Test_000201_auto_approve_with_disabled_drift_detection(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
 
 	By("setting the git repo status object, the URL, and the correct checksum")
 	testRepo.Status = sourcev1.GitRepositoryStatus{
@@ -99,6 +100,7 @@ func Test_000201_auto_approve_with_disabled_drift_detection(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
 
 	By("checking that the hello world TF gets created")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
@@ -157,4 +159,5 @@ func Test_000201_auto_approve_with_disabled_drift_detection(t *testing.T) {
 		}
 		return false
 	}, timeout, interval).Should(BeTrue())
+
 }

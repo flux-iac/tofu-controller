@@ -72,6 +72,7 @@ func Test_000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 	}
 	It("should be updated successfully.")
 	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
 
 	Given("a Terraform object with auto approve, and attaching it to the bad GitRepository resource.")
 	By("creating a new TF resource and attaching to the bad repo via `sourceRef`.")
@@ -92,6 +93,7 @@ func Test_000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 	}
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
@@ -138,5 +140,4 @@ func Test_000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 		"Message": "failed to untar artifact, error: requires gzip-compressed body: gzip: invalid header",
 		"Status":  metav1.ConditionFalse,
 	}))
-
 }
