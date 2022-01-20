@@ -129,6 +129,10 @@ type TerraformSpec struct {
 
 	// +optional
 	CliConfigSecretRef *corev1.SecretReference `json:"cliConfigSecretRef,omitempty"`
+
+	// List of health checks to be performed.
+	// +optional
+	HealthChecks []HealthCheck `json:"healthChecks,omitempty"`
 }
 
 type PlanStatus struct {

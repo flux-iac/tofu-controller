@@ -99,6 +99,38 @@ spec:
                 description: Force instructs the controller to unconditionally re-plan
                   and re-apply TF resources. Defaults to false.
                 type: boolean
+              healthChecks:
+                description: List of health checks to be performed.
+                items:
+                  properties:
+                    name:
+                      description: Name of the health check
+                      maxLength: 253
+                      minLength: 1
+                      type: string
+                    timeout:
+                      default: 20s
+                      description: The timeout period at which the connection should
+                        timeout if unable to complete the request. When not specified,
+                        default 20s timeout is used.
+                      type: string
+                    type:
+                      description: Type of the health check, valid values are ('tcp',
+                        'httpGet', 'httpPost').
+                      enum:
+                      - tcp
+                      - httpGet
+                      - httpPost
+                      type: string
+                    url:
+                      description: Url to perform the health check on.
+                      type: string
+                  required:
+                  - name
+                  - type
+                  - url
+                  type: object
+                type: array
               interval:
                 description: The interval at which to reconcile the Terraform.
                 type: string

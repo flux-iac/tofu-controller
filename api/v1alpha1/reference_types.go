@@ -2,6 +2,8 @@ package v1alpha1
 
 import (
 	"fmt"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // CrossNamespaceSourceReference contains enough information to let you locate the
@@ -57,4 +59,28 @@ type VarsReference struct {
 	// transient error will still result in a reconciliation failure.
 	// +optional
 	Optional bool `json:"optional,omitempty"`
+}
+
+type HealthCheck struct {
+	// Name of the health check
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=253
+	// +required
+	Name string `json:"name"`
+
+	// Type of the health check, valid values are ('tcp', 'httpGet', 'httpPost').
+	// +kubebuilder:validation:Enum=tcp;httpGet;httpPost
+	// +required
+	Type string `json:"type"`
+
+	// Url to perform the health check on.
+	// +required
+	URL string `json:"url"`
+
+	// The timeout period at which the connection should timeout if unable to
+	// complete the request.
+	// When not specified, default 20s timeout is used.
+	// +kubebuilder:default="20s"
+	// +optional
+	Timeout *metav1.Duration `json:"timeout,omitempty"`
 }
