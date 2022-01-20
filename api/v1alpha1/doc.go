@@ -15,5 +15,5 @@ limitations under the License.
 */
 
 // +kubebuilder:object:generate=true
-// +groupName=terraform.infra.contrib.fluxcd.io
+// +groupName=infra.contrib.fluxcd.io
 package v1alpha1
