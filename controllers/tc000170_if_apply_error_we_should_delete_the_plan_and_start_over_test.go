@@ -38,6 +38,7 @@ func Test_000170_if_apply_error_the_plan_should_be_deleted_and_start_over_test(t
 	By("creating the GitRepository resource in the cluster.")
 	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
 
 	Given("the GitRepository's reconciled status.")
 	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
@@ -114,6 +115,7 @@ func Test_000170_if_apply_error_the_plan_should_be_deleted_and_start_over_test(t
 	}
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
 
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
 	createdHelloWorldTF := infrav1.Terraform{}
@@ -177,6 +179,7 @@ func Test_000170_if_apply_error_the_plan_should_be_deleted_and_start_over_test(t
 		"Type":   "Apply",
 		"Reason": "TerraformAppliedSucceed",
 	}))
+
 }
 
 func defineGitRepository(sourceName string) sourcev1.GitRepository {
