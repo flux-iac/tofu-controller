@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -1508,4 +1509,82 @@ func (r *TerraformReconciler) gzipDecode(encodedPlan []byte) ([]byte, error) {
 		return nil, err
 	}
 	return o, nil
+}
+
+func (r *TerraformReconciler) doHealthChecks(ctx context.Context, healthChecks []infrav1.HealthCheck) error {
+	for _, hc := range healthChecks {
+		switch hc.Type {
+		case infrav1.HealthCheckTypeTCP:
+			err := r.doTCPHealthCheck(ctx, hc.Name, hc.URL, hc.GetTimeout())
+			if err != nil {
+				return err
+			}
+		case infrav1.HealthCheckTypeHttpGet:
+			err := r.doHTTPHealthCheck(ctx, hc.Name, hc.URL, "GET", hc.GetTimeout())
+			if err != nil {
+				return err
+			}
+		case infrav1.HealthCheckTypeHttpPost:
+			err := r.doHTTPHealthCheck(ctx, hc.Name, hc.URL, "POST", hc.GetTimeout())
+			if err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("invalid health check type %s", hc.Type)
+		}
+	}
+	return nil
+}
+
+func (r *TerraformReconciler) doTCPHealthCheck(ctx context.Context, name string, url string, timeout time.Duration) error {
+	log := ctrl.LoggerFrom(ctx)
+
+	conn, err := net.DialTimeout("tcp", url, timeout)
+	if err != nil {
+		return fmt.Errorf("failed to perform tcp health check for %s on %s: %s", name, url, err.Error())
+	}
+
+	err = conn.Close()
+	if err != nil {
+		log.Error(err, "Unexpected error closing TCP health check socket")
+	}
+
+	return nil
+}
+
+func (r *TerraformReconciler) doHTTPHealthCheck(ctx context.Context, name string, url string, method string, timeout time.Duration) error {
+	log := ctrl.LoggerFrom(ctx)
+
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		log.Error(err, "Unexpected creating HTTP request")
+		return err
+	}
+
+	ctxt, cancel := context.WithTimeout(req.Context(), timeout)
+	defer cancel()
+
+	re, err := http.DefaultClient.Do(req.WithContext(ctxt))
+	if err != nil {
+		return fmt.Errorf("failed to perform http health check for %s on %s: %s", name, url, err.Error())
+	}
+	defer func() {
+		if rerr := re.Body.Close(); rerr != nil {
+			log.Error(err, "Unexpected error closing HTTP health check socket")
+		}
+	}()
+
+	b, err := io.ReadAll(re.Body)
+	if err != nil {
+		return fmt.Errorf("failed to perform http health check for %s on %s, error reading body: %s", name, url, err.Error())
+	}
+
+	if re.StatusCode >= http.StatusOK && re.StatusCode < http.StatusBadRequest {
+		log.Info("HTTP health check succeeded for %s on %s, response: %v", name, url, *re)
+		return nil
+	}
+
+	err = fmt.Errorf("failed to perform health check for %s on %s, response body: %v", name, url, string(b))
+	log.Error(err, "failed to perform health check for %s on %s, response body: %v", name, url, string(b))
+	return err
 }
