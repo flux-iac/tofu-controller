@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	"fmt"
+	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -84,3 +85,18 @@ type HealthCheck struct {
 	// +optional
 	Timeout *metav1.Duration `json:"timeout,omitempty"`
 }
+
+func (in HealthCheck) GetTimeout() time.Duration {
+	if in.Timeout != nil {
+		return in.Timeout.Duration
+	}
+	// set default timeout to be 20 seconds if not specified
+	d, _ := time.ParseDuration("20s")
+	return d
+}
+
+const (
+	HealthCheckTypeTCP      = "tcp"
+	HealthCheckTypeHttpGet  = "httpGet"
+	HealthCheckTypeHttpPost = "httpPost"
+)
