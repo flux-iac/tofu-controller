@@ -271,12 +271,12 @@ func TerraformOutputsWritten(terraform Terraform, revision string, message strin
 	return terraform
 }
 
-func TerraformApplied(terraform Terraform, revision string, message string) Terraform {
+func TerraformApplied(terraform Terraform, revision string, message string, isDestroyApply bool) Terraform {
 	meta.SetResourceCondition(&terraform, "Apply", metav1.ConditionTrue, "TerraformAppliedSucceed", message)
 	(&terraform).Status.Plan = PlanStatus{
 		LastApplied:   terraform.Status.Plan.Pending,
 		Pending:       "",
-		IsDestroyPlan: terraform.Status.Plan.IsDestroyPlan,
+		IsDestroyPlan: isDestroyApply,
 	}
 	if revision != "" {
 		(&terraform).Status.LastAppliedRevision = revision
