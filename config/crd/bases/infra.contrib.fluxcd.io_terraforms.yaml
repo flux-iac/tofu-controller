@@ -116,11 +116,10 @@ spec:
                       type: string
                     type:
                       description: Type of the health check, valid values are ('tcp',
-                        'httpGet', 'httpPost').
+                        'http').
                       enum:
                       - tcp
-                      - httpGet
-                      - httpPost
+                      - http
                       type: string
                     url:
                       description: Url to perform the health check on.
@@ -403,6 +402,11 @@ spec:
                   - type
                   type: object
                 type: array
+              healthCheck:
+                properties:
+                  succeeded:
+                    type: boolean
+                type: object
               lastAppliedRevision:
                 description: The last successfully applied revision. The revision
                   format for Git sources is <branch|tag>/<commit-sha>.

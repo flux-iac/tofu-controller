@@ -146,6 +146,11 @@ type PlanStatus struct {
 	IsDestroyPlan bool `json:"isDestroyPlan,omitempty"`
 }
 
+type HealthCheckStatus struct {
+	// +optional
+	Succeeded bool `json:"succeeded,omitempty"`
+}
+
 // TerraformStatus defines the observed state of Terraform
 type TerraformStatus struct {
 	meta.ReconcileRequestStatus `json:",inline"`
@@ -176,6 +181,9 @@ type TerraformStatus struct {
 
 	// +optional
 	Plan PlanStatus `json:"plan,omitempty"`
+
+	// +optional
+	HealthCheck HealthCheckStatus `json:"healthCheck,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -245,6 +253,7 @@ const (
 	TFExecApplyFailedReason    = "TFExecApplyFailed"
 	TFExecOutputFailedReason   = "TFExecOutputFailed"
 	OutputsWritingFailedReason = "OutputsWritingFailed"
+	HealthChecksFailedReason   = "HealthChecksFailed"
 )
 
 // SetTerraformReadiness sets the ReadyCondition, ObservedGeneration, and LastAttemptedRevision, on the Terraform.
@@ -362,6 +371,22 @@ func TerraformDriftDetected(terraform Terraform, revision, reason, message strin
 
 func TerraformNoDrift(terraform Terraform, revision, reason, message string) Terraform {
 	SetTerraformReadiness(&terraform, metav1.ConditionTrue, reason, message+": "+revision, revision)
+	return terraform
+}
+
+func TerraformHealthCheckFailed(terraform Terraform, message string) Terraform {
+	meta.SetResourceCondition(&terraform, "HealthCheck", metav1.ConditionFalse, "HealthCheckFailed", message)
+	(&terraform).Status.HealthCheck = HealthCheckStatus{
+		Succeeded: false,
+	}
+	return terraform
+}
+
+func TerraformHealthCheckSucceeded(terraform Terraform, message string) Terraform {
+	meta.SetResourceCondition(&terraform, "HealthCheck", metav1.ConditionTrue, "HealthCheckSucceed", message)
+	(&terraform).Status.HealthCheck = HealthCheckStatus{
+		Succeeded: true,
+	}
 	return terraform
 }
 

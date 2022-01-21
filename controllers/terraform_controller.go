@@ -298,6 +298,25 @@ func (r *TerraformReconciler) shouldWriteOutputs(terraform infrav1.Terraform, ou
 	return false
 }
 
+func (r *TerraformReconciler) shouldDoHealthChecks(terraform infrav1.Terraform, justApplied bool) bool {
+	if terraform.Spec.HealthChecks == nil || len(terraform.Spec.HealthChecks) < 1 {
+		return false
+	}
+
+	// terraform was just applied, do health checks
+	if justApplied {
+		return true
+	}
+
+	// terraform was applied before but health checks failed,
+	// do health checks again
+	if !terraform.Status.HealthCheck.Succeeded {
+		return true
+	}
+
+	return false
+}
+
 type LocalPrintfer struct {
 	logger logr.Logger
 }
@@ -587,9 +606,11 @@ terraform {
 
 	}
 
+	justApplied := false
 	outputs := map[string]tfexec.OutputMeta{}
 	if r.shouldApply(terraform) {
 		terraform, err = r.apply(ctx, terraform, tf, revision, &outputs)
+		justApplied = true
 		if err != nil {
 			return terraform, err
 		}
@@ -608,6 +629,18 @@ terraform {
 
 		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
 			log.Error(err, "unable to update status after writing outputs")
+			return terraform, err
+		}
+	}
+
+	if r.shouldDoHealthChecks(terraform, justApplied) {
+		terraform, err = r.doHealthChecks(ctx, terraform)
+		if err != nil {
+			return terraform, err
+		}
+
+		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			log.Error(err, "unable to update status after doing health checks")
 			return terraform, err
 		}
 	}
@@ -1511,29 +1544,40 @@ func (r *TerraformReconciler) gzipDecode(encodedPlan []byte) ([]byte, error) {
 	return o, nil
 }
 
-func (r *TerraformReconciler) doHealthChecks(ctx context.Context, healthChecks []infrav1.HealthCheck) error {
-	for _, hc := range healthChecks {
+func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infrav1.Terraform) (infrav1.Terraform, error) {
+	log := ctrl.LoggerFrom(ctx)
+	log.Info("calling doHealthChecks ...")
+
+	for _, hc := range terraform.Spec.HealthChecks {
 		switch hc.Type {
 		case infrav1.HealthCheckTypeTCP:
 			err := r.doTCPHealthCheck(ctx, hc.Name, hc.URL, hc.GetTimeout())
 			if err != nil {
-				return err
+				err = fmt.Errorf("error doing health checks: %s", err)
+				return infrav1.TerraformHealthCheckFailed(
+					terraform,
+					err.Error(),
+				), err
 			}
 		case infrav1.HealthCheckTypeHttpGet:
-			err := r.doHTTPHealthCheck(ctx, hc.Name, hc.URL, "GET", hc.GetTimeout())
+			err := r.doHTTPHealthCheck(ctx, hc.Name, hc.URL, hc.GetTimeout())
 			if err != nil {
-				return err
-			}
-		case infrav1.HealthCheckTypeHttpPost:
-			err := r.doHTTPHealthCheck(ctx, hc.Name, hc.URL, "POST", hc.GetTimeout())
-			if err != nil {
-				return err
+				err = fmt.Errorf("error doing health checks: %s", err)
+				return infrav1.TerraformHealthCheckFailed(
+					terraform,
+					err.Error(),
+				), err
 			}
 		default:
-			return fmt.Errorf("invalid health check type %s", hc.Type)
+			err := fmt.Errorf("invalid health check type %s", hc.Type)
+			return infrav1.TerraformHealthCheckFailed(
+				terraform,
+				err.Error(),
+			), err
 		}
 	}
-	return nil
+	terraform = infrav1.TerraformHealthCheckSucceeded(terraform, "Health checks succeeded")
+	return terraform, nil
 }
 
 func (r *TerraformReconciler) doTCPHealthCheck(ctx context.Context, name string, url string, timeout time.Duration) error {
@@ -1552,10 +1596,10 @@ func (r *TerraformReconciler) doTCPHealthCheck(ctx context.Context, name string,
 	return nil
 }
 
-func (r *TerraformReconciler) doHTTPHealthCheck(ctx context.Context, name string, url string, method string, timeout time.Duration) error {
+func (r *TerraformReconciler) doHTTPHealthCheck(ctx context.Context, name string, url string, timeout time.Duration) error {
 	log := ctrl.LoggerFrom(ctx)
 
-	req, err := http.NewRequest(method, url, nil)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Error(err, "Unexpected creating HTTP request")
 		return err

@@ -69,8 +69,8 @@ type HealthCheck struct {
 	// +required
 	Name string `json:"name"`
 
-	// Type of the health check, valid values are ('tcp', 'httpGet', 'httpPost').
-	// +kubebuilder:validation:Enum=tcp;httpGet;httpPost
+	// Type of the health check, valid values are ('tcp', 'http').
+	// +kubebuilder:validation:Enum=tcp;http
 	// +required
 	Type string `json:"type"`
 
@@ -96,7 +96,6 @@ func (in HealthCheck) GetTimeout() time.Duration {
 }
 
 const (
-	HealthCheckTypeTCP      = "tcp"
-	HealthCheckTypeHttpGet  = "httpGet"
-	HealthCheckTypeHttpPost = "httpPost"
+	HealthCheckTypeTCP     = "tcp"
+	HealthCheckTypeHttpGet = "http"
 )
