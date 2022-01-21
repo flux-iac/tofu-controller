@@ -5,9 +5,7 @@ import (
 	"testing"
 	"time"
 
-	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
 	. "github.com/onsi/gomega"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
@@ -18,81 +16,67 @@ func Test_000240_health_check_test(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
 
-	testCases := []struct {
-		healthChecks []infrav1.HealthCheck
-		wantErr      bool
+	tcpTestCases := []struct {
+		name    string
+		url     string
+		timeout time.Duration
+		wantErr bool
 	}{
 		{
-			healthChecks: []infrav1.HealthCheck{
-				{
-					Name: "testTCP",
-					URL:  "weave.works:80",
-					Type: "tcp",
-				},
-				{
-					Name: "testHttpGet",
-					URL:  "https://httpbin.org/get",
-					Type: "httpGet",
-				},
-				{
-					Name: "testHttpPost",
-					URL:  "https://httpbin.org/post",
-					Type: "httpPost",
-				},
-			},
+			name:    "testTCP",
+			url:     "weave.works:80",
+			timeout: time.Second * 10,
 			wantErr: false,
 		},
 		{
-			healthChecks: []infrav1.HealthCheck{
-				{
-					Name:    "testTCPInvalidPort",
-					URL:     "weave.works:81",
-					Type:    "tcp",
-					Timeout: &metav1.Duration{Duration: time.Second * 3},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			healthChecks: []infrav1.HealthCheck{
-				{
-					Name: "testHttpGet400",
-					URL:  "https://httpbin.org/status/400",
-					Type: "httpGet",
-				},
-			},
-			wantErr: true,
-		},
-		{
-			healthChecks: []infrav1.HealthCheck{
-				{
-					Name: "testHttpPost400",
-					URL:  "https://httpbin.org/status/400",
-					Type: "httpPost",
-				},
-			},
-			wantErr: true,
-		},
-		{
-			healthChecks: []infrav1.HealthCheck{
-				{
-					Name: "testInvalidHealthCheckType",
-					URL:  "weave.works",
-					Type: "invalid",
-				},
-			},
+
+			name:    "testTCPInvalidPort",
+			url:     "weave.works:81",
+			timeout: time.Second * 10,
 			wantErr: true,
 		},
 	}
 
-	for _, tt := range testCases {
+	httpTestCases := []struct {
+		name    string
+		url     string
+		timeout time.Duration
+		wantErr bool
+	}{
+		{
+			name:    "testHttp",
+			url:     "https://httpbin.org/get",
+			timeout: time.Second * 10,
+			wantErr: false,
+		},
+		{
+			name:    "testHttp400",
+			url:     "https://httpbin.org/status/400",
+			timeout: time.Second * 10,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tcpTestCases {
 		if tt.wantErr {
-			It("should do health checks and expecting errors")
-			err := reconciler.doHealthChecks(ctx, tt.healthChecks)
+			It("should do tcp health checks and expecting errors")
+			err := reconciler.doTCPHealthCheck(ctx, tt.name, tt.url, tt.timeout)
 			g.Expect(err).Should(HaveOccurred())
 		} else {
-			It("should do health checks and not expecting any errors")
-			err := reconciler.doHealthChecks(ctx, tt.healthChecks)
+			It("should do tcp health checks and not expecting any errors")
+			err := reconciler.doTCPHealthCheck(ctx, tt.name, tt.url, tt.timeout)
+			g.Expect(err).ShouldNot(HaveOccurred())
+		}
+	}
+
+	for _, tt := range httpTestCases {
+		if tt.wantErr {
+			It("should do http health checks and expecting errors")
+			err := reconciler.doHTTPHealthCheck(ctx, tt.name, tt.url, tt.timeout)
+			g.Expect(err).Should(HaveOccurred())
+		} else {
+			It("should do http health checks and not expecting any errors")
+			err := reconciler.doHTTPHealthCheck(ctx, tt.name, tt.url, tt.timeout)
 			g.Expect(err).ShouldNot(HaveOccurred())
 		}
 	}

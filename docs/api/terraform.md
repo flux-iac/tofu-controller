@@ -435,6 +435,20 @@ Kubernetes core/v1.SecretReference
 <em>(Optional)</em>
 </td>
 </tr>
+<tr>
+<td>
+<code>healthChecks</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.HealthCheck">
+[]HealthCheck
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>List of health checks to be performed.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -660,6 +674,20 @@ Kubernetes core/v1.SecretReference
 <em>(Optional)</em>
 </td>
 </tr>
+<tr>
+<td>
+<code>healthChecks</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.HealthCheck">
+[]HealthCheck
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>List of health checks to be performed.</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -776,6 +804,19 @@ The result could be either no plan change or a new plan generated.</p>
 <em>
 <a href="#infra.contrib.fluxcd.io/v1alpha1.PlanStatus">
 PlanStatus
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>healthCheck</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.HealthCheckStatus">
+HealthCheckStatus
 </a>
 </em>
 </td>
