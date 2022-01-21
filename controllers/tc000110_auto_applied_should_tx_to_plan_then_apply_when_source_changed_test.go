@@ -41,6 +41,7 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
 
 	By("setting the git repo status object, the URL, and the correct checksum")
 	testRepo.Status = sourcev1.GitRepositoryStatus{
@@ -86,6 +87,7 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
 
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
 	createdHelloWorldTF := infrav1.Terraform{}
@@ -267,4 +269,5 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 		"Pending":         "",
 		"Message":         "Applied successfully",
 	}))
+
 }

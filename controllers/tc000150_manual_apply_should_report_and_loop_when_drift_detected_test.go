@@ -44,6 +44,7 @@ func Test_000150_manual_apply_should_report_and_loop_when_drift_detected_test(t 
 	}
 	By("creating the GitRepository object")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
 
 	Given("that the GitRepository got reconciled")
 	By("setting the GitRepository's status, with the BLOB's URL, and the correct checksum")
@@ -102,6 +103,7 @@ func Test_000150_manual_apply_should_report_and_loop_when_drift_detected_test(t 
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
 
 	It("should be created")
 	By("checking that the hello world TF got created")
