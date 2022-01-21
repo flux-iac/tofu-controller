@@ -30,6 +30,11 @@ func Test_000220_support_config_file_via_secret_test(t *testing.T) {
 		terraformName = "tfrc-helloworld-no-outputs"
 	)
 
+	const (
+		// override timeout just for this test
+		timeout = time.Second * 150
+	)
+
 	g := NewWithT(t)
 	ctx := context.Background()
 
@@ -52,6 +57,7 @@ func Test_000220_support_config_file_via_secret_test(t *testing.T) {
 	By("creating the GitRepository resource in the cluster.")
 	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
 
 	Given("the GitRepository's reconciled status.")
 	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
@@ -95,6 +101,7 @@ credentials "app.terraform.io" {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &tfrcSecret)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &tfrcSecret)).Should(Succeed()) }()
 
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
@@ -103,6 +110,7 @@ credentials "app.terraform.io" {
 		},
 		Spec: infrav1.TerraformSpec{
 			ApprovePlan: "auto",
+			Interval:    metav1.Duration{Duration: 10 * time.Minute},
 			BackendConfig: &infrav1.BackendConfigSpec{
 				Disable: true,
 			},
@@ -121,6 +129,7 @@ credentials "app.terraform.io" {
 
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}

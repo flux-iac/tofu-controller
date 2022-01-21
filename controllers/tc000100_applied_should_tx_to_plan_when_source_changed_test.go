@@ -41,6 +41,7 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
 
 	By("setting the git repo status object, the URL, and the correct checksum")
 	testRepo.Status = sourcev1.GitRepositoryStatus{
@@ -86,6 +87,7 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
 
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
 	createdHelloWorldTF := infrav1.Terraform{}
@@ -250,4 +252,5 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 		"Pending":         "plan-master-ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
 	}))
+
 }
