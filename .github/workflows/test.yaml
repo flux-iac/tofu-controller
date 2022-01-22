@@ -38,5 +38,5 @@ jobs:
           key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
       - name: Run tests
         run: |
-          cp $(which terraform) /usr/bin
+          sudo cp $(which terraform) /usr/bin
           make test
