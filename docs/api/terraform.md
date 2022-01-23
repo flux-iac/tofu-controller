@@ -2,17 +2,17 @@
 <p>Packages:</p>
 <ul class="simple">
 <li>
-<a href="#terraform.infra.contrib.fluxcd.io%2fv1alpha1">terraform.infra.contrib.fluxcd.io/v1alpha1</a>
+<a href="#infra.contrib.fluxcd.io%2fv1alpha1">infra.contrib.fluxcd.io/v1alpha1</a>
 </li>
 </ul>
-<h2 id="terraform.infra.contrib.fluxcd.io/v1alpha1">terraform.infra.contrib.fluxcd.io/v1alpha1</h2>
+<h2 id="infra.contrib.fluxcd.io/v1alpha1">infra.contrib.fluxcd.io/v1alpha1</h2>
 Resource Types:
 <ul class="simple"></ul>
-<h3 id="terraform.infra.contrib.fluxcd.io/v1alpha1.BackendConfigSpec">BackendConfigSpec
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.BackendConfigSpec">BackendConfigSpec
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
 </p>
 <p>BackendConfigSpec is for specifying configuration for Terraform&rsquo;s Kubernetes backend</p>
 <div class="md-typeset__scrollwrap">
@@ -85,11 +85,11 @@ map[string]string
 </table>
 </div>
 </div>
-<h3 id="terraform.infra.contrib.fluxcd.io/v1alpha1.CrossNamespaceSourceReference">CrossNamespaceSourceReference
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.CrossNamespaceSourceReference">CrossNamespaceSourceReference
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
 </p>
 <p>CrossNamespaceSourceReference contains enough information to let you locate the
 typed Kubernetes resource object at cluster level.</p>
@@ -153,11 +153,11 @@ string
 </table>
 </div>
 </div>
-<h3 id="terraform.infra.contrib.fluxcd.io/v1alpha1.PlanStatus">PlanStatus
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.PlanStatus">PlanStatus
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.TerraformStatus">TerraformStatus</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformStatus">TerraformStatus</a>)
 </p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
@@ -206,7 +206,7 @@ bool
 </table>
 </div>
 </div>
-<h3 id="terraform.infra.contrib.fluxcd.io/v1alpha1.Terraform">Terraform
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.Terraform">Terraform
 </h3>
 <p>Terraform is the Schema for the terraforms API</p>
 <div class="md-typeset__scrollwrap">
@@ -237,7 +237,7 @@ Refer to the Kubernetes API documentation for the fields of the
 <td>
 <code>spec</code><br>
 <em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">
 TerraformSpec
 </a>
 </em>
@@ -275,7 +275,7 @@ bool
 <td>
 <code>backendConfig</code><br>
 <em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.BackendConfigSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha1.BackendConfigSpec">
 BackendConfigSpec
 </a>
 </em>
@@ -288,7 +288,7 @@ BackendConfigSpec
 <td>
 <code>vars</code><br>
 <em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.Variable">
+<a href="#infra.contrib.fluxcd.io/v1alpha1.Variable">
 []Variable
 </a>
 </em>
@@ -302,7 +302,7 @@ BackendConfigSpec
 <td>
 <code>varsFrom</code><br>
 <em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.VarsReference">
+<a href="#infra.contrib.fluxcd.io/v1alpha1.VarsReference">
 []VarsReference
 </a>
 </em>
@@ -360,7 +360,7 @@ Defaults to &lsquo;None&rsquo;, which translates to the root path of the SourceR
 <td>
 <code>sourceRef</code><br>
 <em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.CrossNamespaceSourceReference">
+<a href="#infra.contrib.fluxcd.io/v1alpha1.CrossNamespaceSourceReference">
 CrossNamespaceSourceReference
 </a>
 </em>
@@ -399,7 +399,7 @@ re-plan and re-apply TF resources. Defaults to false.</p>
 <td>
 <code>writeOutputsToSecret</code><br>
 <em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.WriteOutputsToSecretSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha1.WriteOutputsToSecretSpec">
 WriteOutputsToSecretSpec
 </a>
 </em>
@@ -442,7 +442,7 @@ Kubernetes core/v1.SecretReference
 <td>
 <code>status</code><br>
 <em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.TerraformStatus">
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformStatus">
 TerraformStatus
 </a>
 </em>
@@ -454,11 +454,11 @@ TerraformStatus
 </table>
 </div>
 </div>
-<h3 id="terraform.infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.Terraform">Terraform</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha1.Terraform">Terraform</a>)
 </p>
 <p>TerraformSpec defines the desired state of Terraform</p>
 <div class="md-typeset__scrollwrap">
@@ -500,7 +500,7 @@ bool
 <td>
 <code>backendConfig</code><br>
 <em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.BackendConfigSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha1.BackendConfigSpec">
 BackendConfigSpec
 </a>
 </em>
@@ -513,7 +513,7 @@ BackendConfigSpec
 <td>
 <code>vars</code><br>
 <em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.Variable">
+<a href="#infra.contrib.fluxcd.io/v1alpha1.Variable">
 []Variable
 </a>
 </em>
@@ -527,7 +527,7 @@ BackendConfigSpec
 <td>
 <code>varsFrom</code><br>
 <em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.VarsReference">
+<a href="#infra.contrib.fluxcd.io/v1alpha1.VarsReference">
 []VarsReference
 </a>
 </em>
@@ -585,7 +585,7 @@ Defaults to &lsquo;None&rsquo;, which translates to the root path of the SourceR
 <td>
 <code>sourceRef</code><br>
 <em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.CrossNamespaceSourceReference">
+<a href="#infra.contrib.fluxcd.io/v1alpha1.CrossNamespaceSourceReference">
 CrossNamespaceSourceReference
 </a>
 </em>
@@ -624,7 +624,7 @@ re-plan and re-apply TF resources. Defaults to false.</p>
 <td>
 <code>writeOutputsToSecret</code><br>
 <em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.WriteOutputsToSecretSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha1.WriteOutputsToSecretSpec">
 WriteOutputsToSecretSpec
 </a>
 </em>
@@ -664,11 +664,11 @@ Kubernetes core/v1.SecretReference
 </table>
 </div>
 </div>
-<h3 id="terraform.infra.contrib.fluxcd.io/v1alpha1.TerraformStatus">TerraformStatus
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.TerraformStatus">TerraformStatus
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.Terraform">Terraform</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha1.Terraform">Terraform</a>)
 </p>
 <p>TerraformStatus defines the observed state of Terraform</p>
 <div class="md-typeset__scrollwrap">
@@ -774,7 +774,7 @@ The result could be either no plan change or a new plan generated.</p>
 <td>
 <code>plan</code><br>
 <em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.PlanStatus">
+<a href="#infra.contrib.fluxcd.io/v1alpha1.PlanStatus">
 PlanStatus
 </a>
 </em>
@@ -787,11 +787,11 @@ PlanStatus
 </table>
 </div>
 </div>
-<h3 id="terraform.infra.contrib.fluxcd.io/v1alpha1.Variable">Variable
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.Variable">Variable
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
 </p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
@@ -842,11 +842,11 @@ Kubernetes core/v1.EnvVarSource
 </table>
 </div>
 </div>
-<h3 id="terraform.infra.contrib.fluxcd.io/v1alpha1.VarsReference">VarsReference
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.VarsReference">VarsReference
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
 </p>
 <p>VarsReference contain a reference of a Secret or a ConfigMap to generate
 variables for Terraform resources based on its data, selectively by varsKey.</p>
@@ -914,11 +914,11 @@ transient error will still result in a reconciliation failure.</p>
 </table>
 </div>
 </div>
-<h3 id="terraform.infra.contrib.fluxcd.io/v1alpha1.WriteOutputsToSecretSpec">WriteOutputsToSecretSpec
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.WriteOutputsToSecretSpec">WriteOutputsToSecretSpec
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#terraform.infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
 </p>
 <p>writeOutputsToSecret:
 name: helloworld-tf-outputs
