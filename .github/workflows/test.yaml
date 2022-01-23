@@ -12,12 +12,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '16'
-      - uses: hashicorp/setup-terraform@v1
-        with:
-          terraform_version: 1.1.4
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
@@ -38,5 +32,4 @@ jobs:
           key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
       - name: Run tests
         run: |
-          sudo cp $(which terraform) /usr/bin
           make test
