@@ -2,6 +2,24 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.8.0
+
+**Release date:** TBD
+
+This pre-release contains the following changes.
+
+Breaking Changes:
+  * Change `.spec.varsFrom` from object to be an array of object in `v1alpha1`. Users require to update their Terraform objects.
+
+New Features:
+  * Helm chart (@tomhuang12)
+  * Allow many instances of `.spec.varsFrom` (@phoban01)
+  * Add the Drift Detection only mode (@phoban01)
+  * Upgrade Terraform to 1.1.4 (@chanwit)
+
+Improvements:
+  * Fix recording the status of destroy plans (@chanwit)
+
 # v0.7.0
 
 **Release date:** 2022-01-16
