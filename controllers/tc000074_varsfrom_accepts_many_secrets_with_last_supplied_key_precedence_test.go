@@ -20,8 +20,7 @@ import (
 
 func Test_000074_varsfrom_accepts_many_secrets_with_last_supplied_key_precedence(t *testing.T) {
 	const (
-		sourceName        = "src-vars-from-many-config-maps"
-		terraformName     = "tf-vars-from-many-config-maps"
+		terraformName     = "tf-vars-from-many-secrets-precedence"
 		generatedVarsFile = "generated.auto.tfvars.json"
 	)
 
@@ -29,19 +28,19 @@ func Test_000074_varsfrom_accepts_many_secrets_with_last_supplied_key_precedence
 	ctx := context.Background()
 
 	// By("setting up some variables")
-	secretData := []struct {
+	secretDatas := []struct {
 		name string
 		data map[string]string
 	}{
 		{
-			name: "config-map-1",
+			name: terraformName + "-secret-1",
 			data: map[string]string{
 				"key-1": "value-1",
 				"key-2": "value-2",
 			},
 		},
 		{
-			name: "config-map-2",
+			name: terraformName + "-secret-2",
 			data: map[string]string{
 				"key-3": "value-3",
 				"key-1": "value-4",
@@ -50,7 +49,7 @@ func Test_000074_varsfrom_accepts_many_secrets_with_last_supplied_key_precedence
 	}
 
 	By("create the secrets")
-	for _, secret := range secretData {
+	for _, secret := range secretDatas {
 		secret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      secret.name,
@@ -75,10 +74,10 @@ func Test_000074_varsfrom_accepts_many_secrets_with_last_supplied_key_precedence
 
 	By("creating a new TF resource with slice of ConfigMaps")
 	var varsRef []infrav1.VarsReference
-	for _, cm := range secretData {
+	for _, secretData := range secretDatas {
 		varsRef = append(varsRef, infrav1.VarsReference{
 			Kind: "Secret",
-			Name: cm.name,
+			Name: secretData.name,
 		})
 	}
 	terraform := infrav1.Terraform{

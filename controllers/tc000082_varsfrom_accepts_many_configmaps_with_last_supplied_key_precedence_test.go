@@ -19,9 +19,9 @@ import (
 // +kubebuilder:docs-gen:collapse=Imports
 
 func Test_000082_varsfrom_accepts_many_configmaps_with_last_supplied_precedence(t *testing.T) {
+
 	const (
-		sourceName        = "src-vars-from-many-config-maps"
-		terraformName     = "tf-vars-from-many-config-maps"
+		terraformName     = "tf-vars-from-many-config-maps-precedence"
 		generatedVarsFile = "generated.auto.tfvars.json"
 	)
 
@@ -29,19 +29,19 @@ func Test_000082_varsfrom_accepts_many_configmaps_with_last_supplied_precedence(
 	ctx := context.Background()
 
 	// By("setting up some variables")
-	configMapData := []struct {
+	configMapDatas := []struct {
 		name string
 		data map[string]string
 	}{
 		{
-			name: "config-map-1",
+			name: terraformName + "-config-map-1",
 			data: map[string]string{
 				"key-1": "value-1",
 				"key-2": "value-2",
 			},
 		},
 		{
-			name: "config-map-2",
+			name: terraformName + "-config-map-2",
 			data: map[string]string{
 				"key-3": "value-3",
 				"key-1": "value-4",
@@ -50,13 +50,13 @@ func Test_000082_varsfrom_accepts_many_configmaps_with_last_supplied_precedence(
 	}
 
 	By("create the configmaps")
-	for _, cm := range configMapData {
+	for _, configMapData := range configMapDatas {
 		configMap := &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      cm.name,
+				Name:      configMapData.name,
 				Namespace: "flux-system",
 			},
-			Data: cm.data,
+			Data: configMapData.data,
 		}
 		g.Expect(k8sClient.Create(ctx, configMap)).Should(Succeed())
 	}
@@ -75,12 +75,12 @@ func Test_000082_varsfrom_accepts_many_configmaps_with_last_supplied_precedence(
 
 	By("creating a new TF resource with slice of ConfigMaps")
 	var varsRef []infrav1.VarsReference
-	for _, cm := range configMapData {
+	for _, configMapData := range configMapDatas {
 		vr := infrav1.VarsReference{
 			Kind: "ConfigMap",
-			Name: cm.name,
+			Name: configMapData.name,
 		}
-		if cm.name == "config-map-2" {
+		if configMapData.name == terraformName+"-config-map-2" {
 			vr.VarsKeys = []string{"key-1"}
 		}
 		varsRef = append(varsRef, vr)
