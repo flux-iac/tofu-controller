@@ -974,6 +974,8 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		return terraform, err
 	}
 
+	var isDestroyApplied bool
+
 	// special case: when backend is completely disabled, we need to use "destroy" command instead of apply
 	if r.backendCompletelyDisable(terraform) && terraform.Spec.Destroy == true {
 		if err := tf.Destroy(ctx); err != nil {
@@ -985,6 +987,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 				err.Error(),
 			), err
 		}
+		isDestroyApplied = true
 	} else {
 		// this is the normal case, we apply either create or destroy plan
 		if err := tf.Apply(ctx, applyOpt...); err != nil {
@@ -996,9 +999,10 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 				err.Error(),
 			), err
 		}
+		isDestroyApplied = terraform.Status.Plan.IsDestroyPlan
 	}
 
-	terraform = infrav1.TerraformApplied(terraform, revision, "Applied successfully")
+	terraform = infrav1.TerraformApplied(terraform, revision, "Applied successfully", isDestroyApplied)
 
 	*outputs, err = tf.Output(ctx)
 	if err != nil {
