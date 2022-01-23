@@ -267,16 +267,17 @@ spec:
 ## Roadmap
 
 ### Q1 2022
-  * [ ] Terraform outputs as Kubernetes Secrets
-  * [ ] Secret and ConfigMap as input variables
-  * [ ] Support the GitOps way to "plan" / "re-plan"
   * [x] Support the GitOps way to "apply"
   * [x] Drift detection
   * [x] Support auto-apply so that the reconciliation detect drifts and always make changes
   * [x] Interop with Kustomization controller's health checks
+  * [ ] Terraform outputs as Kubernetes Secrets
+  * [ ] Secret and ConfigMap as input variables
+  * [ ] Support the GitOps way to "plan" / "re-plan"
   * [ ] Test coverage reaching 70%
 
 ### Q2 2022
+  * [ ] Support a multi-tenant model
   * [ ] Interop with Notification controller's Events and Alert
   * [ ] Write back and show plan in PRs
   * [ ] Test coverage reaching 75%
