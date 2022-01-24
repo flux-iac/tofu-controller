@@ -62,8 +62,10 @@ type VarsReference struct {
 	Optional bool `json:"optional,omitempty"`
 }
 
+// HealthCheck contains configuration needed to perform a health check after
+// terraform is applied.
 type HealthCheck struct {
-	// Name of the health check
+	// Name of the health check.
 	// +kubebuilder:validation:MinLength=1
 	// +kubebuilder:validation:MaxLength=253
 	// +required
@@ -74,7 +76,9 @@ type HealthCheck struct {
 	// +required
 	Type string `json:"type"`
 
-	// Url to perform the health check on.
+	// URL to perform the health check on.
+	// Go template can be used to reference values from the terraform output
+	// (e.g. url: "{{.foo}}:{{.bar}}").
 	// +required
 	URL string `json:"url"`
 

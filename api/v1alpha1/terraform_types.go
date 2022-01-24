@@ -147,6 +147,7 @@ type PlanStatus struct {
 }
 
 type HealthCheckStatus struct {
+	// Defines whether or not the health checks have succeeded.
 	// +optional
 	Succeeded bool `json:"succeeded,omitempty"`
 }
