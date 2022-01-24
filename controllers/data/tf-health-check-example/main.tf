@@ -9,6 +9,10 @@ output "foo" {
   value = "weave.works"
 }
 
+output "port" {
+  value = "80"
+}
+
 output "bar" {
   value = "https://httpbin.org/get"
 }
