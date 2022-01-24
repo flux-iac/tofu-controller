@@ -24,6 +24,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"io/ioutil"
 	"net"
@@ -1548,10 +1549,55 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 	log := ctrl.LoggerFrom(ctx)
 	log.Info("calling doHealthChecks ...")
 
+	// get terraform output data for health check urls
+	outputDataString := make(map[string]string)
+	if terraform.Spec.WriteOutputsToSecret != nil {
+		outputKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Spec.WriteOutputsToSecret.Name}
+		outputSecret := corev1.Secret{}
+		err := r.Client.Get(ctx, outputKey, &outputSecret)
+		if err != nil {
+			err = fmt.Errorf("error getting terraform output for health checks: %s", err)
+			return infrav1.TerraformHealthCheckFailed(
+				terraform,
+				err.Error(),
+			), err
+		}
+		// parse map[string][]byte to map[string]string for go template parsing
+		if len(outputSecret.Data) > 0 {
+			for k, v := range outputSecret.Data {
+				outputDataString[k] = string(v)
+			}
+		}
+	}
+
 	for _, hc := range terraform.Spec.HealthChecks {
+		// parse go template string to get terraform output url for health checks
+		parsedURL := hc.URL
+		if len(outputDataString) > 0 {
+			var b bytes.Buffer
+			tmpl, err := template.New("url").Parse(hc.URL)
+			if err != nil {
+				err = fmt.Errorf("error getting terraform output for health checks: %s", err)
+				return infrav1.TerraformHealthCheckFailed(
+					terraform,
+					err.Error(),
+				), err
+			}
+			err = tmpl.Execute(&b, outputDataString)
+			if err != nil {
+				err = fmt.Errorf("error getting terraform output for health checks: %s", err)
+				return infrav1.TerraformHealthCheckFailed(
+					terraform,
+					err.Error(),
+				), err
+			}
+			parsedURL = b.String()
+		}
+
+		// perform health check based on type
 		switch hc.Type {
 		case infrav1.HealthCheckTypeTCP:
-			err := r.doTCPHealthCheck(ctx, hc.Name, hc.URL, hc.GetTimeout())
+			err := r.doTCPHealthCheck(ctx, hc.Name, parsedURL, hc.GetTimeout())
 			if err != nil {
 				err = fmt.Errorf("error doing health checks: %s", err)
 				return infrav1.TerraformHealthCheckFailed(
@@ -1560,7 +1606,7 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 				), err
 			}
 		case infrav1.HealthCheckTypeHttpGet:
-			err := r.doHTTPHealthCheck(ctx, hc.Name, hc.URL, hc.GetTimeout())
+			err := r.doHTTPHealthCheck(ctx, hc.Name, parsedURL, hc.GetTimeout())
 			if err != nil {
 				err = fmt.Errorf("error doing health checks: %s", err)
 				return infrav1.TerraformHealthCheckFailed(

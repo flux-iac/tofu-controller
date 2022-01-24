@@ -146,6 +146,9 @@ func TestMain(m *testing.M) {
 	server.RouteToHandler("GET", "/tf-multi-var.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/tf-multi-var-with-outputs.tar.gz")
 	})
+	server.RouteToHandler("GET", "/tf-health-check.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-health-check-example.tar.gz")
+	})
 
 	server.Start()
 
