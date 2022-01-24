@@ -7,7 +7,7 @@ and application resources, in the Kubernetes and Terraform universe, at your own
 
 "At your own pace" means you don't need to GitOps-ify everything at once.
 
-TF-controller comes with many GitOps models that allow you to:
+TF-controller offers many GitOps models:
   1. **Full GitOps Automation Model:** GitOps your Terraform resources from the provision steps to the enforcement steps, like a whole EKS cluster.
   2. **Hybrid GitOps Automation Model:** GitOps parts of your existing infrastructure resources. For example, you have an existing EKS cluster.
      You can choose to GitOps only its nodegroup, or its security group.
