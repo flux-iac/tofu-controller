@@ -2,12 +2,16 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
 
 	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	. "github.com/onsi/gomega"
+	gs "github.com/onsi/gomega/gstruct"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -56,12 +60,12 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
-		URL: server.URL() + "/file.tar.gz",
+		URL: server.URL() + "/tf-health-check.tar.gz",
 		Artifact: &sourcev1.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
-			URL:            server.URL() + "/file.tar.gz",
+			URL:            server.URL() + "/tf-health-check.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-			Checksum:       "80ddfd18eb96f7d31cadc1a8a5171c6e2d95df3f6c23b0ed9cd8dddf6dba1406", // must be the real checksum value
+			Checksum:       "7a8263778c9a5864d7656f3c0a772e92be02eb1593b2cb9789492e6d3d731a4c", // must be the real checksum value
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
@@ -72,11 +76,11 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 	createdRepo := sourcev1.GitRepository{}
 	g.Expect(k8sClient.Get(ctx, gitRepoKey, &createdRepo)).Should(Succeed())
 
-	By("creating a new TF and attaching to the repo, with approve plan set to auto and drift detection disabled")
+	By("creating a new TF and attaching to the repo, with approve plan set to auto")
 	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
 	g.Expect(err).Should(BeNil())
 
-	helloWorldTF := infrav1.Terraform{
+	healthCheckTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
 			Namespace: "flux-system",
@@ -84,7 +88,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 		Spec: infrav1.TerraformSpec{
 			Interval:    metav1.Duration{Duration: time.Second * 5},
 			ApprovePlan: "auto",
-			Path:        "./terraform-hello-world-example",
+			Path:        "./tf-health-check-example",
 			BackendConfig: &infrav1.BackendConfigSpec{
 				SecretSuffix:    terraformName,
 				InClusterConfig: false,
@@ -98,25 +102,28 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 			HealthChecks: []infrav1.HealthCheck{
 				{
 					Name: "tcpTest",
-					URL:  "weave.works:80",
+					URL:  "{{.foo}}:80",
 					Type: "tcp",
 				},
 				{
 					Name:    "httpTest",
-					URL:     "https://httpbin.org/get",
+					URL:     "{{.bar}}",
 					Type:    "http",
 					Timeout: &metav1.Duration{Duration: time.Second * 5},
 				},
 			},
+			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
+				Name: "tf-output-" + terraformName,
+			},
 		},
 	}
-	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
+	g.Expect(k8sClient.Create(ctx, &healthCheckTF)).Should(Succeed())
 
-	By("checking that the hello world TF gets created")
-	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
-	createdHelloWorldTF := infrav1.Terraform{}
+	By("checking that the health check example TF gets created")
+	healthCheckTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
+	createdhealthCheckTF := infrav1.Terraform{}
 	g.Eventually(func() bool {
-		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		err := k8sClient.Get(ctx, healthCheckTFKey, &createdhealthCheckTF)
 		if err != nil {
 			return false
 		}
@@ -125,17 +132,17 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 
 	By("checking that the plan was applied successfully")
 	g.Eventually(func() map[string]interface{} {
-		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		err := k8sClient.Get(ctx, healthCheckTFKey, &createdhealthCheckTF)
 		if err != nil {
 			return nil
 		}
-		for _, c := range createdHelloWorldTF.Status.Conditions {
+		for _, c := range createdhealthCheckTF.Status.Conditions {
 			if c.Type == "Apply" {
 				return map[string]interface{}{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
 					"Message":         c.Message,
-					"LastAppliedPlan": createdHelloWorldTF.Status.Plan.LastApplied,
+					"LastAppliedPlan": createdhealthCheckTF.Status.Plan.LastApplied,
 				}
 			}
 		}
@@ -148,27 +155,66 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 	}))
 
 	By("checking that we have outputs available in the TF object")
+	idFn := func(element interface{}) string {
+		return fmt.Sprintf("%v", element)
+	}
 	g.Eventually(func() []string {
-		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		err := k8sClient.Get(ctx, healthCheckTFKey, &createdhealthCheckTF)
 		if err != nil {
 			return nil
 		}
-		return createdHelloWorldTF.Status.AvailableOutputs
-	}, timeout, interval).Should(Equal([]string{"hello_world"}))
+		return createdhealthCheckTF.Status.AvailableOutputs
+	}, timeout, interval).Should(gs.MatchAllElements(idFn, gs.Elements{
+		"foo": Equal("foo"),
+		"bar": Equal("bar"),
+	}))
+
+	It("should be reconciled and produce the correct output secret.")
+	By("checking that the named output secret contains all outputs.")
+	outputKey := types.NamespacedName{Namespace: "flux-system", Name: "tf-output-" + terraformName}
+	outputSecret := corev1.Secret{}
+	g.Eventually(func() (int, error) {
+		err := k8sClient.Get(ctx, outputKey, &outputSecret)
+		if err != nil {
+			return -1, err
+		}
+		return len(outputSecret.Data), nil
+	}, timeout, interval).Should(Equal(2))
+
+	By("checking that the output secret contains the correct output data, provisioned by the TF resource.")
+	expectedOutputValue := map[string]string{
+		"Name":        "tf-output-" + terraformName,
+		"Namespace":   "flux-system",
+		"FooValue":    "weave.works",
+		"BarValue":    "https://httpbin.org/get",
+		"OwnerRef[0]": string(createdhealthCheckTF.UID),
+	}
+	g.Eventually(func() (map[string]string, error) {
+		err := k8sClient.Get(ctx, outputKey, &outputSecret)
+		fooValue := string(outputSecret.Data["foo"])
+		barValue := string(outputSecret.Data["bar"])
+		return map[string]string{
+			"Name":        outputSecret.Name,
+			"Namespace":   outputSecret.Namespace,
+			"FooValue":    fooValue,
+			"BarValue":    barValue,
+			"OwnerRef[0]": string(outputSecret.OwnerReferences[0].UID),
+		}, err
+	}, timeout, interval).Should(Equal(expectedOutputValue), "expected output %v", expectedOutputValue)
 
 	By("checking that the health checks are performed successfully")
 	g.Eventually(func() map[string]interface{} {
-		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		err := k8sClient.Get(ctx, healthCheckTFKey, &createdhealthCheckTF)
 		if err != nil {
 			return nil
 		}
-		for _, c := range createdHelloWorldTF.Status.Conditions {
+		for _, c := range createdhealthCheckTF.Status.Conditions {
 			if c.Type == "HealthCheck" {
 				return map[string]interface{}{
 					"Type":              c.Type,
 					"Reason":            c.Reason,
 					"Message":           c.Message,
-					"HealthCheckStatus": createdHelloWorldTF.Status.HealthCheck.Succeeded,
+					"HealthCheckStatus": createdhealthCheckTF.Status.HealthCheck.Succeeded,
 				}
 			}
 		}
