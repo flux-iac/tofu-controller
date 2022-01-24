@@ -65,7 +65,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/tf-health-check.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-			Checksum:       "7a8263778c9a5864d7656f3c0a772e92be02eb1593b2cb9789492e6d3d731a4c", // must be the real checksum value
+			Checksum:       "0bb4aa27e80e385bcf47572777de6c0ae8e1100357a88b8fe0cec0f966ce31a3", // must be the real checksum value
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
@@ -76,7 +76,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 	createdRepo := sourcev1.GitRepository{}
 	g.Expect(k8sClient.Get(ctx, gitRepoKey, &createdRepo)).Should(Succeed())
 
-	By("creating a new TF and attaching to the repo, with approve plan set to auto")
+	By("creating a new TF and attaching to the repo, with approve plan set to auto and health checks defined")
 	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
 	g.Expect(err).Should(BeNil())
 
@@ -102,7 +102,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 			HealthChecks: []infrav1.HealthCheck{
 				{
 					Name: "tcpTest",
-					URL:  "{{.foo}}:80",
+					URL:  "{{.foo}}:{{.port}}",
 					Type: "tcp",
 				},
 				{
@@ -165,8 +165,9 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 		}
 		return createdhealthCheckTF.Status.AvailableOutputs
 	}, timeout, interval).Should(gs.MatchAllElements(idFn, gs.Elements{
-		"foo": Equal("foo"),
-		"bar": Equal("bar"),
+		"foo":  Equal("foo"),
+		"bar":  Equal("bar"),
+		"port": Equal("port"),
 	}))
 
 	It("should be reconciled and produce the correct output secret.")
@@ -179,7 +180,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 			return -1, err
 		}
 		return len(outputSecret.Data), nil
-	}, timeout, interval).Should(Equal(2))
+	}, timeout, interval).Should(Equal(3))
 
 	By("checking that the output secret contains the correct output data, provisioned by the TF resource.")
 	expectedOutputValue := map[string]string{
@@ -187,17 +188,20 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 		"Namespace":   "flux-system",
 		"FooValue":    "weave.works",
 		"BarValue":    "https://httpbin.org/get",
+		"PortValue":   "80",
 		"OwnerRef[0]": string(createdhealthCheckTF.UID),
 	}
 	g.Eventually(func() (map[string]string, error) {
 		err := k8sClient.Get(ctx, outputKey, &outputSecret)
 		fooValue := string(outputSecret.Data["foo"])
 		barValue := string(outputSecret.Data["bar"])
+		portValue := string(outputSecret.Data["port"])
 		return map[string]string{
 			"Name":        outputSecret.Name,
 			"Namespace":   outputSecret.Namespace,
 			"FooValue":    fooValue,
 			"BarValue":    barValue,
+			"PortValue":   portValue,
 			"OwnerRef[0]": string(outputSecret.OwnerReferences[0].UID),
 		}, err
 	}, timeout, interval).Should(Equal(expectedOutputValue), "expected output %v", expectedOutputValue)
