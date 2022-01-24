@@ -4,7 +4,7 @@ All notable changes of this project are documented in this file.
 
 # v0.8.0
 
-**Release date:** TBD
+**Release date:** 2022-01-24
 
 This pre-release contains the following changes.
 
