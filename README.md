@@ -1,16 +1,16 @@
 # TF-controller: GitOps Terraform at your own pace
 
-TF-controller is an experimental controller for [Flux](https://fluxcd.io) to reconcile Terraform resources 
-in the GitOps way. 
-With the power of Flux together with Terraform, TF-controller allows you to GitOps-ify infrastructure, 
+TF-controller is an experimental controller for [Flux](https://fluxcd.io) to reconcile Terraform resources
+in the GitOps way.
+With the power of Flux together with Terraform, TF-controller allows you to GitOps-ify infrastructure,
 and application resources, in the Kubernetes and Terraform universe, at your own pace.
 
-"At your own pace" means you don't need to GitOps-ify everything at once. 
+"At your own pace" means you don't need to GitOps-ify everything at once.
 
-TF-controller comes with many GitOps models that allow you to: 
+TF-controller comes with many GitOps models that allow you to:
   1. **Full GitOps Automation Model:** GitOps your Terraform resources from the provision steps to the enforcement steps, like a whole EKS cluster.
-  2. **Hybrid GitOps Automation Model:** GitOps parts of your existing infrastructure resources. For example, you have an existing EKS cluster. 
-     You can choose to GitOps only its nodegroup, or its security group. 
+  2. **Hybrid GitOps Automation Model:** GitOps parts of your existing infrastructure resources. For example, you have an existing EKS cluster.
+     You can choose to GitOps only its nodegroup, or its security group.
   3. **State Enforcement Model:** You have a TFSTATE file, and you'd like to use GitOps enforce it, without changing anything else.
   4. **Drift Detection Model:** You have a TFSTATE file, and you'd like to use GitOps just for drift detection, so you can decide to do things later when a drift occurs.
 
@@ -24,10 +24,10 @@ TF-controller comes with many GitOps models that allow you to:
     and your Terraform resources. If a drift occurs, the plan to fix that drift will be generated and applied automatically.
     _This feature is available since v0.3.0._
   * **Drift detection**: This feature is a part of the GitOps automation feature. The controller detects and fixes drift
-    for your infrastructures, based on the Terraform resources and their `TFSTATE`. _This feature is available since v0.5.0._   
+    for your infrastructures, based on the Terraform resources and their `TFSTATE`. _This feature is available since v0.5.0._
     * Drift detection is enabled by default. You can use the field `.spec.disableDriftDetection` to disable this behaviour.
       _This feature is available since v0.7.0._
-    * The Drift detection only mode, without plan or apply steps, allows you to perform read-only drift detection. 
+    * The Drift detection only mode, without plan or apply steps, allows you to perform read-only drift detection.
       _This feature is available since v0.8.0._
   * **Plan and Manual Approve**: This feature allows you to separate the `plan`, out of the `apply` step, just like
     the Terraform workflow you are familiar with. A good thing about this is that it is done in a GitOps way. When a plan
@@ -57,7 +57,7 @@ helm upgrade -i tf-controller tf-controller/tf-controller \
     --namespace flux-system
 ```
 
-For details on configurable parameters of the TF-controller chart, 
+For details on configurable parameters of the TF-controller chart,
 please see [chart readme](https://github.com/tf-controller/charts/blob/main/charts/tf-controller/README.md).
 
 Alternatively, you can install TF-controller via `kubectl`:
@@ -212,7 +212,7 @@ kubectl annotate -n flux-system serviceaccount tf-controller eks.amazon.com/role
 
 ### Setting Terraform Variables
 
-**This is a breaking change of the `v1alpha1` API.** 
+**This is a breaking change of the `v1alpha1` API.**
 Users who are upgrading from TF-controller <= 0.7.0 require updating `varsFrom`,
 from a single object:
 ```yaml
@@ -261,6 +261,48 @@ spec:
     - instanceType
   - kind: Secret
     name: cluster-creds
+```
+
+### Managing Terraform State
+
+By default, `tf-controller` will use the [Kubernetes backend](https://www.terraform.io/language/settings/backends/kubernetes) to store the Terraform statefile in cluster.
+
+The statefile is stored in a secret named: `tfstate-default-${secretSuffix}`. The default `suffix` will be the name of the Terraform resource, however you may override this setting using `.spec.backendConfig.secretSuffix`.
+
+You can disable the backend
+
+#### Backup the statefile
+
+For the following `terraform` resources:
+
+```bash
+$ kubectl get terraform
+
+NAME       READY     STATUS         AGE
+my-stack   Unknown   Initializing   28s
+```
+
+We can export the state like this:
+```bash
+kubectl get secret tfstate-default-my-stack -ojsonpath='{.data.tfstate}' | base64 -d | gzip -d > terraform.tfstate
+```
+
+#### Restore the statefile
+
+To restore the statefile or import an existing statefile we can use the following operation:
+
+```bash
+gzip terraform.tfstate
+
+NAME=my-stack
+
+kubectl create secret \
+  generic tfstate-default-${NAME} \
+  --from-file=tfstate=terraform.tfstate.gz \
+  --dry-run=client -o=yaml \
+  | yq e '.metadata.annotations["encoding"]="gzip"' - > tfstate-default-${NAME}.yaml
+
+kubectl apply -f tfstate-default-${NAME}.yaml
 ```
 
 ## Examples
