@@ -40,4 +40,4 @@ controllers/data/terratest-master.tar.gz
 example/
 
 # OS files
-.DS_Store
+**/.DS_Store
