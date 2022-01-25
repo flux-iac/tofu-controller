@@ -226,38 +226,6 @@ When not specified, default 20s timeout is used.</p>
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.HealthCheckStatus">HealthCheckStatus
-</h3>
-<p>
-(<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformStatus">TerraformStatus</a>)
-</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>succeeded</code><br>
-<em>
-bool
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>Defines whether or not the health checks have succeeded.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
 <h3 id="infra.contrib.fluxcd.io/v1alpha1.PlanStatus">PlanStatus
 </h3>
 <p>
@@ -909,19 +877,6 @@ The result could be either no plan change or a new plan generated.</p>
 <em>
 <a href="#infra.contrib.fluxcd.io/v1alpha1.PlanStatus">
 PlanStatus
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-</td>
-</tr>
-<tr>
-<td>
-<code>healthCheck</code><br>
-<em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.HealthCheckStatus">
-HealthCheckStatus
 </a>
 </em>
 </td>

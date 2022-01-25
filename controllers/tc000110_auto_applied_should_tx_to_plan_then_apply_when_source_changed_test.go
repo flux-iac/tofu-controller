@@ -174,7 +174,7 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            "Apply",
-		"Reason":          "TerraformAppliedSucceed",
+		"Reason":          infrav1.TFExecApplySucceedReason,
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 	}))
 	// TODO check Output condition
@@ -264,7 +264,7 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            "Apply",
-		"Reason":          "TerraformAppliedSucceed",
+		"Reason":          infrav1.TFExecApplySucceedReason,
 		"LastAppliedPlan": "plan-master-ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
 		"Pending":         "",
 		"Message":         "Applied successfully",

@@ -264,7 +264,7 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            "Apply",
-		"Reason":          "TerraformAppliedSucceed",
+		"Reason":          infrav1.TFExecApplySucceedReason,
 		"LastAppliedPlan": "plan-master-ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
 	}))
 	// TODO check Output condition

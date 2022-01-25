@@ -149,7 +149,7 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 		return createdTFResource.Status
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":   "Ready",
-		"Reason": "TerraformAppliedSucceed",
+		"Reason": infrav1.TFExecApplySucceedReason,
 	}))
 
 	It("should be in drift detection only mode")

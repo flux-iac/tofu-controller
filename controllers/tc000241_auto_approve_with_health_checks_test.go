@@ -149,7 +149,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            "Apply",
-		"Reason":          "TerraformAppliedSucceed",
+		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 	}))
@@ -215,18 +215,16 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 		for _, c := range createdhealthCheckTF.Status.Conditions {
 			if c.Type == "HealthCheck" {
 				return map[string]interface{}{
-					"Type":              c.Type,
-					"Reason":            c.Reason,
-					"Message":           c.Message,
-					"HealthCheckStatus": createdhealthCheckTF.Status.HealthCheck.Succeeded,
+					"Type":    c.Type,
+					"Reason":  c.Reason,
+					"Message": c.Message,
 				}
 			}
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":              "HealthCheck",
-		"Reason":            "HealthCheckSucceed",
-		"Message":           "Health checks succeeded",
-		"HealthCheckStatus": true,
+		"Type":    "HealthCheck",
+		"Reason":  "HealthChecksSucceed",
+		"Message": "Health checks succeeded",
 	}))
 }
