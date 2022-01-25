@@ -174,7 +174,7 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            "Apply",
-		"Reason":          "TerraformAppliedSucceed",
+		"Reason":          infrav1.TFExecApplySucceedReason,
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 	}))
 	// TODO check Output condition

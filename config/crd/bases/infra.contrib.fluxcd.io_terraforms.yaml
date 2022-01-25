@@ -406,12 +406,6 @@ spec:
                   - type
                   type: object
                 type: array
-              healthCheck:
-                properties:
-                  succeeded:
-                    description: Defines whether or not the health checks have succeeded.
-                    type: boolean
-                type: object
               lastAppliedRevision:
                 description: The last successfully applied revision. The revision
                   format for Git sources is <branch|tag>/<commit-sha>.

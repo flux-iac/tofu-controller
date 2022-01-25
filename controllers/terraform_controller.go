@@ -299,19 +299,31 @@ func (r *TerraformReconciler) shouldWriteOutputs(terraform infrav1.Terraform, ou
 	return false
 }
 
-func (r *TerraformReconciler) shouldDoHealthChecks(terraform infrav1.Terraform, justApplied bool) bool {
+func (r *TerraformReconciler) shouldDoHealthChecks(terraform infrav1.Terraform) bool {
 	if terraform.Spec.HealthChecks == nil || len(terraform.Spec.HealthChecks) < 1 {
 		return false
 	}
 
-	// terraform was just applied, do health checks
-	if justApplied {
+	var applyCondition metav1.Condition
+	var hcCondition metav1.Condition
+	for _, c := range terraform.Status.Conditions {
+		if c.Type == "Apply" {
+			applyCondition = c
+		} else if c.Type == "HealthCheck" {
+			hcCondition = c
+		}
+	}
+
+	// health checks were previously performed but failed
+	// do health check again
+	if hcCondition.Reason == infrav1.HealthChecksFailedReason {
 		return true
 	}
 
-	// terraform was applied before but health checks failed,
-	// do health checks again
-	if !terraform.Status.HealthCheck.Succeeded {
+	// terraform was applied and no health check performed yet
+	// do health check
+	if applyCondition.Reason == infrav1.TFExecApplySucceedReason &&
+		hcCondition.Reason == "" {
 		return true
 	}
 
@@ -607,11 +619,9 @@ terraform {
 
 	}
 
-	justApplied := false
 	outputs := map[string]tfexec.OutputMeta{}
 	if r.shouldApply(terraform) {
 		terraform, err = r.apply(ctx, terraform, tf, revision, &outputs)
-		justApplied = true
 		if err != nil {
 			return terraform, err
 		}
@@ -634,7 +644,7 @@ terraform {
 		}
 	}
 
-	if r.shouldDoHealthChecks(terraform, justApplied) {
+	if r.shouldDoHealthChecks(terraform) {
 		terraform, err = r.doHealthChecks(ctx, terraform)
 		if err != nil {
 			return terraform, err

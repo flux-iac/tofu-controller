@@ -149,7 +149,7 @@ func Test_000020_with_backend_no_outputs_test(t *testing.T) {
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":   "Apply",
-		"Reason": "TerraformAppliedSucceed",
+		"Reason": infrav1.TFExecApplySucceedReason,
 	}))
 
 	It("should be reconciled successfully, and have some output available.")
