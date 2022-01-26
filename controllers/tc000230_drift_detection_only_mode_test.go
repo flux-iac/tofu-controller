@@ -206,6 +206,14 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 		"Reason": infrav1.NoDriftReason,
 	}))
 
+	g.Eventually(func() bool {
+		err := k8sClient.Get(ctx, testTFKey, &createdTFResource)
+		if err != nil {
+			return false
+		}
+		return createdTFResource.Status.LastDriftDetectedAt.IsZero()
+	}, timeout, interval).Should(BeTrue())
+
 	It("should continue to detect and report drift")
 	By("deleting configmap to create a drift")
 	cmPayloadKey := types.NamespacedName{Namespace: "default", Name: "cm-" + terraformName}
@@ -242,4 +250,11 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 		"Reason": infrav1.DriftDetectedReason,
 	}))
 
+	g.Eventually(func() bool {
+		err := k8sClient.Get(ctx, testTFKey, &createdTFResource)
+		if err != nil {
+			return false
+		}
+		return !createdTFResource.Status.LastDriftDetectedAt.IsZero()
+	}, timeout, interval).Should(BeTrue())
 }
