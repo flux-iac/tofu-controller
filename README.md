@@ -305,6 +305,53 @@ kubectl create secret \
 kubectl apply -f tfstate-default-${NAME}.yaml
 ```
 
+### Health Checks
+
+For some resources, it may be useful to perform health checks on them to verify that they are ready to accept connection before the terraform goes into `Ready` state:
+
+```
+# main.tf
+
+output "rdsAddress" {
+  value = "mydb.xyz.us-east-1.rds.amazonaws.com"
+}
+
+output "rdsPort" {
+  value = "3306"
+}
+
+output "myappURL" {
+  value = "https://example.com/"
+}
+```
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: "auto"
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  healthChecks:
+    - name: rds
+      type: tcp
+      address: "{{.rdsAddress}}:{{.rdsPort}}" # uses standard Go package template format to parse outputs to url
+      timeout: 10s # optional, defaults to 20s
+    - name: myapp
+      type: http
+      url: "{{.myappURL}}"
+      timeout: 5s
+    - name: url_not_from_output
+      type: http
+      url: "https://example.org"
+```
+
 ## Examples
   * A Terraform GitOps with Flux to automatically reconcile your [AWS IAM Policies](https://github.com/tf-controller/aws-iam-policies).
   * GitOps an existing EKS cluster, by partially import its nodegroup and manage it with TF-controller: [An EKS scaling example](https://github.com/tf-controller/eks-scaling).

@@ -129,6 +129,10 @@ type TerraformSpec struct {
 
 	// +optional
 	CliConfigSecretRef *corev1.SecretReference `json:"cliConfigSecretRef,omitempty"`
+
+	// List of health checks to be performed.
+	// +optional
+	HealthChecks []HealthCheck `json:"healthChecks,omitempty"`
 }
 
 type PlanStatus struct {
@@ -241,6 +245,8 @@ const (
 	TFExecApplyFailedReason    = "TFExecApplyFailed"
 	TFExecOutputFailedReason   = "TFExecOutputFailed"
 	OutputsWritingFailedReason = "OutputsWritingFailed"
+	HealthChecksFailedReason   = "HealthChecksFailed"
+	TFExecApplySucceedReason   = "TerraformAppliedSucceed"
 )
 
 // SetTerraformReadiness sets the ReadyCondition, ObservedGeneration, and LastAttemptedRevision, on the Terraform.
@@ -272,7 +278,7 @@ func TerraformOutputsWritten(terraform Terraform, revision string, message strin
 }
 
 func TerraformApplied(terraform Terraform, revision string, message string, isDestroyApply bool) Terraform {
-	meta.SetResourceCondition(&terraform, "Apply", metav1.ConditionTrue, "TerraformAppliedSucceed", message)
+	meta.SetResourceCondition(&terraform, "Apply", metav1.ConditionTrue, TFExecApplySucceedReason, message)
 	(&terraform).Status.Plan = PlanStatus{
 		LastApplied:   terraform.Status.Plan.Pending,
 		Pending:       "",
@@ -282,7 +288,7 @@ func TerraformApplied(terraform Terraform, revision string, message string, isDe
 		(&terraform).Status.LastAppliedRevision = revision
 	}
 
-	SetTerraformReadiness(&terraform, metav1.ConditionTrue, "TerraformAppliedSucceed", message+": "+revision, revision)
+	SetTerraformReadiness(&terraform, metav1.ConditionTrue, TFExecApplySucceedReason, message+": "+revision, revision)
 	return terraform
 }
 
@@ -358,6 +364,16 @@ func TerraformDriftDetected(terraform Terraform, revision, reason, message strin
 
 func TerraformNoDrift(terraform Terraform, revision, reason, message string) Terraform {
 	SetTerraformReadiness(&terraform, metav1.ConditionTrue, reason, message+": "+revision, revision)
+	return terraform
+}
+
+func TerraformHealthCheckFailed(terraform Terraform, message string) Terraform {
+	meta.SetResourceCondition(&terraform, "HealthCheck", metav1.ConditionFalse, HealthChecksFailedReason, message)
+	return terraform
+}
+
+func TerraformHealthCheckSucceeded(terraform Terraform, message string) Terraform {
+	meta.SetResourceCondition(&terraform, "HealthCheck", metav1.ConditionTrue, "HealthChecksSucceed", message)
 	return terraform
 }
 
