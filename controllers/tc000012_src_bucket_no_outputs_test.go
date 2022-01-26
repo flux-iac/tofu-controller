@@ -180,7 +180,7 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            "Apply",
-		"Reason":          "TerraformAppliedSucceed",
+		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
 		"LastAppliedPlan": "plan-822c3dd335579b435b5ada924d6f38b227412a5c",
 	}))

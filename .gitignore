@@ -23,6 +23,7 @@ testbin/*
 *.swp
 *.swo
 *~
+.vscode
 
 DESIGN.md
 controllers/data/terraform-hello-env/
@@ -30,9 +31,13 @@ controllers/data/terraform-hello-world-example/
 controllers/data/tf-k8s-configmap/
 controllers/data/tf-k8s-configmap-unrelated-change/
 controllers/data/tfc-helloworld/
+controllers/data/tf-health-check-example/
 controllers/data/terratest-master.tar.gz
 
 /config/crd/bases/buckets.yaml
 /config/crd/bases/gitrepositories.yaml
 /config/release/
 example/
+
+# OS files
+**/.DS_Store

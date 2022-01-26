@@ -153,6 +153,96 @@ string
 </table>
 </div>
 </div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.HealthCheck">HealthCheck
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+</p>
+<p>HealthCheck contains configuration needed to perform a health check after
+terraform is applied.</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name of the health check.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>type</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Type of the health check, valid values are (&lsquo;tcp&rsquo;, &lsquo;http&rsquo;).
+If tcp is specified, address is required.
+If http is specified, url is required.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>url</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>URL to perform http health check on. Required when http type is specified.
+Go template can be used to reference values from the terraform output
+(e.g. <a href="https://example.org">https://example.org</a>, {{.output_url}}).</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>address</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Address to perform tcp health check on. Required when tcp type is specified.
+Go template can be used to reference values from the terraform output
+(e.g. 127.0.0.1:8080, {{.address}}:{{.port}}).</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>timeout</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>The timeout period at which the connection should timeout if unable to
+complete the request.
+When not specified, default 20s timeout is used.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="infra.contrib.fluxcd.io/v1alpha1.PlanStatus">PlanStatus
 </h3>
 <p>
@@ -435,6 +525,20 @@ Kubernetes core/v1.SecretReference
 <em>(Optional)</em>
 </td>
 </tr>
+<tr>
+<td>
+<code>healthChecks</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.HealthCheck">
+[]HealthCheck
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>List of health checks to be performed.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -658,6 +762,20 @@ Kubernetes core/v1.SecretReference
 </td>
 <td>
 <em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>healthChecks</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.HealthCheck">
+[]HealthCheck
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>List of health checks to be performed.</p>
 </td>
 </tr>
 </tbody>
