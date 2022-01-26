@@ -101,9 +101,9 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 			},
 			HealthChecks: []infrav1.HealthCheck{
 				{
-					Name: "tcpTest",
-					URL:  "{{.foo}}:{{.port}}",
-					Type: "tcp",
+					Name:    "tcpTest",
+					Address: "{{.foo}}:{{.port}}",
+					Type:    "tcp",
 				},
 				{
 					Name:    "httpTest",

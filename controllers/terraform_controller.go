@@ -1560,7 +1560,7 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 	log.Info("calling doHealthChecks ...")
 
 	// get terraform output data for health check urls
-	outputDataString := make(map[string]string)
+	o := make(map[string]string)
 	if terraform.Spec.WriteOutputsToSecret != nil {
 		outputKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Spec.WriteOutputsToSecret.Name}
 		outputSecret := corev1.Secret{}
@@ -1575,57 +1575,50 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 		// parse map[string][]byte to map[string]string for go template parsing
 		if len(outputSecret.Data) > 0 {
 			for k, v := range outputSecret.Data {
-				outputDataString[k] = string(v)
+				o[k] = string(v)
 			}
 		}
 	}
 
 	for _, hc := range terraform.Spec.HealthChecks {
-		// parse go template string to get terraform output url for health checks
-		parsedURL := hc.URL
-		if len(outputDataString) > 0 {
-			var b bytes.Buffer
-			tmpl, err := template.New("url").Parse(hc.URL)
-			if err != nil {
-				err = fmt.Errorf("error getting terraform output for health checks: %s", err)
-				return infrav1.TerraformHealthCheckFailed(
-					terraform,
-					err.Error(),
-				), err
-			}
-			err = tmpl.Execute(&b, outputDataString)
-			if err != nil {
-				err = fmt.Errorf("error getting terraform output for health checks: %s", err)
-				return infrav1.TerraformHealthCheckFailed(
-					terraform,
-					err.Error(),
-				), err
-			}
-			parsedURL = b.String()
-		}
-
 		// perform health check based on type
 		switch hc.Type {
 		case infrav1.HealthCheckTypeTCP:
-			err := r.doTCPHealthCheck(ctx, hc.Name, parsedURL, hc.GetTimeout())
+			parsed, err := r.templateParse(o, hc.Address)
 			if err != nil {
-				err = fmt.Errorf("error doing health checks: %s", err)
+				err = fmt.Errorf("error getting terraform output for health checks: %s", err)
+				return infrav1.TerraformHealthCheckFailed(
+					terraform,
+					err.Error(),
+				), err
+			}
+
+			err = r.doTCPHealthCheck(ctx, hc.Name, parsed, hc.GetTimeout())
+			if err != nil {
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
 					err.Error(),
 				), err
 			}
 		case infrav1.HealthCheckTypeHttpGet:
-			err := r.doHTTPHealthCheck(ctx, hc.Name, parsedURL, hc.GetTimeout())
+			parsed, err := r.templateParse(o, hc.URL)
 			if err != nil {
-				err = fmt.Errorf("error doing health checks: %s", err)
+				err = fmt.Errorf("error getting terraform output for health checks: %s", err)
+				return infrav1.TerraformHealthCheckFailed(
+					terraform,
+					err.Error(),
+				), err
+			}
+
+			err = r.doHTTPHealthCheck(ctx, hc.Name, parsed, hc.GetTimeout())
+			if err != nil {
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
 					err.Error(),
 				), err
 			}
 		default:
-			err := fmt.Errorf("invalid health check type %s", hc.Type)
+			err := fmt.Errorf("invalid health check type: %s", hc.Type)
 			return infrav1.TerraformHealthCheckFailed(
 				terraform,
 				err.Error(),
@@ -1636,12 +1629,18 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 	return terraform, nil
 }
 
-func (r *TerraformReconciler) doTCPHealthCheck(ctx context.Context, name string, url string, timeout time.Duration) error {
+func (r *TerraformReconciler) doTCPHealthCheck(ctx context.Context, name string, address string, timeout time.Duration) error {
 	log := ctrl.LoggerFrom(ctx)
 
-	conn, err := net.DialTimeout("tcp", url, timeout)
+	// validate tcp address
+	_, err := url.ParseRequestURI(address)
 	if err != nil {
-		return fmt.Errorf("failed to perform tcp health check for %s on %s: %s", name, url, err.Error())
+		return fmt.Errorf("invalid url for http health check: %s, %s", address, err)
+	}
+
+	conn, err := net.DialTimeout("tcp", address, timeout)
+	if err != nil {
+		return fmt.Errorf("failed to perform tcp health check for %s on %s: %s", name, address, err.Error())
 	}
 
 	err = conn.Close()
@@ -1652,12 +1651,18 @@ func (r *TerraformReconciler) doTCPHealthCheck(ctx context.Context, name string,
 	return nil
 }
 
-func (r *TerraformReconciler) doHTTPHealthCheck(ctx context.Context, name string, url string, timeout time.Duration) error {
+func (r *TerraformReconciler) doHTTPHealthCheck(ctx context.Context, name string, urlString string, timeout time.Duration) error {
 	log := ctrl.LoggerFrom(ctx)
 
-	req, err := http.NewRequest("GET", url, nil)
+	// validate url
+	_, err := url.ParseRequestURI(urlString)
 	if err != nil {
-		log.Error(err, "Unexpected creating HTTP request")
+		return fmt.Errorf("invalid url for http health check: %s, %s", urlString, err)
+	}
+
+	req, err := http.NewRequest("GET", urlString, nil)
+	if err != nil {
+		log.Error(err, "Unexpected error creating HTTP request")
 		return err
 	}
 
@@ -1666,7 +1671,7 @@ func (r *TerraformReconciler) doHTTPHealthCheck(ctx context.Context, name string
 
 	re, err := http.DefaultClient.Do(req.WithContext(ctxt))
 	if err != nil {
-		return fmt.Errorf("failed to perform http health check for %s on %s: %s", name, url, err.Error())
+		return fmt.Errorf("failed to perform http health check for %s on %s: %s", name, urlString, err.Error())
 	}
 	defer func() {
 		if rerr := re.Body.Close(); rerr != nil {
@@ -1674,17 +1679,34 @@ func (r *TerraformReconciler) doHTTPHealthCheck(ctx context.Context, name string
 		}
 	}()
 
+	// read http body
 	b, err := io.ReadAll(re.Body)
 	if err != nil {
-		return fmt.Errorf("failed to perform http health check for %s on %s, error reading body: %s", name, url, err.Error())
+		return fmt.Errorf("failed to perform http health check for %s on %s, error reading body: %s", name, urlString, err.Error())
 	}
 
+	// check http status code
 	if re.StatusCode >= http.StatusOK && re.StatusCode < http.StatusBadRequest {
-		log.Info("HTTP health check succeeded for %s on %s, response: %v", name, url, *re)
+		log.Info("HTTP health check succeeded for %s on %s, response: %v", name, urlString, *re)
 		return nil
 	}
 
-	err = fmt.Errorf("failed to perform health check for %s on %s, response body: %v", name, url, string(b))
-	log.Error(err, "failed to perform health check for %s on %s, response body: %v", name, url, string(b))
+	err = fmt.Errorf("failed to perform http health check for %s on %s, response body: %v", name, urlString, string(b))
+	log.Error(err, "failed to perform http health check for %s on %s, response body: %v", name, urlString, string(b))
 	return err
+}
+
+// parse template string from map[string]string
+func (r *TerraformReconciler) templateParse(content map[string]string, text string) (string, error) {
+	var b bytes.Buffer
+	tmpl, err := template.New("tmpl").Parse(text)
+	if err != nil {
+		return "", err
+	}
+	err = tmpl.Execute(&b, content)
+	if err != nil {
+		err = fmt.Errorf("error getting terraform output for health checks: %s", err)
+		return "", err
+	}
+	return b.String(), nil
 }

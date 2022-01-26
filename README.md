@@ -312,7 +312,7 @@ For some resources, it may be useful to perform health checks on them to verify 
 ```
 # main.tf
 
-output "rdsURL" {
+output "rdsAddress" {
   value = "mydb.xyz.us-east-1.rds.amazonaws.com"
 }
 
@@ -321,7 +321,7 @@ output "rdsPort" {
 }
 
 output "myappURL" {
-  value = "https://example.com"
+  value = "https://example.com/"
 }
 ```
 
@@ -341,7 +341,7 @@ spec:
   healthChecks:
     - name: rds
       type: tcp
-      url: "{{.rdsUrl}}:{{.rdsPort}}" # uses standard Go package template format to parse outputs to url
+      address: "{{.rdsAddress}}:{{.rdsPort}}" # uses standard Go package template format to parse outputs to url
       timeout: 10s # optional, defaults to 20s
     - name: myapp
       type: http

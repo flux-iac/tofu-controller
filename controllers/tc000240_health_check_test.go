@@ -18,20 +18,31 @@ func Test_000240_health_check_test(t *testing.T) {
 
 	tcpTestCases := []struct {
 		name    string
-		url     string
+		address string
 		timeout time.Duration
 		wantErr bool
 	}{
 		{
 			name:    "testTCP",
-			url:     "weave.works:80",
+			address: "weave.works:80",
 			timeout: time.Second * 10,
 			wantErr: false,
 		},
 		{
-
 			name:    "testTCPInvalidPort",
-			url:     "weave.works:81",
+			address: "weave.works:81",
+			timeout: time.Second * 10,
+			wantErr: true,
+		},
+		{
+			name:    "testTCPAddress",
+			address: "weave.works",
+			timeout: time.Second * 10,
+			wantErr: true,
+		},
+		{
+			name:    "testTCPEmptyAddress",
+			address: "",
 			timeout: time.Second * 10,
 			wantErr: true,
 		},
@@ -45,6 +56,12 @@ func Test_000240_health_check_test(t *testing.T) {
 	}{
 		{
 			name:    "testHttp",
+			url:     "http://httpbin.org/get",
+			timeout: time.Second * 10,
+			wantErr: false,
+		},
+		{
+			name:    "testHttp",
 			url:     "https://httpbin.org/get",
 			timeout: time.Second * 10,
 			wantErr: false,
@@ -55,16 +72,28 @@ func Test_000240_health_check_test(t *testing.T) {
 			timeout: time.Second * 10,
 			wantErr: true,
 		},
+		{
+			name:    "testInvalidHttpUrl",
+			url:     "httpbin.org/status/400",
+			timeout: time.Second * 10,
+			wantErr: true,
+		},
+		{
+			name:    "testEmptyHttpUrl",
+			url:     "",
+			timeout: time.Second * 10,
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tcpTestCases {
 		if tt.wantErr {
 			It("should do tcp health checks and expecting errors")
-			err := reconciler.doTCPHealthCheck(ctx, tt.name, tt.url, tt.timeout)
+			err := reconciler.doTCPHealthCheck(ctx, tt.name, tt.address, tt.timeout)
 			g.Expect(err).Should(HaveOccurred())
 		} else {
 			It("should do tcp health checks and not expecting any errors")
-			err := reconciler.doTCPHealthCheck(ctx, tt.name, tt.url, tt.timeout)
+			err := reconciler.doTCPHealthCheck(ctx, tt.name, tt.address, tt.timeout)
 			g.Expect(err).ShouldNot(HaveOccurred())
 		}
 	}

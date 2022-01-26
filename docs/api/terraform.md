@@ -190,7 +190,9 @@ string
 </em>
 </td>
 <td>
-<p>Type of the health check, valid values are (&lsquo;tcp&rsquo;, &lsquo;http&rsquo;).</p>
+<p>Type of the health check, valid values are (&lsquo;tcp&rsquo;, &lsquo;http&rsquo;).
+If tcp is specified, address is required.
+If http is specified, url is required.</p>
 </td>
 </tr>
 <tr>
@@ -201,9 +203,24 @@ string
 </em>
 </td>
 <td>
-<p>URL to perform the health check on.
+<em>(Optional)</em>
+<p>URL to perform http health check on. Required when http type is specified.
 Go template can be used to reference values from the terraform output
-(e.g. url: &ldquo;{{.foo}}:{{.bar}}&rdquo;).</p>
+(e.g. <a href="https://example.org">https://example.org</a>, {{.output_url}}).</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>address</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Address to perform tcp health check on. Required when tcp type is specified.
+Go template can be used to reference values from the terraform output
+(e.g. 127.0.0.1:8080, {{.address}}:{{.port}}).</p>
 </td>
 </tr>
 <tr>
