@@ -412,6 +412,10 @@ spec:
                   - type
                   type: object
                 type: array
+              lastAppliedByDriftDetectionAt:
+                description: LastAppliedByDriftDetectionAt
+                format: date-time
+                type: string
               lastAppliedRevision:
                 description: The last successfully applied revision. The revision
                   format for Git sources is <branch|tag>/<commit-sha>.
@@ -419,6 +423,10 @@ spec:
               lastAttemptedRevision:
                 description: LastAttemptedRevision is the revision of the last reconciliation
                   attempt.
+                type: string
+              lastDriftDetectedAt:
+                description: LastDriftDetectedAt
+                format: date-time
                 type: string
               lastHandledReconcileAt:
                 description: LastHandledReconcileAt holds the value of the most recent
@@ -436,6 +444,8 @@ spec:
               plan:
                 properties:
                   isDestroyPlan:
+                    type: boolean
+                  isDriftDetectionPlan:
                     type: boolean
                   lastApplied:
                     type: string

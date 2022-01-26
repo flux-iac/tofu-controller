@@ -292,6 +292,17 @@ bool
 <em>(Optional)</em>
 </td>
 </tr>
+<tr>
+<td>
+<code>isDriftDetectionPlan</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -875,6 +886,35 @@ string
 <em>(Optional)</em>
 <p>LastPlannedRevision is the revision used by the last planning process.
 The result could be either no plan change or a new plan generated.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>lastDriftDetectedAt</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#time-v1-meta">
+Kubernetes meta/v1.Time
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>LastDriftDetectedAt is the time when the last drift was detected</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>lastAppliedByDriftDetectionAt</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#time-v1-meta">
+Kubernetes meta/v1.Time
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>LastAppliedByDriftDetectionAt is the time when the last drift was detected and
+terraform apply was performed as a result</p>
 </td>
 </tr>
 <tr>

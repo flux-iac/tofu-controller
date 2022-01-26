@@ -227,6 +227,8 @@ func (in *TerraformStatus) DeepCopyInto(out *TerraformStatus) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	in.LastDriftDetectedAt.DeepCopyInto(&out.LastDriftDetectedAt)
+	in.LastAppliedByDriftDetectionAt.DeepCopyInto(&out.LastAppliedByDriftDetectionAt)
 	if in.AvailableOutputs != nil {
 		in, out := &in.AvailableOutputs, &out.AvailableOutputs
 		*out = make([]string, len(*in))
