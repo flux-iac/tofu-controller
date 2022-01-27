@@ -413,7 +413,8 @@ spec:
                   type: object
                 type: array
               lastAppliedByDriftDetectionAt:
-                description: LastAppliedByDriftDetectionAt
+                description: LastAppliedByDriftDetectionAt is the time when the last
+                  drift was detected and terraform apply was performed as a result
                 format: date-time
                 type: string
               lastAppliedRevision:
@@ -425,7 +426,8 @@ spec:
                   attempt.
                 type: string
               lastDriftDetectedAt:
-                description: LastDriftDetectedAt
+                description: LastDriftDetectedAt is the time when the last drift was
+                  detected
                 format: date-time
                 type: string
               lastHandledReconcileAt:
