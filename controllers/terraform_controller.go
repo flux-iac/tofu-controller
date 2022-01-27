@@ -339,7 +339,6 @@ func (l LocalPrintfer) Printf(format string, v ...interface{}) {
 }
 
 func (r *TerraformReconciler) reconcile(ctx context.Context, terraform infrav1.Terraform, sourceObj sourcev1.Source) (infrav1.Terraform, error) {
-
 	log := ctrl.LoggerFrom(ctx)
 	revision := sourceObj.GetArtifact().Revision
 	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
@@ -576,7 +575,8 @@ terraform {
 	log.Info("generated var files from spec")
 
 	if r.shouldDetectDrift(terraform, revision) {
-		terraform, driftDetectionErr := r.detectDrift(ctx, terraform, tf, revision)
+		var driftDetectionErr error // declared here to avoid shadowing on terraform variable
+		terraform, driftDetectionErr = r.detectDrift(ctx, terraform, tf, revision)
 
 		// immediately return if no drift - reconciliation will retry normally
 		if driftDetectionErr == nil {

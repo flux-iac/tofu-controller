@@ -239,6 +239,15 @@ func Test_000150_manual_apply_should_report_and_loop_when_drift_detected_test(t 
 	By("deleting configmap to create a drift")
 	g.Expect(k8sClient.Delete(ctx, &cmPayload)).Should(Succeed())
 
+	By("checking that the drift got detected, setting LastDriftDetectedAt time")
+	g.Eventually(func() bool {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return false
+		}
+		return !createdHelloWorldTF.Status.LastDriftDetectedAt.IsZero()
+	}, timeout, interval).Should(BeTrue())
+
 	By("checking that the drift got detected, applying is progressing")
 	g.Eventually(func() map[string]string {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
