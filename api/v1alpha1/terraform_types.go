@@ -144,6 +144,9 @@ type PlanStatus struct {
 
 	// +optional
 	IsDestroyPlan bool `json:"isDestroyPlan,omitempty"`
+
+	// +optional
+	IsDriftDetectionPlan bool `json:"isDriftDetectionPlan,omitempty"`
 }
 
 // TerraformStatus defines the observed state of Terraform
@@ -170,6 +173,15 @@ type TerraformStatus struct {
 	// The result could be either no plan change or a new plan generated.
 	// +optional
 	LastPlannedRevision string `json:"lastPlannedRevision,omitempty"`
+
+	// LastDriftDetectedAt is the time when the last drift was detected
+	// +optional
+	LastDriftDetectedAt metav1.Time `json:"lastDriftDetectedAt,omitempty"`
+
+	// LastAppliedByDriftDetectionAt is the time when the last drift was detected and
+	// terraform apply was performed as a result
+	// +optional
+	LastAppliedByDriftDetectionAt metav1.Time `json:"lastAppliedByDriftDetectionAt,omitempty"`
 
 	// +optional
 	AvailableOutputs []string `json:"availableOutputs,omitempty"`
@@ -279,6 +291,11 @@ func TerraformOutputsWritten(terraform Terraform, revision string, message strin
 
 func TerraformApplied(terraform Terraform, revision string, message string, isDestroyApply bool) Terraform {
 	meta.SetResourceCondition(&terraform, "Apply", metav1.ConditionTrue, TFExecApplySucceedReason, message)
+
+	if terraform.Status.Plan.IsDriftDetectionPlan {
+		(&terraform).Status.LastAppliedByDriftDetectionAt = metav1.Now()
+	}
+
 	(&terraform).Status.Plan = PlanStatus{
 		LastApplied:   terraform.Status.Plan.Pending,
 		Pending:       "",
@@ -297,9 +314,10 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, message s
 	planId := fmt.Sprintf("plan-%s", planRev)
 	meta.SetResourceCondition(&terraform, "Plan", metav1.ConditionTrue, "TerraformPlannedWithChanges", message)
 	(&terraform).Status.Plan = PlanStatus{
-		LastApplied:   terraform.Status.Plan.LastApplied,
-		Pending:       planId,
-		IsDestroyPlan: terraform.Spec.Destroy,
+		LastApplied:          terraform.Status.Plan.LastApplied,
+		Pending:              planId,
+		IsDestroyPlan:        terraform.Spec.Destroy,
+		IsDriftDetectionPlan: terraform.HasDrift(),
 	}
 	if revision != "" {
 		(&terraform).Status.LastAttemptedRevision = revision
@@ -358,6 +376,7 @@ func TerraformAppliedFailResetPlanAndNotReady(terraform Terraform, revision, rea
 }
 
 func TerraformDriftDetected(terraform Terraform, revision, reason, message string) Terraform {
+	(&terraform).Status.LastDriftDetectedAt = metav1.Now()
 	SetTerraformReadiness(&terraform, metav1.ConditionFalse, reason, trimString(message, MaxConditionMessageLength), revision)
 	return terraform
 }
@@ -375,6 +394,18 @@ func TerraformHealthCheckFailed(terraform Terraform, message string) Terraform {
 func TerraformHealthCheckSucceeded(terraform Terraform, message string) Terraform {
 	meta.SetResourceCondition(&terraform, "HealthCheck", metav1.ConditionTrue, "HealthChecksSucceed", message)
 	return terraform
+}
+
+// HasDrift returns true if drift has been detected since the last successful apply
+func (in Terraform) HasDrift() bool {
+	for _, condition := range in.Status.Conditions {
+		if condition.Type == "Apply" &&
+			condition.Status == metav1.ConditionTrue &&
+			in.Status.LastDriftDetectedAt.After(condition.LastTransitionTime.Time) {
+			return true
+		}
+	}
+	return false
 }
 
 // GetRetryInterval returns the retry interval

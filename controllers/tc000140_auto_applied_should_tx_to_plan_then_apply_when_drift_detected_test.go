@@ -235,6 +235,15 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 	By("deleting configmap to create a drift")
 	g.Expect(k8sClient.Delete(ctx, &cmPayload)).Should(Succeed())
 
+	By("checking that the drift got detected, setting LastDriftDetectedAt time")
+	g.Eventually(func() bool {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return false
+		}
+		return !createdHelloWorldTF.Status.LastDriftDetectedAt.IsZero()
+	}, timeout, interval).Should(BeTrue())
+
 	By("checking that the drift got detected, applying is progressing")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
@@ -291,4 +300,11 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 		return cmPayload.Name
 	}, timeout, interval).Should(Equal("cm-" + terraformName))
 
+	g.Eventually(func() bool {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return false
+		}
+		return createdHelloWorldTF.Status.LastAppliedByDriftDetectionAt.IsZero()
+	}, timeout, interval).Should(BeFalse())
 }
