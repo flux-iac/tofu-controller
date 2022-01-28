@@ -2,14 +2,16 @@ package controllers
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"testing"
-	"time"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
@@ -85,7 +87,10 @@ func Test_000060_vars_and_controlled_outputs_test(t *testing.T) {
 			},
 			// TODO change to a better type
 			Vars: []infrav1.Variable{
-				{Name: "subject", Value: "my cat"},
+				{
+					Name:  "subject",
+					Value: &apiextensionsv1.JSON{Raw: []byte(`"my cat"`)},
+				},
 			},
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
 				Name: "tf-output-" + terraformName,

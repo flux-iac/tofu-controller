@@ -108,9 +108,18 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 				Namespace: "flux-system",
 			},
 			Vars: []infrav1.Variable{
-				{Name: "kubeconfig", Value: testEnvKubeConfigPath},
-				{Name: "context", Value: "envtest"},
-				{Name: "config_name", Value: "cm-" + terraformName},
+				{
+					Name:  "kubeconfig",
+					Value: jsonEncodeBytes([]byte(testEnvKubeConfigPath)),
+				},
+				{
+					Name:  "context",
+					Value: jsonEncodeBytes([]byte("envtest")),
+				},
+				{
+					Name:  "config_name",
+					Value: jsonEncodeBytes([]byte("cm-" + terraformName)),
+				},
 			},
 		},
 	}
