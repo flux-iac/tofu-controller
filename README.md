@@ -270,7 +270,7 @@ variable "cluster_spec" {
   type = object({
       region = string
       env = string
-      node_count = bumber
+      node_count = number
       public = bool
   })
 }
