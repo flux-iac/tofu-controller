@@ -107,9 +107,18 @@ func Test_000170_if_apply_error_the_plan_should_be_deleted_and_start_over_test(t
 				Namespace: "flux-system",
 			},
 			Vars: []infrav1.Variable{
-				{Name: "kubeconfig", Value: testEnvKubeConfigPath},
-				{Name: "context", Value: "envtest"},
-				{Name: "config_name", Value: "cm-" + terraformName},
+				{
+					Name:  "kubeconfig",
+					Value: jsonEncodeBytes([]byte(testEnvKubeConfigPath)),
+				},
+				{
+					Name:  "context",
+					Value: jsonEncodeBytes([]byte("envtest")),
+				},
+				{
+					Name:  "config_name",
+					Value: jsonEncodeBytes([]byte("cm-" + terraformName)),
+				},
 			},
 		},
 	}

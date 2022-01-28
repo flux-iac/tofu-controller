@@ -95,9 +95,18 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 				Namespace: "flux-system",
 			},
 			Vars: []infrav1.Variable{
-				{Name: "kubeconfig", Value: testEnvKubeConfigPath},
-				{Name: "context", Value: "envtest"},
-				{Name: "config_name", Value: "cm-" + terraformName},
+				{
+					Name:  "kubeconfig",
+					Value: jsonEncodeBytes([]byte(testEnvKubeConfigPath)),
+				},
+				{
+					Name:  "context",
+					Value: jsonEncodeBytes([]byte("envtest")),
+				},
+				{
+					Name:  "config_name",
+					Value: jsonEncodeBytes([]byte("cm-" + terraformName)),
+				},
 			},
 		},
 	}

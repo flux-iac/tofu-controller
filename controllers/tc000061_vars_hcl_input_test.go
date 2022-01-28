@@ -16,10 +16,10 @@ import (
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_000060_vars_and_controlled_outputs_test(t *testing.T) {
+func Test_000061_vars_hcl_input_test(t *testing.T) {
 	const (
-		sourceName    = "tf-env-controlled-output"
-		terraformName = "helloworld-env-controlled-output"
+		sourceName    = "gs-hcl-vars-output"
+		terraformName = "tf-hcl-vars-output"
 	)
 	g := NewWithT(t)
 	ctx := context.Background()
@@ -55,12 +55,12 @@ func Test_000060_vars_and_controlled_outputs_test(t *testing.T) {
 				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
-		URL: server.URL() + "/env.tar.gz",
+		URL: server.URL() + "/tf-hcl-var-with-outputs.tar.gz",
 		Artifact: &sourcev1.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
-			URL:            server.URL() + "/env.tar.gz",
+			URL:            server.URL() + "/tf-hcl-var-with-outputs.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-			Checksum:       "d021eda9b869586f5a43ad1ba7f21e4bf9b3970443236755463f22824b525316",
+			Checksum:       "ff6f6d2a8da451142a4166fa66e5e02b43d2613023587100f24b99c9b5397e9d",
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
@@ -79,23 +79,35 @@ func Test_000060_vars_and_controlled_outputs_test(t *testing.T) {
 		},
 		Spec: infrav1.TerraformSpec{
 			ApprovePlan: "auto",
-			Path:        "./terraform-hello-env",
+			Path:        "./tf-hcl-var-with-outputs",
 			SourceRef: infrav1.CrossNamespaceSourceReference{
 				Kind:      "GitRepository",
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
-			// TODO change to a better type
 			Vars: []infrav1.Variable{
 				{
-					Name:  "subject",
-					Value: &apiextensionsv1.JSON{Raw: []byte(`"my cat"`)},
+					Name: "cluster_spec",
+					Value: &apiextensionsv1.JSON{Raw: []byte(`{
+						"region": "eu-test-1",
+						"env": "stg",
+						"cluster": "winter-squirrel",
+						"active": true,
+						"nodes": 10
+					}`)},
+				},
+				{
+					Name:  "zones",
+					Value: &apiextensionsv1.JSON{Raw: []byte(`["a","b","c"]`)},
 				},
 			},
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
 				Name: "tf-output-" + terraformName,
 				Outputs: []string{
-					"hello_world",
+					"active",
+					"cluster_id",
+					"node_count",
+					"azs",
 				},
 			},
 		},
@@ -124,25 +136,34 @@ func Test_000060_vars_and_controlled_outputs_test(t *testing.T) {
 			return -1, err
 		}
 		return len(outputSecret.Data), nil
-	}, timeout, interval).Should(Equal(1))
+	}, timeout, interval).Should(Equal(4))
 
 	By("checking that the TF output secrets contains the correct output provisioned by the TF hello world")
 	// Value is a JSON representation of TF's OutputMeta
-	expectedOutputValue := map[string]string{
-		"Name":        "tf-output-" + terraformName,
-		"Namespace":   "flux-system",
-		"Value":       "Hello, my cat!",
+	expectedOutputValue := map[string]interface{}{
+		"Name":      "tf-output-" + terraformName,
+		"Namespace": "flux-system",
+		"Values": map[string]string{
+			"cluster_id": "eu-test-1:stg:winter-squirrel",
+			"active":     "true",
+			"node_count": "10",
+			"azs":        `["eu-test-1a","eu-test-1b","eu-test-1c"]`,
+		},
 		"OwnerRef[0]": string(createdHelloWorldTF.UID),
 	}
-	g.Eventually(func() (map[string]string, error) {
+	g.Eventually(func() (map[string]interface{}, error) {
 		err := k8sClient.Get(ctx, outputKey, &outputSecret)
-		value := string(outputSecret.Data["hello_world"])
-		return map[string]string{
+		values := map[string]string{
+			"cluster_id": string(outputSecret.Data["cluster_id"]),
+			"active":     string(outputSecret.Data["active"]),
+			"node_count": string(outputSecret.Data["node_count"]),
+			"azs":        string(outputSecret.Data["azs"]),
+		}
+		return map[string]interface{}{
 			"Name":        outputSecret.Name,
 			"Namespace":   outputSecret.Namespace,
-			"Value":       value,
+			"Values":      values,
 			"OwnerRef[0]": string(outputSecret.OwnerReferences[0].UID),
 		}, err
 	}, timeout, interval).Should(Equal(expectedOutputValue), "expected output %v", expectedOutputValue)
-
 }

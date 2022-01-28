@@ -855,96 +855,6 @@ func (r *TerraformReconciler) backendCompletelyDisable(terraform infrav1.Terrafo
 	return terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.Disable == true
 }
 
-func (r *TerraformReconciler) generateVarsForTF(ctx context.Context, terraform infrav1.Terraform, tf *tfexec.Terraform, revision string) (infrav1.Terraform, error) {
-	vars := map[string]string{}
-	if len(terraform.Spec.Vars) > 0 {
-		for _, v := range terraform.Spec.Vars {
-			vars[v.Name] = v.Value
-		}
-	}
-	// varsFrom overwrite vars
-	for _, vf := range terraform.Spec.VarsFrom {
-		objectKey := types.NamespacedName{
-			Namespace: terraform.Namespace,
-			Name:      vf.Name,
-		}
-		if vf.Kind == "Secret" {
-			var s corev1.Secret
-			err := r.Get(ctx, objectKey, &s)
-			if err != nil && vf.Optional == false {
-				return infrav1.TerraformNotReady(
-					terraform,
-					revision,
-					infrav1.VarsGenerationFailedReason,
-					err.Error(),
-				), err
-			}
-			// if VarsKeys is null, use all
-			if vf.VarsKeys == nil {
-				for key, val := range s.Data {
-					vars[key] = string(val)
-				}
-			} else {
-				for _, key := range vf.VarsKeys {
-					vars[key] = string(s.Data[key])
-				}
-			}
-		} else if vf.Kind == "ConfigMap" {
-			var cm corev1.ConfigMap
-			err := r.Get(ctx, objectKey, &cm)
-			if err != nil && vf.Optional == false {
-				return infrav1.TerraformNotReady(
-					terraform,
-					revision,
-					infrav1.VarsGenerationFailedReason,
-					err.Error(),
-				), err
-			}
-			// if VarsKeys is null, use all
-			if vf.VarsKeys == nil {
-				for key, val := range cm.Data {
-					vars[key] = val
-				}
-				for key, val := range cm.BinaryData {
-					vars[key] = string(val)
-				}
-			} else {
-				for _, key := range vf.VarsKeys {
-					if val, ok := cm.Data[key]; ok {
-						vars[key] = val
-					}
-					if val, ok := cm.BinaryData[key]; ok {
-						vars[key] = string(val)
-					}
-				}
-			}
-		}
-	}
-
-	jsonBytes, err := json.Marshal(vars)
-	if err != nil {
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			infrav1.VarsGenerationFailedReason,
-			err.Error(),
-		), err
-	}
-
-	varFilePath := filepath.Join(tf.WorkingDir(), "generated.auto.tfvars.json")
-	if err := ioutil.WriteFile(varFilePath, jsonBytes, 0644); err != nil {
-		err = fmt.Errorf("error generating var file: %s", err)
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			infrav1.VarsGenerationFailedReason,
-			err.Error(),
-		), err
-	}
-
-	return terraform, nil
-}
-
 func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terraform, tf *tfexec.Terraform, revision string, outputs *map[string]tfexec.OutputMeta) (infrav1.Terraform, error) {
 
 	const (
@@ -1075,6 +985,10 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 }
 
 func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1.Terraform, outputs map[string]tfexec.OutputMeta, revision string) (infrav1.Terraform, error) {
+	type hcl struct {
+		Name  string    `cty:"name"`
+		Value cty.Value `cty:"value"`
+	}
 
 	wots := terraform.Spec.WriteOutputsToSecret
 	data := map[string][]byte{}
@@ -1088,14 +1002,19 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 				return terraform, err
 			}
 			// if it's a string, we can embed it directly into Secret's data
-			if ct == cty.String {
+			switch ct {
+			case cty.String:
 				cv, err := ctyjson.Unmarshal(v.Value, ct)
 				if err != nil {
 					return terraform, err
 				}
 				data[output] = []byte(cv.AsString())
-			} else {
-				outputBytes, err := json.Marshal(v)
+			// there's no need to unmarshal and convert to []byte
+			// we'll just pass the []byte directly from OutputMeta Value
+			case cty.Number, cty.Bool:
+				data[output] = v.Value
+			default:
+				outputBytes, err := json.Marshal(v.Value)
 				if err != nil {
 					return terraform, err
 				}
@@ -1110,15 +1029,19 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 			if err != nil {
 				return terraform, err
 			}
-			// if it's a string, we can embed it directly into Secret's data
-			if ct == cty.String {
+			switch ct {
+			case cty.String:
 				cv, err := ctyjson.Unmarshal(v.Value, ct)
 				if err != nil {
 					return terraform, err
 				}
 				data[output] = []byte(cv.AsString())
-			} else {
-				outputBytes, err := json.Marshal(v)
+			// there's no need to unmarshal and convert to []byte
+			// we'll just pass the []byte directly from OutputMeta Value
+			case cty.Number, cty.Bool:
+				data[output] = v.Value
+			default:
+				outputBytes, err := json.Marshal(v.Value)
 				if err != nil {
 					return terraform, err
 				}

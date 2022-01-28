@@ -10,6 +10,7 @@ import (
 	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -100,7 +101,10 @@ func Test_000090_varsfrom_override_and_controlled_outputs_test(t *testing.T) {
 				Namespace: "flux-system",
 			},
 			Vars: []infrav1.Variable{
-				{Name: "subject", Value: "my cat"},
+				{
+					Name:  "subject",
+					Value: &apiextensionsv1.JSON{Raw: []byte(`"my cat"`)},
+				},
 			},
 			VarsFrom: []infrav1.VarsReference{
 				{

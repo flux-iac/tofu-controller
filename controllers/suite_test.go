@@ -129,8 +129,6 @@ func TestMain(m *testing.M) {
 	server.RouteToHandler("GET", "/bad.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/bad.tar.gz")
 	})
-
-	// "defining a URL for the TF hello vars BLOB to be used as a Source Controller's artifact"
 	server.RouteToHandler("GET", "/env.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/terraform-hello-env.tar.gz")
 	})
@@ -148,6 +146,9 @@ func TestMain(m *testing.M) {
 	})
 	server.RouteToHandler("GET", "/tf-health-check.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/tf-health-check-example.tar.gz")
+	})
+	server.RouteToHandler("GET", "/tf-hcl-var-with-outputs.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-hcl-var-with-outputs.tar.gz")
 	})
 
 	server.Start()

@@ -189,7 +189,7 @@ spec:
                       description: Name is the name of the variable
                       type: string
                     value:
-                      type: string
+                      x-kubernetes-preserve-unknown-fields: true
                     valueFrom:
                       description: EnvVarSource represents a source for the value
                         of an EnvVar.

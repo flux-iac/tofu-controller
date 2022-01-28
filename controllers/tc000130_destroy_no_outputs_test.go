@@ -101,9 +101,18 @@ func Test_000130_destroy_no_outputs_test(t *testing.T) {
 				Namespace: "flux-system",
 			},
 			Vars: []infrav1.Variable{
-				{Name: "kubeconfig", Value: testEnvKubeConfigPath},
-				{Name: "context", Value: "envtest"},
-				{Name: "config_name", Value: "cm-" + terraformName},
+				{
+					Name:  "kubeconfig",
+					Value: jsonEncodeBytes([]byte(testEnvKubeConfigPath)),
+				},
+				{
+					Name:  "context",
+					Value: jsonEncodeBytes([]byte("envtest")),
+				},
+				{
+					Name:  "config_name",
+					Value: jsonEncodeBytes([]byte("cm-" + terraformName)),
+				},
 			},
 		},
 	}
