@@ -96,9 +96,18 @@ func Test_000150_manual_apply_should_report_and_loop_when_drift_detected_test(t 
 				Namespace: "flux-system",
 			},
 			Vars: []infrav1.Variable{
-				{Name: "kubeconfig", Value: testEnvKubeConfigPath},
-				{Name: "context", Value: "envtest"},
-				{Name: "config_name", Value: "cm-" + terraformName},
+				{
+					Name:  "kubeconfig",
+					Value: jsonEncodeBytes([]byte(testEnvKubeConfigPath)),
+				},
+				{
+					Name:  "context",
+					Value: jsonEncodeBytes([]byte("envtest")),
+				},
+				{
+					Name:  "config_name",
+					Value: jsonEncodeBytes([]byte("cm-" + terraformName)),
+				},
 			},
 		},
 	}

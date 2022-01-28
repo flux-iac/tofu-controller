@@ -98,7 +98,6 @@ func Test_000070_varsfrom_secret_and_controlled_outputs_test(t *testing.T) {
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
-			// TODO change to a better type
 			VarsFrom: []infrav1.VarsReference{
 				{
 					Kind: "Secret",
