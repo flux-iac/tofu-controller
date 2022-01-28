@@ -250,9 +250,12 @@ spec:
     name: helloworld
     namespace: flux-system
   vars:
-    region: us-east-1
-    env: dev
-    instanceType: t3-small
+  - name: region
+    value: us-east-1
+  - name: env
+    value: dev
+  - name: instanceType
+    value: t3-small
   varsFrom:
   - kind: ConfigMap
     name: cluster-config
@@ -290,7 +293,8 @@ spec:
     name: helloworld
     namespace: flux-system
   vars:
-    cluster_spec:
+  - name: cluster_spec
+    value:
       region: us-east-1
       env: dev
       node_count: 10
