@@ -23,6 +23,7 @@ import (
 
 	"github.com/fluxcd/pkg/apis/meta"
 	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -53,7 +54,7 @@ type Variable struct {
 	Name string `json:"name"`
 
 	// +optional
-	Value string `json:"value,omitempty"`
+	Value *apiextensionsv1.JSON `json:"value,omitempty"`
 
 	// +optional
 	ValueFrom *corev1.EnvVarSource `json:"valueFrom,omitempty"`
