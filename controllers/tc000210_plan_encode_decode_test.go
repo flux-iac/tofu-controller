@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"compress/gzip"
+	"github.com/chanwit/tf-controller/utils"
 	"io/ioutil"
 	"testing"
 
@@ -26,7 +27,7 @@ func Test_000210_plan_encode_decode_test(t *testing.T) {
 
 	for _, tt := range encodeTests {
 		It("should encode the terraform plan")
-		r, err := reconciler.gzipEncode(tt.tfplan)
+		r, err := utils.GzipEncode(tt.tfplan)
 		g.Expect(err).ShouldNot(HaveOccurred())
 
 		var buf bytes.Buffer
@@ -46,7 +47,7 @@ func Test_000210_plan_encode_decode_test(t *testing.T) {
 
 	for _, tt := range decodeTests {
 		It("should decode the encoded terraform plan")
-		r, err := reconciler.gzipDecode(tt.encodedPlan)
+		r, err := utils.GzipDecode(tt.encodedPlan)
 		g.Expect(err).ShouldNot(HaveOccurred())
 
 		re := bytes.NewReader(tt.encodedPlan)

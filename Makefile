@@ -70,15 +70,18 @@ download-crd-deps:
 test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests.
 	DISABLE_K8S_LOGS=1 DISABLE_TF_LOGS=1 DISABLE_TF_K8S_BACKEND=1 KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./controllers -coverprofile cover.out -v
 
+gen-grpc:
+	protoc --go_out=. --go_opt=Mrunner/runner.proto=runner/ --go-grpc_out=. --go-grpc_opt=Mrunner/runner.proto=runner/ runner/runner.proto
 ##@ Build
 
 .PHONY: build
-build: generate fmt vet ## Build manager binary.
-	go build -o bin/manager main.go
+build: gen-grpc generate fmt vet ## Build manager binary.
+	go build -o bin/runner cmd/runner/main.go
+	go build -o bin/manager cmd/manager/main.go
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./main.go
+	go run cmd/manager/main.go
 
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.

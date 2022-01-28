@@ -12,12 +12,12 @@ COPY go.sum go.sum
 RUN go mod download
 
 # Copy the go source
-COPY main.go main.go
+COPY cmd/manager/main.go cmd/manager/main.go
 COPY api/ api/
 COPY controllers/ controllers/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o tf-controller main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o tf-controller cmd/controller/main.go
 
 ADD https://releases.hashicorp.com/terraform/1.1.4/terraform_1.1.4_linux_amd64.zip /terraform_1.1.4_linux_amd64.zip
 RUN unzip -q /terraform_1.1.4_linux_amd64.zip

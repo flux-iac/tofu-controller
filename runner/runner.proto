@@ -1,0 +1,224 @@
+syntax = "proto3";
+option go_package = "runner";
+
+package runner;
+
+service Runner {
+  rpc LookPath(LookPathRequest) returns (LookPathReply) {}
+  rpc NewTerraform(NewTerraformRequest) returns (NewTerraformReply) {}
+  rpc SetEnv(SetEnvRequest) returns (SetEnvReply) {}
+
+  rpc UploadAndExtract(UploadAndExtractRequest) returns (UploadAndExtractReply) {}
+  rpc CleanupDir(CleanupDirRequest) returns (CleanupDirReply) {}
+
+  rpc WriteBackendConfig(WriteBackendConfigRequest) returns (WriteBackendConfigReply) {}
+  rpc ProcessCliConfig(ProcessCliConfigRequest) returns (ProcessCliConfigReply) {}
+
+  rpc GenerateVarsForTF(GenerateVarsForTFRequest) returns (GenerateVarsForTFReply) {}
+  rpc Plan(PlanRequest) returns (PlanReply) {}
+  rpc ShowPlanFileRaw(ShowPlanFileRawRequest) returns (ShowPlanFileRawReply) {}
+  rpc SaveTFPlan(SaveTFPlanRequest) returns (SaveTFPlanReply) {}
+  rpc LoadTFPlan(LoadTFPlanRequest) returns (LoadTFPlanReply) {}
+  rpc Apply(ApplyRequest) returns (ApplyReply) {}
+  rpc Destroy(DestroyRequest) returns (DestroyReply) {}
+  rpc Output(OutputRequest) returns (OutputReply) {}
+  rpc WriteOutputs(WriteOutputsRequest) returns (WriteOutputsReply) {}
+
+  rpc Init(InitRequest) returns (InitReply) {}
+  rpc Upload(UploadRequest) returns (UploadReply) {}
+
+  rpc FinalizeSecrets(FinalizeSecretsRequest) returns (FinalizeSecretsReply) {}
+}
+
+message LookPathRequest {
+  string file = 1;
+}
+
+message LookPathReply {
+  string execPath = 1;
+}
+
+message NewTerraformRequest {
+  string workingDir = 1;
+  string execPath = 2;
+}
+
+message NewTerraformReply {
+  string id = 1;
+}
+
+message SetEnvRequest {
+  string tfInstance = 1;
+  map<string, string> envs = 2;
+}
+
+message SetEnvReply {
+  string message = 1;
+}
+
+message UploadAndExtractRequest {
+  string namespace = 1;
+  string name = 2;
+  bytes tarGz = 3;
+  string path = 4;
+}
+
+message UploadAndExtractReply {
+  string workingDir = 1;
+  string tmpDir = 2;
+}
+
+message CleanupDirRequest {
+  string tmpDir = 1;
+}
+
+message CleanupDirReply {
+  string message = 1;
+}
+
+message WriteBackendConfigRequest {
+  string dirPath = 1;
+  bytes backendConfig = 2;
+}
+
+message WriteBackendConfigReply {
+  string message = 1;
+}
+
+message ProcessCliConfigRequest {
+  string dirPath = 1;
+  string namespace = 2;
+  string name = 3;
+}
+
+message ProcessCliConfigReply {
+  string filePath = 1;
+}
+
+message GenerateVarsForTFRequest {
+  bytes terraform = 1;
+  string workingDir = 2;
+}
+
+message GenerateVarsForTFReply {
+  string message = 1;
+}
+
+message PlanRequest {
+  string tfInstance = 1;
+  string out = 2;
+  bool refresh = 3;
+  bool destroy = 4;
+}
+
+message PlanReply {
+  bool drifted = 1;
+  string message = 2;
+}
+
+message ShowPlanFileRawRequest {
+  string tfInstance = 1;
+  string filename = 2;
+}
+
+message ShowPlanFileRawReply {
+  string rawOutput = 1;
+}
+
+message SaveTFPlanRequest {
+  string tfInstance = 1;
+  bool backendCompletelyDisable = 2;
+  string name = 3;
+  string namespace = 4;
+  string uuid = 5;
+  string revision = 6;
+}
+
+message SaveTFPlanReply {
+  string message = 1;
+}
+
+message LoadTFPlanRequest {
+  string tfInstance = 1;
+  bool backendCompletelyDisable = 2;
+  string name = 3;
+  string namespace = 4;
+  string pendingPlan = 5;
+}
+
+message LoadTFPlanReply {
+  string message = 1;
+}
+
+message ApplyRequest {
+  string tfInstance = 1;
+  string dirOrPlan = 2;
+}
+
+message ApplyReply {
+  string message = 1;
+}
+
+message DestroyRequest {
+  string tfInstance = 1;
+}
+
+message DestroyReply {
+  string message = 1;
+}
+
+message OutputRequest {
+  string tfInstance = 1;
+}
+
+message OutputReply {
+  map<string, OutputMeta> outputs = 1;
+}
+
+message OutputMeta {
+  bool sensitive = 1;
+  bytes type = 2;
+  bytes value = 3;
+}
+
+message WriteOutputsRequest {
+  string namespace = 1;
+  string name = 2;
+  string secretName = 3;
+  string uuid = 4;
+  map<string, bytes> data = 5;
+}
+
+message WriteOutputsReply {
+  string message = 1;
+}
+
+message InitRequest {
+  string tfInstance = 1;
+  bool upgrade = 2;
+  bool forceCopy = 3;
+}
+
+message InitReply {
+  string message = 1;
+}
+
+message UploadRequest {
+  bytes blob = 1;
+}
+
+message UploadReply {
+  string message = 1;
+}
+
+message FinalizeSecretsRequest {
+  string namespace = 1;
+  string name = 2;
+  bool   hasSpecifiedOutputSecret = 3;
+  string outputSecretName = 4;
+}
+
+message FinalizeSecretsReply {
+  string message = 1;
+  bool   notFound = 2;
+}
