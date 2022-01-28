@@ -263,6 +263,40 @@ spec:
     name: cluster-creds
 ```
 
+The `vars` field supports HCL string, number, bool, object and list types. For example, the following variable can be populated using the accompanying Terraform spec:
+
+```hcl
+variable "cluster_spec" {
+  type = object({
+      region = string
+      env = string
+      node_count = bumber
+      public = bool
+  })
+}
+```
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: "auto"
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  vars:
+    cluster_spec:
+      region: us-east-1
+      env: dev
+      node_count: 10
+      public: false
+```
+
 ### Managing Terraform State
 
 By default, `tf-controller` will use the [Kubernetes backend](https://www.terraform.io/language/settings/backends/kubernetes) to store the Terraform statefile in cluster.
