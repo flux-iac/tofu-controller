@@ -976,7 +976,9 @@ string
 <td>
 <code>value</code><br>
 <em>
-string
+<a href="https://pkg.go.dev/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1?tab=doc#JSON">
+Kubernetes pkg/apis/apiextensions/v1.JSON
+</a>
 </em>
 </td>
 <td>

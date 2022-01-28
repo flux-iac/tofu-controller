@@ -250,9 +250,12 @@ spec:
     name: helloworld
     namespace: flux-system
   vars:
-    region: us-east-1
-    env: dev
-    instanceType: t3-small
+  - name: region
+    value: us-east-1
+  - name: env
+    value: dev
+  - name: instanceType
+    value: t3-small
   varsFrom:
   - kind: ConfigMap
     name: cluster-config
@@ -261,6 +264,41 @@ spec:
     - instanceType
   - kind: Secret
     name: cluster-creds
+```
+
+The `vars` field supports HCL string, number, bool, object and list types. For example, the following variable can be populated using the accompanying Terraform spec:
+
+```hcl
+variable "cluster_spec" {
+  type = object({
+      region = string
+      env = string
+      node_count = number
+      public = bool
+  })
+}
+```
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: "auto"
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  vars:
+  - name: cluster_spec
+    value:
+      region: us-east-1
+      env: dev
+      node_count: 10
+      public: false
 ```
 
 ### Managing Terraform State
