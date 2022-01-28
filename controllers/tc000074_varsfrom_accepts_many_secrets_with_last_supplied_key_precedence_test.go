@@ -90,7 +90,7 @@ func Test_000074_varsfrom_accepts_many_secrets_with_last_supplied_key_precedence
 		},
 	}
 
-	_, err = reconciler.generateVarsForTF(ctx, terraform, tfExec, "main")
+	_, err = reconciler.generateVarsForTF(ctx, terraform, tfExec.WorkingDir(), "main")
 	g.Expect(err).Should(BeNil())
 
 	By("verifying the generated vars file matches the expected result")
