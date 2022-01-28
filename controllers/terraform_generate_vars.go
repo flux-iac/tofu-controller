@@ -14,7 +14,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-// TODO(piaras) add comment describing what this function does
+// generateVarsForTF renders the Terraform variables as a json file for the given inputs
+// variables supplied in the varsFrom field will override those specified in the spec
 func (r *TerraformReconciler) generateVarsForTF(ctx context.Context, terraform infrav1.Terraform, tf *tfexec.Terraform, revision string) (infrav1.Terraform, error) {
 	vars := map[string]*apiextensionsv1.JSON{}
 	if len(terraform.Spec.Vars) > 0 {
