@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"github.com/chanwit/tf-controller/utils"
 	"os"
 	"strings"
 	"testing"
@@ -98,15 +99,15 @@ func Test_000150_manual_apply_should_report_and_loop_when_drift_detected_test(t 
 			Vars: []infrav1.Variable{
 				{
 					Name:  "kubeconfig",
-					Value: jsonEncodeBytes([]byte(testEnvKubeConfigPath)),
+					Value: utils.JsonEncodeBytes([]byte(testEnvKubeConfigPath)),
 				},
 				{
 					Name:  "context",
-					Value: jsonEncodeBytes([]byte("envtest")),
+					Value: utils.JsonEncodeBytes([]byte("envtest")),
 				},
 				{
 					Name:  "config_name",
-					Value: jsonEncodeBytes([]byte("cm-" + terraformName)),
+					Value: utils.JsonEncodeBytes([]byte("cm-" + terraformName)),
 				},
 			},
 		},

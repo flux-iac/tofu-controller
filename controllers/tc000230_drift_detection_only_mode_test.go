@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"github.com/chanwit/tf-controller/utils"
 	"testing"
 	"time"
 
@@ -102,15 +103,15 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 			Vars: []infrav1.Variable{
 				{
 					Name:  "kubeconfig",
-					Value: jsonEncodeBytes([]byte(testEnvKubeConfigPath)),
+					Value: utils.JsonEncodeBytes([]byte(testEnvKubeConfigPath)),
 				},
 				{
 					Name:  "context",
-					Value: jsonEncodeBytes([]byte("envtest")),
+					Value: utils.JsonEncodeBytes([]byte("envtest")),
 				},
 				{
 					Name:  "config_name",
-					Value: jsonEncodeBytes([]byte("cm-" + terraformName)),
+					Value: utils.JsonEncodeBytes([]byte("cm-" + terraformName)),
 				},
 			},
 		},
