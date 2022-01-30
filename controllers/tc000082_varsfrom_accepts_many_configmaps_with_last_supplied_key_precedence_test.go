@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"github.com/chanwit/tf-controller/runner"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -101,8 +102,12 @@ func Test_000082_varsfrom_accepts_many_configmaps_with_last_supplied_precedence(
 		},
 	}
 
-	_, err = reconciler.generateVarsForTF(ctx, terraform, tfExec.WorkingDir(), "main")
-	g.Expect(err).Should(BeNil())
+	terraformBytes, err := reconciler.ToBytes(terraform)
+	g.Expect(err).To(BeNil())
+	_, err = runnerServer.GenerateVarsForTF(ctx, &runner.GenerateVarsForTFRequest{
+		WorkingDir: tfExec.WorkingDir(),
+		Terraform:  terraformBytes,
+	})
 
 	By("verifying the generated vars file matches the expected result")
 	varsFilePath := filepath.Join(tfExec.WorkingDir(), generatedVarsFile)
