@@ -204,11 +204,11 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 			// if VarsKeys is null, use all
 			if vf.VarsKeys == nil {
 				for key, val := range s.Data {
-					vars[key] = jsonEncodeBytes(val)
+					vars[key] = utils.JsonEncodeBytes(val)
 				}
 			} else {
 				for _, key := range vf.VarsKeys {
-					vars[key] = jsonEncodeBytes(s.Data[key])
+					vars[key] = utils.JsonEncodeBytes(s.Data[key])
 				}
 			}
 		} else if vf.Kind == "ConfigMap" {
@@ -221,18 +221,18 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 			// if VarsKeys is null, use all
 			if vf.VarsKeys == nil {
 				for key, val := range cm.Data {
-					vars[key] = jsonEncodeBytes([]byte(val))
+					vars[key] = utils.JsonEncodeBytes([]byte(val))
 				}
 				for key, val := range cm.BinaryData {
-					vars[key] = jsonEncodeBytes(val)
+					vars[key] = utils.JsonEncodeBytes(val)
 				}
 			} else {
 				for _, key := range vf.VarsKeys {
 					if val, ok := cm.Data[key]; ok {
-						vars[key] = jsonEncodeBytes([]byte(val))
+						vars[key] = utils.JsonEncodeBytes([]byte(val))
 					}
 					if val, ok := cm.BinaryData[key]; ok {
-						vars[key] = jsonEncodeBytes(val)
+						vars[key] = utils.JsonEncodeBytes(val)
 					}
 				}
 			}
@@ -251,10 +251,6 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 	}
 
 	return &GenerateVarsForTFReply{Message: "ok"}, nil
-}
-
-func jsonEncodeBytes(b []byte) *apiextensionsv1.JSON {
-	return &apiextensionsv1.JSON{Raw: []byte(fmt.Sprintf(`"%s"`, b))}
 }
 
 func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*PlanReply, error) {
