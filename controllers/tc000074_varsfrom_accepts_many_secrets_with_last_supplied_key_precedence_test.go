@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"github.com/chanwit/tf-controller/runner"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -90,7 +91,13 @@ func Test_000074_varsfrom_accepts_many_secrets_with_last_supplied_key_precedence
 		},
 	}
 
-	_, err = reconciler.generateVarsForTF(ctx, terraform, tfExec.WorkingDir(), "main")
+	terraformBytes, err := reconciler.ToBytes(terraform)
+	g.Expect(err).To(BeNil())
+
+	_, err = runnerServer.GenerateVarsForTF(ctx, &runner.GenerateVarsForTFRequest{
+		WorkingDir: tfExec.WorkingDir(),
+		Terraform:  terraformBytes,
+	})
 	g.Expect(err).Should(BeNil())
 
 	By("verifying the generated vars file matches the expected result")

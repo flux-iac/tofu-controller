@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"io/ioutil"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
@@ -173,13 +174,15 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 	return &InitReply{Message: "ok"}, nil
 }
 
+// GenerateVarsForTF renders the Terraform variables as a json file for the given inputs
+// variables supplied in the varsFrom field will override those specified in the spec
 func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *GenerateVarsForTFRequest) (*GenerateVarsForTFReply, error) {
 	terraform, err := r.ToTerraform(req.Terraform)
 	if err != nil {
 		return nil, err
 	}
 
-	vars := map[string]string{}
+	vars := map[string]*apiextensionsv1.JSON{}
 	if len(terraform.Spec.Vars) > 0 {
 		for _, v := range terraform.Spec.Vars {
 			vars[v.Name] = v.Value
@@ -201,11 +204,11 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 			// if VarsKeys is null, use all
 			if vf.VarsKeys == nil {
 				for key, val := range s.Data {
-					vars[key] = string(val)
+					vars[key] = jsonEncodeBytes(val)
 				}
 			} else {
 				for _, key := range vf.VarsKeys {
-					vars[key] = string(s.Data[key])
+					vars[key] = jsonEncodeBytes(s.Data[key])
 				}
 			}
 		} else if vf.Kind == "ConfigMap" {
@@ -218,18 +221,18 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 			// if VarsKeys is null, use all
 			if vf.VarsKeys == nil {
 				for key, val := range cm.Data {
-					vars[key] = val
+					vars[key] = jsonEncodeBytes([]byte(val))
 				}
 				for key, val := range cm.BinaryData {
-					vars[key] = string(val)
+					vars[key] = jsonEncodeBytes(val)
 				}
 			} else {
 				for _, key := range vf.VarsKeys {
 					if val, ok := cm.Data[key]; ok {
-						vars[key] = val
+						vars[key] = jsonEncodeBytes([]byte(val))
 					}
 					if val, ok := cm.BinaryData[key]; ok {
-						vars[key] = string(val)
+						vars[key] = jsonEncodeBytes(val)
 					}
 				}
 			}
@@ -248,6 +251,10 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 	}
 
 	return &GenerateVarsForTFReply{Message: "ok"}, nil
+}
+
+func jsonEncodeBytes(b []byte) *apiextensionsv1.JSON {
+	return &apiextensionsv1.JSON{Raw: []byte(fmt.Sprintf(`"%s"`, b))}
 }
 
 func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*PlanReply, error) {
