@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"bytes"
-	"compress/gzip"
 	"context"
 	"crypto/sha1"
 	"crypto/sha256"
@@ -26,21 +25,16 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
-	"os/exec"
-	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
 	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
-	securejoin "github.com/cyphar/filepath-securejoin"
+	"github.com/chanwit/tf-controller/runner"
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/fluxcd/pkg/runtime/metrics"
@@ -52,8 +46,10 @@ import (
 	"github.com/hashicorp/terraform-exec/tfexec"
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -66,6 +62,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -121,9 +118,16 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 	}
 
+	// TODO create Runner Pod
+	// TODO wait for the Runner Pod to start
+	runnerClient, err := r.LookupOrCreateRunner(ctx, terraform)
+	if err != nil {
+		panic(err.Error())
+	}
+
 	// Examine if the object is under deletion
 	if !terraform.ObjectMeta.DeletionTimestamp.IsZero() {
-		return r.finalize(ctx, terraform)
+		return r.finalize(ctx, terraform, runnerClient)
 	}
 
 	// Return early if the Terraform is suspended.
@@ -182,7 +186,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	// reconcile Terraform by applying the latest revision
-	reconciledTerraform, reconcileErr := r.reconcile(ctx, *terraform.DeepCopy(), sourceObj)
+	reconciledTerraform, reconcileErr := r.reconcile(ctx, runnerClient, *terraform.DeepCopy(), sourceObj)
 	if err := r.patchStatus(ctx, req.NamespacedName, reconciledTerraform.Status); err != nil {
 		log.Error(err, "unable to update status after reconciliation")
 		return ctrl.Result{Requeue: true}, err
@@ -338,7 +342,8 @@ func (l LocalPrintfer) Printf(format string, v ...interface{}) {
 	l.logger.Info(fmt.Sprintf(format, v...))
 }
 
-func (r *TerraformReconciler) reconcile(ctx context.Context, terraform infrav1.Terraform, sourceObj sourcev1.Source) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source) (infrav1.Terraform, error) {
+
 	log := ctrl.LoggerFrom(ctx)
 	revision := sourceObj.GetArtifact().Revision
 	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
@@ -349,23 +354,8 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, terraform infrav1.T
 		return terraform, err
 	}
 
-	// create tmp dir
-	tmpDir, err := os.MkdirTemp("", fmt.Sprintf("%s-%s-", terraform.Namespace, terraform.Name))
-	if err != nil {
-		err = fmt.Errorf("tmp dir error: %w", err)
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			sourcev1.StorageOperationFailedReason,
-			err.Error(),
-		), err
-	}
-	defer os.RemoveAll(tmpDir)
-
-	log.Info("tmpDir created", "tmpDir", tmpDir)
-
 	// download artifact and extract files
-	err = r.downloadAndExtract(sourceObj.GetArtifact(), tmpDir)
+	buf, err := r.downloadAsBytes(sourceObj.GetArtifact())
 	if err != nil {
 		return infrav1.TerraformNotReady(
 			terraform,
@@ -375,10 +365,12 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, terraform infrav1.T
 		), err
 	}
 
-	log.Info("artifact downloaded")
-
-	// check build path exists
-	dirPath, err := securejoin.SecureJoin(tmpDir, terraform.Spec.Path)
+	uploadAndExtractReply, err := runnerClient.UploadAndExtract(ctx, &runner.UploadAndExtractRequest{
+		Namespace: terraform.Namespace,
+		Name:      terraform.Name,
+		TarGz:     buf.Bytes(),
+		Path:      terraform.Spec.Path,
+	})
 	if err != nil {
 		return infrav1.TerraformNotReady(
 			terraform,
@@ -387,20 +379,20 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, terraform infrav1.T
 			err.Error(),
 		), err
 	}
+	workingDir := uploadAndExtractReply.WorkingDir
+	tmpDir := uploadAndExtractReply.TmpDir
 
-	if _, err := os.Stat(dirPath); err != nil {
-		err = fmt.Errorf("terraform path not found: %w", err)
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			infrav1.ArtifactFailedReason,
-			err.Error(),
-		), err
-	}
+	defer func() {
+		cleanupDirReply, err := runnerClient.CleanupDir(ctx, &runner.CleanupDirRequest{TmpDir: tmpDir})
+		if err != nil {
+			log.Error(err, "clean up error")
+		}
+		if cleanupDirReply != nil {
+			log.Info(fmt.Sprintf("clean up dir: %s", cleanupDirReply.Message))
+		}
+	}()
 
-	const backendConfigPath = "generated_backend_config.tf"
 	var backendConfig string
-
 	DisableTFK8SBackend := os.Getenv("DISABLE_TF_K8S_BACKEND") == "1"
 
 	if terraform.Spec.BackendConfig != nil {
@@ -439,11 +431,13 @@ terraform {
 	if r.backendCompletelyDisable(terraform) {
 		log.Info("BackendConfig is completely disabled")
 	} else {
-		filePath, err := securejoin.SecureJoin(dirPath, backendConfigPath)
-		if err != nil {
-			return terraform, err
-		}
-		err = os.WriteFile(filePath, []byte(backendConfig), 0644)
+		writeBackendConfigReply, err := runnerClient.WriteBackendConfig(ctx,
+			&runner.WriteBackendConfigRequest{
+				DirPath:       workingDir,
+				BackendConfig: []byte(backendConfig),
+			})
+
+		log.Info(fmt.Sprintf("write backend config: %s", writeBackendConfigReply.Message))
 		if err != nil {
 			return terraform, err
 		}
@@ -455,54 +449,29 @@ terraform {
 		if cliConfigSecretRef.Namespace == "" {
 			cliConfigSecretRef.Namespace = terraform.Namespace
 		}
-		cliConfigKey := types.NamespacedName{Name: cliConfigSecretRef.Name, Namespace: cliConfigSecretRef.Namespace}
-		var cliConfig corev1.Secret
-		if err := r.Get(ctx, cliConfigKey, &cliConfig); err != nil {
-			err = fmt.Errorf("cannot get secret for Terraform's CLI configuration: %s", err)
+
+		processCliConfigReply, err := runnerClient.ProcessCliConfig(ctx, &runner.ProcessCliConfigRequest{
+			DirPath:   workingDir,
+			Namespace: cliConfigSecretRef.Namespace,
+			Name:      cliConfigSecretRef.Name,
+		})
+		if err != nil {
+			err = fmt.Errorf("cannot process cli config: %s", err.Error())
 			return infrav1.TerraformNotReady(
 				terraform,
 				revision,
-				infrav1.TFExecInitFailedReason,
+				infrav1.TFExecNewFailedReason,
 				err.Error(),
 			), err
 		}
-
-		if len(cliConfig.Data) != 1 {
-			err := fmt.Errorf("expect the secret to contain 1 data")
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.TFExecInitFailedReason,
-				err.Error(),
-			), err
-		}
-
-		for tfrcFilename, v := range cliConfig.Data {
-			if strings.HasSuffix(tfrcFilename, ".tfrc") {
-				var err error
-				tfrcFilepath, err = securejoin.SecureJoin(dirPath, tfrcFilename)
-				if err != nil {
-					return terraform, err
-				}
-				err = os.WriteFile(tfrcFilepath, v, 0644)
-				if err != nil {
-					return terraform, err
-				}
-			} else {
-				err := fmt.Errorf("expect the secret key to end with .tfrc")
-				return infrav1.TerraformNotReady(
-					terraform,
-					revision,
-					infrav1.TFExecInitFailedReason,
-					err.Error(),
-				), err
-			}
-		}
-
+		tfrcFilepath = processCliConfigReply.FilePath
 	}
 
-	// TODO configurable somehow by the controller
-	execPath, err := exec.LookPath("terraform")
+	lookPathReply, err := runnerClient.LookPath(ctx,
+		&runner.LookPathRequest{
+			File: "terraform",
+		})
+	execPath := lookPathReply.ExecPath
 	if err != nil {
 		err = fmt.Errorf("cannot find Terraform binary: %s in %s", err, os.Getenv("PATH"))
 		return infrav1.TerraformNotReady(
@@ -513,8 +482,12 @@ terraform {
 		), err
 	}
 
-	workingDir := dirPath
-	tf, err := tfexec.NewTerraform(workingDir, execPath)
+	newTerraformReply, err := runnerClient.NewTerraform(ctx,
+		&runner.NewTerraformRequest{
+			// TarGz:      tarGzBytes,
+			WorkingDir: workingDir,
+			ExecPath:   execPath,
+		})
 	if err != nil {
 		err = fmt.Errorf("error running NewTerraform: %s", err)
 		return infrav1.TerraformNotReady(
@@ -525,11 +498,22 @@ terraform {
 		), err
 	}
 
+	tfInstance := newTerraformReply.Id
+	envs := map[string]string{}
+
+	disableTestLogging := os.Getenv("DISABLE_TF_LOGS") == "1"
+	if !disableTestLogging {
+		envs["DISABLE_TF_LOGS"] = "1"
+	}
+
 	if tfrcFilepath != "" {
-		envs := envMap(os.Environ())
 		envs["TF_CLI_CONFIG_FILE"] = tfrcFilepath
-		if err := tf.SetEnv(envs); err != nil {
-			err = fmt.Errorf("error setting env for Terraform: %s", err)
+		if setEnvReply, err := runnerClient.SetEnv(ctx,
+			&runner.SetEnvRequest{
+				TfInstance: tfInstance,
+				Envs:       envs,
+			}); err != nil {
+			err = fmt.Errorf("error setting env for Terraform: %s %s", err, setEnvReply.Message)
 			return infrav1.TerraformNotReady(
 				terraform,
 				revision,
@@ -539,23 +523,27 @@ terraform {
 		}
 	}
 
-	disableTestLogging := os.Getenv("DISABLE_TF_LOGS") == "1"
-	if !disableTestLogging {
-		tf.SetStdout(os.Stdout)
-		tf.SetStderr(os.Stderr)
-		tf.SetLogger(&LocalPrintfer{logger: log})
-	}
-
 	log.Info("new terraform", "workingDir", workingDir)
 
 	// TODO we currently use a fork version of TFExec to workaround the forceCopy bug
 	// https://github.com/hashicorp/terraform-exec/issues/262
-	initOpts := []tfexec.InitOption{tfexec.Upgrade(true), tfexec.ForceCopy(true)}
+	/*
+		initOpts := []tfexec.InitOption{tfexec.Upgrade(true), tfexec.ForceCopy(true)}
+		if r.backendCompletelyDisable(terraform) {
+			initOpts = append(initOpts, tfexec.ForceCopy(false))
+		}
+	*/
+
+	initRequest := &runner.InitRequest{
+		TfInstance: tfInstance,
+		Upgrade:    true,
+		ForceCopy:  true,
+	}
 	if r.backendCompletelyDisable(terraform) {
-		initOpts = append(initOpts, tfexec.ForceCopy(false))
+		initRequest.ForceCopy = false
 	}
 
-	err = tf.Init(ctx, initOpts...)
+	initReply, err := runnerClient.Init(ctx, initRequest)
 	if err != nil {
 		err = fmt.Errorf("error running Init: %s", err)
 		return infrav1.TerraformNotReady(
@@ -565,18 +553,35 @@ terraform {
 			err.Error(),
 		), err
 	}
+	log.Info(fmt.Sprintf("init reply: %s", initReply.Message))
 
 	log.Info("tfexec initialized terraform")
 
-	if terraform, err := r.generateVarsForTF(ctx, terraform, tf, revision); err != nil {
+	terraformBytes, err := terraform.ToBytes(r.Scheme)
+	if err != nil {
+		// transient error?
 		return terraform, err
 	}
+	generateVarsForTFReply, err := runnerClient.GenerateVarsForTF(ctx, &runner.GenerateVarsForTFRequest{
+		Terraform:  terraformBytes,
+		WorkingDir: workingDir,
+	})
+	if err != nil {
+		// transient error?
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.VarsGenerationFailedReason,
+			err.Error(),
+		), err
+	}
+	log.Info(fmt.Sprintf("generate vars from tf: %s", generateVarsForTFReply.Message))
 
 	log.Info("generated var files from spec")
 
 	if r.shouldDetectDrift(terraform, revision) {
 		var driftDetectionErr error // declared here to avoid shadowing on terraform variable
-		terraform, driftDetectionErr = r.detectDrift(ctx, terraform, tf, revision)
+		terraform, driftDetectionErr := r.detectDrift(ctx, terraform, tfInstance, runnerClient, revision)
 
 		// immediately return if no drift - reconciliation will retry normally
 		if driftDetectionErr == nil {
@@ -607,7 +612,7 @@ terraform {
 	}
 
 	if r.shouldPlan(terraform) {
-		terraform, err = r.plan(ctx, terraform, tf, revision)
+		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision)
 		if err != nil {
 			return terraform, err
 		}
@@ -616,12 +621,11 @@ terraform {
 			log.Error(err, "unable to update status after planing")
 			return terraform, err
 		}
-
 	}
 
 	outputs := map[string]tfexec.OutputMeta{}
 	if r.shouldApply(terraform) {
-		terraform, err = r.apply(ctx, terraform, tf, revision, &outputs)
+		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision, &outputs)
 		if err != nil {
 			return terraform, err
 		}
@@ -630,10 +634,12 @@ terraform {
 			log.Error(err, "unable to update status after applying")
 			return terraform, err
 		}
+	} else {
+		log.Info("should apply == false")
 	}
 
 	if r.shouldWriteOutputs(terraform, outputs) {
-		terraform, err = r.writeOutput(ctx, terraform, outputs, revision)
+		terraform, err = r.writeOutput(ctx, terraform, runnerClient, outputs, revision)
 		if err != nil {
 			return terraform, err
 		}
@@ -645,7 +651,7 @@ terraform {
 	}
 
 	if r.shouldDoHealthChecks(terraform) {
-		terraform, err = r.doHealthChecks(ctx, terraform)
+		terraform, err = r.doHealthChecks(ctx, terraform, runnerClient)
 		if err != nil {
 			return terraform, err
 		}
@@ -659,7 +665,7 @@ terraform {
 	return terraform, nil
 }
 
-func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1.Terraform, tf *tfexec.Terraform, revision string) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string) (infrav1.Terraform, error) {
 
 	log := ctrl.LoggerFrom(ctx)
 
@@ -668,12 +674,18 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 	const (
 		driftFilename = "tfdrift"
 	)
-	planOpt := []tfexec.PlanOption{tfexec.Out(driftFilename), tfexec.Refresh(true)}
+
+	planRequest := &runner.PlanRequest{
+		TfInstance: tfInstance,
+		Out:        driftFilename,
+		Refresh:    true,
+	}
 	if r.backendCompletelyDisable(terraform) {
-		planOpt = []tfexec.PlanOption{tfexec.Refresh(true)}
+		planRequest.Out = ""
+		planRequest.Refresh = true
 	}
 
-	drifted, err := tf.Plan(ctx, planOpt...)
+	planReply, err := runnerClient.Plan(ctx, planRequest)
 	if err != nil {
 		err = fmt.Errorf("error running Plan: %s", err)
 		return infrav1.TerraformNotReady(
@@ -683,14 +695,18 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 			err.Error(),
 		), err
 	}
+	drifted := planReply.Drifted
+	log.Info(fmt.Sprintf("plan for drift: %s found drift: %v", planReply.Message, planReply.Drifted))
 
 	if drifted {
 		var rawOutput string
 		if r.backendCompletelyDisable(terraform) {
 			rawOutput = "not available"
 		} else {
-			var err error
-			rawOutput, err = tf.ShowPlanFileRaw(ctx, driftFilename)
+			showPlanFileRawReply, err := runnerClient.ShowPlanFileRaw(ctx, &runner.ShowPlanFileRawRequest{
+				TfInstance: tfInstance,
+				Filename:   driftFilename,
+			})
 			if err != nil {
 				return infrav1.TerraformNotReady(
 					terraform,
@@ -699,6 +715,8 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 					err.Error(),
 				), err
 			}
+			rawOutput = showPlanFileRawReply.RawOutput
+			log.Info(fmt.Sprintf("show plan: %s", showPlanFileRawReply.RawOutput))
 		}
 
 		// If drift detected & we use the auto mode, then we continue
@@ -710,7 +728,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 	return terraform, nil
 }
 
-func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraform, tf *tfexec.Terraform, revision string) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string) (infrav1.Terraform, error) {
 
 	log := ctrl.LoggerFrom(ctx)
 
@@ -723,18 +741,24 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		return terraform, err
 	}
 
-	opts := []tfexec.PlanOption{tfexec.Out("tfplan")}
+	const tfplanFilename = "tfplan"
+
+	planRequest := &runner.PlanRequest{
+		TfInstance: tfInstance,
+		Out:        tfplanFilename,
+		Refresh:    true, // be careful, refresh requires to be true by default
+	}
+
 	if r.backendCompletelyDisable(terraform) {
-		// if BackendConfig is completely disable, we expect no tfplan file
-		opts = []tfexec.PlanOption{}
+		planRequest.Out = ""
 	}
 
 	if terraform.Spec.Destroy {
 		log.Info("spec.destroy is set")
-		opts = append(opts, tfexec.Destroy(true))
+		planRequest.Destroy = true
 	}
 
-	drifted, err := tf.Plan(ctx, opts...)
+	planReply, err := runnerClient.Plan(ctx, planRequest)
 	if err != nil {
 		err = fmt.Errorf("error running Plan: %s", err)
 		return infrav1.TerraformNotReady(
@@ -744,58 +768,19 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 			err.Error(),
 		), err
 	}
+	drifted := planReply.Drifted
+	log.Info(fmt.Sprintf("plan: %s, found drift: %v", planReply.Message, drifted))
 
-	var tfplan []byte
-	if r.backendCompletelyDisable(terraform) {
-		tfplan = []byte("dummy plan")
-	} else {
-		var err error
-		tfplan, err = ioutil.ReadFile(filepath.Join(tf.WorkingDir(), "tfplan"))
-		if err != nil {
-			err = fmt.Errorf("error running Plan: %s", err)
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.TFExecPlanFailedReason,
-				err.Error(),
-			), err
-		}
-	}
-
-	tfplanObjectKey := types.NamespacedName{Name: "tfplan-default-" + terraform.Name, Namespace: terraform.GetNamespace()}
-	var tfplanSecret corev1.Secret
-	tfplanSecretExists := true
-	if err := r.Client.Get(ctx, tfplanObjectKey, &tfplanSecret); err != nil {
-		if errors.IsNotFound(err) {
-			tfplanSecretExists = false
-		} else {
-			err = fmt.Errorf("error getting tfplanSecret: %s", err)
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.TFExecPlanFailedReason,
-				err.Error(),
-			), err
-		}
-	}
-
-	if tfplanSecretExists {
-		if err := r.Client.Delete(ctx, &tfplanSecret); err != nil {
-			err = fmt.Errorf("error deleting tfplanSecret: %s", err)
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.TFExecPlanFailedReason,
-				err.Error(),
-			), err
-		}
-	}
-
-	planRev := strings.Replace(revision, "/", "-", 1)
-	planName := "plan-" + planRev
-
-	tfplan, err = r.gzipEncode(tfplan)
+	saveTFPlanReply, err := runnerClient.SaveTFPlan(ctx, &runner.SaveTFPlanRequest{
+		TfInstance:               tfInstance,
+		BackendCompletelyDisable: r.backendCompletelyDisable(terraform),
+		Name:                     terraform.Name,
+		Namespace:                terraform.Namespace,
+		Uuid:                     string(terraform.GetUID()),
+		Revision:                 revision,
+	})
 	if err != nil {
+		err = fmt.Errorf("error saving plan secret: %s", err)
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
@@ -803,44 +788,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 			err.Error(),
 		), err
 	}
-
-	tfplanData := map[string][]byte{"tfplan": tfplan}
-	tfplanSecret = corev1.Secret{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Secret",
-			APIVersion: "v1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "tfplan-default-" + terraform.Name,
-			Namespace: terraform.GetNamespace(),
-			Labels: map[string]string{
-				"savedPlan": planName,
-			},
-			Annotations: map[string]string{
-				"encoding": "gzip",
-			},
-			OwnerReferences: []metav1.OwnerReference{
-				{
-					APIVersion: terraform.APIVersion,
-					Kind:       terraform.Kind,
-					Name:       terraform.GetName(),
-					UID:        terraform.GetUID(),
-				},
-			},
-		},
-		Type: corev1.SecretTypeOpaque,
-		Data: tfplanData,
-	}
-
-	if err := r.Client.Create(ctx, &tfplanSecret); err != nil {
-		err = fmt.Errorf("error recording plan status: %s", err)
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			infrav1.TFExecPlanFailedReason,
-			err.Error(),
-		), err
-	}
+	log.Info(fmt.Sprintf("save tfplan: %s", saveTFPlanReply.Message))
 
 	if drifted {
 		terraform = infrav1.TerraformPlannedWithChanges(terraform, revision, "Plan generated")
@@ -855,11 +803,10 @@ func (r *TerraformReconciler) backendCompletelyDisable(terraform infrav1.Terrafo
 	return terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.Disable == true
 }
 
-func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terraform, tf *tfexec.Terraform, revision string, outputs *map[string]tfexec.OutputMeta) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, outputs *map[string]tfexec.OutputMeta) (infrav1.Terraform, error) {
 
 	const (
-		TFPlanName           = "tfplan"
-		SavedPlanSecretLabel = "savedPlan"
+		TFPlanName = "tfplan"
 	)
 
 	log := ctrl.LoggerFrom(ctx)
@@ -871,11 +818,14 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		return terraform, err
 	}
 
-	tfplanSecretKey := types.NamespacedName{Namespace: terraform.Namespace, Name: "tfplan-default-" + terraform.Name}
-	tfplanSecret := corev1.Secret{}
-	err := r.Get(ctx, tfplanSecretKey, &tfplanSecret)
+	loadTFPlanReply, err := runnerClient.LoadTFPlan(ctx, &runner.LoadTFPlanRequest{
+		TfInstance:               tfInstance,
+		Name:                     terraform.Name,
+		Namespace:                terraform.Namespace,
+		BackendCompletelyDisable: r.backendCompletelyDisable(terraform),
+		PendingPlan:              terraform.Status.Plan.Pending,
+	})
 	if err != nil {
-		err = fmt.Errorf("error getting plan secret: %s", err)
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
@@ -884,44 +834,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		), err
 	}
 
-	if tfplanSecret.Labels[SavedPlanSecretLabel] != terraform.Status.Plan.Pending {
-		err = fmt.Errorf("error pending plan and plan's name in the secret are not matched: %s != %s",
-			terraform.Status.Plan.Pending,
-			tfplanSecret.Labels[SavedPlanSecretLabel])
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			infrav1.TFExecApplyFailedReason,
-			err.Error(),
-		), err
-	}
-
-	var applyOpt []tfexec.ApplyOption
-	if r.backendCompletelyDisable(terraform) {
-		// do nothing
-	} else {
-		applyOpt = []tfexec.ApplyOption{tfexec.DirOrPlan(TFPlanName)}
-		tfplan := tfplanSecret.Data[TFPlanName]
-		tfplan, err = r.gzipDecode(tfplan)
-		if err != nil {
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.TFExecApplyFailedReason,
-				err.Error(),
-			), err
-		}
-		err = ioutil.WriteFile(filepath.Join(tf.WorkingDir(), TFPlanName), tfplan, 0644)
-		if err != nil {
-			err = fmt.Errorf("error saving plan file to disk: %s", err)
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.TFExecApplyFailedReason,
-				err.Error(),
-			), err
-		}
-	}
+	log.Info(fmt.Sprintf("load tf plan: %s", loadTFPlanReply.Message))
 
 	terraform = infrav1.TerraformApplying(terraform, revision, "Apply started")
 	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
@@ -929,11 +842,24 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		return terraform, err
 	}
 
-	var isDestroyApplied bool
+	applyRequest := &runner.ApplyRequest{
+		TfInstance: tfInstance,
+	}
+	if r.backendCompletelyDisable(terraform) {
+		// do nothing
+	} else {
+		applyRequest.DirOrPlan = TFPlanName
+	}
 
-	// special case: when backend is completely disabled, we need to use "destroy" command instead of apply
+	var isDestroyApplied bool
+	// this a special case, when backend is completely disabled.
+	// we need to use "destroy" command instead of apply
 	if r.backendCompletelyDisable(terraform) && terraform.Spec.Destroy == true {
-		if err := tf.Destroy(ctx); err != nil {
+		destroyReply, err := runnerClient.Destroy(ctx, &runner.DestroyRequest{
+			TfInstance: tfInstance,
+		})
+		log.Info(fmt.Sprintf("destroy: %s", destroyReply.Message))
+		if err != nil {
 			err = fmt.Errorf("error running Destroy: %s", err)
 			return infrav1.TerraformAppliedFailResetPlanAndNotReady(
 				terraform,
@@ -944,8 +870,8 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		}
 		isDestroyApplied = true
 	} else {
-		// this is the normal case, we apply either create or destroy plan
-		if err := tf.Apply(ctx, applyOpt...); err != nil {
+		applyReply, err := runnerClient.Apply(ctx, applyRequest)
+		if err != nil {
 			err = fmt.Errorf("error running Apply: %s", err)
 			return infrav1.TerraformAppliedFailResetPlanAndNotReady(
 				terraform,
@@ -954,12 +880,16 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 				err.Error(),
 			), err
 		}
+		log.Info(fmt.Sprintf("apply: %s", applyReply.Message))
+
 		isDestroyApplied = terraform.Status.Plan.IsDestroyPlan
 	}
 
 	terraform = infrav1.TerraformApplied(terraform, revision, "Applied successfully", isDestroyApplied)
 
-	*outputs, err = tf.Output(ctx)
+	outputReply, err := runnerClient.Output(ctx, &runner.OutputRequest{
+		TfInstance: tfInstance,
+	})
 	if err != nil {
 		// TODO should not be this Error
 		// warning-like status is enough
@@ -971,6 +901,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 			err.Error(),
 		), err
 	}
+	*outputs = convertOutputs(outputReply.Outputs)
 
 	var availableOutputs []string
 	for k := range *outputs {
@@ -984,11 +915,25 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	return terraform, nil
 }
 
-func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1.Terraform, outputs map[string]tfexec.OutputMeta, revision string) (infrav1.Terraform, error) {
+func convertOutputs(outputs map[string]*runner.OutputMeta) map[string]tfexec.OutputMeta {
+	result := map[string]tfexec.OutputMeta{}
+	for k, v := range outputs {
+		result[k] = tfexec.OutputMeta{
+			Sensitive: v.Sensitive,
+			Type:      v.Type,
+			Value:     v.Value,
+		}
+	}
+	return result
+}
+
+func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient, outputs map[string]tfexec.OutputMeta, revision string) (infrav1.Terraform, error) {
 	type hcl struct {
 		Name  string    `cty:"name"`
 		Value cty.Value `cty:"value"`
 	}
+
+	log := ctrl.LoggerFrom(ctx)
 
 	wots := terraform.Spec.WriteOutputsToSecret
 	data := map[string][]byte{}
@@ -1050,19 +995,18 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 		}
 	}
 
-	objectKey := types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.Spec.WriteOutputsToSecret.Name}
-	var outputSecret corev1.Secret
+	if len(data) == 0 || terraform.Spec.Destroy == true {
+		return infrav1.TerraformOutputsWritten(terraform, revision, "No Outputs written"), nil
+	}
 
-	if err := r.Client.Get(ctx, objectKey, &outputSecret); err == nil {
-		if err := r.Client.Delete(ctx, &outputSecret); err != nil {
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.OutputsWritingFailedReason,
-				err.Error(),
-			), err
-		}
-	} else if apierrors.IsNotFound(err) == false {
+	writeOutputsReply, err := runnerClient.WriteOutputs(ctx, &runner.WriteOutputsRequest{
+		Namespace:  terraform.Namespace,
+		Name:       terraform.Name,
+		SecretName: terraform.Spec.WriteOutputsToSecret.Name,
+		Uuid:       string(terraform.UID),
+		Data:       data,
+	})
+	if err != nil {
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
@@ -1070,41 +1014,9 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 			err.Error(),
 		), err
 	}
+	log.Info(fmt.Sprintf("write outputs: %s", writeOutputsReply.Message))
 
-	if len(data) == 0 || terraform.Spec.Destroy == true {
-		return infrav1.TerraformOutputsWritten(terraform, revision, "No Outputs written"), nil
-	} else {
-		block := true
-		outputSecret = corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      terraform.Spec.WriteOutputsToSecret.Name,
-				Namespace: terraform.GetNamespace(),
-				OwnerReferences: []metav1.OwnerReference{
-					{
-						APIVersion:         terraform.APIVersion,
-						Kind:               terraform.Kind,
-						Name:               terraform.GetName(),
-						UID:                terraform.GetUID(),
-						BlockOwnerDeletion: &block,
-					},
-				},
-			},
-			Type: corev1.SecretTypeOpaque,
-			Data: data,
-		}
-
-		err := r.Client.Create(ctx, &outputSecret)
-		if err != nil {
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.OutputsWritingFailedReason,
-				err.Error(),
-			), err
-		}
-		return infrav1.TerraformOutputsWritten(terraform, revision, "Outputs written"), nil
-	}
-
+	return infrav1.TerraformOutputsWritten(terraform, revision, "Outputs written"), nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -1224,6 +1136,43 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform infrav1.T
 			terraform.Spec.SourceRef.Name, terraform.Spec.SourceRef.Kind)
 	}
 	return sourceObj, nil
+}
+
+func (r *TerraformReconciler) downloadAsBytes(artifact *sourcev1.Artifact) (*bytes.Buffer, error) {
+	artifactURL := artifact.URL
+	if hostname := os.Getenv("SOURCE_CONTROLLER_LOCALHOST"); hostname != "" {
+		u, err := url.Parse(artifactURL)
+		if err != nil {
+			return nil, err
+		}
+		u.Host = hostname
+		artifactURL = u.String()
+	}
+
+	req, err := retryablehttp.NewRequest(http.MethodGet, artifactURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create a new request: %w", err)
+	}
+
+	resp, err := r.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to download artifact, error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// check response
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to download artifact from %s, status: %s", artifactURL, resp.Status)
+	}
+
+	var buf bytes.Buffer
+
+	// verify checksum matches origin
+	if err := r.verifyArtifact(artifact, &buf, resp.Body); err != nil {
+		return nil, err
+	}
+
+	return &buf, nil
 }
 
 func (r *TerraformReconciler) downloadAndExtract(artifact *sourcev1.Artifact, tmpDir string) error {
@@ -1401,35 +1350,35 @@ func (r *TerraformReconciler) fireEvent(ctx context.Context, terraform infrav1.T
 	}
 }
 
-func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Terraform) (ctrl.Result, error) {
-	planObjectKey := types.NamespacedName{Namespace: terraform.GetNamespace(), Name: "tfplan-default-" + terraform.Name}
-	var planSecret corev1.Secret
-	if err := r.Client.Get(ctx, planObjectKey, &planSecret); err == nil {
-		if err := r.Client.Delete(ctx, &planSecret); err != nil {
-			// transient failure
-			return ctrl.Result{Requeue: true}, err
-		}
-	} else if apierrors.IsNotFound(err) {
-		// it's ok. ignored
-	} else {
-		// transient failure
-		return ctrl.Result{Requeue: true}, err
+func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient) (ctrl.Result, error) {
+	log := ctrl.LoggerFrom(ctx)
+
+	outputSecretName := ""
+	hasSpecifiedOutputSecret := terraform.Spec.WriteOutputsToSecret != nil && terraform.Spec.WriteOutputsToSecret.Name != ""
+	if hasSpecifiedOutputSecret {
+		outputSecretName = terraform.Spec.WriteOutputsToSecret.Name
 	}
 
-	if terraform.Spec.WriteOutputsToSecret != nil && terraform.Spec.WriteOutputsToSecret.Name != "" {
-		outputsObjectKey := types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.Spec.WriteOutputsToSecret.Name}
-		var outputsSecret corev1.Secret
-		if err := r.Client.Get(ctx, outputsObjectKey, &outputsSecret); err == nil {
-			if err := r.Client.Delete(ctx, &outputsSecret); err != nil {
-				// transient failure
+	finalizeSecretsReply, err := runnerClient.FinalizeSecrets(ctx, &runner.FinalizeSecretsRequest{
+		Namespace:                terraform.Namespace,
+		Name:                     terraform.Name,
+		HasSpecifiedOutputSecret: hasSpecifiedOutputSecret,
+		OutputSecretName:         outputSecretName,
+	})
+	if err != nil {
+		if e, ok := status.FromError(err); ok {
+			switch e.Code() {
+			case codes.Internal:
+				// transient error
 				return ctrl.Result{Requeue: true}, err
+			case codes.NotFound:
+				// do nothing, fall through
 			}
-		} else if apierrors.IsNotFound(err) {
-			// it's ok. ignored
-		} else {
-			// transient failure
-			return ctrl.Result{Requeue: true}, err
 		}
+	}
+
+	if err == nil {
+		log.Info(fmt.Sprintf("finalizing secrets: %s", finalizeSecretsReply.Message))
 	}
 
 	// Record deleted status
@@ -1445,49 +1394,77 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 	return ctrl.Result{}, nil
 }
 
-func (r *TerraformReconciler) gzipEncode(tfplan []byte) ([]byte, error) {
-	var buf bytes.Buffer
-	w := gzip.NewWriter(&buf)
-
-	_, err := w.Write(tfplan)
-	if err != nil {
-		return nil, err
+func getPodFQN(pod corev1.Pod) (string, error) {
+	podIP := pod.Status.PodIP
+	if podIP == "" {
+		return "", fmt.Errorf("pod ip not found")
 	}
-
-	if err := w.Close(); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+	prefix := strings.ReplaceAll(podIP, ".", "-")
+	fqn := fmt.Sprintf("%s.%s.pod.%s", prefix, pod.Namespace, "cluster.local.")
+	return fqn, nil
 }
 
-func (r *TerraformReconciler) gzipDecode(encodedPlan []byte) ([]byte, error) {
-	re := bytes.NewReader(encodedPlan)
-	gr, err := gzip.NewReader(re)
-	if err != nil {
-		return nil, err
-	}
+func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terraform infrav1.Terraform) (runner.RunnerClient, error) {
+	// Pod's IP pattern: http://10-244-0-7.default.pod.cluster.local
+	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
+		conn, err := grpc.Dial("localhost:30000", grpc.WithInsecure())
+		if err != nil {
+			return nil, err
+		}
+		runnerClient := runner.NewRunnerClient(conn)
+		return runnerClient, nil
+	} else {
+		// get pod
+		runnerPodKey := types.NamespacedName{
+			Name:      fmt.Sprintf("%s-runner", terraform.Name),
+			Namespace: terraform.Namespace,
+		}
+		var runnerPod corev1.Pod
+		err := r.Client.Get(ctx, runnerPodKey, &runnerPod)
+		if err == nil && apierrors.IsNotFound(err) {
+			/*
+				runnerPod = corev1.Pod{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      runnerPodKey.Name,
+						Namespace: runnerPodKey.Namespace,
+					},
+					Spec: corev1.PodSpec{
+						Containers: []corev1.Container{
+							{
+								Name:    "",
+								Image:   "",
+								Command: nil,
+								Args:    nil,
+							},
+						},
+					},
+					Status: corev1.PodStatus{},
+				}
+				if err := r.Client.Create(ctx, &runnerPod); err != nil {
+					return nil, err
+				}
+			*/
+			// Not Implement Yet
+			return nil, err
+		} else if err != nil {
+			return nil, err
+		}
 
-	o, err := ioutil.ReadAll(gr)
-	if err != nil {
-		return nil, err
+		return nil, nil
 	}
-
-	if err = gr.Close(); err != nil {
-		return nil, err
-	}
-	return o, nil
 }
 
-func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infrav1.Terraform) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient) (infrav1.Terraform, error) {
 	log := ctrl.LoggerFrom(ctx)
 	log.Info("calling doHealthChecks ...")
 
 	// get terraform output data for health check urls
-	o := make(map[string]string)
-	if terraform.Spec.WriteOutputsToSecret != nil {
-		outputKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Spec.WriteOutputsToSecret.Name}
-		outputSecret := corev1.Secret{}
-		err := r.Client.Get(ctx, outputKey, &outputSecret)
+	outputs := make(map[string]string)
+	if terraform.Spec.WriteOutputsToSecret != nil && terraform.Spec.WriteOutputsToSecret.Name != "" {
+		getOutputsReply, err := runnerClient.GetOutputs(ctx, &runner.GetOutputsRequest{
+			Namespace:  terraform.Namespace,
+			SecretName: terraform.Spec.WriteOutputsToSecret.Name,
+		})
 		if err != nil {
 			err = fmt.Errorf("error getting terraform output for health checks: %s", err)
 			return infrav1.TerraformHealthCheckFailed(
@@ -1495,19 +1472,14 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 				err.Error(),
 			), err
 		}
-		// parse map[string][]byte to map[string]string for go template parsing
-		if len(outputSecret.Data) > 0 {
-			for k, v := range outputSecret.Data {
-				o[k] = string(v)
-			}
-		}
+		outputs = getOutputsReply.Outputs
 	}
 
 	for _, hc := range terraform.Spec.HealthChecks {
 		// perform health check based on type
 		switch hc.Type {
 		case infrav1.HealthCheckTypeTCP:
-			parsed, err := r.templateParse(o, hc.Address)
+			parsed, err := r.templateParse(outputs, hc.Address)
 			if err != nil {
 				err = fmt.Errorf("error getting terraform output for health checks: %s", err)
 				return infrav1.TerraformHealthCheckFailed(
@@ -1524,7 +1496,7 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 				), err
 			}
 		case infrav1.HealthCheckTypeHttpGet:
-			parsed, err := r.templateParse(o, hc.URL)
+			parsed, err := r.templateParse(outputs, hc.URL)
 			if err != nil {
 				err = fmt.Errorf("error getting terraform output for health checks: %s", err)
 				return infrav1.TerraformHealthCheckFailed(
