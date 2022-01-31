@@ -30,9 +30,10 @@ func TestObjectEncode(t *testing.T) {
 		},
 	}
 
-	b, err := reconciler.ToBytes(helloWorldTF)
+	b, err := helloWorldTF.ToBytes(reconciler.Scheme)
 	g.Expect(err).To(BeNil())
-	tf, err := runnerServer.ToTerraform(b)
+	var tf infrav1.Terraform
+	err = tf.FromBytes(b, runnerServer.Scheme)
 	g.Expect(err).To(BeNil())
 	g.Expect(tf).To(Equal(helloWorldTF))
 	g.Expect(tf.Spec.ApprovePlan).To(Equal("auto"))

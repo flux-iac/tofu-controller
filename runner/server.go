@@ -20,12 +20,10 @@ import (
 	"github.com/chanwit/tf-controller/utils"
 	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/fluxcd/pkg/untar"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/hashicorp/terraform-exec/tfexec"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -177,7 +175,8 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 // GenerateVarsForTF renders the Terraform variables as a json file for the given inputs
 // variables supplied in the varsFrom field will override those specified in the spec
 func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *GenerateVarsForTFRequest) (*GenerateVarsForTFReply, error) {
-	terraform, err := r.ToTerraform(req.Terraform)
+	var terraform infrav1.Terraform
+	err := terraform.FromBytes(req.Terraform, r.Scheme)
 	if err != nil {
 		return nil, err
 	}
@@ -561,15 +560,4 @@ func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *Finali
 	}
 
 	return &FinalizeSecretsReply{Message: "ok"}, nil
-}
-
-func (r *TerraformRunnerServer) ToTerraform(b []byte) (infrav1.Terraform, error) {
-	var terraform infrav1.Terraform
-	err := runtime.DecodeInto(
-		serializer.NewCodecFactory(r.Scheme).LegacyCodec(
-			corev1.SchemeGroupVersion,
-			infrav1.GroupVersion,
-			sourcev1.GroupVersion,
-		), b, &terraform)
-	return terraform, err
 }

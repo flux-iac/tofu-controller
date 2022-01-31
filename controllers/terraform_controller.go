@@ -54,7 +54,6 @@ import (
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
 	kuberecorder "k8s.io/client-go/tools/record"
 	"k8s.io/client-go/tools/reference"
@@ -343,15 +342,6 @@ func (l LocalPrintfer) Printf(format string, v ...interface{}) {
 	l.logger.Info(fmt.Sprintf(format, v...))
 }
 
-func (r *TerraformReconciler) ToBytes(terraform infrav1.Terraform) ([]byte, error) {
-	return runtime.Encode(
-		serializer.NewCodecFactory(r.Scheme).LegacyCodec(
-			corev1.SchemeGroupVersion,
-			infrav1.GroupVersion,
-			sourcev1.GroupVersion,
-		), &terraform)
-}
-
 func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source) (infrav1.Terraform, error) {
 
 	log := ctrl.LoggerFrom(ctx)
@@ -567,7 +557,7 @@ terraform {
 
 	log.Info("tfexec initialized terraform")
 
-	terraformBytes, err := r.ToBytes(terraform)
+	terraformBytes, err := terraform.ToBytes(r.Scheme)
 	if err != nil {
 		// transient error?
 		return terraform, err

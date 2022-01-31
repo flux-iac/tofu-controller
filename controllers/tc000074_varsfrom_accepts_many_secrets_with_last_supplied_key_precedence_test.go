@@ -91,7 +91,7 @@ func Test_000074_varsfrom_accepts_many_secrets_with_last_supplied_key_precedence
 		},
 	}
 
-	terraformBytes, err := reconciler.ToBytes(terraform)
+	terraformBytes, err := terraform.ToBytes(reconciler.Scheme)
 	g.Expect(err).To(BeNil())
 
 	_, err = runnerServer.GenerateVarsForTF(ctx, &runner.GenerateVarsForTFRequest{
