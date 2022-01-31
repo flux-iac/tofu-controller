@@ -38,6 +38,7 @@ type RunnerClient interface {
 	Destroy(ctx context.Context, in *DestroyRequest, opts ...grpc.CallOption) (*DestroyReply, error)
 	Output(ctx context.Context, in *OutputRequest, opts ...grpc.CallOption) (*OutputReply, error)
 	WriteOutputs(ctx context.Context, in *WriteOutputsRequest, opts ...grpc.CallOption) (*WriteOutputsReply, error)
+	GetOutputs(ctx context.Context, in *GetOutputsRequest, opts ...grpc.CallOption) (*GetOutputsReply, error)
 	Init(ctx context.Context, in *InitRequest, opts ...grpc.CallOption) (*InitReply, error)
 	Upload(ctx context.Context, in *UploadRequest, opts ...grpc.CallOption) (*UploadReply, error)
 	FinalizeSecrets(ctx context.Context, in *FinalizeSecretsRequest, opts ...grpc.CallOption) (*FinalizeSecretsReply, error)
@@ -195,6 +196,15 @@ func (c *runnerClient) WriteOutputs(ctx context.Context, in *WriteOutputsRequest
 	return out, nil
 }
 
+func (c *runnerClient) GetOutputs(ctx context.Context, in *GetOutputsRequest, opts ...grpc.CallOption) (*GetOutputsReply, error) {
+	out := new(GetOutputsReply)
+	err := c.cc.Invoke(ctx, "/runner.Runner/GetOutputs", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *runnerClient) Init(ctx context.Context, in *InitRequest, opts ...grpc.CallOption) (*InitReply, error) {
 	out := new(InitReply)
 	err := c.cc.Invoke(ctx, "/runner.Runner/Init", in, out, opts...)
@@ -242,6 +252,7 @@ type RunnerServer interface {
 	Destroy(context.Context, *DestroyRequest) (*DestroyReply, error)
 	Output(context.Context, *OutputRequest) (*OutputReply, error)
 	WriteOutputs(context.Context, *WriteOutputsRequest) (*WriteOutputsReply, error)
+	GetOutputs(context.Context, *GetOutputsRequest) (*GetOutputsReply, error)
 	Init(context.Context, *InitRequest) (*InitReply, error)
 	Upload(context.Context, *UploadRequest) (*UploadReply, error)
 	FinalizeSecrets(context.Context, *FinalizeSecretsRequest) (*FinalizeSecretsReply, error)
@@ -299,6 +310,9 @@ func (UnimplementedRunnerServer) Output(context.Context, *OutputRequest) (*Outpu
 }
 func (UnimplementedRunnerServer) WriteOutputs(context.Context, *WriteOutputsRequest) (*WriteOutputsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WriteOutputs not implemented")
+}
+func (UnimplementedRunnerServer) GetOutputs(context.Context, *GetOutputsRequest) (*GetOutputsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOutputs not implemented")
 }
 func (UnimplementedRunnerServer) Init(context.Context, *InitRequest) (*InitReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Init not implemented")
@@ -610,6 +624,24 @@ func _Runner_WriteOutputs_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Runner_GetOutputs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOutputsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RunnerServer).GetOutputs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/runner.Runner/GetOutputs",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RunnerServer).GetOutputs(ctx, req.(*GetOutputsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Runner_Init_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(InitRequest)
 	if err := dec(in); err != nil {
@@ -734,6 +766,10 @@ var Runner_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "WriteOutputs",
 			Handler:    _Runner_WriteOutputs_Handler,
+		},
+		{
+			MethodName: "GetOutputs",
+			Handler:    _Runner_GetOutputs_Handler,
 		},
 		{
 			MethodName: "Init",
