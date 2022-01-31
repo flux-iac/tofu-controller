@@ -17,6 +17,9 @@ limitations under the License.
 package main
 
 import (
+	"github.com/chanwit/tf-controller/runner"
+	"google.golang.org/grpc"
+	"net"
 	"os"
 	"time"
 
@@ -145,6 +148,26 @@ func main() {
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up ready check")
 		os.Exit(1)
+	}
+
+	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
+		listener, err := net.Listen("tcp", "localhost:30000")
+		if err != nil {
+			panic(err.Error())
+		}
+
+		server := grpc.NewServer()
+		// local runner, use the same client as the manager
+		runner.RegisterRunnerServer(server, &runner.TerraformRunnerServer{
+			Client: mgr.GetClient(),
+			Scheme: mgr.GetScheme(),
+		})
+
+		go func() {
+			if err := server.Serve(listener); err != nil {
+				panic(err.Error())
+			}
+		}()
 	}
 
 	setupLog.Info("starting manager")

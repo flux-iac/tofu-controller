@@ -19,9 +19,14 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"github.com/chanwit/tf-controller/runner"
+	"google.golang.org/grpc"
 	"io"
 	"io/ioutil"
+	"k8s.io/apimachinery/pkg/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -36,7 +41,6 @@ import (
 
 	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
-	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -58,11 +62,12 @@ const (
 )
 
 var (
-	cfg        *rest.Config
-	k8sClient  client.Client
-	testEnv    *envtest.Environment
-	server     *ghttp.Server
-	reconciler *TerraformReconciler
+	cfg          *rest.Config
+	k8sClient    client.Client
+	testEnv      *envtest.Environment
+	server       *ghttp.Server
+	reconciler   *TerraformReconciler
+	runnerServer *runner.TerraformRunnerServer
 )
 
 var (
@@ -97,18 +102,25 @@ func TestMain(m *testing.M) {
 		panic("cfg cannot be nil")
 	}
 
-	err = sourcev1.AddToScheme(scheme.Scheme)
+	scheme := runtime.NewScheme()
+
+	err = clientgoscheme.AddToScheme(scheme)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	err = infrav1.AddToScheme(scheme.Scheme)
+	err = sourcev1.AddToScheme(scheme)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	err = infrav1.AddToScheme(scheme)
 	if err != nil {
 		panic(err.Error())
 	}
 
 	//+kubebuilder:scaffold:scheme
-	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
+	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme})
 	if err != nil {
 		panic(err.Error())
 	}
@@ -166,7 +178,7 @@ func TestMain(m *testing.M) {
 	}
 
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
-		Scheme: scheme.Scheme,
+		Scheme: scheme,
 	})
 	if err != nil {
 		panic(err.Error())
@@ -185,8 +197,24 @@ func TestMain(m *testing.M) {
 	}
 
 	go func() {
-		err = k8sManager.Start(ctx)
-		if err != nil {
+		if err := k8sManager.Start(ctx); err != nil {
+			panic(err.Error())
+		}
+	}()
+
+	listener, err := net.Listen("tcp", "localhost:30000")
+	if err != nil {
+		panic(err.Error())
+	}
+	s := grpc.NewServer()
+	runnerServer = &runner.TerraformRunnerServer{
+		Client: k8sManager.GetClient(),
+		Scheme: scheme,
+	}
+	runner.RegisterRunnerServer(s, runnerServer)
+
+	go func() {
+		if err := s.Serve(listener); err != nil {
 			panic(err.Error())
 		}
 	}()

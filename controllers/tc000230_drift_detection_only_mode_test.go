@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"github.com/chanwit/tf-controller/utils"
 	"testing"
 	"time"
 
@@ -93,6 +94,7 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 				ConfigPath:      testEnvKubeConfigPath,
 			},
 			ApprovePlan: infrav1.ApprovePlanAutoValue,
+			Interval:    metav1.Duration{Duration: 5 * time.Second},
 			Path:        "./tf-k8s-configmap",
 			SourceRef: infrav1.CrossNamespaceSourceReference{
 				Kind:      "GitRepository",
@@ -102,15 +104,15 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 			Vars: []infrav1.Variable{
 				{
 					Name:  "kubeconfig",
-					Value: jsonEncodeBytes([]byte(testEnvKubeConfigPath)),
+					Value: utils.JsonEncodeBytes([]byte(testEnvKubeConfigPath)),
 				},
 				{
 					Name:  "context",
-					Value: jsonEncodeBytes([]byte("envtest")),
+					Value: utils.JsonEncodeBytes([]byte("envtest")),
 				},
 				{
 					Name:  "config_name",
-					Value: jsonEncodeBytes([]byte("cm-" + terraformName)),
+					Value: utils.JsonEncodeBytes([]byte("cm-" + terraformName)),
 				},
 			},
 		},
@@ -264,6 +266,9 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 		if err != nil {
 			return false
 		}
-		return !createdTFResource.Status.LastDriftDetectedAt.IsZero()
+		if createdTFResource.Status.LastDriftDetectedAt == nil {
+			return false
+		}
+		return !(*createdTFResource.Status.LastDriftDetectedAt).IsZero()
 	}, timeout, interval).Should(BeTrue())
 }

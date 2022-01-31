@@ -137,7 +137,7 @@ func Test_000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    "Ready",
 		"Reason":  "ArtifactFailed",
-		"Message": "failed to untar artifact, error: requires gzip-compressed body: gzip: invalid header",
+		"Message": "rpc error: code = Unknown desc = failed to untar artifact, error: requires gzip-compressed body: gzip: invalid header",
 		"Status":  metav1.ConditionFalse,
 	}))
 }

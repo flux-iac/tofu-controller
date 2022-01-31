@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"github.com/chanwit/tf-controller/utils"
 	"os"
 	"testing"
 	"time"
@@ -97,15 +98,15 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 			Vars: []infrav1.Variable{
 				{
 					Name:  "kubeconfig",
-					Value: jsonEncodeBytes([]byte(testEnvKubeConfigPath)),
+					Value: utils.JsonEncodeBytes([]byte(testEnvKubeConfigPath)),
 				},
 				{
 					Name:  "context",
-					Value: jsonEncodeBytes([]byte("envtest")),
+					Value: utils.JsonEncodeBytes([]byte("envtest")),
 				},
 				{
 					Name:  "config_name",
-					Value: jsonEncodeBytes([]byte("cm-" + terraformName)),
+					Value: utils.JsonEncodeBytes([]byte("cm-" + terraformName)),
 				},
 			},
 		},
@@ -170,7 +171,7 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 		return map[string]interface{}{
 			"SavedPlan":             tfplanSecret.Labels["savedPlan"],
 			"Is TFPlan empty ?":     string(tfplanSecret.Data["tfplan"]) == "",
-			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
+			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"SavedPlan":             "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
@@ -250,7 +251,10 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 		if err != nil {
 			return false
 		}
-		return !createdHelloWorldTF.Status.LastDriftDetectedAt.IsZero()
+		if createdHelloWorldTF.Status.LastDriftDetectedAt == nil {
+			return false
+		}
+		return !(*createdHelloWorldTF.Status.LastDriftDetectedAt).IsZero()
 	}, timeout, interval).Should(BeTrue())
 
 	By("checking that the drift got detected, applying is progressing")
@@ -314,6 +318,9 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 		if err != nil {
 			return false
 		}
-		return createdHelloWorldTF.Status.LastAppliedByDriftDetectionAt.IsZero()
+		if createdHelloWorldTF.Status.LastAppliedByDriftDetectionAt == nil {
+			return false
+		}
+		return (*createdHelloWorldTF.Status.LastAppliedByDriftDetectionAt).IsZero()
 	}, timeout, interval).Should(BeFalse())
 }
