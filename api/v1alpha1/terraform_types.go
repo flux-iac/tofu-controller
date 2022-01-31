@@ -177,12 +177,12 @@ type TerraformStatus struct {
 
 	// LastDriftDetectedAt is the time when the last drift was detected
 	// +optional
-	LastDriftDetectedAt metav1.Time `json:"lastDriftDetectedAt,omitempty"`
+	LastDriftDetectedAt *metav1.Time `json:"lastDriftDetectedAt,omitempty"`
 
 	// LastAppliedByDriftDetectionAt is the time when the last drift was detected and
 	// terraform apply was performed as a result
 	// +optional
-	LastAppliedByDriftDetectionAt metav1.Time `json:"lastAppliedByDriftDetectionAt,omitempty"`
+	LastAppliedByDriftDetectionAt *metav1.Time `json:"lastAppliedByDriftDetectionAt,omitempty"`
 
 	// +optional
 	AvailableOutputs []string `json:"availableOutputs,omitempty"`
@@ -294,7 +294,7 @@ func TerraformApplied(terraform Terraform, revision string, message string, isDe
 	meta.SetResourceCondition(&terraform, "Apply", metav1.ConditionTrue, TFExecApplySucceedReason, message)
 
 	if terraform.Status.Plan.IsDriftDetectionPlan {
-		(&terraform).Status.LastAppliedByDriftDetectionAt = metav1.Now()
+		(&terraform).Status.LastAppliedByDriftDetectionAt = &metav1.Time{Time: time.Now()}
 	}
 
 	(&terraform).Status.Plan = PlanStatus{
@@ -377,7 +377,7 @@ func TerraformAppliedFailResetPlanAndNotReady(terraform Terraform, revision, rea
 }
 
 func TerraformDriftDetected(terraform Terraform, revision, reason, message string) Terraform {
-	(&terraform).Status.LastDriftDetectedAt = metav1.Now()
+	(&terraform).Status.LastDriftDetectedAt = &metav1.Time{Time: time.Now()}
 	SetTerraformReadiness(&terraform, metav1.ConditionFalse, reason, trimString(message, MaxConditionMessageLength), revision)
 	return terraform
 }
@@ -402,7 +402,8 @@ func (in Terraform) HasDrift() bool {
 	for _, condition := range in.Status.Conditions {
 		if condition.Type == "Apply" &&
 			condition.Status == metav1.ConditionTrue &&
-			in.Status.LastDriftDetectedAt.After(condition.LastTransitionTime.Time) {
+			in.Status.LastDriftDetectedAt != nil &&
+			(*in.Status.LastDriftDetectedAt).After(condition.LastTransitionTime.Time) {
 			return true
 		}
 	}

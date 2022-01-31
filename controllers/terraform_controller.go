@@ -397,7 +397,9 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		if err != nil {
 			log.Error(err, "clean up error")
 		}
-		log.Info(fmt.Sprintf("clean up dir: %s", cleanupDirReply.Message))
+		if cleanupDirReply != nil {
+			log.Info(fmt.Sprintf("clean up dir: %s", cleanupDirReply.Message))
+		}
 	}()
 
 	var backendConfig string

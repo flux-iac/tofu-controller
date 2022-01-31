@@ -94,6 +94,7 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 				ConfigPath:      testEnvKubeConfigPath,
 			},
 			ApprovePlan: infrav1.ApprovePlanAutoValue,
+			Interval:    metav1.Duration{Duration: 5 * time.Second},
 			Path:        "./tf-k8s-configmap",
 			SourceRef: infrav1.CrossNamespaceSourceReference{
 				Kind:      "GitRepository",
@@ -265,6 +266,9 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 		if err != nil {
 			return false
 		}
-		return !createdTFResource.Status.LastDriftDetectedAt.IsZero()
+		if createdTFResource.Status.LastDriftDetectedAt == nil {
+			return false
+		}
+		return !(*createdTFResource.Status.LastDriftDetectedAt).IsZero()
 	}, timeout, interval).Should(BeTrue())
 }
