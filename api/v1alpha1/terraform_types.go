@@ -18,6 +18,9 @@ package v1alpha1
 
 import (
 	"fmt"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"strings"
 	"time"
 
@@ -421,6 +424,24 @@ func (in Terraform) GetRetryInterval() time.Duration {
 // GetStatusConditions returns a pointer to the Status.Conditions slice.
 func (in *Terraform) GetStatusConditions() *[]metav1.Condition {
 	return &in.Status.Conditions
+}
+
+func (in Terraform) ToBytes(scheme *runtime.Scheme) ([]byte, error) {
+	return runtime.Encode(
+		serializer.NewCodecFactory(scheme).LegacyCodec(
+			corev1.SchemeGroupVersion,
+			GroupVersion,
+			sourcev1.GroupVersion,
+		), &in)
+}
+
+func (in *Terraform) FromBytes(b []byte, scheme *runtime.Scheme) error {
+	return runtime.DecodeInto(
+		serializer.NewCodecFactory(scheme).LegacyCodec(
+			corev1.SchemeGroupVersion,
+			GroupVersion,
+			sourcev1.GroupVersion,
+		), b, in)
 }
 
 func trimString(str string, limit int) string {

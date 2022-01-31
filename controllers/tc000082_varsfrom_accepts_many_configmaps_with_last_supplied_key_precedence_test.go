@@ -102,7 +102,7 @@ func Test_000082_varsfrom_accepts_many_configmaps_with_last_supplied_precedence(
 		},
 	}
 
-	terraformBytes, err := reconciler.ToBytes(terraform)
+	terraformBytes, err := terraform.ToBytes(reconciler.Scheme)
 	g.Expect(err).To(BeNil())
 	_, err = runnerServer.GenerateVarsForTF(ctx, &runner.GenerateVarsForTFRequest{
 		WorkingDir: tfExec.WorkingDir(),
