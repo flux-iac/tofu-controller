@@ -508,6 +508,26 @@ func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutp
 	return &WriteOutputsReply{Message: "ok"}, nil
 }
 
+func (r *TerraformRunnerServer) GetOutputs(ctx context.Context, req *GetOutputsRequest) (*GetOutputsReply, error) {
+	outputKey := types.NamespacedName{Namespace: req.Namespace, Name: req.SecretName}
+	outputSecret := corev1.Secret{}
+	err := r.Client.Get(ctx, outputKey, &outputSecret)
+	if err != nil {
+		err = fmt.Errorf("error getting terraform output for health checks: %s", err)
+		return nil, err
+	}
+
+	outputs := map[string]string{}
+	// parse map[string][]byte to map[string]string for go template parsing
+	if len(outputSecret.Data) > 0 {
+		for k, v := range outputSecret.Data {
+			outputs[k] = string(v)
+		}
+	}
+
+	return &GetOutputsReply{Outputs: outputs}, nil
+}
+
 func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *FinalizeSecretsRequest) (*FinalizeSecretsReply, error) {
 	planObjectKey := types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-default-" + req.Name}
 	var planSecret corev1.Secret

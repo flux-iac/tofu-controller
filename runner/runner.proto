@@ -23,6 +23,7 @@ service Runner {
   rpc Destroy(DestroyRequest) returns (DestroyReply) {}
   rpc Output(OutputRequest) returns (OutputReply) {}
   rpc WriteOutputs(WriteOutputsRequest) returns (WriteOutputsReply) {}
+  rpc GetOutputs(GetOutputsRequest) returns (GetOutputsReply) {}
 
   rpc Init(InitRequest) returns (InitReply) {}
   rpc Upload(UploadRequest) returns (UploadReply) {}
@@ -191,6 +192,15 @@ message WriteOutputsRequest {
 
 message WriteOutputsReply {
   string message = 1;
+}
+
+message GetOutputsRequest {
+  string namespace = 1;
+  string secretName = 2;
+}
+
+message GetOutputsReply {
+  map<string, string> outputs = 1;
 }
 
 message InitRequest {
