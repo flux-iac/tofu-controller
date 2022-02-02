@@ -7,7 +7,7 @@ require (
 	github.com/fluxcd/pkg/apis/meta v0.10.2
 	github.com/fluxcd/pkg/runtime v0.12.2
 	github.com/fluxcd/pkg/untar v0.1.0
-	github.com/fluxcd/source-controller/api v0.20.1
+	github.com/fluxcd/source-controller/api v0.21.1
 	github.com/go-logr/logr v1.2.2
 	github.com/hashicorp/go-retryablehttp v0.6.8
 	github.com/hashicorp/terraform-exec v0.15.0
@@ -17,6 +17,7 @@ require (
 	google.golang.org/grpc v1.40.0
 	google.golang.org/protobuf v1.27.1
 	k8s.io/api v0.23.1
+	k8s.io/apiextensions-apiserver v0.23.0
 	k8s.io/apimachinery v0.23.1
 	k8s.io/client-go v0.23.1
 	sigs.k8s.io/cli-utils v0.26.1
@@ -89,7 +90,6 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
-	k8s.io/apiextensions-apiserver v0.23.0 // indirect
 	k8s.io/cli-runtime v0.23.0 // indirect
 	k8s.io/component-base v0.23.0 // indirect
 	k8s.io/klog/v2 v2.30.0 // indirect
