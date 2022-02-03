@@ -24,7 +24,7 @@ spec:
         fsGroup: 1337
       containers:
       - name: manager
-        image: chanwit/tf-controller
+        image: weaveworks/tf-controller
         command:
         - /sbin/tini
         - --
