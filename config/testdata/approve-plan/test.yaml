@@ -1,0 +1,23 @@
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld-auto-approve
+spec:
+  interval: 10s
+  approvePlan: "auto"
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld-manual-approve
+spec:
+  interval: 10s
+  approvePlan: ""
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld

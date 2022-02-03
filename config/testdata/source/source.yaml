@@ -1,0 +1,9 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: GitRepository
+metadata:
+  name: helloworld
+spec:
+  interval: 1m
+  url: https://github.com/tf-controller/helloworld.git
+  ref:
+    branch: main
