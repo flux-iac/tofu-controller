@@ -3,7 +3,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tf-controller
-  namespace: flux-system
   labels:
     control-plane: tf-controller
 spec:
