@@ -7,8 +7,8 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )

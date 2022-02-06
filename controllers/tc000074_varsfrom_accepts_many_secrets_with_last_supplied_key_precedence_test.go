@@ -3,7 +3,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"github.com/chanwit/tf-controller/runner"
+	"github.com/weaveworks/tf-controller/runner"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-exec/tfexec"
 	. "github.com/onsi/gomega"
 
-	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

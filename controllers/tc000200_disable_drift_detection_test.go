@@ -3,8 +3,8 @@ package controllers
 import (
 	"testing"
 
-	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
 	. "github.com/onsi/gomega"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports

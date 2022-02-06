@@ -19,7 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/chanwit/tf-controller/runner"
+	"github.com/weaveworks/tf-controller/runner"
 	"google.golang.org/grpc"
 	"io"
 	"io/ioutil"
@@ -39,8 +39,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 
-	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
