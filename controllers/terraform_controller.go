@@ -581,7 +581,7 @@ terraform {
 
 	if r.shouldDetectDrift(terraform, revision) {
 		var driftDetectionErr error // declared here to avoid shadowing on terraform variable
-		terraform, driftDetectionErr := r.detectDrift(ctx, terraform, tfInstance, runnerClient, revision)
+		terraform, driftDetectionErr = r.detectDrift(ctx, terraform, tfInstance, runnerClient, revision)
 
 		// immediately return if no drift - reconciliation will retry normally
 		if driftDetectionErr == nil {
