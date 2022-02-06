@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
 	. "github.com/onsi/gomega"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

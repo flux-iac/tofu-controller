@@ -27,7 +27,7 @@ RUN unzip -q /terraform_1.1.4_linux_amd64.zip
 
 FROM alpine:3.15
 
-LABEL org.opencontainers.image.source="https://github.com/chanwit/tf-controller"
+LABEL org.opencontainers.image.source="https://github.com/weaveworks/tf-controller"
 
 RUN apk add --no-cache ca-certificates tini git openssh-client gnupg
 

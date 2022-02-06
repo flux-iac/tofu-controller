@@ -1,4 +1,4 @@
-module github.com/chanwit/tf-controller
+module github.com/weaveworks/tf-controller
 
 go 1.17
 
