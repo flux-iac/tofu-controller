@@ -65,7 +65,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/tf-health-check.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-			Checksum:       "0bb4aa27e80e385bcf47572777de6c0ae8e1100357a88b8fe0cec0f966ce31a3", // must be the real checksum value
+			Checksum:       "84b1410341b0e87d811bb1b812741e84a74ea00db851f88fd0855589b5093d14", // must be the real checksum value
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
@@ -107,7 +107,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 				},
 				{
 					Name:    "httpTest",
-					URL:     "{{.bar}}",
+					URL:     server.URL() + "{{.bar}}",
 					Type:    "http",
 					Timeout: &metav1.Duration{Duration: time.Second * 5},
 				},
@@ -187,7 +187,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 		"Name":        "tf-output-" + terraformName,
 		"Namespace":   "flux-system",
 		"FooValue":    "weave.works",
-		"BarValue":    "https://httpbin.org/get",
+		"BarValue":    "/get",
 		"PortValue":   "80",
 		"OwnerRef[0]": string(createdhealthCheckTF.UID),
 	}
