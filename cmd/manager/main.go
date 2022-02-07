@@ -17,11 +17,13 @@ limitations under the License.
 package main
 
 import (
-	"github.com/weaveworks/tf-controller/runner"
-	"google.golang.org/grpc"
 	"net"
 	"os"
 	"time"
+
+	"github.com/weaveworks/tf-controller/mtls"
+	"github.com/weaveworks/tf-controller/runner"
+	"google.golang.org/grpc"
 
 	"github.com/fluxcd/pkg/runtime/client"
 	"github.com/fluxcd/pkg/runtime/events"
@@ -32,15 +34,17 @@ import (
 	flag "github.com/spf13/pflag"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/controllers"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	crtlmetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 	//+kubebuilder:scaffold:imports
 )
@@ -128,42 +132,78 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.TerraformReconciler{
+	//+kubebuilder:scaffold:builder
+	ctx := ctrl.SetupSignalHandler()
+
+	certsReady := make(chan struct{})
+
+	rotator := &mtls.CertRotator{
+		CAName:         "tf-controller",
+		CAOrganization: "weaveworks",
+		DNSName:        "tf-controller",
+		SecretKey: types.NamespacedName{
+			Namespace: "flux-system",
+			Name:      "tf-controller.tls",
+		},
+		Ready: certsReady,
+	}
+
+	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
+		rotator.CAName = "localhost"
+		rotator.CAOrganization = "localhost"
+		rotator.DNSName = "localhost"
+	}
+
+	if err := mtls.AddRotator(ctx, mgr, rotator); err != nil {
+		setupLog.Error(err, "unable to set up cert rotation")
+		os.Exit(1)
+	}
+
+	reconciler := &controllers.TerraformReconciler{
 		Client:                mgr.GetClient(),
 		Scheme:                mgr.GetScheme(),
 		EventRecorder:         mgr.GetEventRecorderFor(controllerName),
 		ExternalEventRecorder: eventRecorder,
 		MetricsRecorder:       metricsRecorder,
 		StatusPoller:          polling.NewStatusPoller(mgr.GetClient(), mgr.GetRESTMapper()),
-	}).SetupWithManager(mgr, concurrent, httpRetry); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Terraform")
-		os.Exit(1)
+		CertRotator:           rotator,
 	}
-	//+kubebuilder:scaffold:builder
 
-	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up health check")
-		os.Exit(1)
-	}
-	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up ready check")
+	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Terraform")
 		os.Exit(1)
 	}
 
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
-		listener, err := net.Listen("tcp", "localhost:30000")
-		if err != nil {
-			panic(err.Error())
-		}
-
-		server := grpc.NewServer()
-		// local runner, use the same client as the manager
-		runner.RegisterRunnerServer(server, &runner.TerraformRunnerServer{
-			Client: mgr.GetClient(),
-			Scheme: mgr.GetScheme(),
-		})
-
 		go func() {
+			// wait for the certs to be available and the manager to be ready
+			<-mgr.Elected()
+			<-certsReady
+			listener, err := net.Listen("tcp", "localhost:30000")
+			if err != nil {
+				panic(err.Error())
+			}
+
+			tlsSecret := &corev1.Secret{}
+			if err := mgr.GetClient().Get(ctx, rotator.SecretKey, tlsSecret); err != nil {
+				panic(err.Error())
+			}
+
+			creds, err := mtls.GetGRPCClientCredentials(tlsSecret)
+			if err != nil {
+				panic(err.Error())
+			}
+
+			server := grpc.NewServer(grpc.Creds(creds))
+
+			// local runner, use the same client as the manager
+			runner.RegisterRunnerServer(server, &runner.TerraformRunnerServer{
+				Client: mgr.GetClient(),
+				Scheme: mgr.GetScheme(),
+			})
+
+			setupLog.Info("starting local grpc server")
+
 			if err := server.Serve(listener); err != nil {
 				panic(err.Error())
 			}
@@ -171,7 +211,7 @@ func main() {
 	}
 
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctx); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
