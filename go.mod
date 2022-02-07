@@ -15,7 +15,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
 	github.com/zclconf/go-cty v1.9.1
-	google.golang.org/grpc v1.40.0
+	google.golang.org/grpc v1.44.0
 	google.golang.org/protobuf v1.27.1
 	k8s.io/api v0.23.1
 	k8s.io/apiextensions-apiserver v0.23.0
