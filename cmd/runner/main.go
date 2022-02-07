@@ -18,7 +18,7 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/chanwit/tf-controller/runner"
+	_ "github.com/weaveworks/tf-controller/runner"
 )
 
 func main() {

@@ -16,11 +16,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
-	"github.com/chanwit/tf-controller/utils"
 	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/fluxcd/pkg/untar"
 	"github.com/hashicorp/terraform-exec/tfexec"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+	"github.com/weaveworks/tf-controller/utils"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"

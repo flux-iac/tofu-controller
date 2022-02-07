@@ -3,7 +3,7 @@ package controllers
 import (
 	"bytes"
 	"compress/gzip"
-	"github.com/chanwit/tf-controller/utils"
+	"github.com/weaveworks/tf-controller/utils"
 	"io/ioutil"
 	"testing"
 
