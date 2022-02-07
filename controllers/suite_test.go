@@ -19,12 +19,8 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/tf-controller/runner"
-	"google.golang.org/grpc"
 	"io"
 	"io/ioutil"
-	"k8s.io/apimachinery/pkg/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"math/rand"
 	"net"
 	"net/http"
@@ -33,6 +29,11 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/weaveworks/tf-controller/runner"
+	"google.golang.org/grpc"
+	"k8s.io/apimachinery/pkg/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 
 	"github.com/onsi/gomega/ghttp"
 	corev1 "k8s.io/api/core/v1"
@@ -161,6 +162,10 @@ func TestMain(m *testing.M) {
 	})
 	server.RouteToHandler("GET", "/tf-hcl-var-with-outputs.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/tf-hcl-var-with-outputs.tar.gz")
+	})
+	// for health check http test
+	server.RouteToHandler("GET", "/get", func(writer http.ResponseWriter, request *http.Request) {
+		ghttp.RespondWith(http.StatusOK, "ok")
 	})
 
 	server.Start()

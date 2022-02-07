@@ -56,25 +56,19 @@ func Test_000240_health_check_test(t *testing.T) {
 	}{
 		{
 			name:    "testHttp",
-			url:     "http://httpbin.org/get",
-			timeout: time.Second * 10,
-			wantErr: false,
-		},
-		{
-			name:    "testHttp",
-			url:     "https://httpbin.org/get",
+			url:     server.URL() + "/get",
 			timeout: time.Second * 10,
 			wantErr: false,
 		},
 		{
 			name:    "testHttp400",
-			url:     "https://httpbin.org/status/400",
+			url:     server.URL() + "/bad-request",
 			timeout: time.Second * 10,
 			wantErr: true,
 		},
 		{
 			name:    "testInvalidHttpUrl",
-			url:     "httpbin.org/status/400",
+			url:     "invalid.com",
 			timeout: time.Second * 10,
 			wantErr: true,
 		},
