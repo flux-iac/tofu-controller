@@ -17,13 +17,11 @@ limitations under the License.
 package main
 
 import (
-	"net"
 	"os"
 	"time"
 
 	"github.com/weaveworks/tf-controller/mtls"
 	"github.com/weaveworks/tf-controller/runner"
-	"google.golang.org/grpc"
 
 	"github.com/fluxcd/pkg/runtime/client"
 	"github.com/fluxcd/pkg/runtime/events"
@@ -34,7 +32,6 @@ import (
 	flag "github.com/spf13/pflag"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/controllers"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -175,39 +172,11 @@ func main() {
 	}
 
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
-		go func() {
-			// wait for the certs to be available and the manager to be ready
-			<-mgr.Elected()
-			<-certsReady
-			listener, err := net.Listen("tcp", "localhost:30000")
-			if err != nil {
-				panic(err.Error())
-			}
-
-			tlsSecret := &corev1.Secret{}
-			if err := mgr.GetClient().Get(ctx, rotator.SecretKey, tlsSecret); err != nil {
-				panic(err.Error())
-			}
-
-			creds, err := mtls.GetGRPCClientCredentials(tlsSecret)
-			if err != nil {
-				panic(err.Error())
-			}
-
-			server := grpc.NewServer(grpc.Creds(creds))
-
-			// local runner, use the same client as the manager
-			runner.RegisterRunnerServer(server, &runner.TerraformRunnerServer{
-				Client: mgr.GetClient(),
-				Scheme: mgr.GetScheme(),
-			})
-
-			setupLog.Info("starting local grpc server")
-
-			if err := server.Serve(listener); err != nil {
-				panic(err.Error())
-			}
-		}()
+		runnerServer := &runner.TerraformRunnerServer{
+			Client: mgr.GetClient(),
+			Scheme: mgr.GetScheme(),
+		}
+		go mtls.StartGRPCServer(ctx, runnerServer, "localhost:30000", mgr, rotator)
 	}
 
 	setupLog.Info("starting manager")
