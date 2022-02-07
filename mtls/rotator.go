@@ -15,6 +15,7 @@ import (
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -112,14 +113,22 @@ tickerLoop:
 // refreshCertIfNeeded returns whether there's any error when refreshing the certs if needed.
 func (cr *CertRotator) refreshCertIfNeeded() error {
 	refreshFn := func() (bool, error) {
-		secret := &corev1.Secret{}
+		ctx := context.Background()
 
-		if err := cr.client.Get(context.Background(), cr.SecretKey, secret); err != nil {
-			return false, errors.Wrap(err, "acquiring secret to update certificates")
+		secret := &corev1.Secret{}
+		if err := cr.client.Get(ctx, cr.SecretKey, secret); err != nil {
+			if !apierrors.IsNotFound(err) {
+				return false, errors.Wrap(err, "acquiring secret to update certificates")
+			}
+			secret.ObjectMeta.Namespace = cr.SecretKey.Namespace
+			secret.ObjectMeta.Name = cr.SecretKey.Name
+			if err := cr.client.Create(ctx, secret); err != nil {
+				return false, errors.Wrap(err, "creating secret to update certificates")
+			}
 		}
 
 		if secret.Data == nil || !cr.validCACert(secret.Data[caCertName], secret.Data[caKeyName]) {
-			crLog.Info("refreshing CA and server certs because")
+			crLog.Info("refreshing CA and server certs")
 			if err := cr.refreshCerts(true, secret); err != nil {
 				crLog.Error(err, "could not refresh CA and server certs")
 				return false, nil
