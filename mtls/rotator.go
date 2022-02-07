@@ -22,16 +22,18 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
-//TODO:
-// label tls secrets on creation that will allow updating ca values whenever the ca cert changes
-// add reconciler for tls labelled secrets
 // process should be:
 // ca rotates on controller startup --if flag is specified
 // creates the ca and controller cert
 // then finds all runner certs and rotates them
 // ca refreshes on a long interval once every 7 days
-// server cert and runner certs refresh on a configurable interval 30 minutes
+// server cert and runner certs refresh on a configurable interval
 // runner certs rotate when the runner starts or after configurable interval 30 minutes
+
+//TODO:
+// 1: label tls secrets on creation that will allow updating ca values whenever the ca cert changes
+// 2: add reconciler for tls labelled secrets
+// 3: separate cert validate durations
 
 const (
 	certName               = "tls.crt"
