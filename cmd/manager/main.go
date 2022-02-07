@@ -17,14 +17,12 @@ limitations under the License.
 package main
 
 import (
-	"github.com/chanwit/tf-controller/runner"
+	"github.com/weaveworks/tf-controller/runner"
 	"google.golang.org/grpc"
 	"net"
 	"os"
 	"time"
 
-	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
-	"github.com/chanwit/tf-controller/controllers"
 	"github.com/fluxcd/pkg/runtime/client"
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/fluxcd/pkg/runtime/leaderelection"
@@ -32,6 +30,8 @@ import (
 	"github.com/fluxcd/pkg/runtime/metrics"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	flag "github.com/spf13/pflag"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+	"github.com/weaveworks/tf-controller/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"

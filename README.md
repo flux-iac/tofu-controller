@@ -64,9 +64,9 @@ Alternatively, you can install TF-controller via `kubectl`:
 
 ```shell
 export TF_CON_VER=v0.8.0
-kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
-kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
-kubectl apply -f https://github.com/chanwit/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
+kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
+kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
+kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
 ```
 
 ## Quick start
@@ -396,7 +396,7 @@ spec:
 
 ## Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/chanwit/tf-controller.svg)](https://starchart.cc/chanwit/tf-controller)
+[![Stargazers over time](https://starchart.cc/weaveworks/tf-controller.svg)](https://starchart.cc/weaveworks/tf-controller)
 
 ## Roadmap
 

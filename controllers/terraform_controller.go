@@ -33,8 +33,6 @@ import (
 	"strings"
 	"time"
 
-	infrav1 "github.com/chanwit/tf-controller/api/v1alpha1"
-	"github.com/chanwit/tf-controller/runner"
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/fluxcd/pkg/runtime/metrics"
@@ -44,6 +42,8 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/terraform-exec/tfexec"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+	"github.com/weaveworks/tf-controller/runner"
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
 	"google.golang.org/grpc"
@@ -581,7 +581,7 @@ terraform {
 
 	if r.shouldDetectDrift(terraform, revision) {
 		var driftDetectionErr error // declared here to avoid shadowing on terraform variable
-		terraform, driftDetectionErr := r.detectDrift(ctx, terraform, tfInstance, runnerClient, revision)
+		terraform, driftDetectionErr = r.detectDrift(ctx, terraform, tfInstance, runnerClient, revision)
 
 		// immediately return if no drift - reconciliation will retry normally
 		if driftDetectionErr == nil {
