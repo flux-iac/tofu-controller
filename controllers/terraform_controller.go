@@ -1410,11 +1410,11 @@ func getPodFQN(pod corev1.Pod) (string, error) {
 func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terraform infrav1.Terraform) (runner.RunnerClient, error) {
 	// Pod's IP pattern: http://10-244-0-7.default.pod.cluster.local
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
+		// TODO: conn should be closed somehow...
 		conn, err := r.getRunnerConnection(ctx, &terraform, "localhost:30000")
 		if err != nil {
 			return nil, err
 		}
-		defer conn.Close()
 
 		runnerClient := runner.NewRunnerClient(conn)
 		return runnerClient, nil
