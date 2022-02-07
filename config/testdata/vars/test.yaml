@@ -27,6 +27,15 @@ spec:
   sourceRef:
     kind: GitRepository
     name: helloworld
+  vars:
+  - name: region
+    value: us-east-1
+  - name: cluster_spec
+    value:
+      region: us-east-1
+      env: dev
+      node_count: 10
+      public: false
   varsFrom:
   - kind: ConfigMap
     name: cluster-config
@@ -35,4 +44,3 @@ spec:
     - instanceType
   - kind: Secret
     name: cluster-config
-# TODO: add vars to be tested after this issue is addressed https://github.com/weaveworks/tf-controller/issues/80
