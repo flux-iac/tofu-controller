@@ -20,6 +20,9 @@ endif
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
+# Allows for defining additional Docker buildx arguments, e.g. '--push'.
+BUILD_ARGS ?=
+
 .PHONY: all
 all: build
 
@@ -86,7 +89,7 @@ run: manifests generate fmt vet ## Run a controller from your host.
 
 .PHONY: docker-build
 docker-build: ## Build docker
-	docker build -t ${IMG}:${TAG} .
+	docker buildx build -t ${IMG} ${BUILD_ARGS} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
@@ -114,6 +117,22 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 .PHONY: undeploy
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+
+# Deploy controller dev image in the configured Kubernetes cluster in ~/.kube/config
+.PHONY: dev-deploy
+dev-deploy: manifests kustomize
+	mkdir -p config/dev && cp config/default/* config/dev
+	cd config/dev && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build config/dev | kubectl apply -f -
+	rm -rf config/dev
+
+# Delete dev deployment and CRDs
+.PHONY: dev-cleanup
+dev-cleanup: manifests kustomize
+	mkdir -p config/dev && cp config/default/* config/dev
+	cd config/dev && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build config/dev | kubectl delete -f -
+	rm -rf config/dev
 
 CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
 .PHONY: controller-gen
