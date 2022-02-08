@@ -1380,6 +1380,11 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 }
 
 func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terraform infrav1.Terraform) (runner.RunnerClient, error) {
+	err := r.reconcileRunnerSecret(ctx, &terraform)
+	if err != nil {
+		return nil, err
+	}
+
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
 		conn, err := r.getRunnerConnection(ctx, &terraform, "localhost:30000")
 		if err != nil {
@@ -1388,11 +1393,6 @@ func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terrafor
 
 		runnerClient := runner.NewRunnerClient(conn)
 		return runnerClient, nil
-	}
-
-	err := r.reconcileRunnerSecret(ctx, &terraform)
-	if err != nil {
-		return nil, err
 	}
 
 	err = r.reconcileRunnerPod(ctx, &terraform)

@@ -67,6 +67,7 @@ var (
 	k8sClient    client.Client
 	testEnv      *envtest.Environment
 	server       *ghttp.Server
+	rotator      *mtls.CertRotator
 	reconciler   *TerraformReconciler
 	runnerServer *runner.TerraformRunnerServer
 )
@@ -191,7 +192,7 @@ func TestMain(m *testing.M) {
 
 	certsReady := make(chan struct{})
 
-	rotator := &mtls.CertRotator{
+	rotator = &mtls.CertRotator{
 		CAName:         "localhost",
 		CAOrganization: "localhost",
 		DNSName:        "localhost",
