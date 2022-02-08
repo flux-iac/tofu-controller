@@ -166,10 +166,28 @@ func main() {
 		CertRotator:           rotator,
 	}
 
-	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Terraform")
+	// We need to register the indexed fields before manager starts...
+	// Index the Terraforms by the GitRepository references they (may) point at.
+	if err := mgr.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.GitRepositoryIndexKey,
+		reconciler.IndexBy(sourcev1.GitRepositoryKind)); err != nil {
+		setupLog.Error(err, "failed setting index fields")
 		os.Exit(1)
 	}
+
+	// Index the Terraforms by the Bucket references they (may) point at.
+	if err := mgr.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.BucketIndexKey,
+		reconciler.IndexBy(sourcev1.BucketKind)); err != nil {
+		setupLog.Error(err, "failed setting index fields")
+		os.Exit(1)
+	}
+
+	go func() {
+		<-rotator.Ready
+		if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "Terraform")
+			os.Exit(1)
+		}
+	}()
 
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
 		runnerServer := &runner.TerraformRunnerServer{
