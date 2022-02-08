@@ -1,0 +1,4 @@
+# See https://github.com/helm/chart-testing#configuration
+remote: origin
+target-branch: main
+validate-maintainers: false
