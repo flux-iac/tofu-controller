@@ -18,11 +18,12 @@ package v1alpha1
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"strings"
-	"time"
 
 	"github.com/fluxcd/pkg/apis/meta"
 	corev1 "k8s.io/api/core/v1"
@@ -30,15 +31,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+const (
+	// RunnerTLSSecretName is the name of the secret containing a TLS cert that will be written to
+	// the namespace in which a terraform runner is created
+	RunnerTLSSecretName = "terraform-runner.tls"
+)
 
-/*
-  writeOutputsToSecret:
-    name: helloworld-tf-outputs
-    outputs:
-    - hello_world
-*/
 // WriteOutputsToSecretSpec defines where to store outputs, and which outputs to be stored.
 type WriteOutputsToSecretSpec struct {
 	// Name is the name of the Secret to be written
