@@ -1,0 +1,417 @@
+{{- if .Values.installCRDs }}
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.7.0
+  creationTimestamp: null
+  labels:
+    {{- include "tf-controller.labels" . | nindent 4 }}
+  name: terraforms.infra.contrib.fluxcd.io
+spec:
+  group: infra.contrib.fluxcd.io
+  names:
+    kind: Terraform
+    listKind: TerraformList
+    plural: terraforms
+    shortNames:
+    - tf
+    singular: terraform
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.conditions[?(@.type=="Ready")].status
+      name: Ready
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="Ready")].message
+      name: Status
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Terraform is the Schema for the terraforms API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: TerraformSpec defines the desired state of Terraform
+            properties:
+              approvePlan:
+                description: ApprovePlan specifies name of a plan wanted to approve.
+                  If its value is "auto", the controller will automatically approve
+                  every plan.
+                type: string
+              backendConfig:
+                description: BackendConfigSpec is for specifying configuration for
+                  Terraform's Kubernetes backend
+                properties:
+                  configPath:
+                    type: string
+                  disable:
+                    description: Disable is to completely disable the backend configuration.
+                    type: boolean
+                  inClusterConfig:
+                    type: boolean
+                  labels:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  secretSuffix:
+                    type: string
+                type: object
+              cliConfigSecretRef:
+                description: SecretReference represents a Secret Reference. It has
+                  enough information to retrieve secret in any namespace
+                properties:
+                  name:
+                    description: Name is unique within a namespace to reference a
+                      secret resource.
+                    type: string
+                  namespace:
+                    description: Namespace defines the space within which the secret
+                      name must be unique.
+                    type: string
+                type: object
+              destroy:
+                description: Destroy produces a destroy plan. Applying the plan will
+                  destroy all resources.
+                type: boolean
+              disableDriftDetection:
+                default: false
+                description: Disable automatic drift detection. Drift detection may
+                  be resource intensive in the context of a large cluster or complex
+                  Terraform statefile. Defaults to false.
+                type: boolean
+              force:
+                default: false
+                description: Force instructs the controller to unconditionally re-plan
+                  and re-apply TF resources. Defaults to false.
+                type: boolean
+              interval:
+                description: The interval at which to reconcile the Terraform.
+                type: string
+              path:
+                description: Path to the directory containing Terraform (.tf) files.
+                  Defaults to 'None', which translates to the root path of the SourceRef.
+                type: string
+              retryInterval:
+                description: The interval at which to retry a previously failed reconciliation.
+                  When not specified, the controller uses the TerraformSpec.Interval
+                  value to retry failures.
+                type: string
+              sourceRef:
+                description: SourceRef is the reference of the source where the Terraform
+                  files are stored.
+                properties:
+                  apiVersion:
+                    description: API version of the referent.
+                    type: string
+                  kind:
+                    description: Kind of the referent.
+                    enum:
+                    - GitRepository
+                    - Bucket
+                    type: string
+                  name:
+                    description: Name of the referent.
+                    type: string
+                  namespace:
+                    description: Namespace of the referent, defaults to the namespace
+                      of the Kubernetes resource object that contains the reference.
+                    type: string
+                required:
+                - kind
+                - name
+                type: object
+              suspend:
+                description: Suspend is to tell the controller to suspend subsequent
+                  TF executions, it does not apply to already started executions.
+                  Defaults to false.
+                type: boolean
+              vars:
+                description: List of input variables to set for the Terraform program.
+                items:
+                  properties:
+                    name:
+                      description: Name is the name of the variable
+                      type: string
+                    value:
+                      type: string
+                    valueFrom:
+                      description: EnvVarSource represents a source for the value
+                        of an EnvVar.
+                      properties:
+                        configMapKeyRef:
+                          description: Selects a key of a ConfigMap.
+                          properties:
+                            key:
+                              description: The key to select.
+                              type: string
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
+                              type: string
+                            optional:
+                              description: Specify whether the ConfigMap or its key
+                                must be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                        fieldRef:
+                          description: 'Selects a field of the pod: supports metadata.name,
+                            metadata.namespace, `metadata.labels[''<KEY>'']`, `metadata.annotations[''<KEY>'']`,
+                            spec.nodeName, spec.serviceAccountName, status.hostIP,
+                            status.podIP, status.podIPs.'
+                          properties:
+                            apiVersion:
+                              description: Version of the schema the FieldPath is
+                                written in terms of, defaults to "v1".
+                              type: string
+                            fieldPath:
+                              description: Path of the field to select in the specified
+                                API version.
+                              type: string
+                          required:
+                          - fieldPath
+                          type: object
+                        resourceFieldRef:
+                          description: 'Selects a resource of the container: only
+                            resources limits and requests (limits.cpu, limits.memory,
+                            limits.ephemeral-storage, requests.cpu, requests.memory
+                            and requests.ephemeral-storage) are currently supported.'
+                          properties:
+                            containerName:
+                              description: 'Container name: required for volumes,
+                                optional for env vars'
+                              type: string
+                            divisor:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              description: Specifies the output format of the exposed
+                                resources, defaults to "1"
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              x-kubernetes-int-or-string: true
+                            resource:
+                              description: 'Required: resource to select'
+                              type: string
+                          required:
+                          - resource
+                          type: object
+                        secretKeyRef:
+                          description: Selects a key of a secret in the pod's namespace
+                          properties:
+                            key:
+                              description: The key of the secret to select from.  Must
+                                be a valid secret key.
+                              type: string
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
+                              type: string
+                            optional:
+                              description: Specify whether the Secret or its key must
+                                be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                      type: object
+                  required:
+                  - name
+                  type: object
+                type: array
+              varsFrom:
+                description: List of references to a Secret or a ConfigMap to generate
+                  variables for Terraform resources based on its data, selectively
+                  by varsKey. Values of the later Secret / ConfigMap with the samek
+                  keys will override those of the former.
+                items:
+                  description: VarsReference contain a reference of a Secret or a
+                    ConfigMap to generate variables for Terraform resources based
+                    on its data, selectively by varsKey.
+                  properties:
+                    kind:
+                      description: Kind of the values referent, valid values are ('Secret',
+                        'ConfigMap').
+                      enum:
+                      - Secret
+                      - ConfigMap
+                      type: string
+                    name:
+                      description: Name of the values referent. Should reside in the
+                        same namespace as the referring resource.
+                      maxLength: 253
+                      minLength: 1
+                      type: string
+                    optional:
+                      description: Optional marks this VarsReference as optional.
+                        When set, a not found error for the values reference is ignored,
+                        but any VarsKey or transient error will still result in a
+                        reconciliation failure.
+                      type: boolean
+                    varsKeys:
+                      description: VarsKeys is the data key where the values.yaml
+                        or a specific value can be found at. Defaults to all keys.
+                      items:
+                        type: string
+                      type: array
+                  required:
+                  - kind
+                  - name
+                  type: object
+                type: array
+              writeOutputsToSecret:
+                description: A list of target secrets for the outputs to be written
+                  as.
+                properties:
+                  name:
+                    description: Name is the name of the Secret to be written
+                    type: string
+                  outputs:
+                    description: Outputs contain the selected names of outputs to
+                      be written to the secret. Empty array means writing all outputs,
+                      which is default.
+                    items:
+                      type: string
+                    type: array
+                required:
+                - name
+                type: object
+            required:
+            - interval
+            - sourceRef
+            type: object
+          status:
+            description: TerraformStatus defines the observed state of Terraform
+            properties:
+              availableOutputs:
+                items:
+                  type: string
+                type: array
+              conditions:
+                items:
+                  description: "Condition contains details for one aspect of the current
+                    state of this API Resource. --- This struct is intended for direct
+                    use as an array at the field path .status.conditions.  For example,
+                    type FooStatus struct{     // Represents the observations of a
+                    foo's current state.     // Known .status.conditions.type are:
+                    \"Available\", \"Progressing\", and \"Degraded\"     // +patchMergeKey=type
+                    \    // +patchStrategy=merge     // +listType=map     // +listMapKey=type
+                    \    Conditions []metav1.Condition `json:\"conditions,omitempty\"
+                    patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"`
+                    \n     // other fields }"
+                  properties:
+                    lastTransitionTime:
+                      description: lastTransitionTime is the last time the condition
+                        transitioned from one status to another. This should be when
+                        the underlying condition changed.  If that is not known, then
+                        using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: message is a human readable message indicating
+                        details about the transition. This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: observedGeneration represents the .metadata.generation
+                        that the condition was set based upon. For instance, if .metadata.generation
+                        is currently 12, but the .status.conditions[x].observedGeneration
+                        is 9, the condition is out of date with respect to the current
+                        state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: reason contains a programmatic identifier indicating
+                        the reason for the condition's last transition. Producers
+                        of specific condition types may define expected values and
+                        meanings for this field, and whether the values are considered
+                        a guaranteed API. The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                        --- Many .condition.type values are consistent across resources
+                        like Available, but because arbitrary conditions can be useful
+                        (see .node.status.conditions), the ability to deconflict is
+                        important. The regex it matches is (dns1123SubdomainFmt/)?(qualifiedNameFmt)
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+              lastAppliedRevision:
+                description: The last successfully applied revision. The revision
+                  format for Git sources is <branch|tag>/<commit-sha>.
+                type: string
+              lastAttemptedRevision:
+                description: LastAttemptedRevision is the revision of the last reconciliation
+                  attempt.
+                type: string
+              lastHandledReconcileAt:
+                description: LastHandledReconcileAt holds the value of the most recent
+                  reconcile request value, so a change can be detected.
+                type: string
+              lastPlannedRevision:
+                description: LastPlannedRevision is the revision used by the last
+                  planning process. The result could be either no plan change or a
+                  new plan generated.
+                type: string
+              observedGeneration:
+                description: ObservedGeneration is the last reconciled generation.
+                format: int64
+                type: integer
+              plan:
+                properties:
+                  isDestroyPlan:
+                    type: boolean
+                  lastApplied:
+                    type: string
+                  pending:
+                    type: string
+                type: object
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+{{- end }}

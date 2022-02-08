@@ -50,7 +50,7 @@ After that you can install TF-controller manually with Helm by:
 
 ```shell
 # Add tf-controller helm repository to local
-helm repo add tf-controller https://tf-controller.github.io/charts/
+helm repo add tf-controller https://weaveworks.github.io/tf-controller/
 
 # Install tf-controller
 helm upgrade -i tf-controller tf-controller/tf-controller \
@@ -58,7 +58,7 @@ helm upgrade -i tf-controller tf-controller/tf-controller \
 ```
 
 For details on configurable parameters of the TF-controller chart,
-please see [chart readme](https://github.com/tf-controller/charts/blob/main/charts/tf-controller/README.md).
+please see [chart readme](./charts/tf-controller/README.md).
 
 Alternatively, you can install TF-controller via `kubectl`:
 
