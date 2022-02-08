@@ -5,6 +5,16 @@ A Helm chart for TF-controller
 ## Installation
 
 Before using TF-controller, you have to install Flux by using either `flux install` or `flux bootstrap` command.
+After that you can install TF-controller manually with Helm by:
+
+```shell
+# Add tf-controller helm repository
+helm repo add tf-controller https://weaveworks.github.io/tf-controller/
+
+# Install tf-controller
+helm upgrade -i tf-controller tf-controller/tf-controller \
+    --namespace flux-system
+```
 
 ## Configuration
 
@@ -12,7 +22,7 @@ The following tables lists the configurable parameters of the TF-controller char
 
 | Parameter                                         | Default                                              | Description
 | -----------------------------------------------   | ---------------------------------------------------- | ---
-| `image.repository`                                | `ghcr.io/chanwit/tf-controller`                      | Image repository
+| `image.repository`                                | `ghcr.io/weaveworks/tf-controller`                   | Image repository
 | `image.tag`                                       | `<VERSION>`                                          | Image tag
 | `image.pullPolicy`                                | `IfNotPresent`                                       | Image pull policy
 | `image.pullSecret`                                | `None`                                               | Image pull secret
