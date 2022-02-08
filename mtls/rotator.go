@@ -23,6 +23,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
+// Heavily based on and inspired by https://github.com/open-policy-agent/cert-controller
+
 // process should be:
 // ca rotates on controller startup --if flag is specified
 // creates the ca and controller cert
