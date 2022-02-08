@@ -1379,20 +1379,8 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 	return ctrl.Result{}, nil
 }
 
-func getPodFQN(pod corev1.Pod) (string, error) {
-	podIP := pod.Status.PodIP
-	if podIP == "" {
-		return "", fmt.Errorf("pod ip not found")
-	}
-	prefix := strings.ReplaceAll(podIP, ".", "-")
-	fqn := fmt.Sprintf("%s.%s.pod.%s", prefix, pod.Namespace, "cluster.local.")
-	return fqn, nil
-}
-
 func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terraform infrav1.Terraform) (runner.RunnerClient, error) {
-	// Pod's IP pattern: http://10-244-0-7.default.pod.cluster.local
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
-		// TODO: conn should be closed somehow...
 		conn, err := r.getRunnerConnection(ctx, &terraform, "localhost:30000")
 		if err != nil {
 			return nil, err
@@ -1402,15 +1390,17 @@ func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terrafor
 		return runnerClient, nil
 	}
 
-	tlsSecretName, err := r.reconcileRunnerSecret(ctx, &terraform)
+	err := r.reconcileRunnerSecret(ctx, &terraform)
 	if err != nil {
 		return nil, err
 	}
 
-	err = r.reconcileRunnerPod(ctx, &terraform, tlsSecretName)
+	err = r.reconcileRunnerPod(ctx, &terraform)
 	if err != nil {
 		return nil, err
 	}
+
+	//TODO: return client
 	return nil, nil
 }
 
@@ -1567,83 +1557,53 @@ func (r *TerraformReconciler) templateParse(content map[string]string, text stri
 }
 
 // reconcileRunnerSecret reconciles the runner secret used for mtls
-// it should create the secret if it doesn't exist and then verify that the cert is valid
+//
+// It should create the secret if it doesn't exist and then verify that the cert is valid
 // if the cert is not present in the secret or is invalid, it will generate a new cert and
-// write it to the secret
-func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terraform *infrav1.Terraform) (string, error) {
-	secretName := fmt.Sprintf("%s-runner.tls", terraform.Name)
-
+// write it to the secret. One secret per namespace is created in order to sidestep the need
+// for specifying a pod ip in the certificate SAN field.
+func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terraform *infrav1.Terraform) error {
 	tlsSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: terraform.Namespace,
-			Name:      secretName,
+			Name:      infrav1.RunnerTLSSecretName,
 		},
 	}
 
 	if err := r.Get(ctx, client.ObjectKeyFromObject(tlsSecret), tlsSecret); err != nil {
 		if !apierrors.IsNotFound(err) {
-			return "", err
+			return err
 		}
 		// create the runner tls secret
 		if err := r.Create(ctx, tlsSecret); err != nil {
-			return "", err
+			return err
 		}
 	}
 
-	runnerHostname := fmt.Sprintf("%s.%s.svc.cluster.local", terraform.Name, terraform.Namespace)
-
-	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
-		runnerHostname = "localhost"
+	// this hostname will be used to generate a cert valid
+	// for all pods in the given namespace
+	hostname := fmt.Sprintf("*.%s.pod.cluster.local", terraform.Namespace)
+	if err := r.CertRotator.RefreshRunnerCertIfNeeded(hostname, tlsSecret); err != nil {
+		return err
 	}
 
-	if err := r.CertRotator.RefreshRunnerCertIfNeeded(runnerHostname, tlsSecret); err != nil {
-		return "", err
-	}
-
-	return secretName, nil
+	return nil
 }
 
-func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform *infrav1.Terraform, tlsSecretName string) error {
+func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform *infrav1.Terraform) error {
 	runner := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: terraform.Namespace,
 			Name:      fmt.Sprintf("%s-runner", terraform.Name),
 		},
 	}
+
 	if err := r.Get(ctx, client.ObjectKeyFromObject(runner), runner); err != nil {
 		if !apierrors.IsNotFound(err) {
 			return err
 		}
-		runner.Spec = runnerPodSpec(tlsSecretName)
+		runner.Spec = runnerPodSpec(infrav1.RunnerTLSSecretName)
 		if err := r.Create(ctx, runner); err != nil {
-			return err
-		}
-	}
-
-	runnerSvc := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: terraform.Namespace,
-			Name:      fmt.Sprintf("%s-runner", terraform.Name),
-		},
-	}
-
-	if err := r.Get(ctx, client.ObjectKeyFromObject(runnerSvc), runnerSvc); err != nil {
-		if !apierrors.IsNotFound(err) {
-			return err
-		}
-		runnerSvc.Spec = corev1.ServiceSpec{
-			Ports: []corev1.ServicePort{
-				{
-					Name:       "grpc",
-					Port:       5555,
-					TargetPort: intstr.FromInt(5555),
-				},
-			},
-			Selector: map[string]string{
-				"app": fmt.Sprintf("%s-runner", terraform.Name),
-			},
-		}
-		if err := r.Create(ctx, runnerSvc); err != nil {
 			return err
 		}
 	}
@@ -1660,10 +1620,12 @@ func runnerPodSpec(tlsSecretName string) corev1.PodSpec {
 				Image: "ghcr.io/weaveworks/tf-controller/runner-server:latest",
 				Ports: []corev1.ContainerPort{
 					{
-						Name:          "grpc",
+						Name: "grpc",
+						//TODO: make configurable
 						ContainerPort: 5555,
 					},
 				},
+				//TODO: make configurable
 				VolumeMounts: []corev1.VolumeMount{
 					{
 						Name:      "tls",
