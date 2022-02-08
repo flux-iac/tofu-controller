@@ -49,7 +49,7 @@ Before using TF-controller, you have to install Flux by using either `flux insta
 After that you can install TF-controller manually with Helm by:
 
 ```shell
-# Add tf-controller helm repository to local
+# Add tf-controller helm repository
 helm repo add tf-controller https://weaveworks.github.io/tf-controller/
 
 # Install tf-controller
