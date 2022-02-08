@@ -34,7 +34,9 @@ import (
 const (
 	// RunnerTLSSecretName is the name of the secret containing a TLS cert that will be written to
 	// the namespace in which a terraform runner is created
-	RunnerTLSSecretName = "terraform-runner.tls"
+	RunnerTLSSecretName   = "terraform-runner.tls"
+	GitRepositoryIndexKey = ".metadata.gitRepository"
+	BucketIndexKey        = ".metadata.bucket"
 )
 
 // WriteOutputsToSecretSpec defines where to store outputs, and which outputs to be stored.

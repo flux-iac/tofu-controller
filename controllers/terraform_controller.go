@@ -56,7 +56,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	kuberecorder "k8s.io/client-go/tools/record"
 	"k8s.io/client-go/tools/reference"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
@@ -1024,23 +1023,6 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentReconciles int, httpRetry int) error {
-	const (
-		gitRepositoryIndexKey string = ".metadata.gitRepository"
-		bucketIndexKey        string = ".metadata.bucket"
-	)
-
-	// Index the Terraforms by the GitRepository references they (may) point at.
-	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, gitRepositoryIndexKey,
-		r.indexBy(sourcev1.GitRepositoryKind)); err != nil {
-		return fmt.Errorf("failed setting index fields: %w", err)
-	}
-
-	// Index the Terraforms by the Bucket references they (may) point at.
-	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, bucketIndexKey,
-		r.indexBy(sourcev1.BucketKind)); err != nil {
-		return fmt.Errorf("failed setting index fields: %w", err)
-	}
-
 	// Configure the retryable http client used for fetching artifacts.
 	// By default it retries 10 times within a 3.5 minutes window.
 	httpClient := retryablehttp.NewClient()
@@ -1056,12 +1038,12 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 		)).
 		Watches(
 			&source.Kind{Type: &sourcev1.GitRepository{}},
-			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(gitRepositoryIndexKey)),
+			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(infrav1.GitRepositoryIndexKey)),
 			builder.WithPredicates(SourceRevisionChangePredicate{}),
 		).
 		Watches(
 			&source.Kind{Type: &sourcev1.Bucket{}},
-			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(bucketIndexKey)),
+			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(infrav1.BucketIndexKey)),
 			builder.WithPredicates(SourceRevisionChangePredicate{}),
 		).
 		WithOptions(controller.Options{MaxConcurrentReconciles: maxConcurrentReconciles}).
@@ -1295,7 +1277,7 @@ func (r *TerraformReconciler) verifyArtifact(artifact *sourcev1.Artifact, buf *b
 	return nil
 }
 
-func (r *TerraformReconciler) indexBy(kind string) func(o client.Object) []string {
+func (r *TerraformReconciler) IndexBy(kind string) func(o client.Object) []string {
 	return func(o client.Object) []string {
 		terraform, ok := o.(*infrav1.Terraform)
 		if !ok {
