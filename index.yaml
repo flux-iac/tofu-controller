@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  tf-controller:
+  - apiVersion: v2
+    appVersion: 0.8.0
+    created: "2022-02-08T19:37:14.543848905Z"
+    description: A Helm chart for TF-controller
+    digest: 5e2f047e69bcc74012ef2119671eadb7c77a268acb206c304ddd993ecf86c516
+    name: tf-controller
+    type: application
+    urls:
+    - https://weaveworks.github.io/tf-controller/tf-controller-0.1.0.tgz
+    version: 0.1.0
+generated: "2022-02-08T19:37:14.543045311Z"
