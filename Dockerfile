@@ -21,8 +21,9 @@ COPY utils/ utils/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o tf-controller cmd/manager/main.go
 
-ADD https://releases.hashicorp.com/terraform/1.1.4/terraform_1.1.4_linux_amd64.zip /terraform_1.1.4_linux_amd64.zip
-RUN unzip -q /terraform_1.1.4_linux_amd64.zip
+ARG TF_VERSION=1.1.5
+ADD https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip /terraform_${TF_VERSION}_linux_amd64.zip
+RUN unzip -q /terraform_${TF_VERSION}_linux_amd64.zip
 
 
 FROM alpine:3.15
