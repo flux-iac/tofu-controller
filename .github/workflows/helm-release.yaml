@@ -1,0 +1,16 @@
+name: helm-release
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write # needed to push chart
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Publish Helm chart
+        uses: stefanprodan/helm-gh-pages@v1.4.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

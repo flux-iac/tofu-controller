@@ -82,3 +82,7 @@ jobs:
           body: |
             [CHANGELOG](https://github.com/weaveworks/${{ env.CONTROLLER }}/blob/main/CHANGELOG.md)
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish Helm chart
+        uses: stefanprodan/helm-gh-pages@v1.4.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
