@@ -1,0 +1,6 @@
+apiVersion: v2
+name: tf-controller
+description: A Helm chart for TF-controller
+type: application
+version: 0.0.5
+appVersion: "0.8.0"
