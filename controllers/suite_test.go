@@ -22,7 +22,6 @@ import (
 	"io"
 	"io/ioutil"
 	"math/rand"
-	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -30,9 +29,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/weaveworks/tf-controller/mtls"
 	"github.com/weaveworks/tf-controller/runner"
-	"google.golang.org/grpc"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 
 	"github.com/onsi/gomega/ghttp"
@@ -67,6 +67,7 @@ var (
 	k8sClient    client.Client
 	testEnv      *envtest.Environment
 	server       *ghttp.Server
+	rotator      *mtls.CertRotator
 	reconciler   *TerraformReconciler
 	runnerServer *runner.TerraformRunnerServer
 )
@@ -189,17 +190,55 @@ func TestMain(m *testing.M) {
 		panic(err.Error())
 	}
 
+	certsReady := make(chan struct{})
+
+	rotator = &mtls.CertRotator{
+		CAName:         "localhost",
+		CAOrganization: "localhost",
+		DNSName:        "localhost",
+		SecretKey: types.NamespacedName{
+			Namespace: "flux-system",
+			Name:      "tf-controller.tls.test",
+		},
+		Ready: certsReady,
+	}
+	if err := mtls.AddRotator(ctx, k8sManager, rotator); err != nil {
+		panic(err)
+	}
+
 	reconciler = &TerraformReconciler{
 		Client:        k8sManager.GetClient(),
 		Scheme:        k8sManager.GetScheme(),
 		EventRecorder: k8sManager.GetEventRecorderFor("tf-controller"),
 		StatusPoller:  polling.NewStatusPoller(k8sManager.GetClient(), k8sManager.GetRESTMapper()),
+		CertRotator:   rotator,
 	}
+
+	// We need to register the indexed fields before manager starts...
+	// Index the Terraforms by the GitRepository references they (may) point at.
+	if err := k8sManager.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.GitRepositoryIndexKey,
+		reconciler.IndexBy(sourcev1.GitRepositoryKind)); err != nil {
+		panic(err.Error())
+	}
+
+	// Index the Terraforms by the Bucket references they (may) point at.
+	if err := k8sManager.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.BucketIndexKey,
+		reconciler.IndexBy(sourcev1.BucketKind)); err != nil {
+		panic(err.Error())
+	}
+
 	// We use 1 concurrent and 10s httpRetry in the test
 	err = reconciler.SetupWithManager(k8sManager, 1, 10)
 	if err != nil {
 		panic(err.Error())
 	}
+
+	runnerServer = &runner.TerraformRunnerServer{
+		Client: k8sManager.GetClient(),
+		Scheme: k8sManager.GetScheme(),
+	}
+
+	go mtls.StartGRPCServer(ctx, runnerServer, "localhost:30000", k8sManager, rotator)
 
 	go func() {
 		if err := k8sManager.Start(ctx); err != nil {
@@ -207,27 +246,12 @@ func TestMain(m *testing.M) {
 		}
 	}()
 
-	listener, err := net.Listen("tcp", "localhost:30000")
-	if err != nil {
-		panic(err.Error())
-	}
-	s := grpc.NewServer()
-	runnerServer = &runner.TerraformRunnerServer{
-		Client: k8sManager.GetClient(),
-		Scheme: scheme,
-	}
-	runner.RegisterRunnerServer(s, runnerServer)
-
-	go func() {
-		if err := s.Serve(listener); err != nil {
-			panic(err.Error())
-		}
-	}()
+	<-rotator.Ready
 
 	code := m.Run()
-
 	cancel()
 	server.Close()
+
 	// "tearing down the test environment"
 	err = testEnv.Stop()
 	if err != nil {
