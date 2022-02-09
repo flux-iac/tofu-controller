@@ -1,0 +1,37 @@
+name: docs 
+on:
+  push:
+    branches:
+      - main
+      - docs
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs.yaml'
+      - 'mkdocs.yml'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+      - name: Install mkdocs
+        run: pip install mkdocs-material 
+      - name: Generate docs artifacts
+        run: mkdocs build -d /tmp/docs
+      - uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+          path: gh-pages
+      - name: Publish docs artifacts to gh-pages
+        run: |
+          cd gh-pages
+          ls | grep -ve *tgz -e index.yaml -e LICENSE | xargs rm -rf
+          cp -R /tmp/docs/** .
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git commit -m "Publish docs"
+          git push https://github.com/$GITHUB_REPOSITORY.git gh-pages
