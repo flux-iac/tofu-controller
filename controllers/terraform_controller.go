@@ -122,10 +122,15 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// TODO create Runner Pod
 	// TODO wait for the Runner Pod to start
-	runnerClient, err := r.LookupOrCreateRunner(ctx, terraform)
+	runnerClient, closeConn, err := r.LookupOrCreateRunner(ctx, terraform)
 	if err != nil {
-		panic(err.Error())
+		log.Error(err, "unable to lookup or create runner")
+		if closeConn != nil {
+			closeConn()
+		}
+		return ctrl.Result{}, err
 	}
+	defer closeConn()
 
 	// Examine if the object is under deletion
 	if !terraform.ObjectMeta.DeletionTimestamp.IsZero() {
@@ -1379,29 +1384,29 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 	return ctrl.Result{}, nil
 }
 
-func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terraform infrav1.Terraform) (runner.RunnerClient, error) {
+func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terraform infrav1.Terraform) (runner.RunnerClient, func() error, error) {
 	err := r.reconcileRunnerSecret(ctx, &terraform)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
 		conn, err := r.getRunnerConnection(ctx, &terraform, "localhost:30000")
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-
+		connClose := func() error { return conn.Close() }
 		runnerClient := runner.NewRunnerClient(conn)
-		return runnerClient, nil
+		return runnerClient, connClose, nil
 	}
 
 	err = r.reconcileRunnerPod(ctx, &terraform)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	//TODO: return client
-	return nil, nil
+	return nil, nil, nil
 }
 
 func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient) (infrav1.Terraform, error) {
