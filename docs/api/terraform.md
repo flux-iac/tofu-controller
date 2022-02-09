@@ -1080,10 +1080,6 @@ transient error will still result in a reconciliation failure.</p>
 (<em>Appears on:</em>
 <a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
 </p>
-<p>writeOutputsToSecret:
-name: helloworld-tf-outputs
-outputs:
-- hello_world</p>
 <p>WriteOutputsToSecretSpec defines where to store outputs, and which outputs to be stored.</p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
