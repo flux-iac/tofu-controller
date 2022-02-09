@@ -56,7 +56,7 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 # Generate API reference documentation
 .PHONY: api-docs
 api-docs: gen-crd-api-reference-docs
-	$(GEN_CRD_API_REFERENCE_DOCS) -api-dir=./api/v1alpha1 -config=./hack/api-docs/config.json -template-dir=./hack/api-docs/template -out-file=./docs/api/terraform.md
+	$(GEN_CRD_API_REFERENCE_DOCS) -api-dir=./api/v1alpha1 -config=./hack/api-docs/config.json -template-dir=./hack/api-docs/template -out-file=./docs/references/terraform.md
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.
