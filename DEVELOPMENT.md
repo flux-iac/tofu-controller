@@ -57,3 +57,38 @@ Run the controller locally:
 make install
 make run
 ```
+
+## How to install the controller
+
+### Building the container image
+
+Set the name of the container image to be created from the source code. This will be used when building, pushing and referring to the image on YAML files:
+
+```sh
+export IMG=registry-path/tf-controller:latest
+```
+
+Build the container image, tagging it as `$IMG`:
+
+```sh
+make docker-build
+```
+
+Push the image into the repository:
+
+```sh
+make docker-push
+```
+
+**Note**: `make docker-build` will build an image for the `amd64` architecture.
+
+
+### Deploying into a cluster
+
+Deploy `tf-controller` into the cluster that is configured in the local kubeconfig file (i.e. `~/.kube/config`):
+
+```sh
+make deploy
+```
+
+Running the above will also deploy `source-controller` and its CRDs to the cluster.

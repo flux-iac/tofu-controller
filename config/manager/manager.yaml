@@ -24,6 +24,7 @@ spec:
       containers:
       - name: manager
         image: weaveworks/tf-controller
+        imagePullPolicy: IfNotPresent
         command:
         - /sbin/tini
         - --
