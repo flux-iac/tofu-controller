@@ -34,14 +34,14 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
   * [ ] Terraform outputs as Kubernetes Secrets
   * [ ] Secret and ConfigMap as input variables
   * [ ] Support the GitOps way to "plan" / "re-plan"
+  * [ ] Support a multi-tenant model
   * [ ] Test coverage reaching 70%
 
 ### Q2 2022
-  * [ ] Support a multi-tenant model
+  * [ ] Performance and scalability
   * [ ] Interop with Notification controller's Events and Alert
-  * [ ] Write back and show plan in PRs
   * [ ] Test coverage reaching 75%
 
 ### Q3 2022
-  * [ ] Performance and scalability
+  * [ ] Write back and show plan in PRs
   * [ ] Test coverage reaching 80%
