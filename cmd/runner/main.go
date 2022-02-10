@@ -17,10 +17,31 @@ limitations under the License.
 package main
 
 import (
-	"fmt"
-	_ "github.com/weaveworks/tf-controller/runner"
+	"github.com/weaveworks/tf-controller/mtls"
+	"os"
 )
 
 func main() {
-	fmt.Println("hello world")
+	// TODO parameterize this
+	addr := ":30000"
+
+	/* Please prepare the following envs for this program
+	   env:
+	     - name: POD_NAME
+	       valueFrom:
+	         fieldRef:
+	           fieldPath: metadata.name
+	     - name: POD_NAMESPACE
+	       valueFrom:
+	         fieldRef:
+	           fieldPath: metadata.namespace
+	*/
+	_ = os.Getenv("POD_NAME")
+	podNamespace := os.Getenv("POD_NAMESPACE")
+
+	err := mtls.RunnerServe(podNamespace, addr)
+	if err != nil {
+		panic(err.Error())
+	}
+
 }

@@ -36,13 +36,13 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	crtlmetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 	//+kubebuilder:scaffold:imports
 )
@@ -132,21 +132,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	//+kubebuilder:scaffold:builder
-
-	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up health check")
-		os.Exit(1)
-	}
-	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up ready check")
-		os.Exit(1)
-	}
-
-	ctx := ctrl.SetupSignalHandler()
+	signalHandlerContext := ctrl.SetupSignalHandler()
 
 	certsReady := make(chan struct{})
-
 	rotator := &mtls.CertRotator{
 		CAName:         "tf-controller",
 		CAOrganization: "weaveworks",
@@ -158,13 +146,14 @@ func main() {
 		Ready: certsReady,
 	}
 
+	const localHost = "localhost"
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
-		rotator.CAName = "localhost"
-		rotator.CAOrganization = "localhost"
-		rotator.DNSName = "localhost"
+		rotator.CAName = localHost
+		rotator.CAOrganization = localHost
+		rotator.DNSName = localHost
 	}
 
-	if err := mtls.AddRotator(ctx, mgr, rotator); err != nil {
+	if err := mtls.AddRotator(signalHandlerContext, mgr, rotator); err != nil {
 		setupLog.Error(err, "unable to set up cert rotation")
 		os.Exit(1)
 	}
@@ -179,39 +168,31 @@ func main() {
 		CertRotator:           rotator,
 	}
 
-	// We need to register the indexed fields before manager starts...
-	// Index the Terraforms by the GitRepository references they (may) point at.
-	if err := mgr.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.GitRepositoryIndexKey,
-		reconciler.IndexBy(sourcev1.GitRepositoryKind)); err != nil {
-		setupLog.Error(err, "failed setting index fields")
+	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Terraform")
 		os.Exit(1)
 	}
-
-	// Index the Terraforms by the Bucket references they (may) point at.
-	if err := mgr.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.BucketIndexKey,
-		reconciler.IndexBy(sourcev1.BucketKind)); err != nil {
-		setupLog.Error(err, "failed setting index fields")
-		os.Exit(1)
-	}
-
-	go func() {
-		<-rotator.Ready
-		if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {
-			setupLog.Error(err, "unable to create controller", "controller", "Terraform")
-			os.Exit(1)
-		}
-	}()
+	//+kubebuilder:scaffold:builder
 
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
 		runnerServer := &runner.TerraformRunnerServer{
 			Client: mgr.GetClient(),
 			Scheme: mgr.GetScheme(),
 		}
-		go mtls.StartGRPCServer(ctx, runnerServer, "localhost:30000", mgr, rotator)
+		go mtls.StartGRPCServer(signalHandlerContext, runnerServer, "localhost:30000", mgr, rotator)
+	}
+
+	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up health check")
+		os.Exit(1)
+	}
+	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up ready check")
+		os.Exit(1)
 	}
 
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctx); err != nil {
+	if err := mgr.Start(signalHandlerContext); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
