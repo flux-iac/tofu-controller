@@ -229,6 +229,8 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 }
 
 func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, revision string) bool {
+	// Please do not optimize this logic, as we'd like others to easily understand the logics behind this behaviour.
+
 	// return false when drift detection is disabled
 	if terraform.Spec.DisableDriftDetection == true {
 		return false
@@ -271,7 +273,7 @@ func (r *TerraformReconciler) forceOrAutoApply(terraform infrav1.Terraform) bool
 }
 
 func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
-	// Do not optimize this. We'll add other criteria later to infer plan actions
+	// Please do not optimize this logic, as we'd like others to easily understand the logics behind this behaviour.
 	if terraform.Spec.Force {
 		return true
 	}
@@ -285,7 +287,7 @@ func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
 }
 
 func (r *TerraformReconciler) shouldApply(terraform infrav1.Terraform) bool {
-	// Do no optimize this logic, as we'd like to understand the explanation of the behaviour.
+	// Please do not optimize this logic, as we'd like others to easily understand the logics behind this behaviour.
 	if terraform.Spec.Force {
 		return true
 	}
