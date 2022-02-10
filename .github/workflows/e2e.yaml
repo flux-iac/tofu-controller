@@ -83,6 +83,10 @@ jobs:
           make dev-deploy IMG=test/tf-controller:latest
           kubectl -n tf-system rollout status deploy/source-controller --timeout=1m
           kubectl -n tf-system rollout status deploy/tf-controller --timeout=1m
+      - name: Get terraform version
+        run: |
+          POD=$(kubectl get pod -l control-plane=tf-controller -n tf-system -o jsonpath="{.items[0].metadata.name}")
+          kubectl exec -n tf-system $POD -- terraform version
       - name: Add git repository source
         run: |
           kubectl -n tf-system apply -f ./config/testdata/source
