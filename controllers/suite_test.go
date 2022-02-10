@@ -214,19 +214,6 @@ func TestMain(m *testing.M) {
 		CertRotator:   rotator,
 	}
 
-	// We need to register the indexed fields before manager starts...
-	// Index the Terraforms by the GitRepository references they (may) point at.
-	if err := k8sManager.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.GitRepositoryIndexKey,
-		reconciler.IndexBy(sourcev1.GitRepositoryKind)); err != nil {
-		panic(err.Error())
-	}
-
-	// Index the Terraforms by the Bucket references they (may) point at.
-	if err := k8sManager.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.BucketIndexKey,
-		reconciler.IndexBy(sourcev1.BucketKind)); err != nil {
-		panic(err.Error())
-	}
-
 	// We use 1 concurrent and 10s httpRetry in the test
 	err = reconciler.SetupWithManager(k8sManager, 1, 10)
 	if err != nil {
@@ -245,8 +232,6 @@ func TestMain(m *testing.M) {
 			panic(err.Error())
 		}
 	}()
-
-	<-rotator.Ready
 
 	code := m.Run()
 	cancel()

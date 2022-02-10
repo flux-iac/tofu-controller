@@ -100,6 +100,10 @@ type TerraformReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
 func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	// TODO need to think about many controller instances are sharing the same secret
+	// should be blocked if cert is not ready yet
+	<-r.CertRotator.Ready
+
 	log := ctrl.LoggerFrom(ctx)
 	reconcileStart := time.Now()
 
@@ -1030,6 +1034,23 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentReconciles int, httpRetry int) error {
+	const (
+		gitRepositoryIndexKey string = ".metadata.gitRepository"
+		bucketIndexKey        string = ".metadata.bucket"
+	)
+
+	// Index the Terraforms by the GitRepository references they (may) point at.
+	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, gitRepositoryIndexKey,
+		r.IndexBy(sourcev1.GitRepositoryKind)); err != nil {
+		return fmt.Errorf("failed setting index fields: %w", err)
+	}
+
+	// Index the Terraforms by the Bucket references they (may) point at.
+	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, bucketIndexKey,
+		r.IndexBy(sourcev1.BucketKind)); err != nil {
+		return fmt.Errorf("failed setting index fields: %w", err)
+	}
+
 	// Configure the retryable http client used for fetching artifacts.
 	// By default it retries 10 times within a 3.5 minutes window.
 	httpClient := retryablehttp.NewClient()
@@ -1392,23 +1413,25 @@ func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terrafor
 		return nil, nil, err
 	}
 
+	var addr string
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
-		conn, err := r.getRunnerConnection(ctx, &terraform, "localhost:30000")
+		addr = "localhost:30000"
+	} else {
+		podIp, err := r.reconcileRunnerPod(ctx, terraform)
 		if err != nil {
 			return nil, nil, err
 		}
-		connClose := func() error { return conn.Close() }
-		runnerClient := runner.NewRunnerClient(conn)
-		return runnerClient, connClose, nil
+		prefix := strings.ReplaceAll(podIp, ".", "-")
+		addr = fmt.Sprintf("%s.%s.pod.cluster.local:30000", prefix, terraform.Namespace)
 	}
 
-	err = r.reconcileRunnerPod(ctx, &terraform)
+	conn, err := r.getRunnerConnection(ctx, addr)
 	if err != nil {
 		return nil, nil, err
 	}
-
-	//TODO: return client
-	return nil, nil, nil
+	connClose := func() error { return conn.Close() }
+	runnerClient := runner.NewRunnerClient(conn)
+	return runnerClient, connClose, nil
 }
 
 func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient) (infrav1.Terraform, error) {
@@ -1597,74 +1620,106 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 	return nil
 }
 
-func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform *infrav1.Terraform) error {
-	runner := &corev1.Pod{
+func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform) (string, error) {
+	podNamespace := terraform.Namespace
+	podName := fmt.Sprintf("%s-runner", terraform.Name)
+	runnerPod := corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: terraform.Namespace,
-			Name:      fmt.Sprintf("%s-runner", terraform.Name),
+			Namespace: podNamespace,
+			Name:      podName,
 		},
 	}
 
-	if err := r.Get(ctx, client.ObjectKeyFromObject(runner), runner); err != nil {
+	runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
+	if err := r.Get(ctx, runnerPodKey, &runnerPod); err != nil {
 		if !apierrors.IsNotFound(err) {
-			return err
+			return "", err
 		}
-		runner.Spec = runnerPodSpec(infrav1.RunnerTLSSecretName)
-		if err := r.Create(ctx, runner); err != nil {
-			return err
+		runnerPod.Spec = runnerPodSpec()
+		if err := r.Create(ctx, &runnerPod); err != nil {
+			return "", err
 		}
 	}
 
-	return nil
+	// TODO make it configurable
+	const maxRetry = 5
+	retry := 1
+	for {
+		if err := r.Get(ctx, runnerPodKey, &runnerPod); err != nil {
+			return "", err
+		}
+
+		podIp := runnerPod.Status.PodIP
+		if podIp != "" {
+			return podIp, nil
+		}
+
+		retry++
+		if retry == maxRetry {
+			return "", fmt.Errorf("wait for max retry reached")
+		}
+
+		// TODO make it configurable
+		time.Sleep(2 * time.Second)
+	}
+
 }
 
-func runnerPodSpec(tlsSecretName string) corev1.PodSpec {
+func getRunnerPodImage() string {
+	runnerPodImage := os.Getenv("RUNNER_POD_IMAGE")
+	if runnerPodImage == "" {
+		runnerPodImage = "ghcr.io/weaveworks/tf-runner:latest"
+	}
+	return runnerPodImage
+}
+
+func runnerPodSpec() corev1.PodSpec {
+
 	return corev1.PodSpec{
 		Containers: []corev1.Container{
 			{
-				Name: "grpc",
-				//TODO: set correct image path
-				Image: "ghcr.io/weaveworks/tf-controller/runner-server:latest",
+				Name:  "tf-runner",
+				Image: getRunnerPodImage(),
 				Ports: []corev1.ContainerPort{
 					{
-						Name: "grpc",
-						//TODO: make configurable
-						ContainerPort: 5555,
+						Name:          "grpc",
+						ContainerPort: 30000,
 					},
 				},
-				//TODO: make configurable
-				VolumeMounts: []corev1.VolumeMount{
+				Env: []corev1.EnvVar{
 					{
-						Name:      "tls",
-						MountPath: "/tls",
-						ReadOnly:  true,
+						Name: "POD_NAME",
+						ValueFrom: &corev1.EnvVarSource{
+							FieldRef: &corev1.ObjectFieldSelector{
+								FieldPath: "metadata.name",
+							},
+						},
+					},
+					{
+						Name: "POD_NAMESPACE",
+						ValueFrom: &corev1.EnvVarSource{
+							FieldRef: &corev1.ObjectFieldSelector{
+								FieldPath: "metadata.namespace",
+							},
+						},
 					},
 				},
 			},
 		},
-		Volumes: []corev1.Volume{
-			{
-				Name: "tls",
-				VolumeSource: corev1.VolumeSource{
-					Secret: &corev1.SecretVolumeSource{
-						SecretName: tlsSecretName,
-					},
-				},
-			},
-		},
+		ServiceAccountName: "tf-runner",
 	}
 }
 
-func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, terraform *infrav1.Terraform, addr string) (*grpc.ClientConn, error) {
+func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, addr string) (*grpc.ClientConn, error) {
 	tlsSecret := &corev1.Secret{}
 	if err := r.Client.Get(ctx, r.CertRotator.SecretKey, tlsSecret); err != nil {
 		return nil, err
 	}
 
-	creds, err := mtls.GetGRPCClientCredentials(tlsSecret)
+	credentials, err := mtls.GetGRPCClientCredentials(tlsSecret)
 	if err != nil {
 		return nil, err
 	}
 
-	return grpc.Dial(addr, grpc.WithTransportCredentials(creds))
+	return grpc.Dial(addr, grpc.WithTransportCredentials(credentials))
 }
