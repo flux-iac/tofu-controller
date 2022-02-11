@@ -104,9 +104,11 @@ func main() {
 	metricsRecorder := metrics.NewRecorder()
 	crtlmetrics.Registry.MustRegister(metricsRecorder.Collectors()...)
 
+	runtimeNamespace := os.Getenv("RUNTIME_NAMESPACE")
+
 	watchNamespace := ""
 	if !watchAllNamespaces {
-		watchNamespace = os.Getenv("RUNTIME_NAMESPACE")
+		watchNamespace = runtimeNamespace
 	}
 
 	restConfig := client.GetConfigOrDie(clientOptions)
@@ -139,7 +141,7 @@ func main() {
 		CAOrganization: "weaveworks",
 		DNSName:        "tf-controller",
 		SecretKey: types.NamespacedName{
-			Namespace: "flux-system",
+			Namespace: runtimeNamespace,
 			Name:      "tf-controller.tls",
 		},
 		Ready: certsReady,
