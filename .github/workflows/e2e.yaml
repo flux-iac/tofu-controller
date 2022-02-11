@@ -63,7 +63,7 @@ jobs:
           fi
       - name: Build container image
         run: |
-          make docker-build IMG=test/tf-controller:latest \
+          make docker-build IMG=test/tf-controller TAG=latest \
             BUILD_ARGS="--cache-from=type=local,src=/tmp/.buildx-cache \
               --cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max \
               --load"
@@ -80,7 +80,7 @@ jobs:
         run: make install
       - name: Deploy controllers
         run: |
-          make dev-deploy IMG=test/tf-controller:latest
+          make dev-deploy IMG=test/tf-controller TAG=latest
           kubectl -n tf-system rollout status deploy/source-controller --timeout=1m
           kubectl -n tf-system rollout status deploy/tf-controller --timeout=1m
       - name: Get terraform version
