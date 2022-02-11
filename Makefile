@@ -96,7 +96,7 @@ run: manifests generate fmt vet ## Run a controller from your host.
 
 .PHONY: docker-build
 docker-build: ## Build docker
-	docker buildx build -t ${IMG} ${BUILD_ARGS} .
+	docker buildx build -t ${IMG}:${TAG} ${BUILD_ARGS} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
@@ -129,7 +129,7 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 .PHONY: dev-deploy
 dev-deploy: manifests kustomize
 	mkdir -p config/dev && cp config/default/* config/dev
-	cd config/dev && $(KUSTOMIZE) edit set image controller=${IMG}
+	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/weaveworks/tf-controller=${IMG}:${TAG}
 	$(KUSTOMIZE) build config/dev | kubectl apply -f -
 	rm -rf config/dev
 
@@ -137,7 +137,7 @@ dev-deploy: manifests kustomize
 .PHONY: dev-cleanup
 dev-cleanup: manifests kustomize
 	mkdir -p config/dev && cp config/default/* config/dev
-	cd config/dev && $(KUSTOMIZE) edit set image controller=${IMG}
+	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/weaveworks/tf-controller=${IMG}:${TAG}
 	$(KUSTOMIZE) build config/dev | kubectl delete -f -
 	rm -rf config/dev
 
