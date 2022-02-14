@@ -550,6 +550,19 @@ Kubernetes core/v1.SecretReference
 <p>List of health checks to be performed.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>destroyResourcesOnDeletion</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Create destroy plan and apply it to destroy terraform resources
+upon deletion of this object. Defaults to false.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -787,6 +800,19 @@ Kubernetes core/v1.SecretReference
 <td>
 <em>(Optional)</em>
 <p>List of health checks to be performed.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>destroyResourcesOnDeletion</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Create destroy plan and apply it to destroy terraform resources
+upon deletion of this object. Defaults to false.</p>
 </td>
 </tr>
 </tbody>
