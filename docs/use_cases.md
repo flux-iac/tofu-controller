@@ -279,3 +279,23 @@ spec:
       type: http
       url: "https://example.org"
 ```
+
+## Destroy resources on deletion
+
+The resources created by terraform are not defaulted to destroyed after the object is deleted from the cluster. To enable destroy resources on object deletion, set `.spec.destroyResourcesOnDeletion` to `true`. 
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: "auto"
+  destroyResourcesOnDeletion: true
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+```
