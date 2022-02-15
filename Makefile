@@ -1,7 +1,9 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= ghcr.io/weaveworks/tf-controller
+MANAGER_IMG ?= ghcr.io/weaveworks/tf-controller
+RUNNER_IMG  ?= ghcr.io/weaveworks/tf-runner
 TAG ?= latest
+
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.22
 # source controller version
@@ -56,7 +58,7 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 # Generate API reference documentation
 .PHONY: api-docs
 api-docs: gen-crd-api-reference-docs
-	$(GEN_CRD_API_REFERENCE_DOCS) -api-dir=./api/v1alpha1 -config=./hack/api-docs/config.json -template-dir=./hack/api-docs/template -out-file=./docs/references/terraform.md
+	$(GEN_CRD_API_REFERENCE_DOCS) -api-dir=./api/v1alpha1 -config=./hack/api-docs/config.json -template-dir=./hack/api-docs/template -out-file=./docs/References/terraform.md
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.
@@ -96,11 +98,18 @@ run: manifests generate fmt vet ## Run a controller from your host.
 
 .PHONY: docker-build
 docker-build: ## Build docker
-	docker buildx build -t ${IMG}:${TAG} ${BUILD_ARGS} .
+	docker build -t ${MANAGER_IMG}:${TAG} ${BUILD_ARGS} .
+	docker build -t ${RUNNER_IMG}:${TAG} -f runner.Dockerfile ${BUILD_ARGS} .
+
+.PHONY: docker-buildx
+docker-buildx: ## Build docker
+	docker buildx build --load -t ${MANAGER_IMG}:${TAG} ${BUILD_ARGS} .
+	docker buildx build --load -t ${RUNNER_IMG}:${TAG} -f runner.Dockerfile ${BUILD_ARGS} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
-	docker push ${IMG}:${TAG}
+	docker push ${MANAGER_IMG}:${TAG}
+	docker push ${RUNNER_IMG}:${TAG}
 
 ##@ Deployment
 
@@ -118,7 +127,7 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image weaveworks/tf-controller=${IMG}:${TAG}
+	cd config/manager && $(KUSTOMIZE) edit set image weaveworks/tf-controller=${MANAGER_IMG}:${TAG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 .PHONY: undeploy
@@ -129,7 +138,7 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 .PHONY: dev-deploy
 dev-deploy: manifests kustomize
 	mkdir -p config/dev && cp config/default/* config/dev
-	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/weaveworks/tf-controller=${IMG}:${TAG}
+	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/weaveworks/tf-controller=${MANAGER_IMG}:${TAG}
 	$(KUSTOMIZE) build config/dev | kubectl apply -f -
 	rm -rf config/dev
 
@@ -137,7 +146,7 @@ dev-deploy: manifests kustomize
 .PHONY: dev-cleanup
 dev-cleanup: manifests kustomize
 	mkdir -p config/dev && cp config/default/* config/dev
-	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/weaveworks/tf-controller=${IMG}:${TAG}
+	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/weaveworks/tf-controller=${MANAGER_IMG}:${TAG}
 	$(KUSTOMIZE) build config/dev | kubectl delete -f -
 	rm -rf config/dev
 
