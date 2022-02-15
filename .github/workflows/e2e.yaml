@@ -10,11 +10,15 @@ permissions:
   contents: read # for actions/checkout to fetch code
 
 jobs:
-  kind:
+  e2e:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Setup YQ
+        uses: frenck/action-setup-yq@v1
+        with:
+          version: 4.14.2
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v1
         with:
@@ -24,6 +28,10 @@ jobs:
         uses: docker/setup-buildx-action@v1
         with:
           buildkitd-flags: "--debug"
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.x
       - name: Restore Go cache
         uses: actions/cache@v1
         with:
@@ -39,12 +47,6 @@ jobs:
           key: ${{ runner.os }}-buildx-ghcache-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-ghcache-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.17.x
-      - name: Run tests
-        run: make test
       - name: Setup Kubernetes
         uses: engineerd/setup-kind@v0.5.0
         with:
@@ -61,9 +63,11 @@ jobs:
             echo 'run make test and commit changes'
             exit 1
           fi
-      - name: Build container image
+      - name: Build the tf-controller container image
         run: |
-          make docker-build IMG=test/tf-controller TAG=latest \
+          VERSION="e2e-${GITHUB_SHA::8}"
+
+          make docker-buildx MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION \
             BUILD_ARGS="--cache-from=type=local,src=/tmp/.buildx-cache \
               --cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max \
               --load"
@@ -74,19 +78,30 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-      - name: Load test image
-        run: kind load docker-image test/tf-controller:latest
+      - name: Load test images into KIND
+        run: |
+          VERSION="e2e-${GITHUB_SHA::8}"
+
+          kind load docker-image test/tf-controller:$VERSION
+          kind load docker-image test/tf-runner:$VERSION
       - name: Install CRDs
         run: make install
       - name: Deploy controllers
         run: |
-          make dev-deploy IMG=test/tf-controller TAG=latest
+          VERSION="e2e-${GITHUB_SHA::8}"
+
+          # Patch env RUNNER_POD_IMAGE to be test/tf-runner:$VERSION
+          yq -i e ".spec.template.spec.containers[0].env[1].value=\"test/tf-runner:$VERSION\"" config/manager/manager.yaml
+
+          # Dev deploy
+          make dev-deploy MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION
           kubectl -n tf-system rollout status deploy/source-controller --timeout=1m
           kubectl -n tf-system rollout status deploy/tf-controller --timeout=1m
       - name: Get terraform version
         run: |
-          POD=$(kubectl get pod -l control-plane=tf-controller -n tf-system -o jsonpath="{.items[0].metadata.name}")
-          kubectl exec -n tf-system $POD -- terraform version
+          # Terraform binary will be moved from the TF-controller image to TF-runner, so we check TF's version there
+          VERSION="e2e-${GITHUB_SHA::8}"
+          docker run --rm --entrypoint=/usr/local/bin/terraform test/tf-runner:$VERSION version
       - name: Add git repository source
         run: |
           kubectl -n tf-system apply -f ./config/testdata/source

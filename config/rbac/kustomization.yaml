@@ -8,4 +8,6 @@ resources:
 - leader_election_role_binding.yaml
 - cluster_role_binding.yaml
 - service_account.yaml
+- runner_role.yaml
+- runner_role_binding.yaml
 namePrefix: tf-
