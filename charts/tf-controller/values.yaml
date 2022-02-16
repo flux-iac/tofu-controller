@@ -4,7 +4,7 @@ image:
   repository: ghcr.io/weaveworks/tf-controller
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.8.0"
+  tag: "v0.9.0.rc.1"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -18,6 +18,18 @@ serviceAccount:
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
+
+runner:
+  image:
+    repository: ghcr.io/weaveworks/tf-runner
+    tag: "v0.9.0.rc.1"
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account for runner pod to use.
+    name: ""
 
 installCRDs: true
 
