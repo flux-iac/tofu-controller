@@ -22,10 +22,12 @@ The following tables lists the configurable parameters of the TF-controller char
 
 | Parameter                                         | Default                                              | Description
 | -----------------------------------------------   | ---------------------------------------------------- | ---
-| `image.repository`                                | `ghcr.io/weaveworks/tf-controller`                   | Image repository
-| `image.tag`                                       | `<VERSION>`                                          | Image tag
-| `image.pullPolicy`                                | `IfNotPresent`                                       | Image pull policy
-| `image.pullSecret`                                | `None`                                               | Image pull secret
+| `image.repository`                                | `ghcr.io/weaveworks/tf-controller`                   | Controller image repository
+| `image.tag`                                       | `<VERSION>`                                          | Controller image tag
+| `image.pullPolicy`                                | `IfNotPresent`                                       | Controller image pull policy
+| `image.pullSecret`                                | `None`                                               | Controller image pull secret
+| `runner.image.repository`                         | `ghcr.io/weaveworks/tf-runner`                       | Runner image repository
+| `runner.image.tag`                                | `<VERSION>`                                          | Runner image tag
 | `installCRDs`                                     | `true`                                               | If `true`, install CRDs as part of the helm installation
 | `replicaCount`                                    | `1`                                                  | Number of TF-Controller pods to deploy, more than one is not desirable.
 | `resources.requests.cpu`                          | `200m`                                               | CPU resource requests for the TF-Controller deployment
@@ -39,6 +41,10 @@ The following tables lists the configurable parameters of the TF-controller char
 | `serviceAccount.create`                           | `true`                                               | If `true`, create a new service account
 | `serviceAccount.name`                             | `tf-controller`                                      | Service account to be used
 | `serviceAccount.annotations`                      | ``                                                   | Additional Service Account annotations
+| `runner.serviceAccount.create`                    | `true`                                               | If `true`, create a new runner service account
+| `runner.serviceAccount.name`                      | `tf-controller-runner`                               | Runner service account to be used
+| `runner.serviceAccount.annotations`               | ``                                                   | Additional runner service Account annotations
 | `podAnnotations`                                  | `{}`                                                 | Additional pod annotations
 | `podSecurityContext`                              | `{}`                                                 | Pod security context configurations
+| `securityContext`                                 | `{}`                                                 | Container security context configurations
 | `securityContext`                                 | `{}`                                                 | Container security context configurations

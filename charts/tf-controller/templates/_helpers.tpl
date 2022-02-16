@@ -52,12 +52,23 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Create the name of the service account to use
+Create the name of the controller service account to use
 */}}
 {{- define "tf-controller.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
 {{- default (include "tf-controller.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create the name of the runner service account to use
+*/}}
+{{- define "tf-controller.runner.serviceAccountName" -}}
+{{- if .Values.runner.serviceAccount.create }}
+{{- default (printf "%s-runner" (include "tf-controller.fullname" .)) .Values.runner.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.runner.serviceAccount.name }}
 {{- end }}
 {{- end }}
