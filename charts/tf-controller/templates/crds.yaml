@@ -5,9 +5,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
   creationTimestamp: null
+  name: terraforms.infra.contrib.fluxcd.io
   labels:
     {{- include "tf-controller.labels" . | nindent 4 }}
-  name: terraforms.infra.contrib.fluxcd.io
 spec:
   group: infra.contrib.fluxcd.io
   names:
@@ -100,6 +100,47 @@ spec:
                 description: Force instructs the controller to unconditionally re-plan
                   and re-apply TF resources. Defaults to false.
                 type: boolean
+              healthChecks:
+                description: List of health checks to be performed.
+                items:
+                  description: HealthCheck contains configuration needed to perform
+                    a health check after terraform is applied.
+                  properties:
+                    address:
+                      description: Address to perform tcp health check on. Required
+                        when tcp type is specified. Go template can be used to reference
+                        values from the terraform output (e.g. 127.0.0.1:8080, {{.address}}:{{.port}}).
+                      type: string
+                    name:
+                      description: Name of the health check.
+                      maxLength: 253
+                      minLength: 1
+                      type: string
+                    timeout:
+                      default: 20s
+                      description: The timeout period at which the connection should
+                        timeout if unable to complete the request. When not specified,
+                        default 20s timeout is used.
+                      type: string
+                    type:
+                      description: Type of the health check, valid values are ('tcp',
+                        'http'). If tcp is specified, address is required. If http
+                        is specified, url is required.
+                      enum:
+                      - tcp
+                      - http
+                      type: string
+                    url:
+                      description: URL to perform http health check on. Required when
+                        http type is specified. Go template can be used to reference
+                        values from the terraform output (e.g. https://example.org,
+                        {{.output_url}}).
+                      type: string
+                  required:
+                  - name
+                  - type
+                  type: object
+                type: array
               interval:
                 description: The interval at which to reconcile the Terraform.
                 type: string
@@ -149,7 +190,7 @@ spec:
                       description: Name is the name of the variable
                       type: string
                     value:
-                      type: string
+                      x-kubernetes-preserve-unknown-fields: true
                     valueFrom:
                       description: EnvVarSource represents a source for the value
                         of an EnvVar.
@@ -372,6 +413,11 @@ spec:
                   - type
                   type: object
                 type: array
+              lastAppliedByDriftDetectionAt:
+                description: LastAppliedByDriftDetectionAt is the time when the last
+                  drift was detected and terraform apply was performed as a result
+                format: date-time
+                type: string
               lastAppliedRevision:
                 description: The last successfully applied revision. The revision
                   format for Git sources is <branch|tag>/<commit-sha>.
@@ -379,6 +425,11 @@ spec:
               lastAttemptedRevision:
                 description: LastAttemptedRevision is the revision of the last reconciliation
                   attempt.
+                type: string
+              lastDriftDetectedAt:
+                description: LastDriftDetectedAt is the time when the last drift was
+                  detected
+                format: date-time
                 type: string
               lastHandledReconcileAt:
                 description: LastHandledReconcileAt holds the value of the most recent
@@ -396,6 +447,8 @@ spec:
               plan:
                 properties:
                   isDestroyPlan:
+                    type: boolean
+                  isDriftDetectionPlan:
                     type: boolean
                   lastApplied:
                     type: string
