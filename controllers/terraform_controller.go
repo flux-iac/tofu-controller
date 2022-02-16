@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
@@ -134,6 +135,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 		return ctrl.Result{}, err
 	}
+	log.Info("runner is running")
 	defer closeConn()
 
 	// resolve source reference
@@ -1688,6 +1690,7 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 }
 
 func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform) (string, error) {
+	log := ctrl.LoggerFrom(ctx)
 	podNamespace := terraform.Namespace
 	podName := fmt.Sprintf("%s-runner", terraform.Name)
 	runnerPod := corev1.Pod{
@@ -1710,7 +1713,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 
 	// TODO make it configurable
 	const maxRetry = 5
-	retry := 1
+	retry := 0
 	for {
 		if err := r.Get(ctx, runnerPodKey, &runnerPod); err != nil {
 			return "", err
@@ -1723,11 +1726,12 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 
 		retry++
 		if retry == maxRetry {
-			return "", fmt.Errorf("wait for max retry reached")
+			return "", fmt.Errorf("wait for runner to be ready max retry reached")
 		}
+		waitTime := time.Duration(2^retry)*time.Second + time.Duration(rand.Intn(1000))*time.Millisecond
+		log.Info(fmt.Sprintf("waiting for runner to be ready, wait time: %s", waitTime))
 
-		// TODO make it configurable
-		time.Sleep(2 * time.Second)
+		time.Sleep(waitTime)
 	}
 
 }
