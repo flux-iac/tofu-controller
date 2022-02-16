@@ -67,12 +67,14 @@ type CertRotator struct {
 	CAName         string
 	CAOrganization string
 	DNSName        string
+	mgr            manager.Manager
 	Ready          chan struct{}
 }
 
 // AddRotator adds the CertRotator to the manager
 func AddRotator(ctx context.Context, mgr manager.Manager, cr *CertRotator) error {
 	cr.client = mgr.GetClient()
+	cr.mgr = mgr
 	if err := mgr.Add(cr); err != nil {
 		return err
 	}
@@ -82,6 +84,10 @@ func AddRotator(ctx context.Context, mgr manager.Manager, cr *CertRotator) error
 
 // Start starts the CertRotator runnable to rotate certs and ensure the certs are ready.
 func (cr *CertRotator) Start(ctx context.Context) error {
+	// OK the leader do cert rotation.
+	// if we're not the leader, we're blocked here and don't do any cert rotation
+	<-cr.mgr.Elected()
+
 	crLog.Info("starting cert rotator controller")
 	defer crLog.Info("stopping cert rotator controller")
 
@@ -110,6 +116,23 @@ tickerLoop:
 
 	ticker.Stop()
 	return nil
+}
+
+func (cr *CertRotator) IsCertReady(ctx context.Context) bool {
+	secret := &corev1.Secret{}
+	if err := cr.client.Get(ctx, cr.SecretKey, secret); err != nil {
+		return false
+	}
+
+	if secret.Data == nil || !cr.validCACert(secret.Data[caCertName], secret.Data[caKeyName]) {
+		return false
+	}
+
+	if !cr.validServerCert(secret.Data[caCertName], secret.Data[certName], secret.Data[keyName]) {
+		return false
+	}
+
+	return true
 }
 
 // refreshCertIfNeeded returns whether there's any error when refreshing the certs if needed.
