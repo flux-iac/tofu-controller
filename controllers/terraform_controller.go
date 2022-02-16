@@ -639,7 +639,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 	}
 
 	if r.shouldPlan(terraform) {
-		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision, false)
+		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision)
 		if err != nil {
 			return terraform, err
 		}
@@ -755,7 +755,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 	return terraform, nil
 }
 
-func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, isDestroyResourcesOnDeletion bool) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string) (infrav1.Terraform, error) {
 
 	log := ctrl.LoggerFrom(ctx)
 
@@ -780,7 +780,11 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		planRequest.Out = ""
 	}
 
-	if terraform.Spec.Destroy || isDestroyResourcesOnDeletion {
+	// check if destroy is set to true or
+	// the object is being deleted and DestroyResourcesOnDeletion is set to true
+	if terraform.Spec.Destroy ||
+		!terraform.ObjectMeta.DeletionTimestamp.IsZero() &&
+			terraform.Spec.DestroyResourcesOnDeletion {
 		log.Info("plan to destroy")
 		planRequest.Destroy = true
 	}
@@ -1399,7 +1403,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 			return ctrl.Result{Requeue: true}, err
 		}
 
-		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision, true)
+		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision)
 		if err != nil {
 			return ctrl.Result{Requeue: true}, err
 		}
