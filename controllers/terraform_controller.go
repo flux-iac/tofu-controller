@@ -136,9 +136,12 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 	defer closeConn()
 
+	// resolve source reference
+	sourceObj, err := r.getSource(ctx, terraform)
+
 	// Examine if the object is under deletion
 	if !terraform.ObjectMeta.DeletionTimestamp.IsZero() {
-		return r.finalize(ctx, terraform, runnerClient)
+		return r.finalize(ctx, terraform, runnerClient, sourceObj)
 	}
 
 	// Return early if the Terraform is suspended.
@@ -147,8 +150,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, nil
 	}
 
-	// resolve source reference
-	sourceObj, err := r.getSource(ctx, terraform)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			msg := fmt.Sprintf("Source '%s' not found", terraform.Spec.SourceRef.String())
@@ -355,16 +356,16 @@ func (l LocalPrintfer) Printf(format string, v ...interface{}) {
 	l.logger.Info(fmt.Sprintf(format, v...))
 }
 
-func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source) (infrav1.Terraform, error) {
-
+func (r *TerraformReconciler) setupTerraform(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source, revision string, objectKey types.NamespacedName) (infrav1.Terraform, string, string, error) {
 	log := ctrl.LoggerFrom(ctx)
-	revision := sourceObj.GetArtifact().Revision
-	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
+
+	tfInstance := "0"
+	tmpDir := ""
 
 	terraform = infrav1.TerraformProgressing(terraform, "Initializing")
 	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
 		log.Error(err, "unable to update status before Terraform initialization")
-		return terraform, err
+		return terraform, tfInstance, tmpDir, err
 	}
 
 	// download artifact and extract files
@@ -375,7 +376,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 			revision,
 			infrav1.ArtifactFailedReason,
 			err.Error(),
-		), err
+		), tfInstance, tmpDir, err
 	}
 
 	uploadAndExtractReply, err := runnerClient.UploadAndExtract(ctx, &runner.UploadAndExtractRequest{
@@ -390,20 +391,10 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 			revision,
 			infrav1.ArtifactFailedReason,
 			err.Error(),
-		), err
+		), tfInstance, tmpDir, err
 	}
 	workingDir := uploadAndExtractReply.WorkingDir
-	tmpDir := uploadAndExtractReply.TmpDir
-
-	defer func() {
-		cleanupDirReply, err := runnerClient.CleanupDir(ctx, &runner.CleanupDirRequest{TmpDir: tmpDir})
-		if err != nil {
-			log.Error(err, "clean up error")
-		}
-		if cleanupDirReply != nil {
-			log.Info(fmt.Sprintf("clean up dir: %s", cleanupDirReply.Message))
-		}
-	}()
+	tmpDir = uploadAndExtractReply.TmpDir
 
 	var backendConfig string
 	DisableTFK8SBackend := os.Getenv("DISABLE_TF_K8S_BACKEND") == "1"
@@ -452,7 +443,7 @@ terraform {
 
 		log.Info(fmt.Sprintf("write backend config: %s", writeBackendConfigReply.Message))
 		if err != nil {
-			return terraform, err
+			return terraform, tfInstance, tmpDir, err
 		}
 	}
 
@@ -475,7 +466,7 @@ terraform {
 				revision,
 				infrav1.TFExecNewFailedReason,
 				err.Error(),
-			), err
+			), tfInstance, tmpDir, err
 		}
 		tfrcFilepath = processCliConfigReply.FilePath
 	}
@@ -492,7 +483,7 @@ terraform {
 			revision,
 			infrav1.TFExecNewFailedReason,
 			err.Error(),
-		), err
+		), tfInstance, tmpDir, err
 	}
 
 	newTerraformReply, err := runnerClient.NewTerraform(ctx,
@@ -508,10 +499,10 @@ terraform {
 			revision,
 			infrav1.TFExecNewFailedReason,
 			err.Error(),
-		), err
+		), tfInstance, tmpDir, err
 	}
 
-	tfInstance := newTerraformReply.Id
+	tfInstance = newTerraformReply.Id
 	envs := map[string]string{}
 
 	disableTestLogging := os.Getenv("DISABLE_TF_LOGS") == "1"
@@ -532,7 +523,7 @@ terraform {
 				revision,
 				infrav1.TFExecInitFailedReason,
 				err.Error(),
-			), err
+			), tfInstance, tmpDir, err
 		}
 	}
 
@@ -564,7 +555,7 @@ terraform {
 			revision,
 			infrav1.TFExecInitFailedReason,
 			err.Error(),
-		), err
+		), tfInstance, tmpDir, err
 	}
 	log.Info(fmt.Sprintf("init reply: %s", initReply.Message))
 
@@ -573,7 +564,7 @@ terraform {
 	terraformBytes, err := terraform.ToBytes(r.Scheme)
 	if err != nil {
 		// transient error?
-		return terraform, err
+		return terraform, tfInstance, tmpDir, err
 	}
 	generateVarsForTFReply, err := runnerClient.GenerateVarsForTF(ctx, &runner.GenerateVarsForTFRequest{
 		Terraform:  terraformBytes,
@@ -586,11 +577,34 @@ terraform {
 			revision,
 			infrav1.VarsGenerationFailedReason,
 			err.Error(),
-		), err
+		), tfInstance, tmpDir, err
 	}
 	log.Info(fmt.Sprintf("generate vars from tf: %s", generateVarsForTFReply.Message))
 
 	log.Info("generated var files from spec")
+	return terraform, tfInstance, tmpDir, nil
+}
+
+func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source) (infrav1.Terraform, error) {
+
+	log := ctrl.LoggerFrom(ctx)
+	revision := sourceObj.GetArtifact().Revision
+	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
+	terraform, tfInstance, tmpDir, err := r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey)
+
+	defer func() {
+		cleanupDirReply, err := runnerClient.CleanupDir(ctx, &runner.CleanupDirRequest{TmpDir: tmpDir})
+		if err != nil {
+			log.Error(err, "clean up error")
+		}
+		if cleanupDirReply != nil {
+			log.Info(fmt.Sprintf("clean up dir: %s", cleanupDirReply.Message))
+		}
+	}()
+
+	if err != nil {
+		return terraform, err
+	}
 
 	if r.shouldDetectDrift(terraform, revision) {
 		var driftDetectionErr error // declared here to avoid shadowing on terraform variable
@@ -766,8 +780,12 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		planRequest.Out = ""
 	}
 
-	if terraform.Spec.Destroy {
-		log.Info("spec.destroy is set")
+	// check if destroy is set to true or
+	// the object is being deleted and DestroyResourcesOnDeletion is set to true
+	if terraform.Spec.Destroy ||
+		!terraform.ObjectMeta.DeletionTimestamp.IsZero() &&
+			terraform.Spec.DestroyResourcesOnDeletion {
+		log.Info("plan to destroy")
 		planRequest.Destroy = true
 	}
 
@@ -1363,8 +1381,53 @@ func (r *TerraformReconciler) fireEvent(ctx context.Context, terraform infrav1.T
 	}
 }
 
-func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient) (ctrl.Result, error) {
+func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient, sourceObj sourcev1.Source) (ctrl.Result, error) {
 	log := ctrl.LoggerFrom(ctx)
+	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
+
+	if terraform.Spec.DestroyResourcesOnDeletion {
+		revision := sourceObj.GetArtifact().Revision
+		terraform, tfInstance, tmpDir, err := r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey)
+
+		defer func() {
+			cleanupDirReply, err := runnerClient.CleanupDir(ctx, &runner.CleanupDirRequest{TmpDir: tmpDir})
+			if err != nil {
+				log.Error(err, "clean up error")
+			}
+			if cleanupDirReply != nil {
+				log.Info(fmt.Sprintf("clean up dir: %s", cleanupDirReply.Message))
+			}
+		}()
+
+		if err != nil {
+			return ctrl.Result{Requeue: true}, err
+		}
+
+		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision)
+		if err != nil {
+			return ctrl.Result{Requeue: true}, err
+		}
+
+		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			log.Error(err, "unable to update status after planing")
+			return ctrl.Result{Requeue: true}, err
+		}
+
+		outputs := map[string]tfexec.OutputMeta{}
+		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision, &outputs)
+		if err != nil {
+			return ctrl.Result{Requeue: true}, err
+		}
+
+		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			log.Error(err, "unable to update status after applying")
+			return ctrl.Result{Requeue: true}, err
+		}
+
+		if err == nil {
+			log.Info("finalizing destroyResourcesOnDeletion: ok")
+		}
+	}
 
 	outputSecretName := ""
 	hasSpecifiedOutputSecret := terraform.Spec.WriteOutputsToSecret != nil && terraform.Spec.WriteOutputsToSecret.Name != ""
@@ -1396,6 +1459,10 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 
 	// Record deleted status
 	r.recordReadinessMetric(ctx, terraform)
+
+	if err := r.Get(ctx, objectKey, &terraform); err != nil {
+		return ctrl.Result{}, err
+	}
 
 	// Remove our finalizer from the list and update it
 	controllerutil.RemoveFinalizer(&terraform, infrav1.TerraformFinalizer)
