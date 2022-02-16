@@ -88,6 +88,11 @@ spec:
                 description: Destroy produces a destroy plan. Applying the plan will
                   destroy all resources.
                 type: boolean
+              destroyResourcesOnDeletion:
+                default: false
+                description: Create destroy plan and apply it to destroy terraform
+                  resources upon deletion of this object. Defaults to false.
+                type: boolean
               disableDriftDetection:
                 default: false
                 description: Disable automatic drift detection. Drift detection may

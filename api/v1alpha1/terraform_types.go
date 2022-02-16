@@ -137,6 +137,12 @@ type TerraformSpec struct {
 	// List of health checks to be performed.
 	// +optional
 	HealthChecks []HealthCheck `json:"healthChecks,omitempty"`
+
+	// Create destroy plan and apply it to destroy terraform resources
+	// upon deletion of this object. Defaults to false.
+	// +kubebuilder:default:=false
+	// +optional
+	DestroyResourcesOnDeletion bool `json:"destroyResourcesOnDeletion,omitempty"`
 }
 
 type PlanStatus struct {
