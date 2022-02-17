@@ -149,7 +149,7 @@ jobs:
           ns=(tf-system tf-tenant01-dev tf-tenant01-prd tf-tenant02-dev tf-tenant02-prd)
           for n in "${ns[@]}"
           do
-            kubectl -n $i get gitrepositories -oyaml          
-            kubectl -n $i get terraforms -oyaml
-            kubectl -n $i get all
+            kubectl -n $n get gitrepositories -oyaml          
+            kubectl -n $n get terraforms -oyaml
+            kubectl -n $n get all
           done

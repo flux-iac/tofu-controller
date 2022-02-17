@@ -1757,8 +1757,9 @@ func runnerPodSpec(terraform infrav1.Terraform) corev1.PodSpec {
 	return corev1.PodSpec{
 		Containers: []corev1.Container{
 			{
-				Name:  "tf-runner",
-				Image: getRunnerPodImage(),
+				Name:            "tf-runner",
+				Image:           getRunnerPodImage(),
+				ImagePullPolicy: corev1.PullIfNotPresent,
 				Ports: []corev1.ContainerPort{
 					{
 						Name:          "grpc",
