@@ -102,8 +102,11 @@ type TerraformReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
 func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	// TODO need to think about many controller instances are sharing the same secret
+
 	// should be blocked if cert is not ready yet
-	<-r.CertRotator.Ready
+	if r.CertRotator.IsCertReady(ctx) == false {
+		return ctrl.Result{Requeue: true}, fmt.Errorf("server cert not ready yet")
+	}
 
 	log := ctrl.LoggerFrom(ctx)
 	reconcileStart := time.Now()
