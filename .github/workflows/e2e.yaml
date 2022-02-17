@@ -126,6 +126,7 @@ jobs:
           kubectl -n tf-system wait terraform/helloworld-vars --for=condition=ready --timeout=4m
       - name: Run multi-tenancy test
         run: |
+          kubectl -n tf-system scale --replicas=3 deploy/tf-controller
           kustomize build ./config/testdata/multi-tenancy/tenant01 | kubectl apply -f -
           kustomize build ./config/testdata/multi-tenancy/tenant02 | kubectl apply -f -
           kubectl -n tf-tenant01-dev wait terraform/helloworld-tenant01-dev --for=condition=ready --timeout=4m
@@ -144,7 +145,7 @@ jobs:
           kustomize version
           kubectl -n tf-system logs deploy/source-controller
           kubectl -n tf-system logs deploy/tf-controller
-          
+
           ns=(tf-system tf-tenant01-dev tf-tenant01-prd tf-tenant02-dev tf-tenant02-prd)
           for n in "${ns[@]}"
           do
