@@ -1700,6 +1700,12 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: podNamespace,
 			Name:      podName,
+			Labels: map[string]string{
+				"app.kubernetes.io/created-by":      "tf-controller",
+				"app.kubernetes.io/name":            "tf-runner",
+				"app.kubernetes.io/instance":        podName,
+				"infra.contrib.fluxcd.io/terraform": terraform.Name,
+			},
 		},
 	}
 
