@@ -137,14 +137,14 @@ jobs:
         run: |
           kubectl -n chaos-testing apply -f ./config/testdata/chaos
           kubectl -n chaos-testing apply -f ./config/testdata/source
-          sleep 10
+          sleep 20
       - name: Randomly delete runner pods
         run: |
           for i in {1..10};
           do
             num=$((1 + $RANDOM % 5))
             kubectl -n chaos-testing delete pod helloworld-chaos0$num-tf-runner || true
-            sleep 2
+            sleep 5
           done
       - name: Verify chaos testing result
         run: |
