@@ -133,6 +133,27 @@ jobs:
           kubectl -n tf-tenant01-prd wait terraform/helloworld-tenant01-prd --for=condition=ready --timeout=4m
           kubectl -n tf-tenant02-dev wait terraform/helloworld-tenant02-dev --for=condition=ready --timeout=4m
           kubectl -n tf-tenant02-prd wait terraform/helloworld-tenant02-prd --for=condition=ready --timeout=4m
+      - name: Set up chaos testing environment
+        run: |
+          kubectl -n chaos-testing apply -f ./config/testdata/chaos
+          kubectl -n chaos-testing apply -f ./config/testdata/source
+          sleep 10
+      - name: Randomly delete runner pods
+        run: |
+          for i in {1..10};
+          do
+            num=$((1 + $RANDOM % 5))
+            kubectl -n chaos-testing delete pod helloworld-chaos0$num-tf-runner || true
+            sleep 2
+          done
+      - name: Verify chaos testing result
+        run: |
+          kubectl -n chaos-testing get pods
+          kubectl -n chaos-testing wait terraform/helloworld-chaos01 --for=condition=ready --timeout=4m
+          kubectl -n chaos-testing wait terraform/helloworld-chaos02 --for=condition=ready --timeout=4m
+          kubectl -n chaos-testing wait terraform/helloworld-chaos03 --for=condition=ready --timeout=4m
+          kubectl -n chaos-testing wait terraform/helloworld-chaos04 --for=condition=ready --timeout=4m
+          kubectl -n chaos-testing wait terraform/helloworld-chaos05 --for=condition=ready --timeout=4m
       - name: Logs
         run: |
           kubectl -n tf-system logs deploy/source-controller
@@ -146,7 +167,7 @@ jobs:
           kubectl -n tf-system logs deploy/source-controller
           kubectl -n tf-system logs deploy/tf-controller
 
-          ns=(tf-system tf-tenant01-dev tf-tenant01-prd tf-tenant02-dev tf-tenant02-prd)
+          ns=(tf-system tf-tenant01-dev tf-tenant01-prd tf-tenant02-dev tf-tenant02-prd chaos-testing)
           for n in "${ns[@]}"
           do
             kubectl -n $n get gitrepositories -oyaml          
