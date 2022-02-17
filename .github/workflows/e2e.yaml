@@ -124,6 +124,13 @@ jobs:
         run: |
           kubectl -n tf-system apply -f ./config/testdata/vars
           kubectl -n tf-system wait terraform/helloworld-vars --for=condition=ready --timeout=4m
+      - name: Run multi-tenancy test (Namespace dev)
+        run: |
+          kubectl apply -f ./config/testdata/multi-tenancy/namespace_and_serviceaccount.yaml
+          kubectl apply -f ./config/testdata/multi-tenancy/role.yaml
+          kubectl apply -f ./config/testdata/multi-tenancy/role_binding.yaml
+          kubectl apply -f ./config/testdata/multi-tenancy/test.yaml
+          kubectl -n dev wait terraform/helloworld-dev-mt --for=condition=ready --timeout=4m
       - name: Logs
         run: |
           kubectl -n tf-system logs deploy/source-controller
@@ -139,3 +146,8 @@ jobs:
           kubectl -n tf-system get all
           kubectl -n tf-system logs deploy/source-controller
           kubectl -n tf-system logs deploy/tf-controller
+
+          # multi-tenancy
+          kubectl -n dev get gitrepositories -oyaml          
+          kubectl -n dev get terraforms -oyaml
+          kubectl -n dev get all
