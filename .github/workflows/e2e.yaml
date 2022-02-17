@@ -124,13 +124,14 @@ jobs:
         run: |
           kubectl -n tf-system apply -f ./config/testdata/vars
           kubectl -n tf-system wait terraform/helloworld-vars --for=condition=ready --timeout=4m
-      - name: Run multi-tenancy test (Namespace dev)
+      - name: Run multi-tenancy test
         run: |
-          kubectl apply -f ./config/testdata/multi-tenancy/namespace_and_serviceaccount.yaml
-          kubectl apply -f ./config/testdata/multi-tenancy/role.yaml
-          kubectl apply -f ./config/testdata/multi-tenancy/role_binding.yaml
-          kubectl apply -f ./config/testdata/multi-tenancy/test.yaml
-          kubectl -n dev wait terraform/helloworld-dev-mt --for=condition=ready --timeout=4m
+          kustomize build ./config/testdata/multi-tenancy/tenant01 | kubectl apply -f -
+          kustomize build ./config/testdata/multi-tenancy/tenant02 | kubectl apply -f -
+          kubectl -n tf-tenant01-dev wait terraform/helloworld-tenant01-dev --for=condition=ready --timeout=4m
+          kubectl -n tf-tenant01-prd wait terraform/helloworld-tenant01-prd --for=condition=ready --timeout=4m
+          kubectl -n tf-tenant02-dev wait terraform/helloworld-tenant02-dev --for=condition=ready --timeout=4m
+          kubectl -n tf-tenant02-prd wait terraform/helloworld-tenant02-prd --for=condition=ready --timeout=4m
       - name: Logs
         run: |
           kubectl -n tf-system logs deploy/source-controller
@@ -141,13 +142,13 @@ jobs:
           which kubectl
           kubectl version
           kustomize version
-          kubectl -n tf-system get gitrepositories -oyaml
-          kubectl -n tf-system get terraforms -oyaml
-          kubectl -n tf-system get all
           kubectl -n tf-system logs deploy/source-controller
           kubectl -n tf-system logs deploy/tf-controller
-
-          # multi-tenancy
-          kubectl -n dev get gitrepositories -oyaml          
-          kubectl -n dev get terraforms -oyaml
-          kubectl -n dev get all
+          
+          ns=(tf-system tf-tenant01-dev tf-tenant01-prd tf-tenant02-dev tf-tenant02-prd)
+          for n in "${ns[@]}"
+          do
+            kubectl -n $i get gitrepositories -oyaml          
+            kubectl -n $i get terraforms -oyaml
+            kubectl -n $i get all
+          done
