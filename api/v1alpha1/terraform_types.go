@@ -143,6 +143,12 @@ type TerraformSpec struct {
 	// +kubebuilder:default:=false
 	// +optional
 	DestroyResourcesOnDeletion bool `json:"destroyResourcesOnDeletion,omitempty"`
+
+	// Name of a ServiceAccount for the runner Pod to provision Terraform resources.
+	// Default to tf-runner.
+	// +kubebuilder:default:=tf-runner
+	// +optional
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 }
 
 type PlanStatus struct {

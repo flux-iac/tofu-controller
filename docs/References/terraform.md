@@ -563,6 +563,19 @@ bool
 upon deletion of this object. Defaults to false.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>serviceAccountName</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Name of a ServiceAccount for the runner Pod to provision Terraform resources.
+Default to tf-runner.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -813,6 +826,19 @@ bool
 <em>(Optional)</em>
 <p>Create destroy plan and apply it to destroy terraform resources
 upon deletion of this object. Defaults to false.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>serviceAccountName</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Name of a ServiceAccount for the runner Pod to provision Terraform resources.
+Default to tf-runner.</p>
 </td>
 </tr>
 </tbody>

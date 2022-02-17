@@ -86,10 +86,10 @@ type TerraformReconciler struct {
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms/finalizers,verbs=get;create;update;patch;delete
-// +kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=buckets;gitrepositories,verbs=get;list;watch
-// +kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=buckets/status;gitrepositories/status,verbs=get
-// +kubebuilder:rbac:groups="",resources=configmaps;secrets;serviceaccounts,verbs=get;list;watch
-// +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
+//+kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=buckets;gitrepositories,verbs=get;list;watch
+//+kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=buckets/status;gitrepositories/status,verbs=get
+//+kubebuilder:rbac:groups="",resources=configmaps;secrets;serviceaccounts,verbs=get;list;watch
+//+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -1695,7 +1695,7 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform) (string, error) {
 	log := ctrl.LoggerFrom(ctx)
 	podNamespace := terraform.Namespace
-	podName := fmt.Sprintf("%s-runner", terraform.Name)
+	podName := fmt.Sprintf("%s-tf-runner", terraform.Name)
 	runnerPod := corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: podNamespace,
@@ -1708,7 +1708,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		if !apierrors.IsNotFound(err) {
 			return "", err
 		}
-		runnerPod.Spec = runnerPodSpec()
+		runnerPod.Spec = runnerPodSpec(terraform)
 		if err := r.Create(ctx, &runnerPod); err != nil {
 			return "", err
 		}
@@ -1747,7 +1747,12 @@ func getRunnerPodImage() string {
 	return runnerPodImage
 }
 
-func runnerPodSpec() corev1.PodSpec {
+func runnerPodSpec(terraform infrav1.Terraform) corev1.PodSpec {
+
+	serviceAccountName := terraform.Spec.ServiceAccountName
+	if serviceAccountName == "" {
+		serviceAccountName = "tf-runner"
+	}
 
 	return corev1.PodSpec{
 		Containers: []corev1.Container{
@@ -1780,7 +1785,7 @@ func runnerPodSpec() corev1.PodSpec {
 				},
 			},
 		},
-		ServiceAccountName: "tf-runner",
+		ServiceAccountName: serviceAccountName,
 	}
 }
 

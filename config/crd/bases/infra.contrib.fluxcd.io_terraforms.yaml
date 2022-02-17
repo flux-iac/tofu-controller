@@ -157,6 +157,11 @@ spec:
                   When not specified, the controller uses the TerraformSpec.Interval
                   value to retry failures.
                 type: string
+              serviceAccountName:
+                default: tf-runner
+                description: Name of a ServiceAccount for the runner Pod to provision
+                  Terraform resources. Default to tf-runner.
+                type: string
               sourceRef:
                 description: SourceRef is the reference of the source where the Terraform
                   files are stored.
