@@ -2,8 +2,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta1
 kind: GitRepository
 metadata:
-  name: helloworld-dev-mt
-  namespace: dev
+  name: helloworld
 spec:
   interval: 1m
   url: https://github.com/tf-controller/helloworld.git
@@ -13,13 +12,12 @@ spec:
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
-  name: helloworld-dev-mt
-  namespace: dev
+  name: helloworld
 spec:
   interval: 10s
   approvePlan: "auto"
   path: ./
   sourceRef:
     kind: GitRepository
-    name: helloworld-dev-mt
-  serviceAccountName: dev-tf-runner
+    name: helloworld
+  serviceAccountName: tf-runner
