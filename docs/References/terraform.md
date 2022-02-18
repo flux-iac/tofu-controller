@@ -576,6 +576,18 @@ string
 Default to tf-runner.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>alwaysCleanupRunnerPod</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Clean the runner pod up after each reconcilation cycle</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -839,6 +851,18 @@ string
 <em>(Optional)</em>
 <p>Name of a ServiceAccount for the runner Pod to provision Terraform resources.
 Default to tf-runner.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>alwaysCleanupRunnerPod</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Clean the runner pod up after each reconcilation cycle</p>
 </td>
 </tr>
 </tbody>
