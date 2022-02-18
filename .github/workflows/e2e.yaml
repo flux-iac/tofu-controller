@@ -111,19 +111,41 @@ jobs:
           kubectl -n tf-system apply -f ./config/testdata/approve-plan
           kubectl -n tf-system wait terraform/helloworld-auto-approve --for=condition=ready --timeout=4m
           kubectl -n tf-system wait terraform/helloworld-manual-approve --for=condition=plan=true --timeout=4m
+
+          # delete after tests
+          kubectl -n tf-system delete -f ./config/testdata/approve-plan
+      - name: Run plan with pod cleanup tests
+        run: |
+          kubectl -n tf-system apply -f ./config/testdata/always-clean-pod
+          kubectl -n tf-system wait terraform/helloworld-always-clean-pod-manual-approve --for=condition=plan=true --timeout=4m
+
+          # negate pod not found to be true
+          ! kubectl -n tf-system get helloworld-always-clean-pod-manual-approve-tf-runner
+
+          # delete after tests
+          kubectl -n tf-system delete -f ./config/testdata/always-clean-pod
       - name: Run drift detection tests
         run: |
           kubectl -n tf-system apply -f ./config/testdata/drift-detection
           kubectl -n tf-system wait terraform/helloworld-drift-detection --for=condition=ready=unknown --timeout=4m
           kubectl -n tf-system wait terraform/helloworld-drift-detection-disable --for=condition=ready --timeout=4m
+
+          # delete after tests
+          kubectl -n tf-system delete -f ./config/testdata/drift-detection
       - name: Run healthchecks tests
         run: |
           kubectl -n tf-system apply -f ./config/testdata/healthchecks
           kubectl -n tf-system wait terraform/helloworld-healthchecks --for=condition=ready --timeout=4m
+
+          # delete after tests
+          kubectl -n tf-system delete -f ./config/testdata/healthchecks
       - name: Run vars tests
         run: |
           kubectl -n tf-system apply -f ./config/testdata/vars
           kubectl -n tf-system wait terraform/helloworld-vars --for=condition=ready --timeout=4m
+
+          # delete after tests
+          kubectl -n tf-system delete -f ./config/testdata/vars
       - name: Run multi-tenancy test
         run: |
           kubectl -n tf-system scale --replicas=3 deploy/tf-controller
@@ -133,6 +155,10 @@ jobs:
           kubectl -n tf-tenant01-prd wait terraform/helloworld-tenant01-prd --for=condition=ready --timeout=4m
           kubectl -n tf-tenant02-dev wait terraform/helloworld-tenant02-dev --for=condition=ready --timeout=4m
           kubectl -n tf-tenant02-prd wait terraform/helloworld-tenant02-prd --for=condition=ready --timeout=4m
+
+          # delete after tests
+          kustomize build ./config/testdata/multi-tenancy/tenant01 | kubectl delete -f -
+          kustomize build ./config/testdata/multi-tenancy/tenant02 | kubectl delete -f -
       - name: Set up chaos testing environment
         run: |
           kubectl -n chaos-testing apply -f ./config/testdata/chaos
