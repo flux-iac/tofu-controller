@@ -157,8 +157,8 @@ jobs:
           kubectl -n tf-tenant02-prd wait terraform/helloworld-tenant02-prd --for=condition=ready --timeout=4m
 
           # delete after tests
-          kustomize build ./config/testdata/multi-tenancy/tenant01 | kubectl delete -f -
-          kustomize build ./config/testdata/multi-tenancy/tenant02 | kubectl delete -f -
+          # kustomize build ./config/testdata/multi-tenancy/tenant01 | kubectl delete -f -
+          # kustomize build ./config/testdata/multi-tenancy/tenant02 | kubectl delete -f -
       - name: Set up chaos testing environment
         run: |
           kubectl -n chaos-testing apply -f ./config/testdata/chaos
