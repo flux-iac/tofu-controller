@@ -100,7 +100,7 @@ type TerraformReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
-func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (retResult ctrl.Result, retErr error) {
 	// TODO need to think about many controller instances are sharing the same secret
 
 	// should be blocked if cert is not ready yet
@@ -146,6 +146,8 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		if closeConn != nil {
 			if err := closeConn(); err != nil {
 				log.Error(err, "unable to close connection")
+				retResult = ctrl.Result{}
+				retErr = err
 			}
 		}
 
@@ -160,12 +162,16 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			if err := cli.Get(ctx, podKey, &pod); err != nil {
 				if !apierrors.IsNotFound(err) {
 					log.Error(err, "unable to get pod for cleaning up")
+					retResult = ctrl.Result{}
+					retErr = err
 				}
 				return
 			}
 
 			if err := cli.Delete(ctx, &pod); err != nil {
 				log.Error(err, "unable to delete pod")
+				retResult = ctrl.Result{}
+				retErr = err
 				return
 			}
 		}
