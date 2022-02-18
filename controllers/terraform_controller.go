@@ -1700,6 +1700,12 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: podNamespace,
 			Name:      podName,
+			Labels: map[string]string{
+				"app.kubernetes.io/created-by":      "tf-controller",
+				"app.kubernetes.io/name":            "tf-runner",
+				"app.kubernetes.io/instance":        podName,
+				"infra.contrib.fluxcd.io/terraform": terraform.Name,
+			},
 		},
 	}
 
@@ -1757,8 +1763,9 @@ func runnerPodSpec(terraform infrav1.Terraform) corev1.PodSpec {
 	return corev1.PodSpec{
 		Containers: []corev1.Container{
 			{
-				Name:  "tf-runner",
-				Image: getRunnerPodImage(),
+				Name:            "tf-runner",
+				Image:           getRunnerPodImage(),
+				ImagePullPolicy: corev1.PullIfNotPresent,
 				Ports: []corev1.ContainerPort{
 					{
 						Name:          "grpc",

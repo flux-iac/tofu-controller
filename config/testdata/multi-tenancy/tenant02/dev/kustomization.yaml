@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../../base
+nameSuffix: -tenant02-dev
+namespace: tf-tenant02-dev
+replacements:
+- source:
+    kind: GitRepository
+    fieldPath: metadata.name
+  targets:
+  - select:
+      kind: Terraform
+    fieldPaths:
+      - spec.sourceRef.name
+- source:
+    kind: ServiceAccount
+    fieldPath: metadata.name
+  targets:
+  - select:
+      kind: Terraform
+    fieldPaths:
+      - spec.serviceAccountName
+patches:
+  - patch: |-
+      - op: replace
+        path: /metadata/name
+        value: tf-tenant02-dev
+    target:
+      kind: Namespace
