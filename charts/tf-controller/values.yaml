@@ -4,7 +4,7 @@ image:
   repository: ghcr.io/weaveworks/tf-controller
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.9.0-rc.1"
+  tag: "v0.9.0-rc.2"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -22,7 +22,7 @@ serviceAccount:
 runner:
   image:
     repository: ghcr.io/weaveworks/tf-runner
-    tag: "v0.9.0-rc.1"
+    tag: "v0.9.0-rc.2"
   serviceAccount:
     # Specifies whether a service account should be created
     create: true

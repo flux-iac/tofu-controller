@@ -49,6 +49,10 @@ spec:
           spec:
             description: TerraformSpec defines the desired state of Terraform
             properties:
+              alwaysCleanupRunnerPod:
+                default: false
+                description: Clean the runner pod up after each reconcilation cycle
+                type: boolean
               approvePlan:
                 description: ApprovePlan specifies name of a plan wanted to approve.
                   If its value is "auto", the controller will automatically approve
@@ -88,6 +92,11 @@ spec:
               destroy:
                 description: Destroy produces a destroy plan. Applying the plan will
                   destroy all resources.
+                type: boolean
+              destroyResourcesOnDeletion:
+                default: false
+                description: Create destroy plan and apply it to destroy terraform
+                  resources upon deletion of this object. Defaults to false.
                 type: boolean
               disableDriftDetection:
                 default: false
@@ -152,6 +161,11 @@ spec:
                 description: The interval at which to retry a previously failed reconciliation.
                   When not specified, the controller uses the TerraformSpec.Interval
                   value to retry failures.
+                type: string
+              serviceAccountName:
+                default: tf-runner
+                description: Name of a ServiceAccount for the runner Pod to provision
+                  Terraform resources. Default to tf-runner.
                 type: string
               sourceRef:
                 description: SourceRef is the reference of the source where the Terraform
