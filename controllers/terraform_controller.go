@@ -146,7 +146,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		if closeConn != nil {
 			if err := closeConn(); err != nil {
 				log.Error(err, "unable to close connection")
-				retResult = ctrl.Result{}
 				retErr = err
 			}
 		}
@@ -162,7 +161,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			if err := cli.Get(ctx, podKey, &pod); err != nil {
 				if !apierrors.IsNotFound(err) {
 					log.Error(err, "unable to get pod for cleaning up")
-					retResult = ctrl.Result{}
 					retErr = err
 				}
 				return
@@ -170,7 +168,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 			if err := cli.Delete(ctx, &pod); err != nil {
 				log.Error(err, "unable to delete pod")
-				retResult = ctrl.Result{}
 				retErr = err
 				return
 			}
@@ -397,18 +394,27 @@ func (l LocalPrintfer) Printf(format string, v ...interface{}) {
 	l.logger.Info(fmt.Sprintf(format, v...))
 }
 
-func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source) (retTerraform infrav1.Terraform, retErr error) {
 
 	log := ctrl.LoggerFrom(ctx)
 	revision := sourceObj.GetArtifact().Revision
 	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
-	terraform, tfInstance, tmpDir, err := r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey)
+
+	var (
+		tfInstance string
+		tmpDir     string
+		err        error
+	)
+	terraform, tfInstance, tmpDir, err = r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey)
 
 	defer func() {
 		cleanupDirReply, err := runnerClient.CleanupDir(ctx, &runner.CleanupDirRequest{TmpDir: tmpDir})
 		if err != nil {
 			log.Error(err, "clean up error")
+			retErr = err
+			return
 		}
+
 		if cleanupDirReply != nil {
 			log.Info(fmt.Sprintf("clean up dir: %s", cleanupDirReply.Message))
 		}
