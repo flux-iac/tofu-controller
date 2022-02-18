@@ -149,6 +149,11 @@ type TerraformSpec struct {
 	// +kubebuilder:default:=tf-runner
 	// +optional
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
+
+	// Clean the runner pod up after each reconcilation cycle
+	// +kubebuilder:default:=false
+	// +optional
+	AlwaysCleanupRunnerPod bool `json:"alwaysCleanupRunnerPod,omitempty"`
 }
 
 type PlanStatus struct {

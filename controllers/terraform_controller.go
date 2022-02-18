@@ -100,7 +100,7 @@ type TerraformReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
-func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (retResult ctrl.Result, retErr error) {
 	// TODO need to think about many controller instances are sharing the same secret
 
 	// should be blocked if cert is not ready yet
@@ -134,12 +134,45 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if err != nil {
 		log.Error(err, "unable to lookup or create runner")
 		if closeConn != nil {
-			closeConn()
+			if err := closeConn(); err != nil {
+				log.Error(err, "unable to close connection")
+			}
 		}
 		return ctrl.Result{}, err
 	}
 	log.Info("runner is running")
-	defer closeConn()
+
+	defer func(ctx context.Context, cli client.Client, terraform infrav1.Terraform) {
+		if closeConn != nil {
+			if err := closeConn(); err != nil {
+				log.Error(err, "unable to close connection")
+				retErr = err
+			}
+		}
+
+		if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
+			// nothing to delete
+			return
+		}
+
+		if terraform.Spec.AlwaysCleanupRunnerPod == true {
+			podKey := types.NamespacedName{Namespace: terraform.Namespace, Name: fmt.Sprintf("%s-tf-runner", terraform.Name)}
+			var pod corev1.Pod
+			if err := cli.Get(ctx, podKey, &pod); err != nil {
+				if !apierrors.IsNotFound(err) {
+					log.Error(err, "unable to get pod for cleaning up")
+					retErr = err
+				}
+				return
+			}
+
+			if err := cli.Delete(ctx, &pod); err != nil {
+				log.Error(err, "unable to delete pod")
+				retErr = err
+				return
+			}
+		}
+	}(ctx, r.Client, terraform)
 
 	// resolve source reference
 	sourceObj, err := r.getSource(ctx, terraform)
@@ -359,6 +392,122 @@ type LocalPrintfer struct {
 
 func (l LocalPrintfer) Printf(format string, v ...interface{}) {
 	l.logger.Info(fmt.Sprintf(format, v...))
+}
+
+func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source) (retTerraform infrav1.Terraform, retErr error) {
+
+	log := ctrl.LoggerFrom(ctx)
+	revision := sourceObj.GetArtifact().Revision
+	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
+
+	var (
+		tfInstance string
+		tmpDir     string
+		err        error
+	)
+	terraform, tfInstance, tmpDir, err = r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey)
+
+	defer func() {
+		cleanupDirReply, err := runnerClient.CleanupDir(ctx, &runner.CleanupDirRequest{TmpDir: tmpDir})
+		if err != nil {
+			log.Error(err, "clean up error")
+			retErr = err
+			return
+		}
+
+		if cleanupDirReply != nil {
+			log.Info(fmt.Sprintf("clean up dir: %s", cleanupDirReply.Message))
+		}
+	}()
+
+	if err != nil {
+		return terraform, err
+	}
+
+	if r.shouldDetectDrift(terraform, revision) {
+		var driftDetectionErr error // declared here to avoid shadowing on terraform variable
+		terraform, driftDetectionErr = r.detectDrift(ctx, terraform, tfInstance, runnerClient, revision)
+
+		// immediately return if no drift - reconciliation will retry normally
+		if driftDetectionErr == nil {
+			return terraform, nil
+		}
+
+		// immediately return if err is not about drift
+		if driftDetectionErr.Error() != infrav1.DriftDetectedReason {
+			return terraform, driftDetectionErr
+		}
+
+		// immediately return if drift is detected but it's not "force" or "auto"
+		if driftDetectionErr.Error() == infrav1.DriftDetectedReason && !r.forceOrAutoApply(terraform) {
+			return terraform, driftDetectionErr
+		}
+
+		// ok, patch and continue
+		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			log.Error(err, "unable to update status after drift detection")
+			return terraform, err
+		}
+	}
+
+	// return early if we're in drift-detection-only mode
+	if terraform.Spec.ApprovePlan == infrav1.ApprovePlanDisableValue {
+		log.Info("approve plan disabled")
+		return terraform, nil
+	}
+
+	if r.shouldPlan(terraform) {
+		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision)
+		if err != nil {
+			return terraform, err
+		}
+
+		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			log.Error(err, "unable to update status after planing")
+			return terraform, err
+		}
+	}
+
+	outputs := map[string]tfexec.OutputMeta{}
+	if r.shouldApply(terraform) {
+		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision, &outputs)
+		if err != nil {
+			return terraform, err
+		}
+
+		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			log.Error(err, "unable to update status after applying")
+			return terraform, err
+		}
+	} else {
+		log.Info("should apply == false")
+	}
+
+	if r.shouldWriteOutputs(terraform, outputs) {
+		terraform, err = r.writeOutput(ctx, terraform, runnerClient, outputs, revision)
+		if err != nil {
+			return terraform, err
+		}
+
+		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			log.Error(err, "unable to update status after writing outputs")
+			return terraform, err
+		}
+	}
+
+	if r.shouldDoHealthChecks(terraform) {
+		terraform, err = r.doHealthChecks(ctx, terraform, runnerClient)
+		if err != nil {
+			return terraform, err
+		}
+
+		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			log.Error(err, "unable to update status after doing health checks")
+			return terraform, err
+		}
+	}
+
+	return terraform, nil
 }
 
 func (r *TerraformReconciler) setupTerraform(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source, revision string, objectKey types.NamespacedName) (infrav1.Terraform, string, string, error) {
@@ -588,113 +737,6 @@ terraform {
 
 	log.Info("generated var files from spec")
 	return terraform, tfInstance, tmpDir, nil
-}
-
-func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source) (infrav1.Terraform, error) {
-
-	log := ctrl.LoggerFrom(ctx)
-	revision := sourceObj.GetArtifact().Revision
-	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
-	terraform, tfInstance, tmpDir, err := r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey)
-
-	defer func() {
-		cleanupDirReply, err := runnerClient.CleanupDir(ctx, &runner.CleanupDirRequest{TmpDir: tmpDir})
-		if err != nil {
-			log.Error(err, "clean up error")
-		}
-		if cleanupDirReply != nil {
-			log.Info(fmt.Sprintf("clean up dir: %s", cleanupDirReply.Message))
-		}
-	}()
-
-	if err != nil {
-		return terraform, err
-	}
-
-	if r.shouldDetectDrift(terraform, revision) {
-		var driftDetectionErr error // declared here to avoid shadowing on terraform variable
-		terraform, driftDetectionErr = r.detectDrift(ctx, terraform, tfInstance, runnerClient, revision)
-
-		// immediately return if no drift - reconciliation will retry normally
-		if driftDetectionErr == nil {
-			return terraform, nil
-		}
-
-		// immediately return if err is not about drift
-		if driftDetectionErr.Error() != infrav1.DriftDetectedReason {
-			return terraform, driftDetectionErr
-		}
-
-		// immediately return if drift is detected but it's not "force" or "auto"
-		if driftDetectionErr.Error() == infrav1.DriftDetectedReason && !r.forceOrAutoApply(terraform) {
-			return terraform, driftDetectionErr
-		}
-
-		// ok, patch and continue
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
-			log.Error(err, "unable to update status after drift detection")
-			return terraform, err
-		}
-	}
-
-	// return early if we're in drift-detection-only mode
-	if terraform.Spec.ApprovePlan == infrav1.ApprovePlanDisableValue {
-		log.Info("approve plan disabled")
-		return terraform, nil
-	}
-
-	if r.shouldPlan(terraform) {
-		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision)
-		if err != nil {
-			return terraform, err
-		}
-
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
-			log.Error(err, "unable to update status after planing")
-			return terraform, err
-		}
-	}
-
-	outputs := map[string]tfexec.OutputMeta{}
-	if r.shouldApply(terraform) {
-		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision, &outputs)
-		if err != nil {
-			return terraform, err
-		}
-
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
-			log.Error(err, "unable to update status after applying")
-			return terraform, err
-		}
-	} else {
-		log.Info("should apply == false")
-	}
-
-	if r.shouldWriteOutputs(terraform, outputs) {
-		terraform, err = r.writeOutput(ctx, terraform, runnerClient, outputs, revision)
-		if err != nil {
-			return terraform, err
-		}
-
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
-			log.Error(err, "unable to update status after writing outputs")
-			return terraform, err
-		}
-	}
-
-	if r.shouldDoHealthChecks(terraform) {
-		terraform, err = r.doHealthChecks(ctx, terraform, runnerClient)
-		if err != nil {
-			return terraform, err
-		}
-
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
-			log.Error(err, "unable to update status after doing health checks")
-			return terraform, err
-		}
-	}
-
-	return terraform, nil
 }
 
 func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string) (infrav1.Terraform, error) {

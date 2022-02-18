@@ -1,0 +1,13 @@
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld-always-clean-pod-manual-approve
+spec:
+  interval: 15m0s   # make sure it's not re-creating pod too fast
+  approvePlan: ""
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+  alwaysCleanupRunnerPod: true
