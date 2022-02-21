@@ -366,6 +366,40 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#write-outputs-to-a-secret" class="md-nav__link">
+    Write outputs to a secret
+  </a>
+  
+    <nav class="md-nav" aria-label="Write outputs to a secret">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#write-all-outputs" class="md-nav__link">
+    Write all outputs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#write-outputs-selectively" class="md-nav__link">
+    Write outputs selectively
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-name-mapping" class="md-nav__link">
+    Output name mapping
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -521,6 +555,40 @@
   <a href="#destroy-resources-on-deletion" class="md-nav__link">
     Destroy resources on deletion
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#write-outputs-to-a-secret" class="md-nav__link">
+    Write outputs to a secret
+  </a>
+  
+    <nav class="md-nav" aria-label="Write outputs to a secret">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#write-all-outputs" class="md-nav__link">
+    Write all outputs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#write-outputs-selectively" class="md-nav__link">
+    Write outputs selectively
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-name-mapping" class="md-nav__link">
+    Output name mapping
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -780,6 +848,67 @@ spec:
     kind: GitRepository
     name: helloworld
     namespace: flux-system
+</code></pre>
+<h2 id="write-outputs-to-a-secret">Write outputs to a secret</h2>
+<p>Outputs created by Terraform can be written to a secret using <code>.spec.writeOutputsToSecret</code>.</p>
+<h3 id="write-all-outputs">Write all outputs</h3>
+<p>We can specify a target secret, and the controller will write all outputs to the secret by default.</p>
+<pre><code class="language-yaml">apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: &quot;auto&quot;
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  writeOutputsToSecret:
+    name: helloworld-output
+</code></pre>
+<h3 id="write-outputs-selectively">Write outputs selectively</h3>
+<p>We can choose only a subset of outputs by specify output names we'd like to write in <code>outputs</code> array.</p>
+<pre><code class="language-yaml">apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: &quot;auto&quot;
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  writeOutputsToSecret:
+    name: helloworld-output
+    outputs:
+    - hello_world
+    - my_sensitive_data
+</code></pre>
+<h3 id="output-name-mapping">Output name mapping</h3>
+<p>Some time we'd like to use rename an output, so that it can be consumed by other Kubernetes controllers.
+For example, we might retrieve a key from a Secret manager, and it's an AGE key, which must be ending with ".agekey" in the secret.
+In this case, we need to rename the output. TF-controller supports mapping output name using the "old_name:new_name" format.
+In the following example, we write <code>age_key</code> output as <code>age.agekey</code> entry in the <code>helloworld-output</code> Secret's data.</p>
+<pre><code class="language-yaml">apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: &quot;auto&quot;
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  writeOutputsToSecret:
+    name: helloworld-output
+    outputs:
+    - age_key:age.agekey
 </code></pre>
 
               
