@@ -299,3 +299,78 @@ spec:
     name: helloworld
     namespace: flux-system
 ```
+
+## Write outputs to a secret
+
+Outputs created by Terraform can be written to a secret using `.spec.writeOutputsToSecret`.
+
+### Write all outputs
+
+We can specify a target secret, and the controller will write all outputs to the secret by default.
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: "auto"
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  writeOutputsToSecret:
+    name: helloworld-output
+```
+
+### Write outputs selectively
+
+We can choose only a subset of outputs by specify output names we'd like to write in `outputs` array.
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: "auto"
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  writeOutputsToSecret:
+    name: helloworld-output
+    outputs:
+    - hello_world
+    - my_sensitive_data
+```
+
+### Output name mapping
+
+Some time we'd like to use rename an output, so that it can be consumed by other Kubernetes controllers.
+For example, we might retrieve a key from a Secret manager, and it's an AGE key, which must be ending with ".agekey" in the secret.
+In this case, we need to rename the output. TF-controller supports mapping output name using the "old_name:new_name" format.
+In the following example, we write `age_key` output as `age.agekey` entry in the `helloworld-output` Secret's data.
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: "auto"
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  writeOutputsToSecret:
+    name: helloworld-output
+    outputs:
+    - age_key:age.agekey
+```

@@ -32,6 +32,7 @@ controllers/data/tf-k8s-configmap/
 controllers/data/tf-k8s-configmap-unrelated-change/
 controllers/data/tfc-helloworld/
 controllers/data/tf-health-check-example/
+controllers/data/terraform-outputs-dots/
 controllers/data/terratest-master.tar.gz
 
 /config/crd/bases/buckets.yaml

@@ -1006,11 +1006,6 @@ func convertOutputs(outputs map[string]*runner.OutputMeta) map[string]tfexec.Out
 }
 
 func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient, outputs map[string]tfexec.OutputMeta, revision string) (infrav1.Terraform, error) {
-	type hcl struct {
-		Name  string    `cty:"name"`
-		Value cty.Value `cty:"value"`
-	}
-
 	log := ctrl.LoggerFrom(ctx)
 
 	wots := terraform.Spec.WriteOutputsToSecret
@@ -1046,7 +1041,23 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 		}
 	} else {
 		// filter only defined output
-		for _, output := range wots.Outputs {
+		// output maybe contain mapping output:mapped_name
+		for _, outputMapping := range wots.Outputs {
+			parts := strings.SplitN(outputMapping, ":", 2)
+			var output string
+			var mappedTo string
+			if len(parts) == 1 {
+				output = parts[0]
+				mappedTo = parts[0]
+				// no mapping
+			} else if len(parts) == 2 {
+				output = parts[0]
+				mappedTo = parts[1]
+			} else {
+				log.Error(fmt.Errorf("invalid mapping format"), outputMapping)
+				continue
+			}
+
 			v := outputs[output]
 			ct, err := ctyjson.UnmarshalType(v.Type)
 			if err != nil {
@@ -1058,17 +1069,17 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 				if err != nil {
 					return terraform, err
 				}
-				data[output] = []byte(cv.AsString())
+				data[mappedTo] = []byte(cv.AsString())
 			// there's no need to unmarshal and convert to []byte
 			// we'll just pass the []byte directly from OutputMeta Value
 			case cty.Number, cty.Bool:
-				data[output] = v.Value
+				data[mappedTo] = v.Value
 			default:
 				outputBytes, err := json.Marshal(v.Value)
 				if err != nil {
 					return terraform, err
 				}
-				data[output] = outputBytes
+				data[mappedTo] = outputBytes
 			}
 		}
 	}
