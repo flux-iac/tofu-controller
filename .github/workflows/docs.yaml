@@ -27,7 +27,8 @@ jobs:
       - name: Publish docs artifacts to gh-pages
         run: |
           cd gh-pages
-          ls | grep -ve *tgz -e index.yaml -e LICENSE | xargs rm -rf
+          shopt -s extglob
+          rm -rf !(index.yaml|LICENSE|*.tgz)
           cp -R /tmp/docs/** .
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
