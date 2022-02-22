@@ -1575,12 +1575,6 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 					err.Error(),
 				), err
 			}
-		default:
-			err := fmt.Errorf("invalid health check type: %s", hc.Type)
-			return infrav1.TerraformHealthCheckFailed(
-				terraform,
-				err.Error(),
-			), err
 		}
 	}
 	terraform = infrav1.TerraformHealthCheckSucceeded(terraform, "Health checks succeeded")
