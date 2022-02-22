@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"math"
 	"math/rand"
 	"net"
 	"net/http"
@@ -38,7 +39,6 @@ import (
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/fluxcd/pkg/runtime/metrics"
 	"github.com/fluxcd/pkg/runtime/predicates"
-	"github.com/fluxcd/pkg/untar"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/go-retryablehttp"
@@ -1264,48 +1264,6 @@ func (r *TerraformReconciler) downloadAsBytes(artifact *sourcev1.Artifact) (*byt
 	return &buf, nil
 }
 
-func (r *TerraformReconciler) downloadAndExtract(artifact *sourcev1.Artifact, tmpDir string) error {
-	artifactURL := artifact.URL
-	if hostname := os.Getenv("SOURCE_CONTROLLER_LOCALHOST"); hostname != "" {
-		u, err := url.Parse(artifactURL)
-		if err != nil {
-			return err
-		}
-		u.Host = hostname
-		artifactURL = u.String()
-	}
-
-	req, err := retryablehttp.NewRequest(http.MethodGet, artifactURL, nil)
-	if err != nil {
-		return fmt.Errorf("failed to create a new request: %w", err)
-	}
-
-	resp, err := r.httpClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to download artifact, error: %w", err)
-	}
-	defer resp.Body.Close()
-
-	// check response
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to download artifact from %s, status: %s", artifactURL, resp.Status)
-	}
-
-	var buf bytes.Buffer
-
-	// verify checksum matches origin
-	if err := r.verifyArtifact(artifact, &buf, resp.Body); err != nil {
-		return err
-	}
-
-	// extract
-	if _, err = untar.Untar(&buf, tmpDir); err != nil {
-		return fmt.Errorf("failed to untar artifact, error: %w", err)
-	}
-
-	return nil
-}
-
 func (r *TerraformReconciler) recordReadinessMetric(ctx context.Context, terraform infrav1.Terraform) {
 	if r.MetricsRecorder == nil {
 		return
@@ -1617,12 +1575,6 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 					err.Error(),
 				), err
 			}
-		default:
-			err := fmt.Errorf("invalid health check type: %s", hc.Type)
-			return infrav1.TerraformHealthCheckFailed(
-				terraform,
-				err.Error(),
-			), err
 		}
 	}
 	terraform = infrav1.TerraformHealthCheckSucceeded(terraform, "Health checks succeeded")
@@ -1775,7 +1727,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 
 	// TODO make it configurable
 	const maxRetry = 5
-	retry := 0
+	retry := float64(0)
 	for {
 		if err := r.Get(ctx, runnerPodKey, &runnerPod); err != nil {
 			return "", err
@@ -1790,7 +1742,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		if retry == maxRetry {
 			return "", fmt.Errorf("wait for runner to be ready max retry reached")
 		}
-		waitTime := time.Duration(2^retry)*time.Second + time.Duration(rand.Intn(1000))*time.Millisecond
+		waitTime := time.Duration(math.Pow(2, retry))*time.Second + time.Duration(rand.Intn(1000))*time.Millisecond
 		log.Info(fmt.Sprintf("waiting for runner to be ready, wait time: %s", waitTime))
 
 		time.Sleep(waitTime)
