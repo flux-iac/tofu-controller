@@ -22,7 +22,7 @@ COPY utils/ utils/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o tf-runner cmd/runner/main.go
 
-ARG TF_VERSION=1.1.5
+ARG TF_VERSION=1.1.6
 ADD https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip /terraform_${TF_VERSION}_linux_amd64.zip
 RUN unzip -q /terraform_${TF_VERSION}_linux_amd64.zip
 
