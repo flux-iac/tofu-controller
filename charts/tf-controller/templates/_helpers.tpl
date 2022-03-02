@@ -67,7 +67,7 @@ Create the name of the runner service account to use
 */}}
 {{- define "tf-controller.runner.serviceAccountName" -}}
 {{- if .Values.runner.serviceAccount.create }}
-{{- default (printf "%s-runner" (include "tf-controller.fullname" .)) .Values.runner.serviceAccount.name }}
+{{- default "tf-runner" .Values.runner.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.runner.serviceAccount.name }}
 {{- end }}
