@@ -18,7 +18,7 @@ helm upgrade -i tf-controller tf-controller/tf-controller \
 
 ## Configuration
 
-The following tables lists the configurable parameters of the TF-controller chart and their default values.
+The following table lists the configurable parameters of the TF-controller chart and their default values.
 
 | Parameter                                         | Default                                              | Description
 | -----------------------------------------------   | ---------------------------------------------------- | ---
