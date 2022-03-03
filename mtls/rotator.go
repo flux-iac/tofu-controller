@@ -39,13 +39,11 @@ import (
 // 3: separate cert validate durations
 
 const (
-	certName               = "tls.crt"
-	keyName                = "tls.key"
-	caCertName             = "ca.crt"
-	caKeyName              = "ca.key"
-	certValidityDuration   = 6 * time.Hour
-	rotationCheckFrequency = 30 * time.Minute
-	lookaheadInterval      = 1 * time.Hour
+	certName          = "tls.crt"
+	keyName           = "tls.key"
+	caCertName        = "ca.crt"
+	caKeyName         = "ca.key"
+	lookaheadInterval = 1 * time.Hour
 )
 
 var crLog = logf.Log.WithName("cert-rotation")
@@ -62,13 +60,15 @@ type KeyPairArtifacts struct {
 
 // CertRotator contains cert artifacts and a channel to close when the certs are ready.
 type CertRotator struct {
-	client         client.Client
-	SecretKey      types.NamespacedName
-	CAName         string
-	CAOrganization string
-	DNSName        string
-	mgr            manager.Manager
-	Ready          chan struct{}
+	client                 client.Client
+	SecretKey              types.NamespacedName
+	CAName                 string
+	CAOrganization         string
+	DNSName                string
+	mgr                    manager.Manager
+	Ready                  chan struct{}
+	CertValidityDuration   time.Duration
+	RotationCheckFrequency time.Duration
 }
 
 // AddRotator adds the CertRotator to the manager
@@ -100,7 +100,7 @@ func (cr *CertRotator) Start(ctx context.Context) error {
 
 	close(cr.Ready)
 
-	ticker := time.NewTicker(rotationCheckFrequency)
+	ticker := time.NewTicker(cr.RotationCheckFrequency)
 
 tickerLoop:
 	for {
@@ -196,7 +196,7 @@ func (cr *CertRotator) refreshCerts(refreshCA bool, secret *corev1.Secret) error
 	var caArtifacts *KeyPairArtifacts
 	now := time.Now()
 	begin := now.Add(-1 * time.Hour)
-	end := now.Add(certValidityDuration)
+	end := now.Add(cr.CertValidityDuration)
 
 	if refreshCA {
 		var err error
@@ -228,7 +228,7 @@ func (cr *CertRotator) RefreshRunnerCertIfNeeded(hostname string, secret *corev1
 	var caArtifacts *KeyPairArtifacts
 	now := time.Now()
 	begin := now.Add(-1 * time.Hour)
-	end := now.Add(certValidityDuration)
+	end := now.Add(cr.CertValidityDuration)
 
 	caSecret := &corev1.Secret{}
 	if err := cr.client.Get(context.Background(), cr.SecretKey, caSecret); err != nil {
