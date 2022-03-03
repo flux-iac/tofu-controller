@@ -203,7 +203,9 @@ func TestMain(m *testing.M) {
 			Namespace: "flux-system",
 			Name:      "tf-controller.tls.test",
 		},
-		Ready: certsReady,
+		Ready:                  certsReady,
+		CertValidityDuration:   5*time.Minute + 1*time.Hour, // since the cert lookaheadInterval is set to 1 hour, using 1hr5m so that the cert is valid for 5 mins
+		RotationCheckFrequency: 30 * time.Second,
 	}
 	if err := mtls.AddRotator(ctx, k8sManager, rotator); err != nil {
 		panic(err)

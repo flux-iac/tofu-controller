@@ -63,16 +63,18 @@ func init() {
 
 func main() {
 	var (
-		metricsAddr           string
-		eventsAddr            string
-		healthAddr            string
-		concurrent            int
-		requeueDependency     time.Duration
-		clientOptions         client.Options
-		logOptions            logger.Options
-		leaderElectionOptions leaderelection.Options
-		watchAllNamespaces    bool
-		httpRetry             int
+		metricsAddr            string
+		eventsAddr             string
+		healthAddr             string
+		concurrent             int
+		requeueDependency      time.Duration
+		clientOptions          client.Options
+		logOptions             logger.Options
+		leaderElectionOptions  leaderelection.Options
+		watchAllNamespaces     bool
+		httpRetry              int
+		certValidityDuration   time.Duration
+		rotationCheckFrequency time.Duration
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
@@ -83,6 +85,10 @@ func main() {
 	flag.BoolVar(&watchAllNamespaces, "watch-all-namespaces", true,
 		"Watch for custom resources in all namespaces, if set to false it will only watch the runtime namespace.")
 	flag.IntVar(&httpRetry, "http-retry", 9, "The maximum number of retries when failing to fetch artifacts over HTTP.")
+	flag.DurationVar(&certValidityDuration, "cert-validity-duration", 6*time.Hour,
+		"The duration that the mTLS certificate that the runner pod should be valid for.")
+	flag.DurationVar(&rotationCheckFrequency, "cert-rotation-check-frequency", 30*time.Minute,
+		"The interval that the mTLS certificate rotator should check the certificate validity.")
 
 	clientOptions.BindFlags(flag.CommandLine)
 	logOptions.BindFlags(flag.CommandLine)
@@ -143,7 +149,9 @@ func main() {
 			Namespace: runtimeNamespace,
 			Name:      "tf-controller.tls",
 		},
-		Ready: certsReady,
+		Ready:                  certsReady,
+		CertValidityDuration:   certValidityDuration,
+		RotationCheckFrequency: rotationCheckFrequency,
 	}
 
 	const localHost = "localhost"
