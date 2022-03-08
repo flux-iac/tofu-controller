@@ -35,6 +35,7 @@ const (
 	// RunnerTLSSecretName is the name of the secret containing a TLS cert that will be written to
 	// the namespace in which a terraform runner is created
 	RunnerTLSSecretName   = "terraform-runner.tls"
+	RunnerTLSSecretLabel  = "tf-controller.weaveworks.io/runner-tls"
 	GitRepositoryIndexKey = ".metadata.gitRepository"
 	BucketIndexKey        = ".metadata.bucket"
 )

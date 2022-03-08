@@ -1508,7 +1508,7 @@ func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terrafor
 		addr = fmt.Sprintf("%s.%s.pod.cluster.local:30000", prefix, terraform.Namespace)
 	}
 
-	conn, err := r.getRunnerConnection(ctx, addr)
+	conn, err := r.getRunnerConnection(ctx, terraform.Namespace, addr)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1674,6 +1674,9 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: terraform.Namespace,
 			Name:      infrav1.RunnerTLSSecretName,
+			Labels: map[string]string{
+				infrav1.RunnerTLSSecretLabel: "true",
+			},
 		},
 	}
 
@@ -1759,7 +1762,6 @@ func getRunnerPodImage() string {
 }
 
 func runnerPodSpec(terraform infrav1.Terraform) corev1.PodSpec {
-
 	serviceAccountName := terraform.Spec.ServiceAccountName
 	if serviceAccountName == "" {
 		serviceAccountName = "tf-runner"
@@ -1801,10 +1803,25 @@ func runnerPodSpec(terraform infrav1.Terraform) corev1.PodSpec {
 	}
 }
 
-func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, addr string) (*grpc.ClientConn, error) {
+func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, namespace, addr string) (*grpc.ClientConn, error) {
 	tlsSecret := &corev1.Secret{}
 	if err := r.Client.Get(ctx, r.CertRotator.SecretKey, tlsSecret); err != nil {
 		return nil, err
+	}
+
+	// ensure the cert is valid and refresh when required
+	lookahead := time.Now().Add(r.CertRotator.LookaheadInterval)
+	isCertValid, err := mtls.ValidCert(tlsSecret.Data["ca.crt"], tlsSecret.Data["tls.crt"], tlsSecret.Data["tls.key"], addr, lookahead)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to validate cert before opening runner connection: %w", err)
+	}
+
+	if !isCertValid {
+		hostname := fmt.Sprintf("*.%s.pod.cluster.local", namespace)
+		if err := r.CertRotator.RefreshRunnerCertIfNeeded(hostname, tlsSecret); err != nil {
+			return nil, fmt.Errorf("failed to refresh cert before opening runner connection: %w", err)
+		}
 	}
 
 	credentials, err := mtls.GetGRPCClientCredentials(tlsSecret)

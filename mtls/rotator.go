@@ -34,16 +34,14 @@ import (
 // runner certs rotate when the runner starts or after configurable interval 30 minutes
 
 //TODO:
-// 1: label tls secrets on creation that will allow updating ca values whenever the ca cert changes
-// 2: add reconciler for tls labelled secrets
-// 3: separate cert validate durations
+// when ca is rotated rotate any labelled secrets
+// before creating a grpc client, do a cert check and if within the lookahead time rotate
 
 const (
-	certName          = "tls.crt"
-	keyName           = "tls.key"
-	caCertName        = "ca.crt"
-	caKeyName         = "ca.key"
-	lookaheadInterval = 1 * time.Hour
+	certName   = "tls.crt"
+	keyName    = "tls.key"
+	caCertName = "ca.crt"
+	caKeyName  = "ca.key"
 )
 
 var crLog = logf.Log.WithName("cert-rotation")
@@ -67,8 +65,10 @@ type CertRotator struct {
 	DNSName                string
 	mgr                    manager.Manager
 	Ready                  chan struct{}
+	CAValidityDuration     time.Duration
 	CertValidityDuration   time.Duration
 	RotationCheckFrequency time.Duration
+	LookaheadInterval      time.Duration
 }
 
 // AddRotator adds the CertRotator to the manager
@@ -197,10 +197,9 @@ func (cr *CertRotator) refreshCerts(refreshCA bool, secret *corev1.Secret) error
 	now := time.Now()
 	begin := now.Add(-1 * time.Hour)
 	end := now.Add(cr.CertValidityDuration)
-
 	if refreshCA {
 		var err error
-		caArtifacts, err = cr.createCACert(begin, end)
+		caArtifacts, err = cr.createCACert(begin, now.Add(cr.CAValidityDuration))
 		if err != nil {
 			return err
 		}
@@ -229,7 +228,6 @@ func (cr *CertRotator) RefreshRunnerCertIfNeeded(hostname string, secret *corev1
 	now := time.Now()
 	begin := now.Add(-1 * time.Hour)
 	end := now.Add(cr.CertValidityDuration)
-
 	caSecret := &corev1.Secret{}
 	if err := cr.client.Get(context.Background(), cr.SecretKey, caSecret); err != nil {
 		return err
@@ -458,7 +456,7 @@ func ValidCert(caCert, cert, key []byte, dnsName string, at time.Time) (bool, er
 }
 
 func (cr *CertRotator) validCACert(cert, key []byte) bool {
-	valid, err := ValidCert(cert, cert, key, cr.CAName, lookaheadTime())
+	valid, err := ValidCert(cert, cert, key, cr.CAName, cr.lookaheadTime())
 	if err != nil {
 		return false
 	}
@@ -466,13 +464,13 @@ func (cr *CertRotator) validCACert(cert, key []byte) bool {
 }
 
 func (cr *CertRotator) validServerCert(caCert, cert, key []byte) bool {
-	valid, err := ValidCert(caCert, cert, key, cr.DNSName, lookaheadTime())
+	valid, err := ValidCert(caCert, cert, key, cr.DNSName, cr.lookaheadTime())
 	if err != nil {
 		return false
 	}
 	return valid
 }
 
-func lookaheadTime() time.Time {
-	return time.Now().Add(lookaheadInterval)
+func (cr *CertRotator) lookaheadTime() time.Time {
+	return time.Now().Add(cr.LookaheadInterval)
 }

@@ -73,6 +73,7 @@ func main() {
 		leaderElectionOptions  leaderelection.Options
 		watchAllNamespaces     bool
 		httpRetry              int
+		caValidityDuration     time.Duration
 		certValidityDuration   time.Duration
 		rotationCheckFrequency time.Duration
 	)
@@ -85,6 +86,8 @@ func main() {
 	flag.BoolVar(&watchAllNamespaces, "watch-all-namespaces", true,
 		"Watch for custom resources in all namespaces, if set to false it will only watch the runtime namespace.")
 	flag.IntVar(&httpRetry, "http-retry", 9, "The maximum number of retries when failing to fetch artifacts over HTTP.")
+	flag.DurationVar(&caValidityDuration, "ca-cert-validity-duration", time.Hour*24*7,
+		"The duration that the ca certificate certificates should be valid for. Default is 1 week.")
 	flag.DurationVar(&certValidityDuration, "cert-validity-duration", 6*time.Hour,
 		"The duration that the mTLS certificate that the runner pod should be valid for.")
 	flag.DurationVar(&rotationCheckFrequency, "cert-rotation-check-frequency", 30*time.Minute,
@@ -150,6 +153,7 @@ func main() {
 			Name:      "tf-controller.tls",
 		},
 		Ready:                  certsReady,
+		CAValidityDuration:     caValidityDuration,
 		CertValidityDuration:   certValidityDuration,
 		RotationCheckFrequency: rotationCheckFrequency,
 	}
