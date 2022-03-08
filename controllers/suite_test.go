@@ -204,8 +204,9 @@ func TestMain(m *testing.M) {
 			Name:      "tf-controller.tls.test",
 		},
 		Ready:                  certsReady,
+		CAValidityDuration:     time.Hour * 24 * 7,
 		CertValidityDuration:   5*time.Minute + 1*time.Hour, // since the cert lookaheadInterval is set to 1 hour, using 1hr5m so that the cert is valid for 5 mins
-		RotationCheckFrequency: 30 * time.Second,
+		RotationCheckFrequency: 10 * time.Second,
 	}
 	if err := mtls.AddRotator(ctx, k8sManager, rotator); err != nil {
 		panic(err)
