@@ -1812,5 +1812,18 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, addr stri
 		return nil, err
 	}
 
-	return grpc.Dial(addr, grpc.WithTransportCredentials(credentials))
+	const retryPolicy = `{
+		"methodConfig": [{
+		  "name": [{"service": "runner.Runner"}],
+		  "waitForReady": true,
+		  "retryPolicy": {
+			  "MaxAttempts": 4,
+			  "InitialBackoff": ".01s",
+			  "MaxBackoff": ".01s",
+			  "BackoffMultiplier": 1.0,
+			  "RetryableStatusCodes": [ "UNAVAILABLE" ]
+		  }
+		}]}`
+
+	return grpc.Dial(addr, grpc.WithTransportCredentials(credentials), grpc.WithDefaultServiceConfig(retryPolicy))
 }
