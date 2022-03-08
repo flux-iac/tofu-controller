@@ -120,7 +120,7 @@ jobs:
           kubectl -n tf-system wait terraform/helloworld-always-clean-pod-manual-approve --for=condition=plan=true --timeout=4m
 
           # negate pod not found to be true
-          ! kubectl -n tf-system get helloworld-always-clean-pod-manual-approve-tf-runner
+          ! kubectl -n tf-system get terraform/helloworld-always-clean-pod-manual-approve-tf-runner
 
           # delete after tests
           kubectl -n tf-system delete -f ./config/testdata/always-clean-pod
