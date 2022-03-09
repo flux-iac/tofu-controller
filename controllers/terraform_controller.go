@@ -1768,10 +1768,10 @@ func runnerPodSpec(terraform infrav1.Terraform) corev1.PodSpec {
 		serviceAccountName = "tf-runner"
 	}
 
-	gracefulTermPeriod := int64(terraform.Spec.RunnerTerminationGracePeriodSeconds.Duration.Seconds())
+	gracefulTermPeriod := terraform.Spec.RunnerTerminationGracePeriodSeconds
 
 	return corev1.PodSpec{
-		TerminationGracePeriodSeconds: &gracefulTermPeriod,
+		TerminationGracePeriodSeconds: gracefulTermPeriod,
 		Containers: []corev1.Container{
 			{
 				Name:            "tf-runner",

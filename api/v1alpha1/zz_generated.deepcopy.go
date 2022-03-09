@@ -207,7 +207,7 @@ func (in *TerraformSpec) DeepCopyInto(out *TerraformSpec) {
 	}
 	if in.RunnerTerminationGracePeriodSeconds != nil {
 		in, out := &in.RunnerTerminationGracePeriodSeconds, &out.RunnerTerminationGracePeriodSeconds
-		*out = new(v1.Duration)
+		*out = new(int64)
 		**out = **in
 	}
 }
