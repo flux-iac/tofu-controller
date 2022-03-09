@@ -144,7 +144,7 @@ func Test_000250_mtls_generate_creds_test(t *testing.T) {
 
 	By("verifying that the runner cert secret has the appropriate labels")
 	labels := runnerSecret.ObjectMeta.GetLabels()
-	g.Expect(labels).To(HaveKey(infrav1.RunnerTLSSecretLabel))
+	g.Expect(labels).To(HaveKey(infrav1.RunnerLabel))
 
 	By("verifying that the runner cert is valid for a range of hostnames in a given namespace")
 	tlsCert := runnerSecret.Data["tls.crt"]

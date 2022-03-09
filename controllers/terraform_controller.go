@@ -1675,7 +1675,7 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 			Namespace: terraform.Namespace,
 			Name:      infrav1.RunnerTLSSecretName,
 			Labels: map[string]string{
-				infrav1.RunnerTLSSecretLabel: "true",
+				infrav1.RunnerLabel: terraform.Name,
 			},
 		},
 	}
@@ -1709,10 +1709,10 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 			Namespace: podNamespace,
 			Name:      podName,
 			Labels: map[string]string{
-				"app.kubernetes.io/created-by":      "tf-controller",
-				"app.kubernetes.io/name":            "tf-runner",
-				"app.kubernetes.io/instance":        podName,
-				"infra.contrib.fluxcd.io/terraform": terraform.Name,
+				"app.kubernetes.io/created-by": "tf-controller",
+				"app.kubernetes.io/name":       "tf-runner",
+				"app.kubernetes.io/instance":   podName,
+				infrav1.RunnerLabel:            terraform.Name,
 			},
 		},
 	}
@@ -1821,6 +1821,17 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, namespace
 		hostname := fmt.Sprintf("*.%s.pod.cluster.local", namespace)
 		if err := r.CertRotator.RefreshRunnerCertIfNeeded(hostname, tlsSecret); err != nil {
 			return nil, fmt.Errorf("failed to refresh cert before opening runner connection: %w", err)
+		}
+
+		var runnerPods *corev1.PodList
+		if err := r.List(ctx, runnerPods, client.HasLabels([]string{infrav1.RunnerLabel})); err != nil {
+			return nil, fmt.Errorf("failed to restart runner pod: %w", err)
+		}
+
+		for _, pod := range runnerPods.Items {
+			if err := r.Client.Delete(ctx, &pod); err != nil {
+				return nil, fmt.Errorf("failed to restart runner pod: %w", err)
+			}
 		}
 	}
 
