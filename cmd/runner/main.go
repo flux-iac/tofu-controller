@@ -17,31 +17,41 @@ limitations under the License.
 package main
 
 import (
-	"github.com/weaveworks/tf-controller/mtls"
+	"log"
 	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/weaveworks/tf-controller/mtls"
 )
+
+/* Please prepare the following envs for this program
+   env:
+     - name: POD_NAME
+       valueFrom:
+         fieldRef:
+           fieldPath: metadata.name
+     - name: POD_NAMESPACE
+       valueFrom:
+         fieldRef:
+           fieldPath: metadata.namespace
+*/
 
 func main() {
 	// TODO parameterize this
 	addr := ":30000"
-
-	/* Please prepare the following envs for this program
-	   env:
-	     - name: POD_NAME
-	       valueFrom:
-	         fieldRef:
-	           fieldPath: metadata.name
-	     - name: POD_NAMESPACE
-	       valueFrom:
-	         fieldRef:
-	           fieldPath: metadata.namespace
-	*/
 	_ = os.Getenv("POD_NAME")
 	podNamespace := os.Getenv("POD_NAMESPACE")
 
-	err := mtls.RunnerServe(podNamespace, addr)
-	if err != nil {
-		panic(err.Error())
-	}
+	// Here we catch the SIGTERM from the kubelet to gracefully terminate
+	sigterm := make(chan os.Signal, 1)
+	signal.Notify(sigterm, syscall.SIGTERM)
+	defer func() {
+		signal.Stop(sigterm)
+	}()
 
+	err := mtls.RunnerServe(podNamespace, addr, sigterm)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 }

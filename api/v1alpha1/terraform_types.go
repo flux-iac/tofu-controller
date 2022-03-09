@@ -155,6 +155,13 @@ type TerraformSpec struct {
 	// +kubebuilder:default:=false
 	// +optional
 	AlwaysCleanupRunnerPod bool `json:"alwaysCleanupRunnerPod,omitempty"`
+
+	// Configure the termination grace period for the runner pod. Use this parameter
+	// to allow the terraform process to gracefully shutdown. Consider increasing for
+	// large, complex or slow-moving Terraform managed resources.
+	// +kubebuilder:default:=30s
+	// +optional
+	RunnerTerminationGracePeriodSeconds *metav1.Duration `json:"runnerTerminationGracePeriodSeconds,omitempty"`
 }
 
 type PlanStatus struct {
