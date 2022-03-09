@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -152,9 +153,19 @@ func (cr *CertRotator) refreshCertIfNeeded() error {
 			}
 		}
 
-		if secret.Data == nil || !cr.validCACert(secret.Data[caCertName], secret.Data[caKeyName]) {
+		if secret.Data == nil {
 			crLog.Info("refreshing CA and server certs")
-			if err := cr.refreshCerts(true, secret); err != nil {
+			if err := cr.initCerts(ctx, secret); err != nil {
+				crLog.Error(err, "could not refresh CA and server certs")
+				return false, nil
+			}
+			crLog.Info("server certs refreshed")
+			return true, nil
+		}
+
+		if !cr.validCACert(secret.Data[caCertName], secret.Data[caKeyName]) {
+			crLog.Info("refreshing CA and server certs")
+			if err := cr.refreshCerts(ctx, true, secret); err != nil {
 				crLog.Error(err, "could not refresh CA and server certs")
 				return false, nil
 			}
@@ -165,13 +176,11 @@ func (cr *CertRotator) refreshCertIfNeeded() error {
 		// make sure our reconciler is initialized on startup (either this or the above refreshCerts() will call this)
 		if !cr.validServerCert(secret.Data[caCertName], secret.Data[certName], secret.Data[keyName]) {
 			crLog.Info("refreshing server certs")
-			if err := cr.refreshCerts(false, secret); err != nil {
+			if err := cr.refreshCerts(ctx, false, secret); err != nil {
 				crLog.Error(err, "could not refresh server certs")
 				return false, nil
 			}
-
 			crLog.Info("server certs refreshed")
-
 			return true, nil
 		}
 
@@ -192,23 +201,68 @@ func (cr *CertRotator) refreshCertIfNeeded() error {
 	return nil
 }
 
-func (cr *CertRotator) refreshCerts(refreshCA bool, secret *corev1.Secret) error {
+// refreshCerts refreshes the certs. If refreshCA is true the CA cert will be refreshed and the server certs will be rotated.
+func (cr *CertRotator) initCerts(ctx context.Context, secret *corev1.Secret) error {
 	var caArtifacts *KeyPairArtifacts
+	var err error
 	now := time.Now()
 	begin := now.Add(-1 * time.Hour)
 	end := now.Add(cr.CertValidityDuration)
+
+	caArtifacts, err = cr.createCACert(begin, now.Add(cr.CAValidityDuration))
+	if err != nil {
+		return err
+	}
+
+	cert, key, err := cr.createCertPEM(caArtifacts, cr.DNSName, begin, end)
+	if err != nil {
+		return err
+	}
+
+	if err := cr.writeSecret(cert, key, caArtifacts, secret); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// refreshCerts refreshes the certs. If refreshCA is true the CA cert will be refreshed and the server certs will be rotated.
+func (cr *CertRotator) refreshCerts(ctx context.Context, refreshCA bool, secret *corev1.Secret) error {
+	var caArtifacts *KeyPairArtifacts
+	var err error
+	now := time.Now()
+	begin := now.Add(-1 * time.Hour)
+	end := now.Add(cr.CertValidityDuration)
+
 	if refreshCA {
 		var err error
 		caArtifacts, err = cr.createCACert(begin, now.Add(cr.CAValidityDuration))
 		if err != nil {
 			return err
 		}
-	} else {
-		var err error
-		caArtifacts, err = parseArtifacts(caCertName, caKeyName, secret)
-		if err != nil {
-			return err
+
+		secrets := &corev1.SecretList{}
+		if err := cr.client.List(ctx, secrets, client.HasLabels([]string{infrav1.RunnerTLSSecretLabel})); err != nil {
+			return fmt.Errorf("listing secrets to refresh certificates: %w", err)
 		}
+
+		for _, secret := range secrets.Items {
+			cert, key, err := cr.createCertPEM(caArtifacts, cr.DNSName, begin, end)
+			if err != nil {
+				return err
+			}
+
+			if err := cr.writeSecret(cert, key, caArtifacts, &secret); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	caArtifacts, err = parseArtifacts(caCertName, caKeyName, secret)
+	if err != nil {
+		return err
 	}
 
 	cert, key, err := cr.createCertPEM(caArtifacts, cr.DNSName, begin, end)
