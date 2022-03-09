@@ -226,7 +226,7 @@ func (cr *CertRotator) initCerts(ctx context.Context, secret *corev1.Secret) err
 	return nil
 }
 
-// refreshCerts refreshes the certs. If refreshCA is true the CA cert will be refreshed and the server certs will be rotated.
+// refreshCerts refreshes the certs. If refreshCA is true the CA cert will be refreshed and the server certs will be rotated. We also kill any runner pods so that they will be recreated and pick new certs.
 func (cr *CertRotator) refreshCerts(ctx context.Context, refreshCA bool, secret *corev1.Secret) error {
 	var caArtifacts *KeyPairArtifacts
 	var err error
@@ -254,6 +254,17 @@ func (cr *CertRotator) refreshCerts(ctx context.Context, refreshCA bool, secret 
 
 			if err := cr.writeSecret(cert, key, caArtifacts, &secret); err != nil {
 				return err
+			}
+		}
+
+		var runnerPods *corev1.PodList
+		if err := cr.client.List(ctx, runnerPods, client.HasLabels([]string{infrav1.RunnerLabel})); err != nil {
+			return fmt.Errorf("failed to restart runner pod: %w", err)
+		}
+
+		for _, pod := range runnerPods.Items {
+			if err := cr.client.Delete(ctx, &pod); err != nil {
+				return fmt.Errorf("failed to restart runner pod: %w", err)
 			}
 		}
 

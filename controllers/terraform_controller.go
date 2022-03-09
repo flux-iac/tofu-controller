@@ -57,6 +57,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
 	kuberecorder "k8s.io/client-go/tools/record"
 	"k8s.io/client-go/tools/reference"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
@@ -1817,6 +1818,8 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, namespace
 		return nil, fmt.Errorf("failed to validate cert before opening runner connection: %w", err)
 	}
 
+	// if the cert is not valid, refresh it, recreate the pod and wait for the ip to
+	// be available before connecting
 	if !isCertValid {
 		hostname := fmt.Sprintf("*.%s.pod.cluster.local", namespace)
 		if err := r.CertRotator.RefreshRunnerCertIfNeeded(hostname, tlsSecret); err != nil {
@@ -1829,10 +1832,38 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, namespace
 		}
 
 		for _, pod := range runnerPods.Items {
-			if err := r.Client.Delete(ctx, &pod); err != nil {
+			if err := r.Delete(ctx, &pod); err != nil {
 				return nil, fmt.Errorf("failed to restart runner pod: %w", err)
 			}
 		}
+
+		var (
+			interval = time.Second
+			timeout  = time.Second * 30
+		)
+
+		if wait.PollImmediate(interval, timeout, func() (bool, error) {
+			var runnerPods *corev1.PodList
+			if err := r.List(ctx, runnerPods, client.HasLabels([]string{infrav1.RunnerLabel})); err != nil {
+				return false, fmt.Errorf("failed to list runner pod: %w", err)
+			}
+			for _, pod := range runnerPods.Items {
+				if pod.Status.PodIP != "" {
+					return true, nil
+				}
+			}
+			return false, nil
+		}) != nil {
+			return nil, fmt.Errorf("failed to restart runner pod: timeout")
+		}
+
+		if err := r.List(ctx, runnerPods, client.HasLabels([]string{infrav1.RunnerLabel})); err != nil {
+			return nil, fmt.Errorf("failed to list runner pod: %w", err)
+		}
+
+		podIP := runnerPods.Items[0].Status.PodIP
+		prefix := strings.ReplaceAll(podIP, ".", "-")
+		addr = fmt.Sprintf("%s.%s.pod.cluster.local:30000", prefix, namespace)
 	}
 
 	credentials, err := mtls.GetGRPCClientCredentials(tlsSecret)
