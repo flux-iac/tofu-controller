@@ -242,7 +242,7 @@ func (cr *CertRotator) refreshCerts(ctx context.Context, refreshCA bool, secret 
 		}
 
 		secrets := &corev1.SecretList{}
-		if err := cr.client.List(ctx, secrets, client.HasLabels([]string{infrav1.RunnerTLSSecretLabel})); err != nil {
+		if err := cr.client.List(ctx, secrets, client.HasLabels([]string{infrav1.RunnerLabel})); err != nil {
 			return fmt.Errorf("listing secrets to refresh certificates: %w", err)
 		}
 
