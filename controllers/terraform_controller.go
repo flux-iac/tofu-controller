@@ -1814,9 +1814,9 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, namespace
 	}
 
 	// ensure the cert is valid and refresh when required
+	host := strings.TrimSuffix(addr, ":30000")
 	lookahead := time.Now().Add(r.CertRotator.LookaheadInterval)
-	isCertValid, err := mtls.ValidCert(tlsSecret.Data["ca.crt"], tlsSecret.Data["tls.crt"], tlsSecret.Data["tls.key"], addr, lookahead)
-
+	isCertValid, err := mtls.ValidCert(tlsSecret.Data["ca.crt"], tlsSecret.Data["tls.crt"], tlsSecret.Data["tls.key"], host, lookahead)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate cert before opening runner connection: %w", err)
 	}

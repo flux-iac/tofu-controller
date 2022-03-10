@@ -588,6 +588,20 @@ bool
 <p>Clean the runner pod up after each reconcilation cycle</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>runnerTerminationGracePeriodSeconds</code><br>
+<em>
+int64
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Configure the termination grace period for the runner pod. Use this parameter
+to allow the Terraform process to gracefully shutdown. Consider increasing for
+large, complex or slow-moving Terraform managed resources.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -863,6 +877,20 @@ bool
 <td>
 <em>(Optional)</em>
 <p>Clean the runner pod up after each reconcilation cycle</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>runnerTerminationGracePeriodSeconds</code><br>
+<em>
+int64
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Configure the termination grace period for the runner pod. Use this parameter
+to allow the Terraform process to gracefully shutdown. Consider increasing for
+large, complex or slow-moving Terraform managed resources.</p>
 </td>
 </tr>
 </tbody>
