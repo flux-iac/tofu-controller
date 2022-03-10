@@ -17,31 +17,51 @@ limitations under the License.
 package main
 
 import (
-	"github.com/weaveworks/tf-controller/mtls"
+	"fmt"
+	"log"
 	"os"
+	"os/signal"
+	"syscall"
+
+	flag "github.com/spf13/pflag"
+
+	"github.com/weaveworks/tf-controller/mtls"
 )
 
-func main() {
-	// TODO parameterize this
-	addr := ":30000"
+/* Please prepare the following envs for this program
+   env:
+     - name: POD_NAME
+       valueFrom:
+         fieldRef:
+           fieldPath: metadata.name
+     - name: POD_NAMESPACE
+       valueFrom:
+         fieldRef:
+           fieldPath: metadata.namespace
+*/
 
-	/* Please prepare the following envs for this program
-	   env:
-	     - name: POD_NAME
-	       valueFrom:
-	         fieldRef:
-	           fieldPath: metadata.name
-	     - name: POD_NAMESPACE
-	       valueFrom:
-	         fieldRef:
-	           fieldPath: metadata.namespace
-	*/
+func main() {
+	var (
+		grpcPort int
+	)
+
+	flag.IntVar(&grpcPort, "grpc-port", 30000, "The port on which to expose the grpc endpoint.")
+	flag.Parse()
+
+	addr := fmt.Sprintf(":%d", grpcPort)
+
 	_ = os.Getenv("POD_NAME")
 	podNamespace := os.Getenv("POD_NAMESPACE")
 
-	err := mtls.RunnerServe(podNamespace, addr)
-	if err != nil {
-		panic(err.Error())
-	}
+	// catch the SIGTERM from the kubelet to gracefully terminate
+	sigterm := make(chan os.Signal, 1)
+	signal.Notify(sigterm, syscall.SIGTERM)
+	defer func() {
+		signal.Stop(sigterm)
+	}()
 
+	err := mtls.RunnerServe(podNamespace, addr, sigterm)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 }

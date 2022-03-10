@@ -3,20 +3,22 @@ package mtls
 import (
 	"context"
 	"fmt"
+	"net"
+	"os"
+
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/runner"
 	"google.golang.org/grpc"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	"net"
-	"sigs.k8s.io/controller-runtime"
+	controllerruntime "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func RunnerServe(namespace, addr string) error {
+func RunnerServe(namespace, addr string, sigterm chan os.Signal) error {
 	scheme := runtime.NewScheme()
 
 	if err := clientgoscheme.AddToScheme(scheme); err != nil {
@@ -42,6 +44,7 @@ func RunnerServe(namespace, addr string) error {
 	runnerServer := &runner.TerraformRunnerServer{
 		Client: k8sClient,
 		Scheme: scheme,
+		Done:   sigterm,
 	}
 
 	listener, err := net.Listen("tcp", addr)

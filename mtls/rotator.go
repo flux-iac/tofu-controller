@@ -14,8 +14,10 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -34,16 +36,14 @@ import (
 // runner certs rotate when the runner starts or after configurable interval 30 minutes
 
 //TODO:
-// 1: label tls secrets on creation that will allow updating ca values whenever the ca cert changes
-// 2: add reconciler for tls labelled secrets
-// 3: separate cert validate durations
+// when ca is rotated rotate any labelled secrets
+// before creating a grpc client, do a cert check and if within the lookahead time rotate
 
 const (
-	certName          = "tls.crt"
-	keyName           = "tls.key"
-	caCertName        = "ca.crt"
-	caKeyName         = "ca.key"
-	lookaheadInterval = 1 * time.Hour
+	certName   = "tls.crt"
+	keyName    = "tls.key"
+	caCertName = "ca.crt"
+	caKeyName  = "ca.key"
 )
 
 var crLog = logf.Log.WithName("cert-rotation")
@@ -67,8 +67,10 @@ type CertRotator struct {
 	DNSName                string
 	mgr                    manager.Manager
 	Ready                  chan struct{}
+	CAValidityDuration     time.Duration
 	CertValidityDuration   time.Duration
 	RotationCheckFrequency time.Duration
+	LookaheadInterval      time.Duration
 }
 
 // AddRotator adds the CertRotator to the manager
@@ -145,33 +147,42 @@ func (cr *CertRotator) refreshCertIfNeeded() error {
 			if !apierrors.IsNotFound(err) {
 				return false, errors.Wrap(err, "acquiring secret to update certificates")
 			}
-			secret.ObjectMeta.Namespace = cr.SecretKey.Namespace
-			secret.ObjectMeta.Name = cr.SecretKey.Name
+			secret.ObjectMeta = metav1.ObjectMeta{
+				Name:      cr.SecretKey.Name,
+				Namespace: cr.SecretKey.Namespace,
+			}
 			if err := cr.client.Create(ctx, secret); err != nil {
 				return false, errors.Wrap(err, "creating secret to update certificates")
 			}
 		}
 
-		if secret.Data == nil || !cr.validCACert(secret.Data[caCertName], secret.Data[caKeyName]) {
-			crLog.Info("refreshing CA and server certs")
-			if err := cr.refreshCerts(true, secret); err != nil {
+		if secret.Data == nil {
+			crLog.Info("creating CA and server certs")
+			if err := cr.refreshCerts(ctx, true, secret); err != nil {
 				crLog.Error(err, "could not refresh CA and server certs")
 				return false, nil
 			}
-			crLog.Info("server certs refreshed")
+			crLog.Info("CA and server certs created")
 			return true, nil
 		}
 
-		// make sure our reconciler is initialized on startup (either this or the above refreshCerts() will call this)
+		if !cr.validCACert(secret.Data[caCertName], secret.Data[caKeyName]) {
+			crLog.Info("refreshing CA and server certs")
+			if err := cr.refreshCerts(ctx, true, secret); err != nil {
+				crLog.Error(err, "could not refresh CA and server certs")
+				return false, nil
+			}
+			crLog.Info("CA and server certs refreshed")
+			return true, nil
+		}
+
 		if !cr.validServerCert(secret.Data[caCertName], secret.Data[certName], secret.Data[keyName]) {
 			crLog.Info("refreshing server certs")
-			if err := cr.refreshCerts(false, secret); err != nil {
+			if err := cr.refreshCerts(ctx, false, secret); err != nil {
 				crLog.Error(err, "could not refresh server certs")
 				return false, nil
 			}
-
 			crLog.Info("server certs refreshed")
-
 			return true, nil
 		}
 
@@ -192,20 +203,55 @@ func (cr *CertRotator) refreshCertIfNeeded() error {
 	return nil
 }
 
-func (cr *CertRotator) refreshCerts(refreshCA bool, secret *corev1.Secret) error {
+// refreshCerts refreshes the certs. If refreshCA is true the CA cert will be refreshed and the server certs will be rotated. We also kill any runner pods so that they will be recreated and pick new certs.
+func (cr *CertRotator) refreshCerts(ctx context.Context, refreshCA bool, secret *corev1.Secret) error {
 	var caArtifacts *KeyPairArtifacts
+	var err error
 	now := time.Now()
 	begin := now.Add(-1 * time.Hour)
 	end := now.Add(cr.CertValidityDuration)
 
 	if refreshCA {
 		var err error
-		caArtifacts, err = cr.createCACert(begin, end)
+		caArtifacts, err = cr.createCACert(begin, now.Add(cr.CAValidityDuration))
 		if err != nil {
 			return err
 		}
+
+		secrets := &corev1.SecretList{}
+		if err := cr.client.List(ctx, secrets, client.HasLabels([]string{infrav1.RunnerLabel})); err != nil {
+			return fmt.Errorf("listing secrets to refresh certificates: %w", err)
+		}
+
+		for _, secret := range secrets.Items {
+			certArtifacts, err := parseArtifacts("tls.crt", "tls.key", &secret)
+			if err != nil {
+				return err
+			}
+
+			hostname := certArtifacts.Cert.DNSNames[0]
+
+			cert, key, err := cr.createCertPEM(caArtifacts, hostname, begin, end)
+			if err != nil {
+				return err
+			}
+
+			if err := cr.writeSecret(cert, key, caArtifacts, &secret); err != nil {
+				return err
+			}
+		}
+
+		runnerPods := &corev1.PodList{}
+		if err := cr.client.List(ctx, runnerPods, client.HasLabels([]string{infrav1.RunnerLabel})); err != nil {
+			return fmt.Errorf("failed to list runner pod: %w", err)
+		}
+
+		for _, pod := range runnerPods.Items {
+			if err := cr.client.Delete(ctx, &pod); err != nil {
+				return fmt.Errorf("failed to restart runner pod: %w", err)
+			}
+		}
 	} else {
-		var err error
 		caArtifacts, err = parseArtifacts(caCertName, caKeyName, secret)
 		if err != nil {
 			return err
@@ -229,7 +275,6 @@ func (cr *CertRotator) RefreshRunnerCertIfNeeded(hostname string, secret *corev1
 	now := time.Now()
 	begin := now.Add(-1 * time.Hour)
 	end := now.Add(cr.CertValidityDuration)
-
 	caSecret := &corev1.Secret{}
 	if err := cr.client.Get(context.Background(), cr.SecretKey, caSecret); err != nil {
 		return err
@@ -458,7 +503,7 @@ func ValidCert(caCert, cert, key []byte, dnsName string, at time.Time) (bool, er
 }
 
 func (cr *CertRotator) validCACert(cert, key []byte) bool {
-	valid, err := ValidCert(cert, cert, key, cr.CAName, lookaheadTime())
+	valid, err := ValidCert(cert, cert, key, cr.CAName, cr.lookaheadTime())
 	if err != nil {
 		return false
 	}
@@ -466,13 +511,13 @@ func (cr *CertRotator) validCACert(cert, key []byte) bool {
 }
 
 func (cr *CertRotator) validServerCert(caCert, cert, key []byte) bool {
-	valid, err := ValidCert(caCert, cert, key, cr.DNSName, lookaheadTime())
+	valid, err := ValidCert(caCert, cert, key, cr.DNSName, cr.lookaheadTime())
 	if err != nil {
 		return false
 	}
 	return valid
 }
 
-func lookaheadTime() time.Time {
-	return time.Now().Add(lookaheadInterval)
+func (cr *CertRotator) lookaheadTime() time.Time {
+	return time.Now().Add(cr.LookaheadInterval)
 }
