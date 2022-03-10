@@ -17,6 +17,7 @@ import (
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -146,20 +147,22 @@ func (cr *CertRotator) refreshCertIfNeeded() error {
 			if !apierrors.IsNotFound(err) {
 				return false, errors.Wrap(err, "acquiring secret to update certificates")
 			}
-			secret.ObjectMeta.Namespace = cr.SecretKey.Namespace
-			secret.ObjectMeta.Name = cr.SecretKey.Name
+			secret.ObjectMeta = metav1.ObjectMeta{
+				Name:      cr.SecretKey.Name,
+				Namespace: cr.SecretKey.Namespace,
+			}
 			if err := cr.client.Create(ctx, secret); err != nil {
 				return false, errors.Wrap(err, "creating secret to update certificates")
 			}
 		}
 
 		if secret.Data == nil {
-			crLog.Info("refreshing CA and server certs")
-			if err := cr.initCerts(ctx, secret); err != nil {
+			crLog.Info("creating CA and server certs")
+			if err := cr.refreshCerts(ctx, true, secret); err != nil {
 				crLog.Error(err, "could not refresh CA and server certs")
 				return false, nil
 			}
-			crLog.Info("server certs refreshed")
+			crLog.Info("CA and server certs created")
 			return true, nil
 		}
 
@@ -169,11 +172,10 @@ func (cr *CertRotator) refreshCertIfNeeded() error {
 				crLog.Error(err, "could not refresh CA and server certs")
 				return false, nil
 			}
-			crLog.Info("server certs refreshed")
+			crLog.Info("CA and server certs refreshed")
 			return true, nil
 		}
 
-		// make sure our reconciler is initialized on startup (either this or the above refreshCerts() will call this)
 		if !cr.validServerCert(secret.Data[caCertName], secret.Data[certName], secret.Data[keyName]) {
 			crLog.Info("refreshing server certs")
 			if err := cr.refreshCerts(ctx, false, secret); err != nil {
@@ -201,31 +203,6 @@ func (cr *CertRotator) refreshCertIfNeeded() error {
 	return nil
 }
 
-// refreshCerts refreshes the certs. If refreshCA is true the CA cert will be refreshed and the server certs will be rotated.
-func (cr *CertRotator) initCerts(ctx context.Context, secret *corev1.Secret) error {
-	var caArtifacts *KeyPairArtifacts
-	var err error
-	now := time.Now()
-	begin := now.Add(-1 * time.Hour)
-	end := now.Add(cr.CertValidityDuration)
-
-	caArtifacts, err = cr.createCACert(begin, now.Add(cr.CAValidityDuration))
-	if err != nil {
-		return err
-	}
-
-	cert, key, err := cr.createCertPEM(caArtifacts, cr.DNSName, begin, end)
-	if err != nil {
-		return err
-	}
-
-	if err := cr.writeSecret(cert, key, caArtifacts, secret); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // refreshCerts refreshes the certs. If refreshCA is true the CA cert will be refreshed and the server certs will be rotated. We also kill any runner pods so that they will be recreated and pick new certs.
 func (cr *CertRotator) refreshCerts(ctx context.Context, refreshCA bool, secret *corev1.Secret) error {
 	var caArtifacts *KeyPairArtifacts
@@ -247,7 +224,14 @@ func (cr *CertRotator) refreshCerts(ctx context.Context, refreshCA bool, secret 
 		}
 
 		for _, secret := range secrets.Items {
-			cert, key, err := cr.createCertPEM(caArtifacts, cr.DNSName, begin, end)
+			certArtifacts, err := parseArtifacts("tls.crt", "tls.key", &secret)
+			if err != nil {
+				return err
+			}
+
+			hostname := certArtifacts.Cert.DNSNames[0]
+
+			cert, key, err := cr.createCertPEM(caArtifacts, hostname, begin, end)
 			if err != nil {
 				return err
 			}
@@ -257,9 +241,9 @@ func (cr *CertRotator) refreshCerts(ctx context.Context, refreshCA bool, secret 
 			}
 		}
 
-		var runnerPods *corev1.PodList
+		runnerPods := &corev1.PodList{}
 		if err := cr.client.List(ctx, runnerPods, client.HasLabels([]string{infrav1.RunnerLabel})); err != nil {
-			return fmt.Errorf("failed to restart runner pod: %w", err)
+			return fmt.Errorf("failed to list runner pod: %w", err)
 		}
 
 		for _, pod := range runnerPods.Items {
@@ -267,13 +251,11 @@ func (cr *CertRotator) refreshCerts(ctx context.Context, refreshCA bool, secret 
 				return fmt.Errorf("failed to restart runner pod: %w", err)
 			}
 		}
-
-		return nil
-	}
-
-	caArtifacts, err = parseArtifacts(caCertName, caKeyName, secret)
-	if err != nil {
-		return err
+	} else {
+		caArtifacts, err = parseArtifacts(caCertName, caKeyName, secret)
+		if err != nil {
+			return err
+		}
 	}
 
 	cert, key, err := cr.createCertPEM(caArtifacts, cr.DNSName, begin, end)
