@@ -162,7 +162,7 @@ func Test_000250_mtls_generate_creds_test(t *testing.T) {
 	g.Expect(err).ToNot(BeNil())
 	g.Expect(tlsValid).To(BeFalse())
 
-	By("rotating the CA should renew the client cert")
+	By("rotating the CA should renew the server cert")
 	g.Expect(k8sClient.Delete(ctx, caSecret)).To(BeNil())
 
 	renewedCaSecret := &corev1.Secret{}
@@ -183,11 +183,12 @@ func Test_000250_mtls_generate_creds_test(t *testing.T) {
 		if err != nil {
 			return 1
 		}
-		return bytes.Compare(updatedRunnerSecret.Data["ca.crt"], renewedCaSecret.Data["ca.crt"])
-	}, timeout, interval).Should(BeZero())
+		return bytes.Compare(runnerSecret.Data["tls.crt"], updatedRunnerSecret.Data["tls.crt"])
+	}, timeout, interval).ShouldNot(BeZero())
 
 	g.Expect(bytes.Compare(runnerSecret.Data["tls.crt"], updatedRunnerSecret.Data["tls.crt"])).ToNot(BeZero())
 
+	By("ensuring that the refreshed runner cert is valid")
 	hostname = "172-1-0-1.flux-system.pod.cluster.local"
 	caCert = renewedCaSecret.Data["ca.crt"]
 	tlsCert = updatedRunnerSecret.Data["tls.crt"]
