@@ -223,8 +223,8 @@ func (cr *CertRotator) refreshCerts(ctx context.Context, refreshCA bool, secret 
 			return fmt.Errorf("listing secrets to refresh certificates: %w", err)
 		}
 
-		for _, secret := range secrets.Items {
-			certArtifacts, err := parseArtifacts("tls.crt", "tls.key", &secret)
+		for _, runnerSecret := range secrets.Items {
+			certArtifacts, err := parseArtifacts("tls.crt", "tls.key", &runnerSecret)
 			if err != nil {
 				return err
 			}
@@ -236,7 +236,7 @@ func (cr *CertRotator) refreshCerts(ctx context.Context, refreshCA bool, secret 
 				return err
 			}
 
-			if err := cr.writeSecret(cert, key, caArtifacts, &secret); err != nil {
+			if err := cr.writeSecret(cert, key, caArtifacts, &runnerSecret); err != nil {
 				return err
 			}
 		}
