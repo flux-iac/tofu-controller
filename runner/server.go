@@ -5,16 +5,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"io/ioutil"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/fluxcd/pkg/untar"
@@ -33,6 +34,7 @@ type TerraformRunnerServer struct {
 	tf *tfexec.Terraform
 	client.Client
 	Scheme *runtime.Scheme
+	Done   chan os.Signal
 }
 
 func (r *TerraformRunnerServer) LookPath(ctx context.Context, req *LookPathRequest) (*LookPathReply, error) {
@@ -253,6 +255,15 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 }
 
 func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*PlanReply, error) {
+	ctx, cancel := context.WithCancel(ctx)
+	go func() {
+		select {
+		case <-r.Done:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
+
 	if req.TfInstance != "1" {
 		return nil, fmt.Errorf("no TF instance found")
 	}
@@ -419,6 +430,15 @@ func (r *TerraformRunnerServer) LoadTFPlan(ctx context.Context, req *LoadTFPlanR
 }
 
 func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest) (*DestroyReply, error) {
+	ctx, cancel := context.WithCancel(ctx)
+	go func() {
+		select {
+		case <-r.Done:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
+
 	if req.TfInstance != "1" {
 		return nil, fmt.Errorf("no TF instance found")
 	}
@@ -431,6 +451,15 @@ func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest
 }
 
 func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*ApplyReply, error) {
+	ctx, cancel := context.WithCancel(ctx)
+	go func() {
+		select {
+		case <-r.Done:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
+
 	if req.TfInstance != "1" {
 		return nil, fmt.Errorf("no TF instance found")
 	}

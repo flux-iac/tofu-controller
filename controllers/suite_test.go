@@ -204,19 +204,21 @@ func TestMain(m *testing.M) {
 			Name:      "tf-controller.tls.test",
 		},
 		Ready:                  certsReady,
+		CAValidityDuration:     time.Hour * 24 * 7,
 		CertValidityDuration:   5*time.Minute + 1*time.Hour, // since the cert lookaheadInterval is set to 1 hour, using 1hr5m so that the cert is valid for 5 mins
-		RotationCheckFrequency: 30 * time.Second,
+		RotationCheckFrequency: 10 * time.Second,
 	}
 	if err := mtls.AddRotator(ctx, k8sManager, rotator); err != nil {
 		panic(err)
 	}
 
 	reconciler = &TerraformReconciler{
-		Client:        k8sManager.GetClient(),
-		Scheme:        k8sManager.GetScheme(),
-		EventRecorder: k8sManager.GetEventRecorderFor("tf-controller"),
-		StatusPoller:  polling.NewStatusPoller(k8sManager.GetClient(), k8sManager.GetRESTMapper()),
-		CertRotator:   rotator,
+		Client:         k8sManager.GetClient(),
+		Scheme:         k8sManager.GetScheme(),
+		EventRecorder:  k8sManager.GetEventRecorderFor("tf-controller"),
+		StatusPoller:   polling.NewStatusPoller(k8sManager.GetClient(), k8sManager.GetRESTMapper()),
+		CertRotator:    rotator,
+		RunnerGRPCPort: 30000,
 	}
 
 	// We use 1 concurrent and 10s httpRetry in the test

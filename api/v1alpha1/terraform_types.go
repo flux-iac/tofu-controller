@@ -35,6 +35,7 @@ const (
 	// RunnerTLSSecretName is the name of the secret containing a TLS cert that will be written to
 	// the namespace in which a terraform runner is created
 	RunnerTLSSecretName   = "terraform-runner.tls"
+	RunnerLabel           = "infra.contrib.fluxcd.io/terraform"
 	GitRepositoryIndexKey = ".metadata.gitRepository"
 	BucketIndexKey        = ".metadata.bucket"
 )
@@ -154,6 +155,13 @@ type TerraformSpec struct {
 	// +kubebuilder:default:=false
 	// +optional
 	AlwaysCleanupRunnerPod bool `json:"alwaysCleanupRunnerPod,omitempty"`
+
+	// Configure the termination grace period for the runner pod. Use this parameter
+	// to allow the Terraform process to gracefully shutdown. Consider increasing for
+	// large, complex or slow-moving Terraform managed resources.
+	// +kubebuilder:default:=30
+	// +optional
+	RunnerTerminationGracePeriodSeconds *int64 `json:"runnerTerminationGracePeriodSeconds,omitempty"`
 }
 
 type PlanStatus struct {
@@ -459,6 +467,11 @@ func (in *Terraform) FromBytes(b []byte, scheme *runtime.Scheme) error {
 			GroupVersion,
 			sourcev1.GroupVersion,
 		), b, in)
+}
+
+func (in *Terraform) GetRunnerAddr(ip string, port int) string {
+	prefix := strings.ReplaceAll(ip, ".", "-")
+	return fmt.Sprintf("%s.%s.pod.cluster.local:%d", prefix, in.Namespace, port)
 }
 
 func trimString(str string, limit int) string {

@@ -57,6 +57,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
 	kuberecorder "k8s.io/client-go/tools/record"
 	"k8s.io/client-go/tools/reference"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
@@ -81,6 +82,7 @@ type TerraformReconciler struct {
 	StatusPoller          *polling.StatusPoller
 	Scheme                *runtime.Scheme
 	CertRotator           *mtls.CertRotator
+	RunnerGRPCPort        int
 }
 
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete
@@ -1498,17 +1500,16 @@ func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terrafor
 
 	var addr string
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
-		addr = "localhost:30000"
+		addr = fmt.Sprintf("localhost:%d", r.RunnerGRPCPort)
 	} else {
-		podIp, err := r.reconcileRunnerPod(ctx, terraform)
+		podIP, err := r.reconcileRunnerPod(ctx, terraform)
 		if err != nil {
 			return nil, nil, err
 		}
-		prefix := strings.ReplaceAll(podIp, ".", "-")
-		addr = fmt.Sprintf("%s.%s.pod.cluster.local:30000", prefix, terraform.Namespace)
+		addr = terraform.GetRunnerAddr(podIP, r.RunnerGRPCPort)
 	}
 
-	conn, err := r.getRunnerConnection(ctx, addr)
+	conn, err := r.getRunnerConnection(ctx, terraform, addr)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1674,6 +1675,9 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: terraform.Namespace,
 			Name:      infrav1.RunnerTLSSecretName,
+			Labels: map[string]string{
+				infrav1.RunnerLabel: terraform.Name,
+			},
 		},
 	}
 
@@ -1706,10 +1710,10 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 			Namespace: podNamespace,
 			Name:      podName,
 			Labels: map[string]string{
-				"app.kubernetes.io/created-by":      "tf-controller",
-				"app.kubernetes.io/name":            "tf-runner",
-				"app.kubernetes.io/instance":        podName,
-				"infra.contrib.fluxcd.io/terraform": terraform.Name,
+				"app.kubernetes.io/created-by": "tf-controller",
+				"app.kubernetes.io/name":       "tf-runner",
+				"app.kubernetes.io/instance":   podName,
+				infrav1.RunnerLabel:            terraform.Name,
 			},
 		},
 	}
@@ -1719,7 +1723,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		if !apierrors.IsNotFound(err) {
 			return "", err
 		}
-		runnerPod.Spec = runnerPodSpec(terraform)
+		runnerPod.Spec = r.runnerPodSpec(terraform)
 		if err := r.Create(ctx, &runnerPod); err != nil {
 			return "", err
 		}
@@ -1758,23 +1762,26 @@ func getRunnerPodImage() string {
 	return runnerPodImage
 }
 
-func runnerPodSpec(terraform infrav1.Terraform) corev1.PodSpec {
-
+func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.PodSpec {
 	serviceAccountName := terraform.Spec.ServiceAccountName
 	if serviceAccountName == "" {
 		serviceAccountName = "tf-runner"
 	}
 
+	gracefulTermPeriod := terraform.Spec.RunnerTerminationGracePeriodSeconds
+
 	return corev1.PodSpec{
+		TerminationGracePeriodSeconds: gracefulTermPeriod,
 		Containers: []corev1.Container{
 			{
 				Name:            "tf-runner",
+				Args:            []string{"--grpc-port", fmt.Sprintf("%d", r.RunnerGRPCPort)},
 				Image:           getRunnerPodImage(),
 				ImagePullPolicy: corev1.PullIfNotPresent,
 				Ports: []corev1.ContainerPort{
 					{
 						Name:          "grpc",
-						ContainerPort: 30000,
+						ContainerPort: int32(r.RunnerGRPCPort),
 					},
 				},
 				Env: []corev1.EnvVar{
@@ -1801,10 +1808,65 @@ func runnerPodSpec(terraform infrav1.Terraform) corev1.PodSpec {
 	}
 }
 
-func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, addr string) (*grpc.ClientConn, error) {
+func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, terraform infrav1.Terraform, addr string) (*grpc.ClientConn, error) {
 	tlsSecret := &corev1.Secret{}
 	if err := r.Client.Get(ctx, r.CertRotator.SecretKey, tlsSecret); err != nil {
 		return nil, err
+	}
+
+	// ensure the cert is valid and refresh when required
+	host := strings.TrimSuffix(addr, fmt.Sprintf(":%d", r.RunnerGRPCPort))
+	lookahead := time.Now().Add(r.CertRotator.LookaheadInterval)
+	isCertValid, err := mtls.ValidCert(tlsSecret.Data["ca.crt"], tlsSecret.Data["tls.crt"], tlsSecret.Data["tls.key"], host, lookahead)
+	if err != nil {
+		return nil, fmt.Errorf("failed to validate cert before opening runner connection: %w", err)
+	}
+
+	// if the cert is not valid, refresh it, recreate the pod and wait for the ip to
+	// be available before connecting
+	if !isCertValid {
+		nsSAN := fmt.Sprintf("*.%s.pod.cluster.local", terraform.Namespace)
+		if err := r.CertRotator.RefreshRunnerCertIfNeeded(nsSAN, tlsSecret); err != nil {
+			return nil, fmt.Errorf("failed to refresh cert before opening runner connection: %w", err)
+		}
+
+		var runnerPods *corev1.PodList
+		if err := r.List(ctx, runnerPods, client.HasLabels([]string{infrav1.RunnerLabel})); err != nil {
+			return nil, fmt.Errorf("failed to restart runner pod: %w", err)
+		}
+
+		for _, pod := range runnerPods.Items {
+			if err := r.Delete(ctx, &pod); err != nil {
+				return nil, fmt.Errorf("failed to restart runner pod: %w", err)
+			}
+		}
+
+		var (
+			interval = time.Second
+			timeout  = time.Second * 30
+		)
+
+		if wait.PollImmediate(interval, timeout, func() (bool, error) {
+			var runnerPods *corev1.PodList
+			if err := r.List(ctx, runnerPods, client.HasLabels([]string{infrav1.RunnerLabel})); err != nil {
+				return false, fmt.Errorf("failed to list runner pod: %w", err)
+			}
+			for _, pod := range runnerPods.Items {
+				if pod.Status.PodIP != "" {
+					return true, nil
+				}
+			}
+			return false, nil
+		}) != nil {
+			return nil, fmt.Errorf("failed to restart runner pod: timeout")
+		}
+
+		if err := r.List(ctx, runnerPods, client.HasLabels([]string{infrav1.RunnerLabel})); err != nil {
+			return nil, fmt.Errorf("failed to list runner pod: %w", err)
+		}
+
+		podIP := runnerPods.Items[0].Status.PodIP
+		addr = terraform.GetRunnerAddr(podIP, r.RunnerGRPCPort)
 	}
 
 	credentials, err := mtls.GetGRPCClientCredentials(tlsSecret)
