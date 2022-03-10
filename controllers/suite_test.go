@@ -213,11 +213,12 @@ func TestMain(m *testing.M) {
 	}
 
 	reconciler = &TerraformReconciler{
-		Client:        k8sManager.GetClient(),
-		Scheme:        k8sManager.GetScheme(),
-		EventRecorder: k8sManager.GetEventRecorderFor("tf-controller"),
-		StatusPoller:  polling.NewStatusPoller(k8sManager.GetClient(), k8sManager.GetRESTMapper()),
-		CertRotator:   rotator,
+		Client:         k8sManager.GetClient(),
+		Scheme:         k8sManager.GetScheme(),
+		EventRecorder:  k8sManager.GetEventRecorderFor("tf-controller"),
+		StatusPoller:   polling.NewStatusPoller(k8sManager.GetClient(), k8sManager.GetRESTMapper()),
+		CertRotator:    rotator,
+		RunnerGRPCPort: 30000,
 	}
 
 	// We use 1 concurrent and 10s httpRetry in the test

@@ -40,6 +40,6 @@ func Test_000260_runner_pod_test(t *testing.T) {
 		},
 	}
 
-	spec := runnerPodSpec(helloWorldTF)
+	spec := reconciler.runnerPodSpec(helloWorldTF)
 	g.Expect(spec.ServiceAccountName == serviceAccountName)
 }

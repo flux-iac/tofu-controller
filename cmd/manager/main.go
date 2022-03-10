@@ -76,6 +76,7 @@ func main() {
 		caValidityDuration     time.Duration
 		certValidityDuration   time.Duration
 		rotationCheckFrequency time.Duration
+		runnerGRPCPort         int
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
@@ -92,6 +93,7 @@ func main() {
 		"The duration that the mTLS certificate that the runner pod should be valid for.")
 	flag.DurationVar(&rotationCheckFrequency, "cert-rotation-check-frequency", 30*time.Minute,
 		"The interval that the mTLS certificate rotator should check the certificate validity.")
+	flag.IntVar(&runnerGRPCPort, "runner-grpc-port", 30000, "The port which will be exposed on the runner pod for gRPC connections.")
 
 	clientOptions.BindFlags(flag.CommandLine)
 	logOptions.BindFlags(flag.CommandLine)
@@ -178,6 +180,7 @@ func main() {
 		MetricsRecorder:       metricsRecorder,
 		StatusPoller:          polling.NewStatusPoller(mgr.GetClient(), mgr.GetRESTMapper()),
 		CertRotator:           rotator,
+		RunnerGRPCPort:        runnerGRPCPort,
 	}
 
 	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {

@@ -17,10 +17,13 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	flag "github.com/spf13/pflag"
 
 	"github.com/weaveworks/tf-controller/mtls"
 )
@@ -38,12 +41,19 @@ import (
 */
 
 func main() {
-	// TODO parameterize this
-	addr := ":30000"
+	var (
+		grpcPort int
+	)
+
+	flag.IntVar(&grpcPort, "grpc-port", 30000, "The port on which to expose the grpc endpoint.")
+	flag.Parse()
+
+	addr := fmt.Sprintf(":%d", grpcPort)
+
 	_ = os.Getenv("POD_NAME")
 	podNamespace := os.Getenv("POD_NAMESPACE")
 
-	// Here we catch the SIGTERM from the kubelet to gracefully terminate
+	// catch the SIGTERM from the kubelet to gracefully terminate
 	sigterm := make(chan os.Signal, 1)
 	signal.Notify(sigterm, syscall.SIGTERM)
 	defer func() {
