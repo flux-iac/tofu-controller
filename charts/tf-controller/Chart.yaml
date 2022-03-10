@@ -2,5 +2,5 @@ apiVersion: v2
 name: tf-controller
 description: A Helm chart for TF-controller
 type: application
-version: 0.1.5
-appVersion: "v0.9.0-rc.3"
+version: 0.1.6
+appVersion: "v0.9.0-rc.4"
