@@ -1676,7 +1676,7 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 			Namespace: terraform.Namespace,
 			Name:      infrav1.RunnerTLSSecretName,
 			Labels: map[string]string{
-				infrav1.RunnerLabel: terraform.Name,
+				infrav1.RunnerLabel: terraform.Namespace,
 			},
 		},
 	}
