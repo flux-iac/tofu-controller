@@ -175,11 +175,11 @@ jobs:
       - name: Verify chaos testing result
         run: |
           kubectl -n chaos-testing get pods
-          kubectl -n chaos-testing wait terraform/helloworld-chaos01 --for=condition=ready --timeout=4m
-          kubectl -n chaos-testing wait terraform/helloworld-chaos02 --for=condition=ready --timeout=4m
-          kubectl -n chaos-testing wait terraform/helloworld-chaos03 --for=condition=ready --timeout=4m
-          kubectl -n chaos-testing wait terraform/helloworld-chaos04 --for=condition=ready --timeout=4m
-          kubectl -n chaos-testing wait terraform/helloworld-chaos05 --for=condition=ready --timeout=4m
+          kubectl -n chaos-testing wait terraform/helloworld-chaos01 --for=condition=ready --timeout=10m
+          kubectl -n chaos-testing wait terraform/helloworld-chaos02 --for=condition=ready --timeout=10m
+          kubectl -n chaos-testing wait terraform/helloworld-chaos03 --for=condition=ready --timeout=10m
+          kubectl -n chaos-testing wait terraform/helloworld-chaos04 --for=condition=ready --timeout=10m
+          kubectl -n chaos-testing wait terraform/helloworld-chaos05 --for=condition=ready --timeout=10m
       - name: Logs
         run: |
           kubectl -n tf-system logs deploy/source-controller
