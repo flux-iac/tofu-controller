@@ -201,13 +201,15 @@ func TestMain(m *testing.M) {
 		DNSName:        "localhost",
 		SecretKey: types.NamespacedName{
 			Namespace: "flux-system",
-			Name:      "tf-controller.tls.test",
+			Name:      "tf-controller.tls",
 		},
 		Ready:                  certsReady,
 		CAValidityDuration:     time.Hour * 24 * 7,
 		CertValidityDuration:   5*time.Minute + 1*time.Hour, // since the cert lookaheadInterval is set to 1 hour, using 1hr5m so that the cert is valid for 5 mins
 		RotationCheckFrequency: 10 * time.Second,
+		LookaheadInterval:      1 * time.Hour,
 	}
+
 	if err := mtls.AddRotator(ctx, k8sManager, rotator); err != nil {
 		panic(err)
 	}
@@ -232,7 +234,7 @@ func TestMain(m *testing.M) {
 		Scheme: k8sManager.GetScheme(),
 	}
 
-	go mtls.StartGRPCServer(ctx, runnerServer, "localhost:30000", k8sManager, rotator)
+	go mtls.StartGRPCServerForTesting(ctx, runnerServer, "flux-system", "localhost:30000", k8sManager, rotator)
 
 	go func() {
 		if err := k8sManager.Start(ctx); err != nil {
