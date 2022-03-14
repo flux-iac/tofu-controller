@@ -97,6 +97,7 @@ func Test_000040_controlled_outputs_test(t *testing.T) {
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
+			Interval: metav1.Duration{Duration: time.Second * 10},
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
 				Name: "tf-output-" + terraformName,
 				Outputs: []string{

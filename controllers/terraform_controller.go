@@ -434,6 +434,16 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 
 		// immediately return if no drift - reconciliation will retry normally
 		if driftDetectionErr == nil {
+			// reconcile outputs only when outputs are missing
+			if outputsDrifted, err := r.outputsMayBeDrifted(ctx, terraform); outputsDrifted == true && err == nil {
+				terraform, err = r.processOutputs(ctx, runnerClient, terraform, tfInstance, revision)
+				if err != nil {
+					return terraform, err
+				}
+			} else if err != nil {
+				return terraform, err
+			}
+
 			return terraform, nil
 		}
 
@@ -472,9 +482,8 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		}
 	}
 
-	outputs := map[string]tfexec.OutputMeta{}
 	if r.shouldApply(terraform) {
-		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision, &outputs)
+		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision)
 		if err != nil {
 			return terraform, err
 		}
@@ -485,6 +494,38 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		}
 	} else {
 		log.Info("should apply == false")
+	}
+
+	terraform, err = r.processOutputs(ctx, runnerClient, terraform, tfInstance, revision)
+	if err != nil {
+		return terraform, err
+	}
+
+	if r.shouldDoHealthChecks(terraform) {
+		terraform, err = r.doHealthChecks(ctx, terraform, runnerClient)
+		if err != nil {
+			return terraform, err
+		}
+
+		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			log.Error(err, "unable to update status after doing health checks")
+			return terraform, err
+		}
+	}
+
+	return terraform, nil
+}
+
+func (r *TerraformReconciler) processOutputs(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, tfInstance string, revision string) (infrav1.Terraform, error) {
+
+	log := ctrl.LoggerFrom(ctx)
+	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
+
+	outputs := map[string]tfexec.OutputMeta{}
+	var err error
+	terraform, err = r.obtainOutputs(ctx, terraform, tfInstance, runnerClient, revision, &outputs)
+	if err != nil {
+		return terraform, err
 	}
 
 	if r.shouldWriteOutputs(terraform, outputs) {
@@ -499,16 +540,33 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		}
 	}
 
-	if r.shouldDoHealthChecks(terraform) {
-		terraform, err = r.doHealthChecks(ctx, terraform, runnerClient)
-		if err != nil {
-			return terraform, err
-		}
+	return terraform, nil
+}
 
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
-			log.Error(err, "unable to update status after doing health checks")
-			return terraform, err
-		}
+func (r *TerraformReconciler) obtainOutputs(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, outputs *map[string]tfexec.OutputMeta) (infrav1.Terraform, error) {
+	outputReply, err := runnerClient.Output(ctx, &runner.OutputRequest{
+		TfInstance: tfInstance,
+	})
+	if err != nil {
+		// TODO should not be this Error
+		// warning-like status is enough
+		err = fmt.Errorf("error running Output: %s", err)
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.TFExecOutputFailedReason,
+			err.Error(),
+		), err
+	}
+	*outputs = convertOutputs(outputReply.Outputs)
+
+	var availableOutputs []string
+	for k := range *outputs {
+		availableOutputs = append(availableOutputs, k)
+	}
+	if len(availableOutputs) > 0 {
+		sort.Strings(availableOutputs)
+		terraform = infrav1.TerraformOutputsAvailable(terraform, availableOutputs, "Outputs available")
 	}
 
 	return terraform, nil
@@ -885,7 +943,7 @@ func (r *TerraformReconciler) backendCompletelyDisable(terraform infrav1.Terrafo
 	return terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.Disable == true
 }
 
-func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, outputs *map[string]tfexec.OutputMeta) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string) (infrav1.Terraform, error) {
 
 	const (
 		TFPlanName = "tfplan"
@@ -968,31 +1026,6 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	}
 
 	terraform = infrav1.TerraformApplied(terraform, revision, "Applied successfully", isDestroyApplied)
-
-	outputReply, err := runnerClient.Output(ctx, &runner.OutputRequest{
-		TfInstance: tfInstance,
-	})
-	if err != nil {
-		// TODO should not be this Error
-		// warning-like status is enough
-		err = fmt.Errorf("error running Output: %s", err)
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			infrav1.TFExecOutputFailedReason,
-			err.Error(),
-		), err
-	}
-	*outputs = convertOutputs(outputReply.Outputs)
-
-	var availableOutputs []string
-	for k := range *outputs {
-		availableOutputs = append(availableOutputs, k)
-	}
-	if len(availableOutputs) > 0 {
-		sort.Strings(availableOutputs)
-		terraform = infrav1.TerraformOutputsAvailable(terraform, availableOutputs, "Outputs available")
-	}
 
 	return terraform, nil
 }
@@ -1433,8 +1466,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 			return ctrl.Result{Requeue: true}, err
 		}
 
-		outputs := map[string]tfexec.OutputMeta{}
-		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision, &outputs)
+		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision)
 		if err != nil {
 			return ctrl.Result{Requeue: true}, err
 		}
@@ -1942,4 +1974,19 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 		},
 		ServiceAccountName: serviceAccountName,
 	}
+}
+
+func (r *TerraformReconciler) outputsMayBeDrifted(ctx context.Context, terraform infrav1.Terraform) (bool, error) {
+	if terraform.Spec.WriteOutputsToSecret != nil {
+		outputsSecretKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Spec.WriteOutputsToSecret.Name}
+		var outputsSecret corev1.Secret
+		err := r.Client.Get(ctx, outputsSecretKey, &outputsSecret)
+		if err != nil && apierrors.IsNotFound(err) {
+			return true, nil
+		}
+
+		return false, err
+	}
+
+	return false, nil
 }

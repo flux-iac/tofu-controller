@@ -84,6 +84,7 @@ func Test_000072_varsfrom_optional_secret_and_controlled_outputs_test(t *testing
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
+			Interval: metav1.Duration{Duration: time.Second * 10},
 			// TODO change to a better type
 			VarsFrom: []infrav1.VarsReference{
 				{

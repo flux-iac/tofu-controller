@@ -84,6 +84,7 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
+			Interval: metav1.Duration{Duration: time.Second * 10},
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
