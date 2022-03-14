@@ -3,7 +3,7 @@ kind: Terraform
 metadata:
   name: helloworld-chaos01
 spec:
-  interval: 10s
+  interval: 1m
   approvePlan: "auto"
   path: ./
   sourceRef:
@@ -15,7 +15,7 @@ kind: Terraform
 metadata:
   name: helloworld-chaos02
 spec:
-  interval: 10s
+  interval: 1m
   approvePlan: "auto"
   path: ./
   sourceRef:
@@ -27,7 +27,7 @@ kind: Terraform
 metadata:
   name: helloworld-chaos03
 spec:
-  interval: 10s
+  interval: 1m
   approvePlan: "auto"
   path: ./
   sourceRef:
@@ -39,7 +39,7 @@ kind: Terraform
 metadata:
   name: helloworld-chaos04
 spec:
-  interval: 10s
+  interval: 1m
   approvePlan: "auto"
   path: ./
   sourceRef:
@@ -51,7 +51,7 @@ kind: Terraform
 metadata:
   name: helloworld-chaos05
 spec:
-  interval: 10s
+  interval: 1m
   approvePlan: "auto"
   path: ./
   sourceRef:
