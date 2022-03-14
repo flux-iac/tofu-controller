@@ -101,6 +101,7 @@ func Test_000061_vars_hcl_input_test(t *testing.T) {
 					Value: &apiextensionsv1.JSON{Raw: []byte(`["a","b","c"]`)},
 				},
 			},
+			Interval: metav1.Duration{Duration: time.Second * 10},
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
 				Name: "tf-output-" + terraformName,
 				Outputs: []string{

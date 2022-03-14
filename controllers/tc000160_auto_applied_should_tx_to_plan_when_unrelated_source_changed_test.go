@@ -108,6 +108,7 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
+			Interval: metav1.Duration{Duration: time.Second * 10},
 			Vars: []infrav1.Variable{
 				{
 					Name:  "kubeconfig",

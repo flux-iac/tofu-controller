@@ -116,6 +116,7 @@ func Test_000081_varsfrom_accepts_many_configMaps(t *testing.T) {
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
+			Interval: metav1.Duration{Duration: time.Second * 10},
 			VarsFrom: []infrav1.VarsReference{
 				{
 					Kind: "ConfigMap",

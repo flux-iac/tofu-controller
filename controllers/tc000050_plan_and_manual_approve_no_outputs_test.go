@@ -100,6 +100,7 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
+			Interval: metav1.Duration{Duration: time.Second * 10},
 		},
 	}
 	It("should be created and attached successfully.")

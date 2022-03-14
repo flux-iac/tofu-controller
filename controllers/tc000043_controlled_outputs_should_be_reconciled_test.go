@@ -2,29 +2,33 @@ package controllers
 
 import (
 	"context"
+	corev1 "k8s.io/api/core/v1"
 	"testing"
 	"time"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	. "github.com/onsi/gomega"
+
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
-	corev1 "k8s.io/api/core/v1"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_000060_vars_and_controlled_outputs_test(t *testing.T) {
+func Test_000043_controlled_outputs_should_be_reconciled_test(t *testing.T) {
+	Spec("This spec describes the behaviour of a Terraform resource when it is controlled the set of outputs.")
+	It("the outputs should be reconciled if there were deleted")
+
 	const (
-		sourceName    = "tf-env-controlled-output"
-		terraformName = "helloworld-env-controlled-output"
+		sourceName    = "test-tf-controller-controlled-output-should-be-reconciled"
+		terraformName = "helloworld-controlled-output-should-be-reconciled"
 	)
 	g := NewWithT(t)
 	ctx := context.Background()
 
-	By("creating a new Git repository object")
+	Given("a GitRepository")
+	By("defining a new GitRepository resource.")
 	updatedTime := time.Now()
 	testRepo := sourcev1.GitRepository{
 		ObjectMeta: metav1.ObjectMeta{
@@ -40,10 +44,14 @@ func Test_000060_vars_and_controlled_outputs_test(t *testing.T) {
 			GitImplementation: "go-git",
 		},
 	}
+
+	By("creating the GitRepository resource in the cluster.")
+	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
 	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
 
-	By("setting the git repo status object, the URL, and the correct checksum")
+	Given("the GitRepository's reconciled status")
+	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
 	testRepo.Status = sourcev1.GitRepositoryStatus{
 		ObservedGeneration: int64(1),
 		Conditions: []metav1.Condition{
@@ -55,23 +63,27 @@ func Test_000060_vars_and_controlled_outputs_test(t *testing.T) {
 				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
-		URL: server.URL() + "/env.tar.gz",
+		URL: server.URL() + "/file.tar.gz",
 		Artifact: &sourcev1.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
-			URL:            server.URL() + "/env.tar.gz",
+			URL:            server.URL() + "/file.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-			Checksum:       "d021eda9b869586f5a43ad1ba7f21e4bf9b3970443236755463f22824b525316",
+			Checksum:       "80ddfd18eb96f7d31cadc1a8a5171c6e2d95df3f6c23b0ed9cd8dddf6dba1406",
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
+
+	It("should be updated successfully.")
 	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
 
-	By("checking that the status and its URL gets reconciled")
+	By("checking that the status and its URL gets reconciled.")
 	gitRepoKey := types.NamespacedName{Namespace: "flux-system", Name: sourceName}
 	createdRepo := &sourcev1.GitRepository{}
 	g.Expect(k8sClient.Get(ctx, gitRepoKey, createdRepo)).Should(Succeed())
 
-	By("creating a new TF and attaching to the repo")
+	Given("a Terraform resource with auto approve, with controlled output, attached to the given GitRepository resource")
+	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
+	By("specifying the .spec.writeOutputsToSecret to output only `hello_world` output.")
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
@@ -79,20 +91,13 @@ func Test_000060_vars_and_controlled_outputs_test(t *testing.T) {
 		},
 		Spec: infrav1.TerraformSpec{
 			ApprovePlan: "auto",
-			Path:        "./terraform-hello-env",
+			Path:        "./terraform-hello-world-example",
 			SourceRef: infrav1.CrossNamespaceSourceReference{
 				Kind:      "GitRepository",
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
 			Interval: metav1.Duration{Duration: time.Second * 10},
-			// TODO change to a better type
-			Vars: []infrav1.Variable{
-				{
-					Name:  "subject",
-					Value: &apiextensionsv1.JSON{Raw: []byte(`"my cat"`)},
-				},
-			},
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
 				Name: "tf-output-" + terraformName,
 				Outputs: []string{
@@ -101,13 +106,13 @@ func Test_000060_vars_and_controlled_outputs_test(t *testing.T) {
 			},
 		},
 	}
+	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
 
-	By("checking that the hello world TF got created")
+	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
 	createdHelloWorldTF := infrav1.Terraform{}
-	// We'll need to retry getting this newly created Terraform, Given that creation may not immediately happen.
 	g.Eventually(func() bool {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -116,7 +121,8 @@ func Test_000060_vars_and_controlled_outputs_test(t *testing.T) {
 		return true
 	}, timeout, interval).Should(BeTrue())
 
-	By("checking that the TF output secret contains a binary data")
+	It("should be reconciled and produce the correct output secret.")
+	By("checking that the named output secret contains a binary data.")
 	outputKey := types.NamespacedName{Namespace: "flux-system", Name: "tf-output-" + terraformName}
 	outputSecret := corev1.Secret{}
 	g.Eventually(func() (int, error) {
@@ -127,12 +133,11 @@ func Test_000060_vars_and_controlled_outputs_test(t *testing.T) {
 		return len(outputSecret.Data), nil
 	}, timeout, interval).Should(Equal(1))
 
-	By("checking that the TF output secrets contains the correct output provisioned by the TF hello world")
-	// Value is a JSON representation of TF's OutputMeta
+	By("checking that the output secret contains the correct output data, provisioned by the TF resource.")
 	expectedOutputValue := map[string]string{
 		"Name":        "tf-output-" + terraformName,
 		"Namespace":   "flux-system",
-		"Value":       "Hello, my cat!",
+		"Value":       "Hello, World!",
 		"OwnerRef[0]": string(createdHelloWorldTF.UID),
 	}
 	g.Eventually(func() (map[string]string, error) {
@@ -146,4 +151,24 @@ func Test_000060_vars_and_controlled_outputs_test(t *testing.T) {
 		}, err
 	}, timeout, interval).Should(Equal(expectedOutputValue), "expected output %v", expectedOutputValue)
 
+	oldOutputSecretUID := outputSecret.UID
+
+	It("should reconcile the outputs back to the correct state if someone deleting them, even if no drift or no plan")
+	By("deleting the output secret")
+	g.Expect(k8sClient.Delete(ctx, &outputSecret))
+
+	By("checking that a new output secret is created")
+	g.Eventually(func() (map[string]string, error) {
+		err := k8sClient.Get(ctx, outputKey, &outputSecret)
+		value := string(outputSecret.Data["hello_world"])
+		return map[string]string{
+			"Name":        outputSecret.Name,
+			"Namespace":   outputSecret.Namespace,
+			"Value":       value,
+			"OwnerRef[0]": string(outputSecret.OwnerReferences[0].UID),
+		}, err
+	}, timeout, interval).Should(Equal(expectedOutputValue), "expected output %v", expectedOutputValue)
+
+	By("checking that the secret is the new one")
+	g.Expect(outputSecret.UID).ToNot(Equal(oldOutputSecretUID))
 }

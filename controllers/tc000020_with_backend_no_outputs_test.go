@@ -104,6 +104,7 @@ func Test_000020_with_backend_no_outputs_test(t *testing.T) {
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
+			Interval: metav1.Duration{Duration: time.Second * 10},
 		},
 	}
 	It("should be created and attached successfully.")

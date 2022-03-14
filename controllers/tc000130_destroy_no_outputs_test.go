@@ -101,6 +101,7 @@ func Test_000130_destroy_no_outputs_test(t *testing.T) {
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
+			Interval: metav1.Duration{Duration: time.Second * 10},
 			Vars: []infrav1.Variable{
 				{
 					Name:  "kubeconfig",
