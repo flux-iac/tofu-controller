@@ -139,7 +139,7 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 dev-deploy: manifests kustomize
 	mkdir -p config/dev && cp config/default/* config/dev
 	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/weaveworks/tf-controller=${MANAGER_IMG}:${TAG}
-	$(KUSTOMIZE) build config/dev | kubectl apply -f -
+	$(KUSTOMIZE) build config/dev | yq e "select(.kind == \"Deployment\" and .metadata.name == \"tf-controller\").spec.template.spec.containers[0].env[1].value = \"test/tf-runner:$${TAG}\"" - | kubectl apply -f -
 	rm -rf config/dev
 
 # Delete dev deployment and CRDs
