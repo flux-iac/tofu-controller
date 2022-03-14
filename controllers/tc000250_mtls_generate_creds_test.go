@@ -33,7 +33,7 @@ func Test_000250_mtls_generate_creds_test(t *testing.T) {
 	By("creating a secret and writing the certs")
 	caSecretKey := types.NamespacedName{
 		Namespace: "flux-system",
-		Name:      "tf-controller.tls.test",
+		Name:      "tf-controller.tls",
 	}
 	caSecret := &corev1.Secret{}
 	g.Eventually(func() bool {

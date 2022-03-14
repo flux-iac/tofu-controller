@@ -469,9 +469,9 @@ func (in *Terraform) FromBytes(b []byte, scheme *runtime.Scheme) error {
 		), b, in)
 }
 
-func (in *Terraform) GetRunnerAddr(ip string, port int) string {
+func (in *Terraform) GetRunnerHostname(ip string) string {
 	prefix := strings.ReplaceAll(ip, ".", "-")
-	return fmt.Sprintf("%s.%s.pod.cluster.local:%d", prefix, in.Namespace, port)
+	return fmt.Sprintf("%s.%s.pod.cluster.local", prefix, in.Namespace)
 }
 
 func trimString(str string, limit int) string {
