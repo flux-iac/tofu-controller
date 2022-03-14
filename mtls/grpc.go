@@ -5,29 +5,40 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"net"
-
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/runner"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"net"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 )
 
-// TODO: this should live somewhere else but for now it's here
-func StartGRPCServer(ctx context.Context, server *runner.TerraformRunnerServer, addr string, mgr controllerruntime.Manager, rotator *CertRotator) error {
+// StartGRPCServerForTesting should be used only for testing
+func StartGRPCServerForTesting(ctx context.Context, server *runner.TerraformRunnerServer, namespace string, addr string, mgr controllerruntime.Manager, rotator *CertRotator) error {
 	// wait for the certs to be available and the manager to be ready
 	<-rotator.Ready
 	<-mgr.Elected()
 
+	tlsSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      infrav1.RunnerTLSSecretName,
+			Labels: map[string]string{
+				infrav1.RunnerLabel: namespace,
+			},
+		},
+	}
+
+	hostname := fmt.Sprintf("*.%s.pod.cluster.local", namespace)
+	if err := rotator.RefreshRunnerCertIfNeeded(ctx, hostname, tlsSecret); err != nil {
+		return err
+	}
+
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil
-	}
-
-	tlsSecret := &corev1.Secret{}
-	if err := mgr.GetClient().Get(ctx, rotator.SecretKey, tlsSecret); err != nil {
-		return err
 	}
 
 	creds, err := GetGRPCServerCredentials(tlsSecret)

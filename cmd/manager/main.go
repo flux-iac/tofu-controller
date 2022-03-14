@@ -194,7 +194,7 @@ func main() {
 			Client: mgr.GetClient(),
 			Scheme: mgr.GetScheme(),
 		}
-		go mtls.StartGRPCServer(signalHandlerContext, runnerServer, "localhost:30000", mgr, rotator)
+		go mtls.StartGRPCServerForTesting(signalHandlerContext, runnerServer, "flux-system", "localhost:30000", mgr, rotator)
 	}
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

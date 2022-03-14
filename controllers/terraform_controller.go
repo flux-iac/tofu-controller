@@ -25,8 +25,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"math"
-	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
@@ -158,7 +156,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 
 		if terraform.Spec.AlwaysCleanupRunnerPod == true {
-			podKey := types.NamespacedName{Namespace: terraform.Namespace, Name: fmt.Sprintf("%s-tf-runner", terraform.Name)}
+			podKey := getRunnerPodObjectKey(terraform)
 			var pod corev1.Pod
 			if err := cli.Get(ctx, podKey, &pod); err != nil {
 				if !apierrors.IsNotFound(err) {
@@ -271,6 +269,10 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// next reconcile is .Spec.Interval in the future
 	return ctrl.Result{RequeueAfter: terraform.Spec.Interval.Duration}, nil
+}
+
+func getRunnerPodObjectKey(terraform infrav1.Terraform) types.NamespacedName {
+	return types.NamespacedName{Namespace: terraform.Namespace, Name: fmt.Sprintf("%s-tf-runner", terraform.Name)}
 }
 
 func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, revision string) bool {
@@ -1498,24 +1500,172 @@ func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terrafor
 		return nil, nil, err
 	}
 
-	var addr string
+	var hostname string
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
-		addr = fmt.Sprintf("localhost:%d", r.RunnerGRPCPort)
+		hostname = "localhost"
 	} else {
 		podIP, err := r.reconcileRunnerPod(ctx, terraform)
 		if err != nil {
 			return nil, nil, err
 		}
-		addr = terraform.GetRunnerAddr(podIP, r.RunnerGRPCPort)
+		hostname = terraform.GetRunnerHostname(podIP)
 	}
 
-	conn, err := r.getRunnerConnection(ctx, terraform, addr)
+	tlsCertValid, err := r.validateTLSCertWithHostname(ctx, terraform, hostname)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !tlsCertValid {
+		err := r.reconcileRunnerSecret(ctx, &terraform)
+		if err != nil {
+			return nil, nil, err
+		}
+
+	}
+
+	conn, err := r.getRunnerConnection(ctx, terraform, hostname, r.RunnerGRPCPort)
 	if err != nil {
 		return nil, nil, err
 	}
 	connClose := func() error { return conn.Close() }
 	runnerClient := runner.NewRunnerClient(conn)
 	return runnerClient, connClose, nil
+}
+
+func (r *TerraformReconciler) validateTLSCertWithHostname(ctx context.Context, terraform infrav1.Terraform, hostname string) (bool, error) {
+	var (
+		foundTLSCert bool
+		isCertValid  bool
+	)
+
+	// load the current TLS cert form the target namespace for the validation step
+	tlsSecretKey := types.NamespacedName{Namespace: terraform.Namespace, Name: infrav1.RunnerTLSSecretName}
+	tlsSecret := corev1.Secret{}
+
+	if err := r.Client.Get(ctx, tlsSecretKey, &tlsSecret); err != nil {
+		if apierrors.IsNotFound(err) {
+			foundTLSCert = false
+		} else {
+			return false, err
+		}
+	} else {
+		foundTLSCert = true
+	}
+
+	if foundTLSCert {
+		// ensure the cert is valid and refresh when required
+		lookaheadInterval := time.Now().Add(r.CertRotator.LookaheadInterval)
+
+		var err error
+		isCertValid, err = mtls.ValidCert(tlsSecret.Data["ca.crt"], tlsSecret.Data["tls.crt"], tlsSecret.Data["tls.key"], hostname, lookaheadInterval)
+		if err != nil {
+			return false, fmt.Errorf("failed to validate cert before opening runner connection: %w", err)
+		}
+	} else {
+		isCertValid = false
+	}
+
+	return isCertValid, nil
+}
+
+func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, terraform infrav1.Terraform, hostname string, port int) (*grpc.ClientConn, error) {
+	var (
+		foundTLSCert bool
+		isCertValid  bool
+	)
+
+	// load the current TLS cert form the target namespace for the validation step
+	tlsSecretKey := types.NamespacedName{Namespace: terraform.Namespace, Name: infrav1.RunnerTLSSecretName}
+	tlsSecret := corev1.Secret{}
+
+	if err := r.Client.Get(ctx, tlsSecretKey, &tlsSecret); err != nil {
+		if apierrors.IsNotFound(err) {
+			foundTLSCert = false
+		} else {
+			return nil, err
+		}
+	} else {
+		foundTLSCert = true
+	}
+
+	if foundTLSCert {
+		// ensure the cert is valid and refresh when required
+		lookaheadInterval := time.Now().Add(r.CertRotator.LookaheadInterval)
+
+		var err error
+		isCertValid, err = mtls.ValidCert(tlsSecret.Data["ca.crt"], tlsSecret.Data["tls.crt"], tlsSecret.Data["tls.key"], hostname, lookaheadInterval)
+		if err != nil {
+			return nil, fmt.Errorf("failed to validate cert before opening runner connection: %w", err)
+		}
+	} else {
+		isCertValid = false
+		tlsSecret = corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: terraform.Namespace,
+				Name:      infrav1.RunnerTLSSecretName,
+			},
+		}
+	}
+
+	// if the cert is not valid, refresh it, recreate the pod and wait for the ip to
+	// be available before connecting
+	if !isCertValid {
+		nsSAN := fmt.Sprintf("*.%s.pod.cluster.local", terraform.Namespace)
+		if err := r.CertRotator.RefreshRunnerCertIfNeeded(ctx, nsSAN, &tlsSecret); err != nil {
+			return nil, fmt.Errorf("failed to refresh cert before opening runner connection: %w", err)
+		}
+
+		var runnerPod *corev1.Pod
+		if err := r.Get(ctx, getRunnerPodObjectKey(terraform), runnerPod); err != nil {
+			return nil, fmt.Errorf("failed to obtain pod for re-creation: %w", err)
+		}
+
+		if err := r.Delete(ctx, runnerPod); err != nil {
+			return nil, fmt.Errorf("failed to restart runner pod: %w", err)
+		}
+
+		var (
+			interval = time.Second
+			timeout  = time.Second * 30
+		)
+
+		if wait.PollImmediate(interval, timeout, func() (bool, error) {
+			var runnerPod *corev1.Pod
+			if err := r.Get(ctx, getRunnerPodObjectKey(terraform), runnerPod); err != nil {
+				return false, fmt.Errorf("failed to get runner pod: %w", err)
+			}
+			if runnerPod.Status.PodIP != "" {
+				return true, nil
+			}
+			return false, nil
+		}) != nil {
+			return nil, fmt.Errorf("failed to restart runner pod: timeout")
+		}
+
+		podIP := runnerPod.Status.PodIP
+		hostname = terraform.GetRunnerHostname(podIP)
+	}
+
+	addr := fmt.Sprintf("%s:%d", hostname, port)
+	credentials, err := mtls.GetGRPCClientCredentials(&tlsSecret)
+	if err != nil {
+		return nil, err
+	}
+
+	const retryPolicy = `{
+		"methodConfig": [{
+		  "name": [{"service": "runner.Runner"}],
+		  "waitForReady": true,
+		  "retryPolicy": {
+			  "MaxAttempts": 4,
+			  "InitialBackoff": ".01s",
+			  "MaxBackoff": ".01s",
+			  "BackoffMultiplier": 1.0,
+			  "RetryableStatusCodes": [ "UNAVAILABLE" ]
+		  }
+		}]}`
+
+	return grpc.Dial(addr, grpc.WithTransportCredentials(credentials), grpc.WithDefaultServiceConfig(retryPolicy))
 }
 
 func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient) (infrav1.Terraform, error) {
@@ -1671,7 +1821,7 @@ func (r *TerraformReconciler) templateParse(content map[string]string, text stri
 // write it to the secret. One secret per namespace is created in order to sidestep the need
 // for specifying a pod ip in the certificate SAN field.
 func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terraform *infrav1.Terraform) error {
-	tlsSecret := &corev1.Secret{
+	tlsSecret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: terraform.Namespace,
 			Name:      infrav1.RunnerTLSSecretName,
@@ -1681,20 +1831,10 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 		},
 	}
 
-	if err := r.Get(ctx, client.ObjectKeyFromObject(tlsSecret), tlsSecret); err != nil {
-		if !apierrors.IsNotFound(err) {
-			return err
-		}
-		// create the runner tls secret
-		if err := r.Create(ctx, tlsSecret); err != nil {
-			return err
-		}
-	}
-
 	// this hostname will be used to generate a cert valid
 	// for all pods in the given namespace
 	hostname := fmt.Sprintf("*.%s.pod.cluster.local", terraform.Namespace)
-	if err := r.CertRotator.RefreshRunnerCertIfNeeded(hostname, tlsSecret); err != nil {
+	if err := r.CertRotator.RefreshRunnerCertIfNeeded(ctx, hostname, &tlsSecret); err != nil {
 		return err
 	}
 
@@ -1702,7 +1842,6 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 }
 
 func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform) (string, error) {
-	log := ctrl.LoggerFrom(ctx)
 	podNamespace := terraform.Namespace
 	podName := fmt.Sprintf("%s-tf-runner", terraform.Name)
 	runnerPod := corev1.Pod{
@@ -1713,45 +1852,42 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 				"app.kubernetes.io/created-by": "tf-controller",
 				"app.kubernetes.io/name":       "tf-runner",
 				"app.kubernetes.io/instance":   podName,
-				infrav1.RunnerLabel:            terraform.Name,
+				infrav1.RunnerLabel:            terraform.Namespace,
 			},
 		},
 	}
 
 	runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
-	if err := r.Get(ctx, runnerPodKey, &runnerPod); err != nil {
-		if !apierrors.IsNotFound(err) {
-			return "", err
-		}
+	err := r.Get(ctx, runnerPodKey, &runnerPod)
+	if err != nil && apierrors.IsNotFound(err) == false {
+		return "", err
+	}
+
+	if err != nil && apierrors.IsNotFound(err) {
 		runnerPod.Spec = r.runnerPodSpec(terraform)
 		if err := r.Create(ctx, &runnerPod); err != nil {
 			return "", err
 		}
 	}
 
-	// TODO make it configurable
-	const maxRetry = 5
-	retry := float64(0)
-	for {
+	var (
+		interval = time.Second
+		timeout  = time.Second * 30
+	)
+
+	if wait.PollImmediate(interval, timeout, func() (bool, error) {
 		if err := r.Get(ctx, runnerPodKey, &runnerPod); err != nil {
-			return "", err
+			return false, fmt.Errorf("failed to get runner pod: %w", err)
 		}
-
-		podIp := runnerPod.Status.PodIP
-		if podIp != "" {
-			return podIp, nil
+		if runnerPod.Status.PodIP != "" {
+			return true, nil
 		}
-
-		retry++
-		if retry == maxRetry {
-			return "", fmt.Errorf("wait for runner to be ready max retry reached")
-		}
-		waitTime := time.Duration(math.Pow(2, retry))*time.Second + time.Duration(rand.Intn(1000))*time.Millisecond
-		log.Info(fmt.Sprintf("waiting for runner to be ready, wait time: %s", waitTime))
-
-		time.Sleep(waitTime)
+		return false, nil
+	}) != nil {
+		return "", fmt.Errorf("failed to create and obtain pod ip")
 	}
 
+	return runnerPod.Status.PodIP, nil
 }
 
 func getRunnerPodImage() string {
@@ -1806,86 +1942,4 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 		},
 		ServiceAccountName: serviceAccountName,
 	}
-}
-
-func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, terraform infrav1.Terraform, addr string) (*grpc.ClientConn, error) {
-	tlsSecret := &corev1.Secret{}
-	if err := r.Client.Get(ctx, r.CertRotator.SecretKey, tlsSecret); err != nil {
-		return nil, err
-	}
-
-	// ensure the cert is valid and refresh when required
-	host := strings.TrimSuffix(addr, fmt.Sprintf(":%d", r.RunnerGRPCPort))
-	lookahead := time.Now().Add(r.CertRotator.LookaheadInterval)
-	isCertValid, err := mtls.ValidCert(tlsSecret.Data["ca.crt"], tlsSecret.Data["tls.crt"], tlsSecret.Data["tls.key"], host, lookahead)
-	if err != nil {
-		return nil, fmt.Errorf("failed to validate cert before opening runner connection: %w", err)
-	}
-
-	// if the cert is not valid, refresh it, recreate the pod and wait for the ip to
-	// be available before connecting
-	if !isCertValid {
-		nsSAN := fmt.Sprintf("*.%s.pod.cluster.local", terraform.Namespace)
-		if err := r.CertRotator.RefreshRunnerCertIfNeeded(nsSAN, tlsSecret); err != nil {
-			return nil, fmt.Errorf("failed to refresh cert before opening runner connection: %w", err)
-		}
-
-		var runnerPods *corev1.PodList
-		if err := r.List(ctx, runnerPods, client.HasLabels([]string{infrav1.RunnerLabel})); err != nil {
-			return nil, fmt.Errorf("failed to restart runner pod: %w", err)
-		}
-
-		for _, pod := range runnerPods.Items {
-			if err := r.Delete(ctx, &pod); err != nil {
-				return nil, fmt.Errorf("failed to restart runner pod: %w", err)
-			}
-		}
-
-		var (
-			interval = time.Second
-			timeout  = time.Second * 30
-		)
-
-		if wait.PollImmediate(interval, timeout, func() (bool, error) {
-			var runnerPods *corev1.PodList
-			if err := r.List(ctx, runnerPods, client.HasLabels([]string{infrav1.RunnerLabel})); err != nil {
-				return false, fmt.Errorf("failed to list runner pod: %w", err)
-			}
-			for _, pod := range runnerPods.Items {
-				if pod.Status.PodIP != "" {
-					return true, nil
-				}
-			}
-			return false, nil
-		}) != nil {
-			return nil, fmt.Errorf("failed to restart runner pod: timeout")
-		}
-
-		if err := r.List(ctx, runnerPods, client.HasLabels([]string{infrav1.RunnerLabel})); err != nil {
-			return nil, fmt.Errorf("failed to list runner pod: %w", err)
-		}
-
-		podIP := runnerPods.Items[0].Status.PodIP
-		addr = terraform.GetRunnerAddr(podIP, r.RunnerGRPCPort)
-	}
-
-	credentials, err := mtls.GetGRPCClientCredentials(tlsSecret)
-	if err != nil {
-		return nil, err
-	}
-
-	const retryPolicy = `{
-		"methodConfig": [{
-		  "name": [{"service": "runner.Runner"}],
-		  "waitForReady": true,
-		  "retryPolicy": {
-			  "MaxAttempts": 4,
-			  "InitialBackoff": ".01s",
-			  "MaxBackoff": ".01s",
-			  "BackoffMultiplier": 1.0,
-			  "RetryableStatusCodes": [ "UNAVAILABLE" ]
-		  }
-		}]}`
-
-	return grpc.Dial(addr, grpc.WithTransportCredentials(credentials), grpc.WithDefaultServiceConfig(retryPolicy))
 }
