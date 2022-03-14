@@ -42,8 +42,8 @@ jobs:
         uses: tj-actions/branch-names@v5.1
       - name: Prepare
         id: prep
-        run: |
-          VERSION="${{ steps.branch-name.outputs.head_ref_branch }}-${GITHUB_SHA::8}"
+        run: |        
+          VERSION="${{ steps.branch-name.outputs.current_branch }}-${GITHUB_SHA::8}"
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF/refs\/tags\//}
           fi
