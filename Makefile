@@ -91,6 +91,7 @@ gen-grpc:
 build: gen-grpc generate fmt vet ## Build manager binary.
 	go build -o bin/runner cmd/runner/main.go
 	go build -o bin/manager cmd/manager/main.go
+	go build -o bin/tfctl cmd/tfctl/main.go
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
