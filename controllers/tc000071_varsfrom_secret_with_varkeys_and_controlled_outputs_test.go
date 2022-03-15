@@ -99,6 +99,7 @@ func Test_000071_varsfrom_secret_with_varkeys_and_controlled_outputs_test(t *tes
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
+			Interval: metav1.Duration{Duration: time.Second * 10},
 			// TODO change to a better type
 			VarsFrom: []infrav1.VarsReference{
 				{
