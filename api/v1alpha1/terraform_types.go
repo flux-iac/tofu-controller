@@ -151,10 +151,10 @@ type TerraformSpec struct {
 	// +optional
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 
-	// Clean the runner pod up after each reconcilation cycle
-	// +kubebuilder:default:=false
+	// Clean the runner pod up after each reconciliation cycle
+	// +kubebuilder:default:=true
 	// +optional
-	AlwaysCleanupRunnerPod bool `json:"alwaysCleanupRunnerPod,omitempty"`
+	AlwaysCleanupRunnerPod *bool `json:"alwaysCleanupRunnerPod,omitempty"`
 
 	// Configure the termination grace period for the runner pod. Use this parameter
 	// to allow the Terraform process to gracefully shutdown. Consider increasing for
@@ -472,6 +472,14 @@ func (in *Terraform) FromBytes(b []byte, scheme *runtime.Scheme) error {
 func (in *Terraform) GetRunnerHostname(ip string) string {
 	prefix := strings.ReplaceAll(ip, ".", "-")
 	return fmt.Sprintf("%s.%s.pod.cluster.local", prefix, in.Namespace)
+}
+
+func (in *TerraformSpec) GetAlwaysCleanupRunnerPod() bool {
+	if in.AlwaysCleanupRunnerPod == nil {
+		return true
+	}
+
+	return *in.AlwaysCleanupRunnerPod
 }
 
 func trimString(str string, limit int) string {

@@ -155,7 +155,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			return
 		}
 
-		if terraform.Spec.AlwaysCleanupRunnerPod == true {
+		if terraform.Spec.GetAlwaysCleanupRunnerPod() == true {
 			podKey := getRunnerPodObjectKey(terraform)
 			var pod corev1.Pod
 			if err := cli.Get(ctx, podKey, &pod); err != nil {

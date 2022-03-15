@@ -205,6 +205,11 @@ func (in *TerraformSpec) DeepCopyInto(out *TerraformSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.AlwaysCleanupRunnerPod != nil {
+		in, out := &in.AlwaysCleanupRunnerPod, &out.AlwaysCleanupRunnerPod
+		*out = new(bool)
+		**out = **in
+	}
 	if in.RunnerTerminationGracePeriodSeconds != nil {
 		in, out := &in.RunnerTerminationGracePeriodSeconds, &out.RunnerTerminationGracePeriodSeconds
 		*out = new(int64)
