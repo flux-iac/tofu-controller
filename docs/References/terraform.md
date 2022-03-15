@@ -585,7 +585,7 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
-<p>Clean the runner pod up after each reconcilation cycle</p>
+<p>Clean the runner pod up after each reconciliation cycle</p>
 </td>
 </tr>
 <tr>
@@ -876,7 +876,7 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
-<p>Clean the runner pod up after each reconcilation cycle</p>
+<p>Clean the runner pod up after each reconciliation cycle</p>
 </td>
 </tr>
 <tr>
