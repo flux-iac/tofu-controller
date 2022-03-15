@@ -108,6 +108,7 @@ func Test_000250_mtls_generate_creds_test(t *testing.T) {
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
+			Interval: metav1.Duration{Duration: time.Second * 10},
 		},
 	}
 	It("should be created and attached successfully.")

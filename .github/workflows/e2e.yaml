@@ -157,36 +157,49 @@ jobs:
           kubectl -n tf-tenant02-prd wait terraform/helloworld-tenant02-prd --for=condition=ready --timeout=4m
 
           # delete after tests
-          # kustomize build ./config/testdata/multi-tenancy/tenant01 | kubectl delete -f -
-          # kustomize build ./config/testdata/multi-tenancy/tenant02 | kubectl delete -f -
+          kubectl -n tf-tenant01-dev delete terraform --all
+          kubectl -n tf-tenant01-prd delete terraform --all
+          kubectl -n tf-tenant02-dev delete terraform --all
+          kubectl -n tf-tenant02-prd delete terraform --all
+
+          kubectl -n tf-tenant01-dev delete gitrepository --all
+          kubectl -n tf-tenant01-prd delete gitrepository --all
+          kubectl -n tf-tenant02-dev delete gitrepository --all
+          kubectl -n tf-tenant02-prd delete gitrepository --all
+
+          kubectl delete ns tf-tenant01-dev 
+          kubectl delete ns tf-tenant01-prd 
+          kubectl delete ns tf-tenant02-dev 
+          kubectl delete ns tf-tenant02-prd 
+
       - name: Set up chaos testing environment
         run: |
+          # TODO we'll test a race condition with replica=3 later
+          kubectl -n tf-system scale --replicas=1 deploy/tf-controller
+
           kubectl -n chaos-testing apply -f ./config/testdata/chaos
           kubectl -n chaos-testing apply -f ./config/testdata/source
           sleep 20
       - name: Randomly delete runner pods
         run: |
-          for i in {1..10};
-          do
-            num=$((1 + $RANDOM % 5))
-            kubectl -n chaos-testing delete pod helloworld-chaos0$num-tf-runner || true
-            sleep 5
-          done
+          # for i in {1..2};
+          # do
+          #  num=$((1 + $RANDOM % 5))
+          #  kubectl -n chaos-testing delete pod helloworld-chaos0$num-tf-runner || true
+          #  sleep 5
+          # done
+          # use chaos level 2 at the moment, as we don't have much CPU resources
+          seq 5 | shuf | head -2 | xargs -I{} kubectl -n chaos-testing delete pod helloworld-chaos0{}-tf-runner
+          sleep 20
       - name: Verify chaos testing result
         run: |
           kubectl -n chaos-testing get pods
 
-          kubectl -n chaos-testing wait pod/helloworld-chaos01-tf-runner --for=condition=ready --timeout=4m
-          kubectl -n chaos-testing wait pod/helloworld-chaos02-tf-runner --for=condition=ready --timeout=4m
-          kubectl -n chaos-testing wait pod/helloworld-chaos03-tf-runner --for=condition=ready --timeout=4m
-          kubectl -n chaos-testing wait pod/helloworld-chaos04-tf-runner --for=condition=ready --timeout=4m
-          kubectl -n chaos-testing wait pod/helloworld-chaos05-tf-runner --for=condition=ready --timeout=4m
-
-          kubectl -n chaos-testing wait terraform/helloworld-chaos01 --for=condition=ready --timeout=4m
-          kubectl -n chaos-testing wait terraform/helloworld-chaos02 --for=condition=ready --timeout=4m
-          kubectl -n chaos-testing wait terraform/helloworld-chaos03 --for=condition=ready --timeout=4m
-          kubectl -n chaos-testing wait terraform/helloworld-chaos04 --for=condition=ready --timeout=4m
-          kubectl -n chaos-testing wait terraform/helloworld-chaos05 --for=condition=ready --timeout=4m
+          kubectl -n chaos-testing wait terraform/helloworld-chaos01 --for=condition=ready --timeout=30m
+          kubectl -n chaos-testing wait terraform/helloworld-chaos02 --for=condition=ready --timeout=30m
+          kubectl -n chaos-testing wait terraform/helloworld-chaos03 --for=condition=ready --timeout=30m
+          kubectl -n chaos-testing wait terraform/helloworld-chaos04 --for=condition=ready --timeout=30m
+          kubectl -n chaos-testing wait terraform/helloworld-chaos05 --for=condition=ready --timeout=30m
       - name: Logs
         run: |
           kubectl -n tf-system logs deploy/source-controller

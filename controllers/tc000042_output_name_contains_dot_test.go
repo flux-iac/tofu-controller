@@ -100,6 +100,7 @@ func Test_000042_output_name_contains_dot_test(t *testing.T) {
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
+			Interval: metav1.Duration{Duration: time.Second * 10},
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
 				Name: "agekey" + terraformName,
 				Outputs: []string{
