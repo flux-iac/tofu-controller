@@ -182,8 +182,8 @@ jobs:
           sleep 20
       - name: Randomly delete runner pods
         run: |
-          # use chaos level 2 at the moment, as we don't have much CPU resources
-          seq 5 | shuf | head -2 | xargs -I{} kubectl -n chaos-testing delete pod helloworld-chaos0{}-tf-runner
+          # use chaos level 3 at the moment, as we don't have much CPU resources
+          seq 5 | shuf | head -3 | xargs -I{} bash -c "kubectl -n chaos-testing delete pod helloworld-chaos0{}-tf-runner || true"
           sleep 60
       - name: Verify chaos testing result
         run: |
