@@ -60,6 +60,7 @@ jobs:
           platforms: linux/amd64 #,linux/arm/v7,linux/arm64
           tags: |
             ghcr.io/weaveworks/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
+            ghcr.io/weaveworks/${{ env.CONTROLLER }}:latest
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -78,6 +79,7 @@ jobs:
           platforms: linux/amd64 #,linux/arm/v7,linux/arm64
           tags: |
             ghcr.io/weaveworks/tf-runner:${{ steps.prep.outputs.VERSION }}
+            ghcr.io/weaveworks/tf-runner:latest
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
