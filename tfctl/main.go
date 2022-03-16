@@ -9,30 +9,28 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// CLI is the main struct for the tfctl command line tool
 type CLI struct {
 	client    client.Reader
 	namespace string
 	terraform string
 }
 
-func newScheme() *runtime.Scheme {
-	scheme := runtime.NewScheme()
-	_ = corev1.AddToScheme(scheme)
-	_ = infrav1.AddToScheme(scheme)
-	return scheme
-}
-
+// New returns a new CLI instance
 func New() *CLI {
 	return &CLI{}
 }
 
+// Init initializes the CLI instance for a given kubeconfig, namespace and terraform binary
 func (c *CLI) Init(kubeconfig, namespace, tfPath string) error {
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
 		return err
 	}
 
-	scheme := newScheme()
+	scheme := runtime.NewScheme()
+	_ = corev1.AddToScheme(scheme)
+	_ = infrav1.AddToScheme(scheme)
 
 	client, err := client.NewWithWatch(config, client.Options{
 		Scheme: scheme,
