@@ -53,6 +53,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
+          no-cache: true
           builder: ${{ steps.buildx.outputs.name }}
           context: .
           file: ./Dockerfile
@@ -70,6 +71,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
+          no-cache: true
           builder: ${{ steps.buildx.outputs.name }}
           context: .
           file: ./runner.Dockerfile
