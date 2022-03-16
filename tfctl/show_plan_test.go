@@ -8,12 +8,23 @@ import (
 
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type FakeClient struct {
 	resource client.Object
 }
+
+func (c *FakeClient) Create(ctx context.Context, obj client.Object, opts ...client.CreateOption) error
+func (c *FakeClient) Delete(ctx context.Context, obj client.Object, opts ...client.DeleteOption) error
+func (c *FakeClient) Update(ctx context.Context, obj client.Object, opts ...client.UpdateOption) error
+func (c *FakeClient) Patch(ctx context.Context, obj client.Object, patch client.Patch, opts ...client.PatchOption) error
+func (c *FakeClient) DeleteAllOf(ctx context.Context, obj client.Object, opts ...client.DeleteAllOfOption) error
+func (c *FakeClient) Scheme() *runtime.Scheme
+func (c *FakeClient) RESTMapper() meta.RESTMapper
+func (c *FakeClient) Status() client.StatusWriter
 
 func (c *FakeClient) Get(ctx context.Context, key client.ObjectKey, obj client.Object) error {
 	switch obj.(type) {
