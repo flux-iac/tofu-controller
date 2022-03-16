@@ -40,6 +40,7 @@ func run() *cobra.Command {
 	rootCmd.AddCommand(buildPlanCmd(app))
 	rootCmd.AddCommand(buildInstallCmd(app))
 	rootCmd.AddCommand(buildUninstallCmd(app))
+	rootCmd.AddCommand(buildReconcileCmd(app))
 
 	return rootCmd
 }
@@ -65,6 +66,17 @@ func buildUninstallCmd(app *tfctl.CLI) *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.Uninstall()
+		},
+	}
+}
+
+func buildReconcileCmd(app *tfctl.CLI) *cobra.Command {
+	return &cobra.Command{
+		Use:   "reconcile NAME",
+		Short: "Trigger a reconcile of the provided resource",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return app.Reconcile(args[0])
 		},
 	}
 }
