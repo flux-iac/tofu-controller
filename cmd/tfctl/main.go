@@ -38,8 +38,35 @@ func run() *cobra.Command {
 	viper.BindEnv("kubeconfig")
 
 	rootCmd.AddCommand(buildPlanCmd(app))
+	rootCmd.AddCommand(buildInstallCmd(app))
+	rootCmd.AddCommand(buildUninstallCmd(app))
 
 	return rootCmd
+}
+
+func buildInstallCmd(app *tfctl.CLI) *cobra.Command {
+	install := &cobra.Command{
+		Use:   "install",
+		Short: "Install the tf-controller",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return app.Install(viper.GetString("version"))
+		},
+	}
+	install.Flags().String("version", "", "The version of tf-controller to install.")
+	viper.BindPFlag("version", install.Flags().Lookup("version"))
+	return install
+}
+
+func buildUninstallCmd(app *tfctl.CLI) *cobra.Command {
+	return &cobra.Command{
+		Use:   "uninstall",
+		Short: "Uninstall the tf-controller",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return app.Uninstall()
+		},
+	}
 }
 
 func buildPlanCmd(app *tfctl.CLI) *cobra.Command {
