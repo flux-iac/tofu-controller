@@ -50,8 +50,8 @@ spec:
             description: TerraformSpec defines the desired state of Terraform
             properties:
               alwaysCleanupRunnerPod:
-                default: false
-                description: Clean the runner pod up after each reconcilation cycle
+                default: true
+                description: Clean the runner pod up after each reconciliation cycle
                 type: boolean
               approvePlan:
                 description: ApprovePlan specifies name of a plan wanted to approve.
