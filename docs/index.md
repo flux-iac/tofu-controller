@@ -14,7 +14,7 @@ TF-controller offers many GitOps models:
   3. **State Enforcement Model:** You have a TFSTATE file, and you'd like to use GitOps enforce it, without changing anything else.  
   4. **Drift Detection Model:** You have a TFSTATE file, and you'd like to use GitOps just for drift detection, so you can decide to do things later when a drift occurs.  
 
-To get started, follow the [getting started](/getting_started) guide.
+To get started, follow the [getting started](/tf-controller/getting_started) guide.
 
 ## Features
 
