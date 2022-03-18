@@ -20,9 +20,6 @@ To get started check out this [guide](https://weaveworks.github.io/tf-controller
 
 Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a list of [features](https://weaveworks.github.io/tf-controller/#features) and [use cases](https://weaveworks.github.io/tf-controller/use_cases/).
 
-## Stargazers over time
-
-[![Stargazers over time](https://starchart.cc/weaveworks/tf-controller.svg)](https://starchart.cc/weaveworks/tf-controller)
 
 ## Roadmap
 
@@ -38,10 +35,15 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
   * [ ] Test coverage reaching 70%
 
 ### Q2 2022
+  * [ ] Improve security 
   * [ ] Performance and scalability
   * [ ] Interop with Notification controller's Events and Alert
+  * [ ] CLI implementation: `tfctl`
   * [ ] Test coverage reaching 75%
 
 ### Q3 2022
   * [ ] Write back and show plan in PRs
   * [ ] Test coverage reaching 80%
+
+### Q4 2022
+  * TBD
