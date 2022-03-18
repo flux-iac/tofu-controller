@@ -8,7 +8,7 @@ and application resources, in the Kubernetes and Terraform universe, at your own
 "At your own pace" means you don't need to GitOps-ify everything at once.
 
 TF-controller offers many GitOps models:
-  1. **Full GitOps Automation Model:** GitOps your Terraform resources from the provision steps to the enforcement steps, like a whole EKS cluster.
+  1. **GitOps Automation Model:** GitOps your Terraform resources from the provision steps to the enforcement steps, like a whole EKS cluster.
   2. **Hybrid GitOps Automation Model:** GitOps parts of your existing infrastructure resources. For example, you have an existing EKS cluster.
      You can choose to GitOps only its nodegroup, or its security group.
   3. **State Enforcement Model:** You have a TFSTATE file, and you'd like to use GitOps enforce it, without changing anything else.
@@ -31,10 +31,10 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
   * [x] Drift detection
   * [x] Support auto-apply so that the reconciliation detect drifts and always make changes
   * [x] Interop with Kustomization controller's health checks
-  * [ ] Terraform outputs as Kubernetes Secrets
-  * [ ] Secret and ConfigMap as input variables
-  * [ ] Support the GitOps way to "plan" / "re-plan"
-  * [ ] Support a multi-tenant model
+  * [x] Terraform outputs as Kubernetes Secrets
+  * [x] Secret and ConfigMap as input variables
+  * [x] Support the GitOps way to "plan" / "re-plan"
+  * [x] Support a multi-tenant model
   * [ ] Test coverage reaching 70%
 
 ### Q2 2022
