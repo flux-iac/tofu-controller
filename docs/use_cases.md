@@ -13,6 +13,7 @@ metadata:
 spec:
 + approvePlan: "" # or you can omit this field
 - approvePlan: "auto"
+  interval: 1m
   path: ./
   sourceRef:
     kind: GitRepository
@@ -32,6 +33,7 @@ metadata:
 spec:
 + approvePlan: "plan-main-b8e362c206" # first 8 digits of a commit hash is enough
 - approvePlan: ""
+  interval: 1m
   path: ./
   sourceRef:
     kind: GitRepository
@@ -51,6 +53,7 @@ metadata:
   namespace: flux-system
 spec:
   approvePlan: "disable"
+  interval: 1m
   path: ./
   sourceRef:
     kind: GitRepository
@@ -71,6 +74,7 @@ metadata:
 spec:
   approvePlan: "auto"
   disableDriftDetection: true
+  interval: 1m
   path: ./
   sourceRef:
     kind: GitRepository
@@ -134,6 +138,7 @@ metadata:
   namespace: flux-system
 spec:
   approvePlan: "auto"
+  interval: 1m
   path: ./
   sourceRef:
     kind: GitRepository
@@ -177,6 +182,7 @@ metadata:
   namespace: flux-system
 spec:
   approvePlan: "auto"
+  interval: 1m
   path: ./
   sourceRef:
     kind: GitRepository
@@ -261,6 +267,7 @@ metadata:
   namespace: flux-system
 spec:
   approvePlan: "auto"
+  interval: 1m
   path: ./
   sourceRef:
     kind: GitRepository
@@ -293,6 +300,7 @@ metadata:
 spec:
   approvePlan: "auto"
   destroyResourcesOnDeletion: true
+  interval: 1m
   path: ./
   sourceRef:
     kind: GitRepository
@@ -316,6 +324,7 @@ metadata:
   namespace: flux-system
 spec:
   approvePlan: "auto"
+  interval: 1m
   path: ./
   sourceRef:
     kind: GitRepository
@@ -337,6 +346,7 @@ metadata:
   namespace: flux-system
 spec:
   approvePlan: "auto"
+  interval: 1m
   path: ./
   sourceRef:
     kind: GitRepository
@@ -364,6 +374,7 @@ metadata:
   namespace: flux-system
 spec:
   approvePlan: "auto"
+  interval: 1m
   path: ./
   sourceRef:
     kind: GitRepository
