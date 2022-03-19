@@ -1,4 +1,6 @@
 replicaCount: 1
+concurrency: 1
+logLevel: info
 
 image:
   repository: ghcr.io/weaveworks/tf-controller
