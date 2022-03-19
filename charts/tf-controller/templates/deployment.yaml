@@ -25,10 +25,10 @@ spec:
       containers:
       - args:
         - --watch-all-namespaces
-        - --log-level=info
+        - --log-level={{ .Values.logLevel }}
         - --log-encoding=json
         - --enable-leader-election
-        - --concurrent=1
+        - --concurrent={{ .Values.concurrency }}
         command:
         - /sbin/tini
         - --
