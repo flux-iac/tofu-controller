@@ -27,11 +27,12 @@ ADD https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSIO
 RUN unzip -q /terraform_${TF_VERSION}_linux_amd64.zip
 
 
-FROM alpine:3.15
+FROM alpine:3.15.1
 
 LABEL org.opencontainers.image.source="https://github.com/weaveworks/tf-controller"
 
-RUN apk add --no-cache ca-certificates tini git openssh-client gnupg
+RUN apk add --no-cache ca-certificates tini git openssh-client gnupg && \
+    apk add --no-cache libretls=3.3.4-r3
 
 COPY --from=builder /workspace/tf-runner /usr/local/bin/
 COPY --from=builder /workspace/terraform /usr/local/bin/
