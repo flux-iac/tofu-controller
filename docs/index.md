@@ -8,7 +8,7 @@ and application resources, in the Kubernetes and Terraform universe, at your own
 "At your own pace" means you don't need to GitOps-ify everything at once.
 
 TF-controller offers many GitOps models:  
-  1. **Full GitOps Automation Model:** GitOps your Terraform resources from the provision steps to the enforcement steps, like a whole EKS cluster.  
+  1. **GitOps Automation Model:** GitOps your Terraform resources from the provision steps to the enforcement steps, like a whole EKS cluster.  
   2. **Hybrid GitOps Automation Model:** GitOps parts of your existing infrastructure resources. For example, you have an existing EKS cluster.
      You can choose to GitOps only its nodegroup, or its security group.  
   3. **State Enforcement Model:** You have a TFSTATE file, and you'd like to use GitOps enforce it, without changing anything else.  
@@ -18,7 +18,11 @@ To get started, follow the [getting started](/tf-controller/getting_started) gui
 
 ## Features
 
-  * **Full GitOps Automation for Terraform**: With setting `.spec.approvePlan=auto`, it allows a `Terraform` object
+  * **Multi-Tenancy**: TF-controller supports multi-tenancy by running Terraform `plan` and `apply` inside Runner Pods.
+    When specifying `.metadata.namespace` and `.spec.serviceAccountName`, the Runner Pod uses the specified ServiceAccount
+    and runs inside the specified Namespace. These settings enable the soft multi-tenancy model, which can be used within
+    the Flux multi-tenancy setup. _This feature is available since v0.9.0._
+  * **GitOps Automation for Terraform**: With setting `.spec.approvePlan=auto`, it allows a `Terraform` object
     to be reconciled and act as the representation of your Terraform resources. The TF-controller uses the spec of
     the `Terraform` object to perform `plan`, `apply` its associated Terraform resources. It then stores
     the `TFSTATE` of the applied resources as a `Secret` inside the Kubernetes cluster. After `.spec.interval` passes,
@@ -42,5 +46,5 @@ To get started, follow the [getting started](/tf-controller/getting_started) gui
 
 |  Version   | Terraform | Source Controller | Flux v2 |
 |:----------:|:---------:|:-----------------:|:-------:|
-| **v0.8.0** |  v1.1.4   | v0.20.1           | v0.25.x |
-|   v0.7.0   |  v1.1.3   | v0.20.1           | v0.25.x |
+| **v0.9.0** |  v1.1.7   |      v0.21.2      | v0.27.x |
+|   v0.8.0   |  v1.1.4   |      v0.20.1      | v0.25.x |

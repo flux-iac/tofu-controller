@@ -20,7 +20,6 @@ To get started check out this [guide](https://weaveworks.github.io/tf-controller
 
 Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a list of [features](https://weaveworks.github.io/tf-controller/#features) and [use cases](https://weaveworks.github.io/tf-controller/use_cases/).
 
-
 ## Roadmap
 
 ### Q1 2022
@@ -32,7 +31,7 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
   * [x] Secret and ConfigMap as input variables
   * [x] Support the GitOps way to "plan" / "re-plan"
   * [x] Support a multi-tenant model
-  * [ ] Test coverage reaching 70%
+  * [x] Test coverage reaching 68.2%
 
 ### Q2 2022
   * [ ] Improve security 
