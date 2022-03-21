@@ -426,7 +426,7 @@ With the power of Flux together with Terraform, TF-controller allows you to GitO
 and application resources, in the Kubernetes and Terraform universe, at your own pace.</p>
 <p>"At your own pace" means you don't need to GitOps-ify everything at once.</p>
 <p>TF-controller offers many GitOps models:<br />
-  1. <strong>Full GitOps Automation Model:</strong> GitOps your Terraform resources from the provision steps to the enforcement steps, like a whole EKS cluster.<br />
+  1. <strong>GitOps Automation Model:</strong> GitOps your Terraform resources from the provision steps to the enforcement steps, like a whole EKS cluster.<br />
   2. <strong>Hybrid GitOps Automation Model:</strong> GitOps parts of your existing infrastructure resources. For example, you have an existing EKS cluster.
      You can choose to GitOps only its nodegroup, or its security group.<br />
   3. <strong>State Enforcement Model:</strong> You have a TFSTATE file, and you'd like to use GitOps enforce it, without changing anything else.<br />
@@ -434,7 +434,11 @@ and application resources, in the Kubernetes and Terraform universe, at your own
 <p>To get started, follow the <a href="/tf-controller/getting_started">getting started</a> guide.</p>
 <h2 id="features">Features</h2>
 <ul>
-<li><strong>Full GitOps Automation for Terraform</strong>: With setting <code>.spec.approvePlan=auto</code>, it allows a <code>Terraform</code> object
+<li><strong>Multi-Tenancy</strong>: TF-controller supports multi-tenancy by running Terraform <code>plan</code> and <code>apply</code> inside Runner Pods.
+    When specifying <code>.metadata.namespace</code> and <code>.spec.serviceAccountName</code>, the Runner Pod uses the specified ServiceAccount
+    and runs inside the specified Namespace. These settings enable the soft multi-tenancy model, which can be used within
+    the Flux multi-tenancy setup. <em>This feature is available since v0.9.0.</em></li>
+<li><strong>GitOps Automation for Terraform</strong>: With setting <code>.spec.approvePlan=auto</code>, it allows a <code>Terraform</code> object
     to be reconciled and act as the representation of your Terraform resources. The TF-controller uses the spec of
     the <code>Terraform</code> object to perform <code>plan</code>, <code>apply</code> its associated Terraform resources. It then stores
     the <code>TFSTATE</code> of the applied resources as a <code>Secret</code> inside the Kubernetes cluster. After <code>.spec.interval</code> passes,
@@ -468,14 +472,14 @@ and application resources, in the Kubernetes and Terraform universe, at your own
 </thead>
 <tbody>
 <tr>
-<td align="center"><strong>v0.8.0</strong></td>
-<td align="center">v1.1.4</td>
-<td align="center">v0.20.1</td>
-<td align="center">v0.25.x</td>
+<td align="center"><strong>v0.9.0</strong></td>
+<td align="center">v1.1.7</td>
+<td align="center">v0.21.2</td>
+<td align="center">v0.27.x</td>
 </tr>
 <tr>
-<td align="center">v0.7.0</td>
-<td align="center">v1.1.3</td>
+<td align="center">v0.8.0</td>
+<td align="center">v1.1.4</td>
 <td align="center">v0.20.1</td>
 <td align="center">v0.25.x</td>
 </tr>
