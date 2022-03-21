@@ -2,6 +2,44 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.9.0
+
+**Release date:** 2022-03-21
+
+This pre-release contains the following changes.
+
+New Features and Bug Fixing:
+  * Network-based health checks (@tomhuang12)
+  * Improved drift detection status (@phoban01)
+  * Add FOSSA and CodeQL scan (@tomhuang12)
+  * Support HCL variables (@phoban01)
+  * Implemented local gRPC runner (@chanwit)
+  * Update source-controller to v0.21.1 (@tomhuang12)
+  * Add Trivy scan (@tomhuang12)
+  * Change image repository to ghcr.io/weaveworks (@phoban01)
+  * Move repository to Weaveworks (@chanwit)
+  * Add E2E Tests (@tomhuang12)
+  * Moved charts to `weaveworks/tf-controller` (@tomhuang12)
+  * Add local http server for http health check (@tomhuang12)
+  * Update Terraform version (@fsequeira1)
+  * Update the Helm repository URL (@tomhuang12)
+  * Implement CA certification generation and mTLS rotation (@phoban01)
+  * Add documentation site (@tomhuang12)
+  * Implemented runner pods (@chanwit)
+  * Add multi-tenancy E2E test case (@tomhuang12)
+  * Implemented output name mapping (@chanwit)
+  * Improve test coverage (@tomhuang12)
+  * Fix documents GitHub Actions (@tomhuang12)
+  * Set the default Service Account to `tf-runner` (@tomhuang12)
+  * Make certification rotation configurable (@tomhuang12)
+  * Implement gRPC retry policy (@chanwit)
+  * Implement TLS validation and graceful shutdown (@phoban01)
+  * Fix certification validation (@chanwit)
+  * Fix drifted outputs (@chanwit)
+  * Change the behaviour of pod cleanup to be default (@chanwit)
+  * Add concurrency to the Helm chart (@chanwit)
+  * Fix CVE-2022-0778 (@chanwit)
+
 # v0.8.0
 
 **Release date:** 2022-01-24
