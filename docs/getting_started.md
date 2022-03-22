@@ -20,7 +20,7 @@ please see [chart readme](https://github.com/weaveworks/tf-controller/tree/main/
 Alternatively, you can install TF-controller via `kubectl`:
 
 ```shell
-export TF_CON_VER=v0.8.0
+export TF_CON_VER=v0.9.0
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
@@ -59,6 +59,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
+  interval: 1m
   approvePlan: "auto"
   path: ./
   sourceRef:
