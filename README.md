@@ -34,6 +34,8 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
   * [x] Test coverage reaching 68.2%
 
 ### Q2 2022
+  * [ ] Containerd compatibility
+  * [ ] ARM64 & Gravitron support
   * [ ] Improve security 
   * [ ] Performance and scalability
   * [ ] Interop with Notification controller's Events and Alert
