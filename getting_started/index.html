@@ -487,7 +487,7 @@ helm upgrade -i tf-controller tf-controller/tf-controller \
 <p>For details on configurable parameters of the TF-controller chart,
 please see <a href="https://github.com/weaveworks/tf-controller/tree/main/charts/tf-controller#tf-controller-for-flux">chart readme</a>.</p>
 <p>Alternatively, you can install TF-controller via <code>kubectl</code>:</p>
-<pre><code class="language-shell">export TF_CON_VER=v0.8.0
+<pre><code class="language-shell">export TF_CON_VER=v0.9.0
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
@@ -516,6 +516,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
+  interval: 1m
   approvePlan: &quot;auto&quot;
   path: ./
   sourceRef:
