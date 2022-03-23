@@ -8,6 +8,9 @@ import (
 	"github.com/weaveworks/tf-controller/tfctl"
 )
 
+// BuildSHA is the tfctl version
+var BuildSHA string
+
 func main() {
 	cmd := run()
 	if err := cmd.Execute(); err != nil {
@@ -16,7 +19,7 @@ func main() {
 }
 
 func run() *cobra.Command {
-	app := tfctl.New()
+	app := tfctl.New(BuildSHA)
 
 	rootCmd := &cobra.Command{
 		Use:           "tfctl",
@@ -37,6 +40,7 @@ func run() *cobra.Command {
 
 	viper.BindEnv("kubeconfig")
 
+	rootCmd.AddCommand(buildVersionCmd(app))
 	rootCmd.AddCommand(buildPlanCmd(app))
 	rootCmd.AddCommand(buildInstallCmd(app))
 	rootCmd.AddCommand(buildUninstallCmd(app))
@@ -48,6 +52,19 @@ func run() *cobra.Command {
 	return rootCmd
 }
 
+func buildVersionCmd(app *tfctl.CLI) *cobra.Command {
+	install := &cobra.Command{
+		Use:   "version",
+		Short: "Prints tf-controller and tfctl version information",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return app.Version(os.Stdout)
+		},
+	}
+	install.Flags().String("version", "", "The version of tf-controller to install.")
+	viper.BindPFlag("version", install.Flags().Lookup("version"))
+	return install
+}
 func buildInstallCmd(app *tfctl.CLI) *cobra.Command {
 	install := &cobra.Command{
 		Use:   "install",
