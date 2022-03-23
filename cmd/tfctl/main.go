@@ -41,6 +41,8 @@ func run() *cobra.Command {
 	rootCmd.AddCommand(buildInstallCmd(app))
 	rootCmd.AddCommand(buildUninstallCmd(app))
 	rootCmd.AddCommand(buildReconcileCmd(app))
+	rootCmd.AddCommand(buildSuspendCmd(app))
+	rootCmd.AddCommand(buildResumeCmd(app))
 
 	return rootCmd
 }
@@ -77,6 +79,28 @@ func buildReconcileCmd(app *tfctl.CLI) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.Reconcile(args[0])
+		},
+	}
+}
+
+func buildSuspendCmd(app *tfctl.CLI) *cobra.Command {
+	return &cobra.Command{
+		Use:   "suspend NAME",
+		Short: "Suspend reconciliation for the provided resource",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return app.Suspend(args[0])
+		},
+	}
+}
+
+func buildResumeCmd(app *tfctl.CLI) *cobra.Command {
+	return &cobra.Command{
+		Use:   "resume NAME",
+		Short: "Resume reconciliation for the provided resource",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return app.Resume(args[0])
 		},
 	}
 }
