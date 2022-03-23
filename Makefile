@@ -3,6 +3,7 @@
 MANAGER_IMG ?= ghcr.io/weaveworks/tf-controller
 RUNNER_IMG  ?= ghcr.io/weaveworks/tf-runner
 TAG ?= latest
+BUILD_SHA ?= $(shell git rev-parse --short HEAD)
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.22
@@ -91,7 +92,7 @@ gen-grpc:
 build: gen-grpc generate fmt vet ## Build manager binary.
 	go build -o bin/runner cmd/runner/main.go
 	go build -o bin/manager cmd/manager/main.go
-	go build -o bin/tfctl cmd/tfctl/main.go
+	go build -o bin/tfctl -ldflags "-X main.BuildSHA=$(BUILD_SHA)" cmd/tfctl/main.go
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.

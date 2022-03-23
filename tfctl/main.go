@@ -29,11 +29,12 @@ type CLI struct {
 	client     client.Client
 	namespace  string
 	terraform  string
+	build      string
 }
 
 // New returns a new CLI instance
-func New() *CLI {
-	return &CLI{}
+func New(build string) *CLI {
+	return &CLI{build: build}
 }
 
 // Init initializes the CLI instance for a given kubeconfig, namespace and terraform binary
