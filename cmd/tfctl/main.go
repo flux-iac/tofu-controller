@@ -113,6 +113,7 @@ func buildPlanCmd(app *tfctl.CLI) *cobra.Command {
 	}
 
 	cmd.AddCommand(buildPlanShowCmd(app))
+	cmd.AddCommand(buildPlanApproveCmd(app))
 
 	return cmd
 }
@@ -120,10 +121,21 @@ func buildPlanCmd(app *tfctl.CLI) *cobra.Command {
 func buildPlanShowCmd(app *tfctl.CLI) *cobra.Command {
 	return &cobra.Command{
 		Use:   "show NAME",
-		Short: "Show a Terraform plan",
+		Short: "Show pending Terraform plan",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.ShowPlan(os.Stdout, args[0])
+		},
+	}
+}
+
+func buildPlanApproveCmd(app *tfctl.CLI) *cobra.Command {
+	return &cobra.Command{
+		Use:   "approve NAME",
+		Short: "Approve pending Terraform plan",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return app.ApprovePlan(os.Stdout, args[0])
 		},
 	}
 }
