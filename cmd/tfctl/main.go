@@ -28,7 +28,7 @@ func run() *cobra.Command {
 	}
 
 	rootCmd.PersistentFlags().String("kubeconfig", "", "Path to the kubeconfig file to use for CLI requests.")
-	rootCmd.PersistentFlags().StringP("namespace", "n", "default", "The kubernetes namespace to use for CLI requests.")
+	rootCmd.PersistentFlags().StringP("namespace", "n", "flux-system", "The kubernetes namespace to use for CLI requests.")
 	rootCmd.PersistentFlags().String("terraform", "/usr/bin/terraform", "The location of the terraform binary.")
 
 	viper.BindPFlag("kubeconfig", rootCmd.PersistentFlags().Lookup("kubeconfig"))
@@ -43,6 +43,7 @@ func run() *cobra.Command {
 	rootCmd.AddCommand(buildReconcileCmd(app))
 	rootCmd.AddCommand(buildSuspendCmd(app))
 	rootCmd.AddCommand(buildResumeCmd(app))
+	rootCmd.AddCommand(buildGetCmd(app))
 
 	return rootCmd
 }
@@ -125,4 +126,31 @@ func buildPlanShowCmd(app *tfctl.CLI) *cobra.Command {
 			return app.ShowPlan(os.Stdout, args[0])
 		},
 	}
+}
+
+func buildGetCmd(app *tfctl.CLI) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "get",
+		Short: "Get Terraform resources",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return app.Get(os.Stdout)
+		},
+	}
+
+	cmd.AddCommand(buildGetTerraformCmd(app))
+
+	return cmd
+}
+
+func buildGetTerraformCmd(app *tfctl.CLI) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "get NAME",
+		Short: "Get a Terraform resource",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return app.GetTerraform(os.Stdout, args[0])
+		},
+	}
+
+	return cmd
 }
