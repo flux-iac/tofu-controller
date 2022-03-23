@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/hashicorp/terraform-exec/tfexec"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/utils"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -15,15 +16,28 @@ import (
 
 // ShowPlan displays the plan for the given Terraform resource
 func (c *CLI) ShowPlan(out io.Writer, resource string) error {
-	planSecret := &corev1.Secret{}
-
 	key := types.NamespacedName{
+		Name:      resource,
+		Namespace: c.namespace,
+	}
+	terraform := &infrav1.Terraform{}
+	if err := c.client.Get(context.TODO(), key, terraform); err != nil {
+		return fmt.Errorf("resource %s not found", resource)
+	}
+
+	if terraform.Status.Plan.Pending == "" {
+		fmt.Fprintf(out, "There is no plan pending.\n")
+		return nil
+	}
+
+	planKey := types.NamespacedName{
 		Name:      fmt.Sprintf("tfplan-default-%s", resource),
 		Namespace: c.namespace,
 	}
 
-	if err := c.client.Get(context.TODO(), key, planSecret); err != nil {
-		return fmt.Errorf("plan for resources %s not found", resource)
+	planSecret := &corev1.Secret{}
+	if err := c.client.Get(context.TODO(), planKey, planSecret); err != nil {
+		return fmt.Errorf("plan for resource %s not found", resource)
 	}
 
 	data, err := utils.GzipDecode(planSecret.Data["tfplan"])

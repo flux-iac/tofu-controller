@@ -31,12 +31,12 @@ func (c *CLI) Get(out io.Writer) error {
 			terraform.Name,
 			string(readyCondition.Status),
 			readyCondition.Message,
-			strconv.FormatBool(terraform.HasDrift()),
+			strconv.FormatBool(terraform.Status.Plan.Pending != ""),
 			strconv.FormatBool(terraform.Spec.Suspend),
 		})
 	}
 
-	header := []string{"Name", "Ready", "Message", "Drift Detected", "Suspended"}
+	header := []string{"Name", "Ready", "Message", "Plan Pending", "Suspended"}
 	table := newTablePrinter(out, header)
 	table.AppendBulk(data)
 	table.Render()
