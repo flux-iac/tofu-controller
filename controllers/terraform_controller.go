@@ -171,6 +171,26 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				retErr = err
 				return
 			}
+
+			// wait for runner pod complete termination
+			var (
+				interval = time.Second
+				timeout  = time.Second * 60
+			)
+			if wait.PollImmediate(interval, timeout, func() (bool, error) {
+				var runnerPod *corev1.Pod
+				err := r.Get(ctx, getRunnerPodObjectKey(terraform), runnerPod)
+				if err == nil {
+					return false, nil
+				}
+
+				if apierrors.IsNotFound(err) {
+					return true, nil
+				}
+				return false, err
+			}) != nil {
+				retErr = fmt.Errorf("failed to wait for the terminating runner pod")
+			}
 		}
 	}(ctx, r.Client, terraform)
 
