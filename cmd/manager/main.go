@@ -103,16 +103,6 @@ func main() {
 	ctrl.SetLogger(logger.NewLogger(logOptions))
 	// ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
-	var eventRecorder *events.Recorder
-	if eventsAddr != "" {
-		if er, err := events.NewRecorder(eventsAddr, controllerName); err != nil {
-			setupLog.Error(err, "unable to create event recorder")
-			os.Exit(1)
-		} else {
-			eventRecorder = er
-		}
-	}
-
 	metricsRecorder := metrics.NewRecorder()
 	crtlmetrics.Registry.MustRegister(metricsRecorder.Collectors()...)
 
@@ -141,6 +131,16 @@ func main() {
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
+	}
+
+	var eventRecorder *events.Recorder
+	if eventsAddr != "" {
+		if er, err := events.NewRecorder(mgr, ctrl.Log, eventsAddr, controllerName); err != nil {
+			setupLog.Error(err, "unable to create event recorder")
+			os.Exit(1)
+		} else {
+			eventRecorder = er
+		}
 	}
 
 	signalHandlerContext := ctrl.SetupSignalHandler()
@@ -173,14 +173,13 @@ func main() {
 	}
 
 	reconciler := &controllers.TerraformReconciler{
-		Client:                mgr.GetClient(),
-		Scheme:                mgr.GetScheme(),
-		EventRecorder:         mgr.GetEventRecorderFor(controllerName),
-		ExternalEventRecorder: eventRecorder,
-		MetricsRecorder:       metricsRecorder,
-		StatusPoller:          polling.NewStatusPoller(mgr.GetClient(), mgr.GetRESTMapper()),
-		CertRotator:           rotator,
-		RunnerGRPCPort:        runnerGRPCPort,
+		Client:          mgr.GetClient(),
+		Scheme:          mgr.GetScheme(),
+		EventRecorder:   eventRecorder,
+		MetricsRecorder: metricsRecorder,
+		StatusPoller:    polling.NewStatusPoller(mgr.GetClient(), mgr.GetRESTMapper()),
+		CertRotator:     rotator,
+		RunnerGRPCPort:  runnerGRPCPort,
 	}
 
 	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {

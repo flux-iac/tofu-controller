@@ -454,7 +454,8 @@ spec:
                 type: string
               lastHandledReconcileAt:
                 description: LastHandledReconcileAt holds the value of the most recent
-                  reconcile request value, so a change can be detected.
+                  reconcile request value, so a change of the annotation value can
+                  be detected.
                 type: string
               lastPlannedRevision:
                 description: LastPlannedRevision is the revision used by the last

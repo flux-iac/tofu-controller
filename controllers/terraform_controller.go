@@ -73,14 +73,13 @@ import (
 // TerraformReconciler reconciles a Terraform object
 type TerraformReconciler struct {
 	client.Client
-	httpClient            *retryablehttp.Client
-	EventRecorder         kuberecorder.EventRecorder
-	ExternalEventRecorder *events.Recorder
-	MetricsRecorder       *metrics.Recorder
-	StatusPoller          *polling.StatusPoller
-	Scheme                *runtime.Scheme
-	CertRotator           *mtls.CertRotator
-	RunnerGRPCPort        int
+	httpClient      *retryablehttp.Client
+	EventRecorder   kuberecorder.EventRecorder
+	MetricsRecorder *metrics.Recorder
+	StatusPoller    *polling.StatusPoller
+	Scheme          *runtime.Scheme
+	CertRotator     *mtls.CertRotator
+	RunnerGRPCPort  int
 }
 
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete
@@ -1396,42 +1395,24 @@ func (r *TerraformReconciler) IndexBy(kind string) func(o client.Object) []strin
 }
 
 func (r *TerraformReconciler) fireEvent(ctx context.Context, terraform infrav1.Terraform, revision, severity, msg string, metadata map[string]string) {
-	log := ctrl.LoggerFrom(ctx)
-
-	annotations := map[string]string{
-		infrav1.GroupVersion.Group + "/revision": revision,
+	if metadata == nil {
+		metadata = map[string]string{}
+	}
+	if revision != "" {
+		metadata[infrav1.GroupVersion.Group+"/revision"] = revision
 	}
 
-	eventType := "Normal"
+	reason := severity
+	if c := apimeta.FindStatusCondition(terraform.Status.Conditions, meta.ReadyCondition); c != nil {
+		reason = c.Reason
+	}
+
+	eventtype := "Normal"
 	if severity == events.EventSeverityError {
-		eventType = "Warning"
+		eventtype = "Warning"
 	}
 
-	r.EventRecorder.AnnotatedEventf(&terraform, annotations, eventType, severity, msg)
-
-	if r.ExternalEventRecorder != nil {
-		objRef, err := reference.GetReference(r.Scheme, &terraform)
-		if err != nil {
-			log.Error(err, "unable to send event")
-			return
-		}
-		if metadata == nil {
-			metadata = map[string]string{}
-		}
-		if revision != "" {
-			metadata["revision"] = revision
-		}
-
-		reason := severity
-		if c := apimeta.FindStatusCondition(terraform.Status.Conditions, meta.ReadyCondition); c != nil {
-			reason = c.Reason
-		}
-
-		if err := r.ExternalEventRecorder.Eventf(*objRef, metadata, severity, reason, msg); err != nil {
-			log.Error(err, "unable to send event")
-			return
-		}
-	}
+	r.EventRecorder.AnnotatedEventf(&terraform, metadata, eventtype, reason, msg)
 }
 
 func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient, sourceObj sourcev1.Source) (ctrl.Result, error) {
