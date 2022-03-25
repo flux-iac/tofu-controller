@@ -171,6 +171,26 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				retErr = err
 				return
 			}
+
+			// wait for runner pod complete termination
+			var (
+				interval = time.Second
+				timeout  = time.Second * 60
+			)
+			if wait.PollImmediate(interval, timeout, func() (bool, error) {
+				var runnerPod *corev1.Pod
+				err := r.Get(ctx, getRunnerPodObjectKey(terraform), runnerPod)
+				if err == nil {
+					return false, nil
+				}
+
+				if apierrors.IsNotFound(err) {
+					return true, nil
+				}
+				return false, err
+			}) != nil {
+				retErr = fmt.Errorf("failed to wait for the terminating runner pod")
+			}
 		}
 	}(ctx, r.Client, terraform)
 
@@ -1874,6 +1894,12 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 }
 
 func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform) (string, error) {
+
+	var (
+		interval = time.Second * 3
+		timeout  = time.Second * 60
+	)
+
 	podNamespace := terraform.Namespace
 	podName := fmt.Sprintf("%s-tf-runner", terraform.Name)
 	runnerPod := corev1.Pod{
@@ -1890,9 +1916,26 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	}
 
 	runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
-	err := r.Get(ctx, runnerPodKey, &runnerPod)
+	var err error
+	err = r.Get(ctx, runnerPodKey, &runnerPod)
 	if err != nil && apierrors.IsNotFound(err) == false {
 		return "", err
+	}
+
+	// wait for pod to be completely deleted
+	if err == nil && runnerPod.DeletionTimestamp != nil {
+		if wait.PollImmediate(interval, timeout, func() (bool, error) {
+			err = r.Get(ctx, runnerPodKey, &runnerPod)
+			if err != nil && apierrors.IsNotFound(err) == false {
+				return false, err
+			}
+			if err != nil && apierrors.IsNotFound(err) {
+				return true, nil
+			}
+			return false, nil
+		}) != nil {
+			return "", fmt.Errorf("failed to wait for the old pod termation")
+		}
 	}
 
 	if err != nil && apierrors.IsNotFound(err) {
@@ -1901,11 +1944,6 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 			return "", err
 		}
 	}
-
-	var (
-		interval = time.Second
-		timeout  = time.Second * 30
-	)
 
 	if wait.PollImmediate(interval, timeout, func() (bool, error) {
 		if err := r.Get(ctx, runnerPodKey, &runnerPod); err != nil {
