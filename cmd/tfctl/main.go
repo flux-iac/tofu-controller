@@ -8,8 +8,13 @@ import (
 	"github.com/weaveworks/tf-controller/tfctl"
 )
 
-// BuildSHA is the tfctl version
-var BuildSHA string
+var (
+	// BuildSHA is the tfctl version
+	BuildSHA string
+
+	// LatestRelease is the tfctl release
+	LatestRelease string
+)
 
 func main() {
 	cmd := run()
@@ -19,7 +24,7 @@ func main() {
 }
 
 func run() *cobra.Command {
-	app := tfctl.New(BuildSHA)
+	app := tfctl.New(BuildSHA, LatestRelease)
 
 	rootCmd := &cobra.Command{
 		Use:           "tfctl",
@@ -65,17 +70,20 @@ func buildVersionCmd(app *tfctl.CLI) *cobra.Command {
 	viper.BindPFlag("version", install.Flags().Lookup("version"))
 	return install
 }
+
 func buildInstallCmd(app *tfctl.CLI) *cobra.Command {
 	install := &cobra.Command{
 		Use:   "install",
 		Short: "Install the tf-controller",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Install(viper.GetString("version"))
+			return app.Install(viper.GetString("version"), viper.GetBool("export"))
 		},
 	}
 	install.Flags().String("version", "", "The version of tf-controller to install.")
+	install.Flags().Bool("export", false, "Print installation manifests to stdout")
 	viper.BindPFlag("version", install.Flags().Lookup("version"))
+	viper.BindPFlag("export", install.Flags().Lookup("export"))
 	return install
 }
 
