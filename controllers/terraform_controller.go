@@ -1902,7 +1902,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 
 	podNamespace := terraform.Namespace
 	podName := fmt.Sprintf("%s-tf-runner", terraform.Name)
-	runnerPod := corev1.Pod{
+	runnerPodTemplate := corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: podNamespace,
 			Name:      podName,
@@ -1915,7 +1915,9 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		},
 	}
 
+	runnerPod := *runnerPodTemplate.DeepCopy()
 	runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
+
 	var err error
 	err = r.Get(ctx, runnerPodKey, &runnerPod)
 	if err != nil && apierrors.IsNotFound(err) == false {
@@ -1939,8 +1941,9 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	}
 
 	if err != nil && apierrors.IsNotFound(err) {
-		runnerPod.Spec = r.runnerPodSpec(terraform)
-		if err := r.Create(ctx, &runnerPod); err != nil {
+		newRunnerPod := *runnerPodTemplate.DeepCopy()
+		newRunnerPod.Spec = r.runnerPodSpec(terraform)
+		if err := r.Create(ctx, &newRunnerPod); err != nil {
 			return "", err
 		}
 	}
