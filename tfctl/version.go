@@ -8,19 +8,23 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // Version prints the installed version of tf-controller and the tfctl cli
 func (c *CLI) Version(out io.Writer) error {
-	var deployment appsv1.Deployment
+	deployment := &appsv1.Deployment{}
 	if err := c.client.Get(context.TODO(), types.NamespacedName{
 		Namespace: namespace,
 		Name:      "tf-controller",
-	}, &deployment); err != nil {
+	}, deployment); client.IgnoreNotFound(err) != nil {
 		return err
 	}
 
-	version := strings.Split(deployment.Spec.Template.Spec.Containers[0].Image, ":")[1]
+	var version string
+	if len(deployment.Spec.Template.Spec.Containers) > 0 {
+		version = strings.Split(deployment.Spec.Template.Spec.Containers[0].Image, ":")[1]
+	}
 
 	fmt.Fprintf(out, "tf-controller: %s\n", version)
 	fmt.Fprintf(out, "tfctl: %s\n", c.build)

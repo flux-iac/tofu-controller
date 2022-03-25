@@ -30,11 +30,12 @@ type CLI struct {
 	namespace  string
 	terraform  string
 	build      string
+	release    string
 }
 
 // New returns a new CLI instance
-func New(build string) *CLI {
-	return &CLI{build: build}
+func New(build, release string) *CLI {
+	return &CLI{build: build, release: release}
 }
 
 // Init initializes the CLI instance for a given kubeconfig, namespace and terraform binary

@@ -3,14 +3,16 @@ package tfctl
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"os"
 
 	"github.com/fluxcd/pkg/ssa"
 )
 
 // Install installs the tf-controller resources into the cluster.
-func (c *CLI) Install(version string) error {
+func (c *CLI) Install(version string, export bool) error {
 	if version == "" {
-		version = "v0.9.0-rc.8" //TODO(piaras): retrieve this from build tag or api call
+		version = c.release
 	}
 
 	manager, err := newManager(c.client)
@@ -24,14 +26,18 @@ func (c *CLI) Install(version string) error {
 			return err
 		}
 
-		objects, err := ssa.ReadObjects(bytes.NewReader(data))
-		if err != nil {
-			return err
-		}
+		if export {
+			fmt.Fprintf(os.Stdout, string(data))
+		} else {
+			objects, err := ssa.ReadObjects(bytes.NewReader(data))
+			if err != nil {
+				return err
+			}
 
-		_, err = manager.ApplyAll(context.TODO(), objects, ssa.DefaultApplyOptions())
-		if err != nil {
-			return err
+			_, err = manager.ApplyAll(context.TODO(), objects, ssa.DefaultApplyOptions())
+			if err != nil {
+				return err
+			}
 		}
 	}
 
