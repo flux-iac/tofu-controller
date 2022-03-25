@@ -2,6 +2,7 @@ package tfctl
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
@@ -23,6 +24,8 @@ func (c *CLI) DeleteTerraform(out io.Writer, resource string) error {
 	if err := c.client.Delete(context.TODO(), terraform); err != nil {
 		return err
 	}
+
+	fmt.Fprintf(out, " deleted Terraform resource %s/%s\n", c.namespace, resource)
 
 	return nil
 }

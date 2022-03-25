@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"time"
@@ -15,6 +16,7 @@ import (
 
 // Create generates a terraform resource
 func (c *CLI) Create(
+	out io.Writer,
 	name string,
 	namespace string,
 	path string,
@@ -63,6 +65,8 @@ func (c *CLI) Create(
 	if err := c.client.Create(context.TODO(), &terraform); err != nil {
 		return err
 	}
+
+	fmt.Fprintf(out, " created Terraform resource %s/%s\n", namespace, name)
 
 	return nil
 }

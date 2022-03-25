@@ -3,6 +3,8 @@ package tfctl
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"io"
 	"strings"
 
 	"github.com/fluxcd/pkg/ssa"
@@ -11,7 +13,7 @@ import (
 )
 
 // Uninstall removes the tf-controller resources from the cluster.
-func (c *CLI) Uninstall() error {
+func (c *CLI) Uninstall(out io.Writer) error {
 	ctx := context.Background()
 
 	var deployment appsv1.Deployment
@@ -45,6 +47,8 @@ func (c *CLI) Uninstall() error {
 			return err
 		}
 	}
+
+	fmt.Fprintf(out, " Terraform controller uninstalled\n")
 
 	return nil
 }

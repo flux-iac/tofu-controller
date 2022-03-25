@@ -79,7 +79,7 @@ func buildInstallCmd(app *tfctl.CLI) *cobra.Command {
 		Short: "Install the tf-controller",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Install(viper.GetString("version"), viper.GetBool("export"))
+			return app.Install(os.Stdout, viper.GetString("version"), viper.GetBool("export"))
 		},
 	}
 	install.Flags().String("version", "", "The version of tf-controller to install.")
@@ -95,7 +95,7 @@ func buildUninstallCmd(app *tfctl.CLI) *cobra.Command {
 		Short: "Uninstall the tf-controller",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Uninstall()
+			return app.Uninstall(os.Stdout)
 		},
 	}
 }
@@ -106,7 +106,7 @@ func buildReconcileCmd(app *tfctl.CLI) *cobra.Command {
 		Short: "Trigger a reconcile of the provided resource",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Reconcile(args[0])
+			return app.Reconcile(os.Stdout, args[0])
 		},
 	}
 }
@@ -117,7 +117,7 @@ func buildSuspendCmd(app *tfctl.CLI) *cobra.Command {
 		Short: "Suspend reconciliation for the provided resource",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Suspend(args[0])
+			return app.Suspend(os.Stdout, args[0])
 		},
 	}
 }
@@ -128,7 +128,7 @@ func buildResumeCmd(app *tfctl.CLI) *cobra.Command {
 		Short: "Resume reconciliation for the provided resource",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Resume(args[0])
+			return app.Resume(os.Stdout, args[0])
 		},
 	}
 }
@@ -213,7 +213,8 @@ func buildCreateCmd(app *tfctl.CLI) *cobra.Command {
 		Short: "Create a Terraform resource",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Create(args[0],
+			return app.Create(os.Stdout,
+				args[0],
 				viper.GetString("namespace"),
 				viper.GetString("path"),
 				viper.GetString("source"),

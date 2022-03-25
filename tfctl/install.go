@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/fluxcd/pkg/ssa"
 )
 
 // Install installs the tf-controller resources into the cluster.
-func (c *CLI) Install(version string, export bool) error {
+func (c *CLI) Install(out io.Writer, version string, export bool) error {
 	if version == "" {
 		version = c.release
 	}
@@ -40,6 +41,8 @@ func (c *CLI) Install(version string, export bool) error {
 			}
 		}
 	}
+
+	fmt.Fprintf(out, " Terraform controller %s installed\n", version)
 
 	return nil
 }
