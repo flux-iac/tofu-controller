@@ -2,6 +2,15 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.9.1
+
+**Release date:** 2022-03-25
+
+This pre-release contains the following changes.
+
+Bug Fixing:
+  * Wait for runner pods to be completely terminated before reconcile a new one (@chanwit)
+
 # v0.9.0
 
 **Release date:** 2022-03-21
