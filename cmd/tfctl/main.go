@@ -53,6 +53,7 @@ func run() *cobra.Command {
 	rootCmd.AddCommand(buildSuspendCmd(app))
 	rootCmd.AddCommand(buildResumeCmd(app))
 	rootCmd.AddCommand(buildGetCmd(app))
+	rootCmd.AddCommand(buildDeleteCommand(app))
 	rootCmd.AddCommand(buildCreateCmd(app))
 
 	return rootCmd
@@ -187,6 +188,19 @@ func buildGetTerraformCmd(app *tfctl.CLI) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.GetTerraform(os.Stdout, args[0])
+		},
+	}
+
+	return cmd
+}
+
+func buildDeleteCommand(app *tfctl.CLI) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete NAME",
+		Short: "Delete a Terraform resource",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return app.DeleteTerraform(os.Stdout, args[0])
 		},
 	}
 
