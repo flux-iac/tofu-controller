@@ -95,6 +95,10 @@ build: gen-grpc generate fmt vet ## Build manager binary.
 	go build -o bin/manager cmd/manager/main.go
 	go build -o bin/tfctl -ldflags "-X main.BuildSHA=$(BUILD_SHA) -X main.LatestRelease=$(LATEST_RELEASE)" cmd/tfctl/main.go
 
+.PHONY: install-cli
+install-cli:
+	go build -o ${GOPATH}/bin/tfctl -ldflags "-X main.BuildSHA=$(BUILD_SHA) -X main.LatestRelease=$(LATEST_RELEASE)" cmd/tfctl/main.go
+
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run cmd/manager/main.go

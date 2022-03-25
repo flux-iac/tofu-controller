@@ -53,6 +53,7 @@ func run() *cobra.Command {
 	rootCmd.AddCommand(buildSuspendCmd(app))
 	rootCmd.AddCommand(buildResumeCmd(app))
 	rootCmd.AddCommand(buildGetCmd(app))
+	rootCmd.AddCommand(buildCreateCmd(app))
 
 	return rootCmd
 }
@@ -190,4 +191,29 @@ func buildGetTerraformCmd(app *tfctl.CLI) *cobra.Command {
 	}
 
 	return cmd
+}
+
+func buildCreateCmd(app *tfctl.CLI) *cobra.Command {
+	install := &cobra.Command{
+		Use:   "create NAME",
+		Short: "Create a Terraform resource",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return app.Create(args[0],
+				viper.GetString("namespace"),
+				viper.GetString("path"),
+				viper.GetString("source"),
+				viper.GetString("interval"),
+				viper.GetBool("export"))
+		},
+	}
+	install.Flags().String("path", "", "")
+	install.Flags().String("source", "", "")
+	install.Flags().String("interval", "", "")
+	install.Flags().Bool("export", false, "Print installation manifests to stdout")
+	viper.BindPFlag("path", install.Flags().Lookup("path"))
+	viper.BindPFlag("source", install.Flags().Lookup("source"))
+	viper.BindPFlag("interval", install.Flags().Lookup("interval"))
+	viper.BindPFlag("export", install.Flags().Lookup("export"))
+	return install
 }
