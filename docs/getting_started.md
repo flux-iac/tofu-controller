@@ -20,7 +20,7 @@ please see [chart readme](https://github.com/weaveworks/tf-controller/tree/main/
 Alternatively, you can install TF-controller via `kubectl`:
 
 ```shell
-export TF_CON_VER=v0.9.1
+export TF_CON_VER=v0.9.2
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml

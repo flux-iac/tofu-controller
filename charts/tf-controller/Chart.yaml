@@ -3,4 +3,4 @@ name: tf-controller
 description: The Helm chart for Weave GitOps Terraform Controller
 type: application
 version: 0.2.4
-appVersion: "v0.9.1"
+appVersion: "v0.9.2"
