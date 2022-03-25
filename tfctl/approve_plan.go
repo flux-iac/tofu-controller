@@ -27,7 +27,14 @@ func (c *CLI) ApprovePlan(out io.Writer, resource string) error {
 		return nil
 	}
 
-	return approvePlan(context.TODO(), c.client, key, terraform)
+	err := approvePlan(context.TODO(), c.client, key, terraform)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(out, " plan approved\n")
+
+	return nil
 }
 
 func approvePlan(ctx context.Context,

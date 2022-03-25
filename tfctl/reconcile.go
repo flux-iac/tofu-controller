@@ -2,6 +2,8 @@ package tfctl
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"time"
 
 	"github.com/fluxcd/pkg/apis/meta"
@@ -12,7 +14,7 @@ import (
 )
 
 // Reconcile annotates the given object
-func (c *CLI) Reconcile(resource string) error {
+func (c *CLI) Reconcile(out io.Writer, resource string) error {
 	key := types.NamespacedName{
 		Name:      resource,
 		Namespace: c.namespace,
@@ -22,6 +24,8 @@ func (c *CLI) Reconcile(resource string) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Fprintf(out, " Reconcile requested for %s/%s\n", c.namespace, resource)
 
 	return nil
 }
