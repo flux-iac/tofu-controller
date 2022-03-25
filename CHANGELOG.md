@@ -2,7 +2,7 @@
 
 All notable changes of this project are documented in this file.
 
-# v0.9.1
+# v0.9.2
 
 **Release date:** 2022-03-25
 
