@@ -33,17 +33,13 @@ type CLI struct {
 	release    string
 }
 
-type Config struct {
-	*viper.Viper
-}
-
 // New returns a new CLI instance
 func New(build, release string) *CLI {
 	return &CLI{build: build, release: release}
 }
 
 // Init initializes the CLI instance for a given kubeconfig, namespace and terraform binary
-func (c *CLI) Init(config *Config) error {
+func (c *CLI) Init(config *viper.Viper) error {
 	var kubeconfigArgs = genericclioptions.NewConfigFlags(false)
 
 	kubeconfigArgs.KubeConfig = stringp(config.GetString("kubeconfig"))
