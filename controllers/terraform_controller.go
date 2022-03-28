@@ -174,12 +174,12 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 			// wait for runner pod complete termination
 			var (
-				interval = time.Second
-				timeout  = time.Second * 60
+				interval = time.Second * 5
+				timeout  = time.Second * 120
 			)
-			if wait.PollImmediate(interval, timeout, func() (bool, error) {
-				var runnerPod *corev1.Pod
-				err := r.Get(ctx, getRunnerPodObjectKey(terraform), runnerPod)
+			err := wait.PollImmediate(interval, timeout, func() (bool, error) {
+				var runnerPod corev1.Pod
+				err := r.Get(ctx, getRunnerPodObjectKey(terraform), &runnerPod)
 				if err == nil {
 					return false, nil
 				}
@@ -188,8 +188,9 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 					return true, nil
 				}
 				return false, err
-			}) != nil {
-				retErr = fmt.Errorf("failed to wait for the terminating runner pod")
+			})
+			if err != nil {
+				retErr = fmt.Errorf("failed waiting for the terminating runner pod: %v", err)
 			}
 		}
 	}(ctx, r.Client, terraform)
@@ -1667,23 +1668,23 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, terraform
 			return nil, fmt.Errorf("failed to refresh cert before opening runner connection: %w", err)
 		}
 
-		var runnerPod *corev1.Pod
-		if err := r.Get(ctx, getRunnerPodObjectKey(terraform), runnerPod); err != nil {
+		var runnerPod corev1.Pod
+		if err := r.Get(ctx, getRunnerPodObjectKey(terraform), &runnerPod); err != nil {
 			return nil, fmt.Errorf("failed to obtain pod for re-creation: %w", err)
 		}
 
-		if err := r.Delete(ctx, runnerPod); err != nil {
+		if err := r.Delete(ctx, &runnerPod); err != nil {
 			return nil, fmt.Errorf("failed to restart runner pod: %w", err)
 		}
 
-		var (
-			interval = time.Second
-			timeout  = time.Second * 30
+		const (
+			interval = time.Second * 5
+			timeout  = time.Second * 60
 		)
 
 		if wait.PollImmediate(interval, timeout, func() (bool, error) {
-			var runnerPod *corev1.Pod
-			if err := r.Get(ctx, getRunnerPodObjectKey(terraform), runnerPod); err != nil {
+			var runnerPod corev1.Pod
+			if err := r.Get(ctx, getRunnerPodObjectKey(terraform), &runnerPod); err != nil {
 				return false, fmt.Errorf("failed to get runner pod: %w", err)
 			}
 			if runnerPod.Status.PodIP != "" {
@@ -1895,11 +1896,6 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 
 func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform) (string, error) {
 
-	var (
-		interval = time.Second * 3
-		timeout  = time.Second * 60
-	)
-
 	podNamespace := terraform.Namespace
 	podName := fmt.Sprintf("%s-tf-runner", terraform.Name)
 	runnerPodTemplate := corev1.Pod{
@@ -1924,19 +1920,26 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		return "", err
 	}
 
+	const (
+		interval = time.Second * 3
+		timeout  = time.Second * 60
+	)
 	// wait for pod to be completely deleted
 	if err == nil && runnerPod.DeletionTimestamp != nil {
-		if wait.PollImmediate(interval, timeout, func() (bool, error) {
+		podErr := wait.PollImmediate(interval, timeout, func() (bool, error) {
 			err = r.Get(ctx, runnerPodKey, &runnerPod)
+
 			if err != nil && apierrors.IsNotFound(err) == false {
 				return false, err
 			}
+
 			if err != nil && apierrors.IsNotFound(err) {
 				return true, nil
 			}
 			return false, nil
-		}) != nil {
-			return "", fmt.Errorf("failed to wait for the old pod termation")
+		})
+		if podErr != nil {
+			return "", fmt.Errorf("failed to wait for the old pod termination: %v", podErr)
 		}
 	}
 
