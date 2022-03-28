@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -46,13 +47,13 @@ func run() *cobra.Command {
 	viper.BindEnv("kubeconfig")
 
 	rootCmd.AddCommand(buildVersionCmd(app))
-	rootCmd.AddCommand(buildPlanCmd(app))
+	rootCmd.AddCommand(buildPlanGroup(app))
 	rootCmd.AddCommand(buildInstallCmd(app))
 	rootCmd.AddCommand(buildUninstallCmd(app))
 	rootCmd.AddCommand(buildReconcileCmd(app))
 	rootCmd.AddCommand(buildSuspendCmd(app))
 	rootCmd.AddCommand(buildResumeCmd(app))
-	rootCmd.AddCommand(buildGetCmd(app))
+	rootCmd.AddCommand(buildGetGroup(app))
 	rootCmd.AddCommand(buildDeleteCommand(app))
 	rootCmd.AddCommand(buildCreateCmd(app))
 
@@ -73,11 +74,24 @@ func buildVersionCmd(app *tfctl.CLI) *cobra.Command {
 	return install
 }
 
+var installExamples = `
+  # Install the Terraform controller
+  tfctl install --namespace=flux-system
+
+  # Generate the Terraform controller manifests and print them to stdout
+  tfctl install --namespace=flux-system --export
+
+  # Install a specific version of the Terraform controller
+  tfctl install --namespace=flux-system --version=v0.9.3
+`
+
 func buildInstallCmd(app *tfctl.CLI) *cobra.Command {
 	install := &cobra.Command{
-		Use:   "install",
-		Short: "Install the tf-controller",
-		Args:  cobra.ExactArgs(0),
+		Use:     "install",
+		Short:   "Install the tf-controller",
+		Long:    "Install the tf-controller resources in the specified namespace",
+		Example: strings.Trim(installExamples, "\n"),
+		Args:    cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.Install(os.Stdout, viper.GetString("version"), viper.GetBool("export"))
 		},
@@ -100,40 +114,58 @@ func buildUninstallCmd(app *tfctl.CLI) *cobra.Command {
 	}
 }
 
+var reconcileExamples = `
+  # Reconcile a Terraform resource
+  tfctl reconcile --namespace=default my-resource
+`
+
 func buildReconcileCmd(app *tfctl.CLI) *cobra.Command {
 	return &cobra.Command{
-		Use:   "reconcile NAME",
-		Short: "Trigger a reconcile of the provided resource",
-		Args:  cobra.ExactArgs(1),
+		Use:     "reconcile NAME",
+		Short:   "Trigger a reconcile of the provided resource",
+		Example: strings.Trim(reconcileExamples, "\n"),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.Reconcile(os.Stdout, args[0])
 		},
 	}
 }
 
+var suspendExamples = `
+  # Suspend reconciliation for a Terraform resource
+  tfctl suspend my-resource
+`
+
 func buildSuspendCmd(app *tfctl.CLI) *cobra.Command {
 	return &cobra.Command{
-		Use:   "suspend NAME",
-		Short: "Suspend reconciliation for the provided resource",
-		Args:  cobra.ExactArgs(1),
+		Use:     "suspend NAME",
+		Short:   "Suspend reconciliation for the provided resource",
+		Example: strings.Trim(suspendExamples, "\n"),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.Suspend(os.Stdout, args[0])
 		},
 	}
 }
 
+var resumeExamples = `
+  # Resume reconciliation for a Terraform resource
+  tfctl resume my-resource
+`
+
 func buildResumeCmd(app *tfctl.CLI) *cobra.Command {
 	return &cobra.Command{
-		Use:   "resume NAME",
-		Short: "Resume reconciliation for the provided resource",
-		Args:  cobra.ExactArgs(1),
+		Use:     "resume NAME",
+		Short:   "Resume reconciliation for the provided resource",
+		Args:    cobra.ExactArgs(1),
+		Example: strings.Trim(resumeExamples, "\n"),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.Resume(os.Stdout, args[0])
 		},
 	}
 }
 
-func buildPlanCmd(app *tfctl.CLI) *cobra.Command {
+func buildPlanGroup(app *tfctl.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "plan",
 		Short: "Plan a Terraform configuration",
@@ -145,32 +177,50 @@ func buildPlanCmd(app *tfctl.CLI) *cobra.Command {
 	return cmd
 }
 
+var planShowExamples = `
+  # Show the plan for a Terraform resource
+  tfctl plan show my-resource
+`
+
 func buildPlanShowCmd(app *tfctl.CLI) *cobra.Command {
 	return &cobra.Command{
-		Use:   "show NAME",
-		Short: "Show pending Terraform plan",
-		Args:  cobra.ExactArgs(1),
+		Use:     "show NAME",
+		Short:   "Show pending Terraform plan",
+		Example: strings.Trim(planShowExamples, "\n"),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.ShowPlan(os.Stdout, args[0])
 		},
 	}
 }
 
+var planApproveExamples = `
+  # Approve the plan for a Terraform resource
+  tfctl plan approve my-resource
+`
+
 func buildPlanApproveCmd(app *tfctl.CLI) *cobra.Command {
 	return &cobra.Command{
-		Use:   "approve NAME",
-		Short: "Approve pending Terraform plan",
-		Args:  cobra.ExactArgs(1),
+		Use:     "approve NAME",
+		Short:   "Approve pending Terraform plan",
+		Example: strings.Trim(planApproveExamples, "\n"),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.ApprovePlan(os.Stdout, args[0])
 		},
 	}
 }
 
-func buildGetCmd(app *tfctl.CLI) *cobra.Command {
+var getExamples = `
+  # List all Terraform resources in the given namespace
+  tfctl get --namespace=default
+`
+
+func buildGetGroup(app *tfctl.CLI) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get",
-		Short: "Get Terraform resources",
+		Use:     "get",
+		Short:   "Get Terraform resources",
+		Example: strings.Trim(getExamples, "\n"),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.Get(os.Stdout)
 		},
@@ -181,11 +231,17 @@ func buildGetCmd(app *tfctl.CLI) *cobra.Command {
 	return cmd
 }
 
+var getTerraformExamples = `
+  # Show a specific Terraform resource
+  tfctl get my-resource
+`
+
 func buildGetTerraformCmd(app *tfctl.CLI) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get NAME",
-		Short: "Get a Terraform resource",
-		Args:  cobra.ExactArgs(1),
+		Use:     "get NAME",
+		Short:   "Get a Terraform resource",
+		Example: strings.Trim(getTerraformExamples, "\n"),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.GetTerraform(os.Stdout, args[0])
 		},
@@ -194,11 +250,17 @@ func buildGetTerraformCmd(app *tfctl.CLI) *cobra.Command {
 	return cmd
 }
 
+var deleteExamples = `
+  # Delete a Terraform resource
+  tfctl delete my-resource
+`
+
 func buildDeleteCommand(app *tfctl.CLI) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete NAME",
-		Short: "Delete a Terraform resource",
-		Args:  cobra.ExactArgs(1),
+		Use:     "delete NAME",
+		Short:   "Delete a Terraform resource",
+		Example: strings.Trim(getTerraformExamples, "\n"),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.DeleteTerraform(os.Stdout, args[0])
 		},
@@ -207,11 +269,20 @@ func buildDeleteCommand(app *tfctl.CLI) *cobra.Command {
 	return cmd
 }
 
+var createExamples = `
+  # Create a Terraform resource in the default namespace
+  tfctl create -n default my-resource --source GitRepository/my-project --path ./terraform --interval 15m
+
+  # Generate a Terraform resource manifest
+  tfctl create -n default my-resource --source GitRepository/my-project --path ./terraform --interval 15m --export
+`
+
 func buildCreateCmd(app *tfctl.CLI) *cobra.Command {
-	install := &cobra.Command{
-		Use:   "create NAME",
-		Short: "Create a Terraform resource",
-		Args:  cobra.ExactArgs(1),
+	create := &cobra.Command{
+		Use:     "create NAME",
+		Short:   "Create a Terraform resource",
+		Example: strings.Trim(createExamples, "\n"),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.Create(os.Stdout,
 				args[0],
@@ -222,13 +293,13 @@ func buildCreateCmd(app *tfctl.CLI) *cobra.Command {
 				viper.GetBool("export"))
 		},
 	}
-	install.Flags().String("path", "", "")
-	install.Flags().String("source", "", "")
-	install.Flags().String("interval", "", "")
-	install.Flags().Bool("export", false, "Print installation manifests to stdout")
-	viper.BindPFlag("path", install.Flags().Lookup("path"))
-	viper.BindPFlag("source", install.Flags().Lookup("source"))
-	viper.BindPFlag("interval", install.Flags().Lookup("interval"))
-	viper.BindPFlag("export", install.Flags().Lookup("export"))
-	return install
+	create.Flags().String("path", "", "")
+	create.Flags().String("source", "", "")
+	create.Flags().String("interval", "", "")
+	create.Flags().Bool("export", false, "Print generated Terraform resource to stdout")
+	viper.BindPFlag("path", create.Flags().Lookup("path"))
+	viper.BindPFlag("source", create.Flags().Lookup("source"))
+	viper.BindPFlag("interval", create.Flags().Lookup("interval"))
+	viper.BindPFlag("export", create.Flags().Lookup("export"))
+	return create
 }
