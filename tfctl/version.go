@@ -15,7 +15,7 @@ import (
 func (c *CLI) Version(out io.Writer) error {
 	deployment := &appsv1.Deployment{}
 	if err := c.client.Get(context.TODO(), types.NamespacedName{
-		Namespace: namespace,
+		Namespace: c.namespace,
 		Name:      "tf-controller",
 	}, deployment); client.IgnoreNotFound(err) != nil {
 		return err
