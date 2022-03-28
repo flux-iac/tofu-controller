@@ -18,7 +18,7 @@ func (c *CLI) Uninstall(out io.Writer) error {
 
 	var deployment appsv1.Deployment
 	if err := c.client.Get(ctx, types.NamespacedName{
-		Namespace: namespace,
+		Namespace: c.namespace,
 		Name:      "tf-controller",
 	}, &deployment); err != nil {
 		return err

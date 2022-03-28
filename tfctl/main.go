@@ -7,20 +7,20 @@ import (
 	"net/http"
 
 	"github.com/fluxcd/pkg/ssa"
+	"github.com/spf13/viper"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
-	repo      = "weaveworks/tf-controller"
-	namespace = "flux-system"
+	repo = "weaveworks/tf-controller"
 )
 
 // CLI is the main struct for the tfctl command line tool
@@ -33,14 +33,30 @@ type CLI struct {
 	release    string
 }
 
+type Config struct {
+	*viper.Viper
+}
+
 // New returns a new CLI instance
 func New(build, release string) *CLI {
 	return &CLI{build: build, release: release}
 }
 
 // Init initializes the CLI instance for a given kubeconfig, namespace and terraform binary
-func (c *CLI) Init(kubeconfig, namespace, tfPath string) error {
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+func (c *CLI) Init(config *Config) error {
+	var kubeconfigArgs = genericclioptions.NewConfigFlags(false)
+
+	kubeconfigArgs.KubeConfig = stringp(config.GetString("kubeconfig"))
+
+	if config.GetString("context") != "" {
+		kubeconfigArgs.Context = stringp(config.GetString("context"))
+	}
+
+	if config.GetString("cluster") != "" {
+		kubeconfigArgs.ClusterName = stringp(config.GetString("cluster"))
+	}
+
+	k8sConfig, err := kubeconfigArgs.ToRESTConfig()
 	if err != nil {
 		return err
 	}
@@ -50,7 +66,7 @@ func (c *CLI) Init(kubeconfig, namespace, tfPath string) error {
 	_ = appsv1.AddToScheme(scheme)
 	_ = infrav1.AddToScheme(scheme)
 
-	client, err := client.NewWithWatch(config, client.Options{
+	client, err := client.NewWithWatch(k8sConfig, client.Options{
 		Scheme: scheme,
 	})
 	if err != nil {
@@ -58,10 +74,14 @@ func (c *CLI) Init(kubeconfig, namespace, tfPath string) error {
 	}
 
 	c.client = client
-	c.namespace = namespace
-	c.terraform = tfPath
+	c.namespace = config.GetString("namespace")
+	c.terraform = config.GetString("terraform")
 
 	return nil
+}
+
+func stringp(s string) *string {
+	return &s
 }
 
 func download(version, resource string) ([]byte, error) {
