@@ -2,6 +2,7 @@ package tfctl
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"strconv"
 
@@ -16,6 +17,11 @@ func (c *CLI) Get(out io.Writer) error {
 	terraformList := &infrav1.TerraformList{}
 	if err := c.client.List(context.TODO(), terraformList, client.InNamespace(c.namespace)); err != nil {
 		return err
+	}
+
+	if len(terraformList.Items) == 0 {
+		fmt.Fprintf(out, "No resources found in %s namespace\n", c.namespace)
+		return nil
 	}
 
 	var data [][]string

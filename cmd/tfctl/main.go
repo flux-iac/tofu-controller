@@ -29,7 +29,7 @@ func main() {
 func run() *cobra.Command {
 	app := tfctl.New(BuildSHA, LatestRelease)
 
-	config := &tfctl.Config{}
+	config := viper.New()
 
 	rootCmd := &cobra.Command{
 		Use:           "tfctl",
@@ -50,19 +50,19 @@ func run() *cobra.Command {
 		log.Fatal(err)
 	}
 
-	rootCmd.PersistentFlags().String("kubeconfig", kubeConfigDefault, "Path to the kubeconfig file to use for CLI requests.")
+	rootCmd.PersistentFlags().StringP("kubeconfig", "k", kubeConfigDefault, "Path to the kubeconfig file to use for CLI requests.")
 	rootCmd.PersistentFlags().String("context", "", "The name of the kubeconfig context to use")
 	rootCmd.PersistentFlags().String("cluster", "", "The name of the kubeconfig cluster to use")
 	rootCmd.PersistentFlags().StringP("namespace", "n", "flux-system", "The kubernetes namespace to use for CLI requests.")
 	rootCmd.PersistentFlags().String("terraform", "/usr/bin/terraform", "The location of the terraform binary.")
 
-	viper.BindPFlag("kubeconfig", rootCmd.PersistentFlags().Lookup("kubeconfig"))
-	viper.BindPFlag("context", rootCmd.PersistentFlags().Lookup("context"))
-	viper.BindPFlag("cluster", rootCmd.PersistentFlags().Lookup("cluster"))
-	viper.BindPFlag("namespace", rootCmd.PersistentFlags().Lookup("namespace"))
-	viper.BindPFlag("terraform", rootCmd.PersistentFlags().Lookup("terraform"))
+	config.BindPFlag("kubeconfig", rootCmd.PersistentFlags().Lookup("kubeconfig"))
+	config.BindPFlag("context", rootCmd.PersistentFlags().Lookup("context"))
+	config.BindPFlag("cluster", rootCmd.PersistentFlags().Lookup("cluster"))
+	config.BindPFlag("namespace", rootCmd.PersistentFlags().Lookup("namespace"))
+	config.BindPFlag("terraform", rootCmd.PersistentFlags().Lookup("terraform"))
 
-	viper.BindEnv("kubeconfig")
+	config.BindEnv("kubeconfig")
 
 	rootCmd.AddCommand(buildVersionCmd(app))
 	rootCmd.AddCommand(buildPlanGroup(app))
