@@ -2,6 +2,15 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.9.3
+
+**Release date:** 2022-03-28
+
+This pre-release contains the following changes.
+
+Bug Fixing:
+  * Fix runner pod pointer variables so that getting pods works correctly (@chanwit)
+
 # v0.9.2
 
 **Release date:** 2022-03-25
