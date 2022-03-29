@@ -22,29 +22,22 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
 
 ## Roadmap
 
-### Q1 2022
-  * [x] Support the GitOps way to "apply"
-  * [x] Drift detection
-  * [x] Support auto-apply so that the reconciliation detect drifts and always make changes
-  * [x] Interop with Kustomization controller's health checks
-  * [x] Terraform outputs as Kubernetes Secrets
-  * [x] Secret and ConfigMap as input variables
-  * [x] Support the GitOps way to "plan" / "re-plan"
-  * [x] Support a multi-tenant model
-  * [x] Test coverage reaching 68.2%
-
 ### Q2 2022
-  * [ ] Containerd compatibility
-  * [ ] ARM64 & Gravitron support
-  * [ ] Improve security 
+  * [ ] Improve security
   * [ ] Performance and scalability
   * [ ] Interop with Notification controller's Events and Alert
   * [ ] CLI implementation: `tfctl`
-  * [ ] Test coverage reaching 75%
+  * [ ] Test coverage reaching 72.5%
 
 ### Q3 2022
+  * [ ] ARM64 & Gravitron support
+  * [ ] Containerd compatibility
   * [ ] Write back and show plan in PRs
-  * [ ] Test coverage reaching 80%
+  * [ ] Test coverage reaching 75%
 
 ### Q4 2022
+  * [ ] Test coverage reaching 77.5%
+
+### Q1 2023
   * TBD
+
