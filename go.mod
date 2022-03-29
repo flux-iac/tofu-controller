@@ -7,7 +7,7 @@ require (
 	github.com/fluxcd/pkg/apis/meta v0.12.1
 	github.com/fluxcd/pkg/runtime v0.13.2
 	github.com/fluxcd/pkg/untar v0.1.0
-	github.com/fluxcd/source-controller/api v0.22.2
+	github.com/fluxcd/source-controller/api v0.22.4
 	github.com/go-logr/logr v1.2.2
 	github.com/hashicorp/go-retryablehttp v0.7.0
 	github.com/hashicorp/terraform-exec v0.15.0
