@@ -6,37 +6,20 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-version"
+	hc "github.com/hashicorp/hc-install"
+	"github.com/hashicorp/hc-install/fs"
+	"github.com/hashicorp/hc-install/product"
+	"github.com/hashicorp/hc-install/src"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
-
-type FakeClient struct {
-	resource client.Object
-}
-
-func (c *FakeClient) Create(ctx context.Context, obj client.Object, opts ...client.CreateOption) error
-func (c *FakeClient) Delete(ctx context.Context, obj client.Object, opts ...client.DeleteOption) error
-func (c *FakeClient) Update(ctx context.Context, obj client.Object, opts ...client.UpdateOption) error
-func (c *FakeClient) Patch(ctx context.Context, obj client.Object, patch client.Patch, opts ...client.PatchOption) error
-func (c *FakeClient) DeleteAllOf(ctx context.Context, obj client.Object, opts ...client.DeleteAllOfOption) error
-func (c *FakeClient) Scheme() *runtime.Scheme
-func (c *FakeClient) RESTMapper() meta.RESTMapper
-func (c *FakeClient) Status() client.StatusWriter
-
-func (c *FakeClient) Get(ctx context.Context, key client.ObjectKey, obj client.Object) error {
-	switch obj.(type) {
-	case *corev1.Secret:
-		obj.(*corev1.Secret).Data = c.resource.(*corev1.Secret).Data
-	}
-	return nil
-}
-
-func (c *FakeClient) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
-	return nil
-}
 
 func TestShowPlan(t *testing.T) {
 	g := NewWithT(t)
@@ -47,20 +30,37 @@ func TestShowPlan(t *testing.T) {
 	}
 
 	tests := []struct {
-		name     string
-		args     args
-		resource func() client.Object
-		want     string
-		wantErr  bool
+		name      string
+		args      args
+		resources func() []client.Object
+		want      string
+		wantErr   bool
 	}{
 		{
 			name: "hello-world",
-			resource: func() client.Object {
+			resources: func() []client.Object {
 				plan, err := os.ReadFile("testdata/plan.gz")
 				g.Expect(err).To(BeNil())
-				return &corev1.Secret{
-					Data: map[string][]byte{
-						"tfplan": plan,
+				return []client.Object{
+					&infrav1.Terraform{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "hello-world",
+							Namespace: "default",
+						},
+						Status: infrav1.TerraformStatus{
+							Plan: infrav1.PlanStatus{
+								Pending: "plan-pending",
+							},
+						},
+					},
+					&corev1.Secret{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "tfplan-default-hello-world",
+							Namespace: "default",
+						},
+						Data: map[string][]byte{
+							"tfplan": plan,
+						},
 					},
 				}
 			},
@@ -77,12 +77,34 @@ state, without changing any real infrastructure.
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			i := hc.NewInstaller()
+
+			v1_1_7 := version.Must(version.NewVersion("1.1.7"))
+
+			tfPath, err := i.Ensure(context.Background(), []src.Source{
+				&fs.ExactVersion{
+					Product: product.Terraform,
+					Version: v1_1_7,
+				},
+			})
+
+			if err != nil {
+				t.Errorf("ShowPlan() error = %v", err)
+			}
+
+			scheme := runtime.NewScheme()
+			_ = corev1.AddToScheme(scheme)
+			_ = infrav1.AddToScheme(scheme)
+
+			fakeClient := fake.NewClientBuilder().
+				WithScheme(scheme).
+				WithObjects(tt.resources()...).
+				Build()
+
 			cli := &CLI{
 				namespace: "default",
-				terraform: "/usr/bin/terraform",
-				client: &FakeClient{
-					resource: tt.resource(),
-				},
+				terraform: tfPath,
+				client:    fakeClient,
 			}
 
 			out := &bytes.Buffer{}
