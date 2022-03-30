@@ -4,7 +4,7 @@ MANAGER_IMG ?= ghcr.io/weaveworks/tf-controller
 RUNNER_IMG  ?= ghcr.io/weaveworks/tf-runner
 TAG ?= latest
 BUILD_SHA ?= $(shell git rev-parse --short HEAD)
-LATEST_RELEASE ?= $(shell git tag -l v[0-9].[0-9].[0-9] | tail -n1)
+BUILD_VERSION ?= $(shell git tag -l v[0-9].[0-9].[0-9] | tail -n1)
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.22
@@ -93,11 +93,15 @@ gen-grpc:
 build: gen-grpc generate fmt vet ## Build manager binary.
 	go build -o bin/runner cmd/runner/main.go
 	go build -o bin/manager cmd/manager/main.go
-	go build -o bin/tfctl -ldflags "-X main.BuildSHA=$(BUILD_SHA) -X main.LatestRelease=$(LATEST_RELEASE)" cmd/tfctl/main.go
+	go build -o bin/tfctl \
+		-ldflags "-X main.BuildSHA=$(BUILD_SHA) -X main.BuildVersion=$(BUILD_VERSION)" \
+		cmd/tfctl/main.go
 
 .PHONY: install-cli
 install-cli:
-	go build -o ${GOPATH}/bin/tfctl -ldflags "-X main.BuildSHA=$(BUILD_SHA) -X main.LatestRelease=$(LATEST_RELEASE)" cmd/tfctl/main.go
+	go build -o ${GOPATH}/bin/tfctl \
+		-ldflags "-X main.BuildSHA=$(BUILD_SHA) -X main.BuildVersion=$(BUILD_VERSION)" \
+		cmd/tfctl/main.go
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
