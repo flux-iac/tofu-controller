@@ -48,10 +48,19 @@ jobs:
       - name: Build tf-controller image
         run: |
           make docker-build
-      - name: Run Trivy vulnerability scanner
+      - name: Run Trivy vulnerability scanner on controller image
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'ghcr.io/weaveworks/tf-controller:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+      - name: Run Trivy vulnerability scanner on runner image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'ghcr.io/weaveworks/tf-runner:latest'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
