@@ -15,8 +15,8 @@ var (
 	// BuildSHA is the tfctl version
 	BuildSHA string
 
-	// LatestRelease is the tfctl release
-	LatestRelease string
+	// BuildVersion is the tfctl build version
+	BuildVersion string
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
 }
 
 func run() *cobra.Command {
-	app := tfctl.New(BuildSHA, LatestRelease)
+	app := tfctl.New(BuildSHA, BuildVersion)
 
 	config := viper.New()
 

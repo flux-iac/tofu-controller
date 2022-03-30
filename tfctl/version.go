@@ -21,13 +21,27 @@ func (c *CLI) Version(out io.Writer) error {
 		return err
 	}
 
-	var version string
+	var (
+		version       string
+		runnerVersion string
+	)
+
 	if len(deployment.Spec.Template.Spec.Containers) > 0 {
-		version = strings.Split(deployment.Spec.Template.Spec.Containers[0].Image, ":")[1]
+		for _, c := range deployment.Spec.Template.Spec.Containers {
+			if c.Name == "manager" {
+				version = strings.Split(c.Image, ":")[1]
+				for _, e := range c.Env {
+					if e.Name == "RUNNER_POD_IMAGE" {
+						runnerVersion = strings.Split(e.Value, ":")[1]
+						break
+					}
+				}
+				break
+			}
+		}
 	}
 
-	fmt.Fprintf(out, "tf-controller: %s\n", version)
-	fmt.Fprintf(out, "tfctl: %s\n", c.build)
-
+	fmt.Fprintf(out, "tf-controller:\n  manager: %s\n  runner: %s\n", version, runnerVersion)
+	fmt.Fprintf(out, "tfctl:\n  build: %s\n  release: %s\n", c.build, c.release)
 	return nil
 }
