@@ -27,7 +27,7 @@ ADD https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSIO
 RUN unzip -q /terraform_${TF_VERSION}_linux_amd64.zip
 
 
-FROM alpine:3.15.1
+FROM alpine:3.15.3
 
 LABEL org.opencontainers.image.source="https://github.com/weaveworks/tf-controller"
 
