@@ -9,14 +9,13 @@ require (
 	github.com/fluxcd/pkg/ssa v0.15.1
 	github.com/fluxcd/pkg/untar v0.1.0
 	github.com/fluxcd/source-controller/api v0.22.4
-	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-logr/logr v1.2.2
 	github.com/hashicorp/go-retryablehttp v0.7.0
-	github.com/hashicorp/terraform-exec v0.15.0
-	github.com/onsi/gomega v1.18.1
 	github.com/hashicorp/go-version v1.3.0
 	github.com/hashicorp/hc-install v0.3.1
+	github.com/hashicorp/terraform-exec v0.15.0
 	github.com/olekukonko/tablewriter v0.0.5
+	github.com/onsi/gomega v1.18.1
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/pflag v1.0.5
@@ -28,8 +27,9 @@ require (
 	k8s.io/api v0.23.4
 	k8s.io/apiextensions-apiserver v0.23.0
 	k8s.io/apimachinery v0.23.4
+	k8s.io/cli-runtime v0.23.2
 	k8s.io/client-go v0.23.4
-	sigs.k8s.io/cli-utils v0.26.1
+	sigs.k8s.io/cli-utils v0.29.3
 	sigs.k8s.io/controller-runtime v0.11.1
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -106,20 +106,14 @@ require (
 	github.com/spf13/afero v1.8.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/stretchr/testify v1.7.1 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/xlab/treeprint v0.0.0-20181112141820-a009c3971eca // indirect
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-<<<<<<< HEAD
 	go.uber.org/zap v1.21.0 // indirect
-	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
-=======
-	go.uber.org/zap v1.19.1 // indirect
-	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce // indirect
->>>>>>> 311619a (tfctl: use fakeclient in showplan test and ensure tfbinary is not hardcoded)
+	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
 	golang.org/x/net v0.0.0-20211215060638-4ddde0e984e9 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
@@ -133,15 +127,10 @@ require (
 	gopkg.in/ini.v1 v1.66.3 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
-<<<<<<< HEAD
-	k8s.io/cli-runtime v0.23.0 // indirect
-	k8s.io/component-base v0.23.0 // indirect
-	k8s.io/klog/v2 v2.50.0 // indirect
-=======
 	k8s.io/component-base v0.23.2 // indirect
-	k8s.io/klog/v2 v2.30.0 // indirect
->>>>>>> 311619a (tfctl: use fakeclient in showplan test and ensure tfbinary is not hardcoded)
+	k8s.io/klog/v2 v2.50.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
+	k8s.io/kubectl v0.23.2 // indirect
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
 	sigs.k8s.io/kustomize/api v0.10.1 // indirect
