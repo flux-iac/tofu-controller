@@ -76,7 +76,7 @@ func printTerraform(terraform interface{}) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(os.Stdout, resourceToString(data))
+	fmt.Fprintln(os.Stdout, resourceToString(data))
 	return err
 }
 

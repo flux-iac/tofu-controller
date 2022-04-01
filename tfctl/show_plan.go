@@ -26,7 +26,7 @@ func (c *CLI) ShowPlan(out io.Writer, resource string) error {
 	}
 
 	if terraform.Status.Plan.Pending == "" {
-		fmt.Fprintf(out, "There is no plan pending.\n")
+		fmt.Fprintln(out, "There is no plan pending.")
 		return nil
 	}
 
@@ -76,7 +76,7 @@ func (c *CLI) ShowPlan(out io.Writer, resource string) error {
 		return err
 	}
 
-	fmt.Fprintf(out, result)
+	fmt.Fprintln(out, result)
 
 	return nil
 }
