@@ -18,7 +18,7 @@ func (c *CLI) Version(out io.Writer) error {
 		Namespace: c.namespace,
 		Name:      "tf-controller",
 	}, deployment); client.IgnoreNotFound(err) != nil {
-		return err
+		return fmt.Errorf("failed to get tf-controller deployment: %w", err)
 	}
 
 	var (
@@ -32,7 +32,10 @@ func (c *CLI) Version(out io.Writer) error {
 				version = strings.Split(c.Image, ":")[1]
 				for _, e := range c.Env {
 					if e.Name == "RUNNER_POD_IMAGE" {
-						runnerVersion = strings.Split(e.Value, ":")[1]
+						ref := strings.Split(e.Value, ":")
+						if len(ref) == 2 {
+							runnerVersion = ref[1]
+						}
 						break
 					}
 				}
