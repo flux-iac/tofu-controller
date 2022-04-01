@@ -45,7 +45,7 @@ func (c *CLI) ShowPlan(out io.Writer, resource string) error {
 		return fmt.Errorf("failed to decode plan for resources %s: %s", resource, err)
 	}
 
-	tmpDir, err := ioutil.TempDir(os.TempDir(), "tfctl")
+	tmpDir, err := ioutil.TempDir("", "tfctl")
 	if err != nil {
 		return err
 	}
