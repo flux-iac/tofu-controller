@@ -3,6 +3,7 @@ package tfctl
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -20,12 +21,14 @@ func (c *CLI) Uninstall(out io.Writer) (retErr error) {
 	ctx := context.Background()
 
 	var deployment appsv1.Deployment
-	if retErr := c.client.Get(ctx, types.NamespacedName{
+	retErr = c.client.Get(ctx, types.NamespacedName{
 		Namespace: c.namespace,
 		Name:      "tf-controller",
-	}, &deployment); retErr != nil {
+	}, &deployment)
+
+	if retErr != nil {
 		if apierrors.IsNotFound(retErr) {
-			fmt.Fprintf(out, "tf-controller not found.\n")
+			fmt.Fprintf(out, "tf-controller not found in %s namespace.\n", c.namespace)
 			return nil
 		}
 		return retErr
@@ -42,7 +45,7 @@ func (c *CLI) Uninstall(out io.Writer) (retErr error) {
 	}
 
 	if version == "" {
-		return fmt.Errorf("could not determine tf-controller version")
+		return errors.New("could not determine tf-controller version")
 	}
 
 	manager, retErr := newManager(c.client)
