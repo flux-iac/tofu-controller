@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"time"
 
 	"github.com/fluxcd/pkg/ssa"
@@ -55,7 +54,7 @@ func (c *CLI) Install(out io.Writer, version string, export bool) (retErr error)
 		}
 
 		if export {
-			fmt.Fprintf(os.Stdout, string(data))
+			fmt.Fprintln(out, string(data))
 			continue
 		}
 

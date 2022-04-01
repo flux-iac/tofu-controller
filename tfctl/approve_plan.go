@@ -23,7 +23,7 @@ func (c *CLI) ApprovePlan(out io.Writer, resource string) error {
 	}
 
 	if terraform.Status.Plan.Pending == "" {
-		fmt.Fprintf(out, "no plan pending")
+		fmt.Fprintln(out, "no plan pending")
 		return nil
 	}
 
@@ -32,7 +32,7 @@ func (c *CLI) ApprovePlan(out io.Writer, resource string) error {
 		return err
 	}
 
-	fmt.Fprintf(out, " plan approved\n")
+	fmt.Fprintln(out, " plan approved")
 
 	return nil
 }
