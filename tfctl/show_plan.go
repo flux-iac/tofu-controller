@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/hashicorp/terraform-exec/tfexec"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
@@ -50,30 +51,35 @@ func (c *CLI) ShowPlan(out io.Writer, resource string) error {
 		return err
 	}
 
-	planFile, err := ioutil.TempFile(tmpDir, "tfctl-plan-")
+	planFile, err := os.Create(filepath.Join(tmpDir, "tfctl-plan"))
 	if err != nil {
 		return err
 	}
+
 	defer func() {
 		if err := os.RemoveAll(tmpDir); err != nil {
 			fmt.Fprintf(out, "failed to remove temporary directory %s: %s", tmpDir, err)
 		}
 	}()
 
-	if err := os.WriteFile(planFile.Name(), data, 0644); err != nil {
-		return err
+	if _, err := planFile.Write(data); err != nil {
+		planFile.Close()
+		return fmt.Errorf("failed to write plan: %w", err)
 	}
 
-	planFile.Close()
+	err = planFile.Close()
+	if err != nil {
+		return fmt.Errorf("failed to write data to plan file: %w", err)
+	}
 
 	tf, err := tfexec.NewTerraform(tmpDir, c.terraform)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create Terraform instance: %w", err)
 	}
 
 	result, err := tf.ShowPlanFileRaw(context.TODO(), planFile.Name())
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse Terraform plan: %w", err)
 	}
 
 	fmt.Fprintln(out, result)
