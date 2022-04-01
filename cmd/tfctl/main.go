@@ -1,14 +1,13 @@
 package main
 
 import (
-	"log"
 	"os"
 	"strings"
 
-	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/tf-controller/tfctl"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
 var (
@@ -18,6 +17,9 @@ var (
 	// BuildVersion is the tfctl build version
 	BuildVersion string
 )
+
+var defaultNamespace = "flux-system"
+var kubeconfigArgs = genericclioptions.NewConfigFlags(false)
 
 func main() {
 	cmd := newRootCommand()
@@ -34,33 +36,22 @@ func newRootCommand() *cobra.Command {
 		SilenceErrors: false,
 		SilenceUsage:  true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			return app.Init(config)
+			k8sConfig, err := kubeconfigArgs.ToRESTConfig()
+			if err != nil {
+				return err
+			}
+			return app.Init(k8sConfig, config)
 		},
 	}
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal(err)
-	}
+	configureDefaultNamespace()
 
-	kubeConfigDefault, err := securejoin.SecureJoin(homeDir, ".kube/config")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	rootCmd.PersistentFlags().StringP("kubeconfig", "k", kubeConfigDefault, "Path to the kubeconfig file to use for CLI requests.")
-	rootCmd.PersistentFlags().String("context", "", "The name of the kubeconfig context to use")
-	rootCmd.PersistentFlags().String("cluster", "", "The name of the kubeconfig cluster to use")
-	rootCmd.PersistentFlags().StringP("namespace", "n", "flux-system", "The kubernetes namespace to use for CLI requests.")
+	// flags
 	rootCmd.PersistentFlags().String("terraform", "/usr/bin/terraform", "The location of the terraform binary.")
+	kubeconfigArgs.AddFlags(rootCmd.PersistentFlags())
 
-	config.BindPFlag("kubeconfig", rootCmd.PersistentFlags().Lookup("kubeconfig"))
-	config.BindPFlag("context", rootCmd.PersistentFlags().Lookup("context"))
-	config.BindPFlag("cluster", rootCmd.PersistentFlags().Lookup("cluster"))
-	config.BindPFlag("namespace", rootCmd.PersistentFlags().Lookup("namespace"))
-	config.BindPFlag("terraform", rootCmd.PersistentFlags().Lookup("terraform"))
-
-	config.BindEnv("kubeconfig")
+	// bind flags to config
+	config.BindPFlags(rootCmd.PersistentFlags())
 
 	rootCmd.AddCommand(buildVersionCmd(app))
 	rootCmd.AddCommand(buildPlanGroup(app))
@@ -114,8 +105,7 @@ func buildInstallCmd(app *tfctl.CLI) *cobra.Command {
 	}
 	install.Flags().String("version", "", "The version of tf-controller to install.")
 	install.Flags().Bool("export", false, "Print installation manifests to stdout")
-	viper.BindPFlag("version", install.Flags().Lookup("version"))
-	viper.BindPFlag("export", install.Flags().Lookup("export"))
+	viper.BindPFlags(install.Flags())
 	return install
 }
 
@@ -186,10 +176,8 @@ func buildPlanGroup(app *tfctl.CLI) *cobra.Command {
 		Use:   "plan",
 		Short: "Plan a Terraform configuration",
 	}
-
 	cmd.AddCommand(buildPlanShowCmd(app))
 	cmd.AddCommand(buildPlanApproveCmd(app))
-
 	return cmd
 }
 
@@ -241,9 +229,7 @@ func buildGetGroup(app *tfctl.CLI) *cobra.Command {
 			return app.Get(os.Stdout)
 		},
 	}
-
 	cmd.AddCommand(buildGetTerraformCmd(app))
-
 	return cmd
 }
 
@@ -262,7 +248,6 @@ func buildGetTerraformCmd(app *tfctl.CLI) *cobra.Command {
 			return app.GetTerraform(os.Stdout, args[0])
 		},
 	}
-
 	return cmd
 }
 
@@ -281,7 +266,6 @@ func buildDeleteCommand(app *tfctl.CLI) *cobra.Command {
 			return app.DeleteTerraform(os.Stdout, args[0])
 		},
 	}
-
 	return cmd
 }
 
@@ -313,9 +297,14 @@ func buildCreateCmd(app *tfctl.CLI) *cobra.Command {
 	create.Flags().String("source", "", "")
 	create.Flags().String("interval", "", "")
 	create.Flags().Bool("export", false, "Print generated Terraform resource to stdout")
-	viper.BindPFlag("path", create.Flags().Lookup("path"))
-	viper.BindPFlag("source", create.Flags().Lookup("source"))
-	viper.BindPFlag("interval", create.Flags().Lookup("interval"))
-	viper.BindPFlag("export", create.Flags().Lookup("export"))
+	viper.BindPFlags(create.Flags())
 	return create
+}
+
+func configureDefaultNamespace() {
+	*kubeconfigArgs.Namespace = defaultNamespace
+	fromEnv := os.Getenv("FLUX_SYSTEM_NAMESPACE")
+	if fromEnv != "" {
+		kubeconfigArgs.Namespace = &fromEnv
+	}
 }
