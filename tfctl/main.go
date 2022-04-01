@@ -1,7 +1,6 @@
 package tfctl
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -92,13 +91,7 @@ func download(version, resource string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	var data bytes.Buffer
-	_, err = io.Copy(&data, resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return data.Bytes(), nil
+	return io.ReadAll(resp.Body)
 }
 
 func newManager(kubeClient client.Client) (*ssa.ResourceManager, error) {
