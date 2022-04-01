@@ -55,8 +55,9 @@ func (c *CLI) ShowPlan(out io.Writer, resource string) error {
 		return err
 	}
 	defer func() {
-		os.Remove(planFile.Name())
-		os.Remove(tmpDir)
+		if err := os.RemoveAll(tmpDir); err != nil {
+			fmt.Fprintf(out, "failed to remove temporary directory %s: %s", tmpDir, err)
+		}
 	}()
 
 	if err := os.WriteFile(planFile.Name(), data, 0644); err != nil {
