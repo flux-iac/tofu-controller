@@ -12,14 +12,14 @@ import (
 )
 
 // Install installs the tf-controller resources into the cluster.
-func (c *CLI) Install(out io.Writer, version string, export bool) (retErr error) {
+func (c *CLI) Install(out io.Writer, version string, export bool) (err error) {
 	if version == "" {
 		version = c.release
 	}
 
-	manager, retErr := newManager(c.client)
-	if retErr != nil {
-		return retErr
+	manager, err := newManager(c.client)
+	if err != nil {
+		return err
 	}
 
 	if !export {
@@ -34,12 +34,12 @@ func (c *CLI) Install(out io.Writer, version string, export bool) (retErr error)
 			StopColors:    []string{"fgGreen"},
 		}
 
-		spinner, retErr := yacspin.New(spinConfig)
-		if retErr != nil {
-			return retErr
+		spinner, err := yacspin.New(spinConfig)
+		if err != nil {
+			return err
 		}
 		defer func() {
-			if retErr != nil {
+			if err != nil {
 				spinner.StopFail()
 			}
 			spinner.Stop()
@@ -48,9 +48,9 @@ func (c *CLI) Install(out io.Writer, version string, export bool) (retErr error)
 	}
 
 	for _, k := range []string{"crds", "rbac", "deployment"} {
-		data, retErr := download(version, k)
-		if retErr != nil {
-			return retErr
+		data, err := download(version, k)
+		if err != nil {
+			return err
 		}
 
 		if export {
@@ -58,19 +58,19 @@ func (c *CLI) Install(out io.Writer, version string, export bool) (retErr error)
 			continue
 		}
 
-		objects, retErr := ssa.ReadObjects(bytes.NewReader(data))
-		if retErr != nil {
-			return retErr
+		objects, err := ssa.ReadObjects(bytes.NewReader(data))
+		if err != nil {
+			return err
 		}
 
-		_, retErr = manager.ApplyAll(context.TODO(), objects, ssa.DefaultApplyOptions())
-		if retErr != nil {
-			return retErr
+		_, err = manager.ApplyAll(context.TODO(), objects, ssa.DefaultApplyOptions())
+		if err != nil {
+			return err
 		}
 
-		retErr = manager.Wait(objects, ssa.DefaultWaitOptions())
-		if retErr != nil {
-			return retErr
+		err = manager.Wait(objects, ssa.DefaultWaitOptions())
+		if err != nil {
+			return err
 		}
 	}
 
