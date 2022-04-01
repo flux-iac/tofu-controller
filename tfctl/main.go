@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/fluxcd/pkg/ssa"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -58,9 +59,9 @@ func (c *CLI) Init(config *viper.Viper) error {
 	}
 
 	scheme := runtime.NewScheme()
-	_ = corev1.AddToScheme(scheme)
-	_ = appsv1.AddToScheme(scheme)
-	_ = infrav1.AddToScheme(scheme)
+	cobra.CheckErr(corev1.AddToScheme(scheme))
+	cobra.CheckErr(appsv1.AddToScheme(scheme))
+	cobra.CheckErr(infrav1.AddToScheme(scheme))
 
 	client, err := client.NewWithWatch(k8sConfig, client.Options{
 		Scheme: scheme,

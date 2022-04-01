@@ -22,7 +22,7 @@ var (
 func main() {
 	cmd := newRootCommand()
 	if err := cmd.Execute(); err != nil {
-		os.Exit(1)
+		cobra.CheckErr(err)
 	}
 }
 
