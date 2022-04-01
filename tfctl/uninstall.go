@@ -17,21 +17,19 @@ import (
 )
 
 // Uninstall removes the tf-controller resources from the cluster.
-func (c *CLI) Uninstall(out io.Writer) (retErr error) {
+func (c *CLI) Uninstall(out io.Writer) error {
 	ctx := context.Background()
 
 	var deployment appsv1.Deployment
-	retErr = c.client.Get(ctx, types.NamespacedName{
+	if err := c.client.Get(ctx, types.NamespacedName{
 		Namespace: c.namespace,
 		Name:      "tf-controller",
-	}, &deployment)
-
-	if retErr != nil {
-		if apierrors.IsNotFound(retErr) {
+	}, &deployment); err != nil {
+		if apierrors.IsNotFound(err) {
 			fmt.Fprintf(out, "tf-controller not found in %s namespace.\n", c.namespace)
 			return nil
 		}
-		return retErr
+		return err
 	}
 
 	var version string
@@ -48,9 +46,9 @@ func (c *CLI) Uninstall(out io.Writer) (retErr error) {
 		return errors.New("could not determine tf-controller version")
 	}
 
-	manager, retErr := newManager(c.client)
-	if retErr != nil {
-		return retErr
+	manager, err := newManager(c.client)
+	if err != nil {
+		return err
 	}
 
 	spinConfig := yacspin.Config{
@@ -64,13 +62,13 @@ func (c *CLI) Uninstall(out io.Writer) (retErr error) {
 		StopColors:    []string{"fgGreen"},
 	}
 
-	spinner, retErr := yacspin.New(spinConfig)
-	if retErr != nil {
-		return retErr
+	spinner, err := yacspin.New(spinConfig)
+	if err != nil {
+		return err
 	}
 
 	defer func() {
-		if retErr != nil {
+		if err != nil {
 			spinner.StopFail()
 		}
 		spinner.Stop()
@@ -79,24 +77,24 @@ func (c *CLI) Uninstall(out io.Writer) (retErr error) {
 	spinner.Start()
 
 	for _, k := range []string{"crds", "rbac", "deployment"} {
-		data, retErr := download(version, k)
-		if retErr != nil {
-			return retErr
+		data, err := download(version, k)
+		if err != nil {
+			return err
 		}
 
-		objects, retErr := ssa.ReadObjects(bytes.NewReader(data))
-		if retErr != nil {
-			return retErr
+		objects, err := ssa.ReadObjects(bytes.NewReader(data))
+		if err != nil {
+			return err
 		}
 
-		_, retErr = manager.DeleteAll(context.TODO(), objects, ssa.DefaultDeleteOptions())
-		if retErr != nil {
-			return retErr
+		_, err = manager.DeleteAll(context.TODO(), objects, ssa.DefaultDeleteOptions())
+		if err != nil {
+			return err
 		}
 
-		retErr = manager.WaitForTermination(objects, ssa.DefaultWaitOptions())
-		if retErr != nil {
-			return retErr
+		err = manager.WaitForTermination(objects, ssa.DefaultWaitOptions())
+		if err != nil {
+			return err
 		}
 	}
 
