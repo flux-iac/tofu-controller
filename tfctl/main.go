@@ -14,7 +14,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -39,24 +38,7 @@ func New(build, release string) *CLI {
 }
 
 // Init initializes the CLI instance for a given kubeconfig, namespace and terraform binary
-func (c *CLI) Init(config *viper.Viper) error {
-	var kubeconfigArgs = genericclioptions.NewConfigFlags(false)
-
-	kubeconfigArgs.KubeConfig = stringp(config.GetString("kubeconfig"))
-
-	if config.GetString("context") != "" {
-		kubeconfigArgs.Context = stringp(config.GetString("context"))
-	}
-
-	if config.GetString("cluster") != "" {
-		kubeconfigArgs.ClusterName = stringp(config.GetString("cluster"))
-	}
-
-	k8sConfig, err := kubeconfigArgs.ToRESTConfig()
-	if err != nil {
-		return err
-	}
-
+func (c *CLI) Init(k8sConfig *rest.Config, config *viper.Viper) error {
 	scheme := runtime.NewScheme()
 	cobra.CheckErr(corev1.AddToScheme(scheme))
 	cobra.CheckErr(appsv1.AddToScheme(scheme))
