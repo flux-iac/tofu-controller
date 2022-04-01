@@ -21,9 +21,7 @@ var (
 
 func main() {
 	cmd := newRootCommand()
-	if err := cmd.Execute(); err != nil {
-		cobra.CheckErr(err)
-	}
+	cobra.CheckErr(cmd.Execute())
 }
 
 func newRootCommand() *cobra.Command {
