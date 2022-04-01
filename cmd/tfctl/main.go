@@ -20,13 +20,13 @@ var (
 )
 
 func main() {
-	cmd := run()
+	cmd := newRootCommand()
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }
 
-func run() *cobra.Command {
+func newRootCommand() *cobra.Command {
 	app := tfctl.New(BuildSHA, BuildVersion)
 
 	config := viper.New()
