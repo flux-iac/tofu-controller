@@ -69,11 +69,23 @@ func download(version, resource string) ([]byte, error) {
 
 	resp, err := http.Get(url)
 	if err != nil {
+		return nil, fmt.Errorf("failed to download manifest file: %w", err)
+	} else if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to download manifest file with status code: %s", resp.Status)
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		resp.Body.Close()
 		return nil, err
 	}
-	defer resp.Body.Close()
 
-	return io.ReadAll(resp.Body)
+	err = resp.Body.Close()
+	if err != nil {
+		return nil, fmt.Errorf("failed to close response body: %w", err)
+	}
+
+	return data, nil
 }
 
 func newManager(kubeClient client.Client) (*ssa.ResourceManager, error) {
