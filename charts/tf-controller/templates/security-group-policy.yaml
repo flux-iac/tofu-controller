@@ -1,4 +1,4 @@
-{{- if .Values.securityGroupPolicy.create }}
+{{- if .Values.eksSecurityGroupPolicy.create }}
 ---
 apiVersion: vpcresources.k8s.aws/v1beta1
 kind: SecurityGroupPolicy
@@ -14,7 +14,7 @@ spec:
       app.kubernetes.io/name: {{ include "tf-controller.name" . }}
   securityGroups:
     groupIds:
-    {{- with .Values.securityGroupPolicy.ids }}
+    {{- with .Values.eksSecurityGroupPolicy.ids }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 {{- end }}

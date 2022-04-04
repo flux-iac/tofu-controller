@@ -49,3 +49,5 @@ The following table lists the configurable parameters of the TF-controller chart
 | `podAnnotations`                                  | `{}`                                        | Additional pod annotations
 | `podSecurityContext`                              | `{}`                                        | Pod security context configurations
 | `securityContext`                                 | `{}`                                        | Container security context configurations
+| `eksSecurityGroupPolicy.create`                   | `false`                                     | Create the EKS SecurityGroupPolicy
+| `eksSecurityGroupPolicy.ids`                      | `[]`                                        | List of AWS Security Group IDs
