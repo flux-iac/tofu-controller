@@ -51,25 +51,15 @@ func (c *CLI) ShowPlan(out io.Writer, resource string) error {
 		return err
 	}
 
-	planFile, err := os.Create(filepath.Join(tmpDir, "tfctl-plan"))
-	if err != nil {
-		return err
-	}
-
 	defer func() {
 		if err := os.RemoveAll(tmpDir); err != nil {
 			fmt.Fprintf(out, "failed to remove temporary directory %s: %s", tmpDir, err)
 		}
 	}()
 
-	if _, err := planFile.Write(data); err != nil {
-		planFile.Close()
+	planFilepath := filepath.Join(tmpDir, "tfctl-plan")
+	if err := os.WriteFile(planFilepath, data, 0644); err != nil {
 		return fmt.Errorf("failed to write plan: %w", err)
-	}
-
-	err = planFile.Close()
-	if err != nil {
-		return fmt.Errorf("failed to write data to plan file: %w", err)
 	}
 
 	tf, err := tfexec.NewTerraform(tmpDir, c.terraform)
@@ -77,7 +67,7 @@ func (c *CLI) ShowPlan(out io.Writer, resource string) error {
 		return fmt.Errorf("failed to create Terraform instance: %w", err)
 	}
 
-	result, err := tf.ShowPlanFileRaw(context.TODO(), planFile.Name())
+	result, err := tf.ShowPlanFileRaw(context.TODO(), planFilepath)
 	if err != nil {
 		return fmt.Errorf("failed to parse Terraform plan: %w", err)
 	}
