@@ -112,15 +112,15 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 			Vars: []infrav1.Variable{
 				{
 					Name:  "kubeconfig",
-					Value: utils.JsonEncodeBytes([]byte(testEnvKubeConfigPath)),
+					Value: utils.MustJSONEncodeBytes([]byte(testEnvKubeConfigPath)),
 				},
 				{
 					Name:  "context",
-					Value: utils.JsonEncodeBytes([]byte("envtest")),
+					Value: utils.MustJSONEncodeBytes([]byte("envtest")),
 				},
 				{
 					Name:  "config_name",
-					Value: utils.JsonEncodeBytes([]byte("cm-" + terraformName)),
+					Value: utils.MustJSONEncodeBytes([]byte("cm-" + terraformName)),
 				},
 			},
 		},
