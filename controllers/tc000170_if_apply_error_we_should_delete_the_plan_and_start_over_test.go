@@ -110,15 +110,15 @@ func Test_000170_if_apply_error_the_plan_should_be_deleted_and_start_over_test(t
 			Vars: []infrav1.Variable{
 				{
 					Name:  "kubeconfig",
-					Value: utils.JsonEncodeBytes([]byte(testEnvKubeConfigPath)),
+					Value: utils.MustJSONEncodeBytes([]byte(testEnvKubeConfigPath)),
 				},
 				{
 					Name:  "context",
-					Value: utils.JsonEncodeBytes([]byte("envtest")),
+					Value: utils.MustJSONEncodeBytes([]byte("envtest")),
 				},
 				{
 					Name:  "config_name",
-					Value: utils.JsonEncodeBytes([]byte("cm-" + terraformName)),
+					Value: utils.MustJSONEncodeBytes([]byte("cm-" + terraformName)),
 				},
 			},
 		},

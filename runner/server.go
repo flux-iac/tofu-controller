@@ -205,11 +205,17 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 			// if VarsKeys is null, use all
 			if vf.VarsKeys == nil {
 				for key, val := range s.Data {
-					vars[key] = utils.JsonEncodeBytes(val)
+					vars[key], err = utils.JSONEncodeBytes(val)
+					if err != nil {
+						return nil, fmt.Errorf("failed to encode key %s with error: %w", key, err)
+					}
 				}
 			} else {
 				for _, key := range vf.VarsKeys {
-					vars[key] = utils.JsonEncodeBytes(s.Data[key])
+					vars[key], err = utils.JSONEncodeBytes(s.Data[key])
+					if err != nil {
+						return nil, fmt.Errorf("failed to encode key %s with error: %w", key, err)
+					}
 				}
 			}
 		} else if vf.Kind == "ConfigMap" {
@@ -222,18 +228,30 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 			// if VarsKeys is null, use all
 			if vf.VarsKeys == nil {
 				for key, val := range cm.Data {
-					vars[key] = utils.JsonEncodeBytes([]byte(val))
+					vars[key], err = utils.JSONEncodeBytes([]byte(val))
+					if err != nil {
+						return nil, fmt.Errorf("failed to encode key %s with error: %w", key, err)
+					}
 				}
 				for key, val := range cm.BinaryData {
-					vars[key] = utils.JsonEncodeBytes(val)
+					vars[key], err = utils.JSONEncodeBytes(val)
+					if err != nil {
+						return nil, fmt.Errorf("failed to encode key %s with error: %w", key, err)
+					}
 				}
 			} else {
 				for _, key := range vf.VarsKeys {
 					if val, ok := cm.Data[key]; ok {
-						vars[key] = utils.JsonEncodeBytes([]byte(val))
+						vars[key], err = utils.JSONEncodeBytes([]byte(val))
+						if err != nil {
+							return nil, fmt.Errorf("failed to encode key %s with error: %w", key, err)
+						}
 					}
 					if val, ok := cm.BinaryData[key]; ok {
-						vars[key] = utils.JsonEncodeBytes(val)
+						vars[key], err = utils.JSONEncodeBytes(val)
+						if err != nil {
+							return nil, err
+						}
 					}
 				}
 			}
