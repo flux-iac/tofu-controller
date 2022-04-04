@@ -3,7 +3,7 @@
 apiVersion: vpcresources.k8s.aws/v1beta1
 kind: SecurityGroupPolicy
 metadata:
-  name: tf-controller
+  name: {{ include "tf-controller.name" . }}
   namespace: {{ .Release.Namespace }}
   # Tell helm to deploy this first
   annotations:
@@ -11,7 +11,7 @@ metadata:
 spec:
   serviceAccountSelector:
     matchLabels:
-      app.kubernetes.io/name: tf-controller
+      app.kubernetes.io/name: {{ include "tf-controller.name" . }}
   securityGroups:
     groupIds:
     {{- with .Values.securityGroupPolicy.ids }}
