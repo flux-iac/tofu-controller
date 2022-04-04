@@ -1,0 +1,20 @@
+{{- if .Values.securityGroupPolicy.create }}
+---
+apiVersion: vpcresources.k8s.aws/v1beta1
+kind: SecurityGroupPolicy
+metadata:
+  name: tf-controller
+  namespace: {{ .Release.Namespace }}
+  # Tell helm to deploy this first
+  annotations:
+    "helm.sh/hook": "pre-install"
+spec:
+  serviceAccountSelector:
+    matchLabels:
+      app.kubernetes.io/name: tf-controller
+  securityGroups:
+    groupIds:
+    {{- with .Values.securityGroupPolicy.ids }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}

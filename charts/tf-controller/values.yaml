@@ -60,3 +60,13 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# Create an AWS EKS Security Group Policy with the supplied Security Group IDs
+# https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html#deploy-securitygrouppolicy
+securityGroupPolicy:
+  create: false
+  ids: []
+    #- sg-1234567890
+    #- sg-1234567891
+    #- sg-1234567892
+
