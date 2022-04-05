@@ -177,7 +177,7 @@ func main() {
 		Scheme:          mgr.GetScheme(),
 		EventRecorder:   eventRecorder,
 		MetricsRecorder: metricsRecorder,
-		StatusPoller:    polling.NewStatusPoller(mgr.GetClient(), mgr.GetRESTMapper()),
+		StatusPoller:    polling.NewStatusPoller(mgr.GetClient(), mgr.GetRESTMapper(), polling.Options{}),
 		CertRotator:     rotator,
 		RunnerGRPCPort:  runnerGRPCPort,
 	}
