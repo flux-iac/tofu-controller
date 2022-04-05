@@ -3,7 +3,17 @@ entries:
   tf-controller:
   - apiVersion: v2
     appVersion: v0.9.3
-    created: "2022-03-28T12:12:48.327556077Z"
+    created: "2022-04-05T11:37:59.738626581Z"
+    description: The Helm chart for Weave GitOps Terraform Controller
+    digest: 71e07088649c151118621b924ecab6d82529cbc11c287ac2ec3a9804de45137f
+    name: tf-controller
+    type: application
+    urls:
+    - https://weaveworks.github.io/tf-controller/tf-controller-0.2.6.tgz
+    version: 0.2.6
+  - apiVersion: v2
+    appVersion: v0.9.3
+    created: "2022-04-05T11:37:59.737213902Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: 4c4125b6313a9d900280c826bca170aec2f7b9ed6df56b3322c7bd1f7bdd3b12
     name: tf-controller
@@ -13,7 +23,7 @@ entries:
     version: 0.2.5
   - apiVersion: v2
     appVersion: v0.9.2
-    created: "2022-03-28T12:12:48.327110084Z"
+    created: "2022-04-05T11:37:59.736590111Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: cf41cde1688c6e9fb9778637795880ab526848cc3d1239f80ef7a832797e33df
     name: tf-controller
@@ -23,7 +33,7 @@ entries:
     version: 0.2.4
   - apiVersion: v2
     appVersion: v0.9.0
-    created: "2022-03-28T12:12:48.326018882Z"
+    created: "2022-04-05T11:37:59.73600592Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: d213bdbc3f558a2df710ccb33a4562cc6827df6dfbc946cb6cb5b4c0005d0e90
     name: tf-controller
@@ -33,7 +43,7 @@ entries:
     version: 0.2.3
   - apiVersion: v2
     appVersion: v0.9.0-rc.8
-    created: "2022-03-28T12:12:48.325125814Z"
+    created: "2022-04-05T11:37:59.735371529Z"
     description: A Helm chart for TF-controller
     digest: 2024d2deaf3eea109eb04d70a2fd6307375a2cc0c867291638885bcc049285bf
     name: tf-controller
@@ -43,7 +53,7 @@ entries:
     version: 0.2.2
   - apiVersion: v2
     appVersion: v0.9.0-rc.8
-    created: "2022-03-28T12:12:48.323970916Z"
+    created: "2022-04-05T11:37:59.734761538Z"
     description: A Helm chart for TF-controller
     digest: baa896da81ce8c4e3c4a3cd1c0d8874fdc1841bfec8bdd75da2c0963bbaaf901
     name: tf-controller
@@ -53,7 +63,7 @@ entries:
     version: 0.2.1
   - apiVersion: v2
     appVersion: v0.9.0-rc.8
-    created: "2022-03-28T12:12:48.323572382Z"
+    created: "2022-04-05T11:37:59.734191847Z"
     description: A Helm chart for TF-controller
     digest: fa3050d7ebaf9912070f8fcda8ea05334772d8a5057e0c3271ffbeb5869f749e
     name: tf-controller
@@ -63,7 +73,7 @@ entries:
     version: 0.2.0
   - apiVersion: v2
     appVersion: v0.9.0-rc.7
-    created: "2022-03-28T12:12:48.32317545Z"
+    created: "2022-04-05T11:37:59.733680554Z"
     description: A Helm chart for TF-controller
     digest: 94ba8c2068b6398abc7468e07856998ad3fa32df38c06f27dd2c3a714e481668
     name: tf-controller
@@ -73,7 +83,7 @@ entries:
     version: 0.1.9
   - apiVersion: v2
     appVersion: v0.9.0-rc.6
-    created: "2022-03-28T12:12:48.322761737Z"
+    created: "2022-04-05T11:37:59.733234061Z"
     description: A Helm chart for TF-controller
     digest: c7e2a4be49792a07ff1d5de74068841244e6a18cd80941e77b79b85d878d5ebd
     name: tf-controller
@@ -83,7 +93,7 @@ entries:
     version: 0.1.8
   - apiVersion: v2
     appVersion: v0.9.0-rc.5
-    created: "2022-03-28T12:12:48.322360908Z"
+    created: "2022-04-05T11:37:59.732140277Z"
     description: A Helm chart for TF-controller
     digest: 91e49f670b821c0d405c433f99be81227d8632d468092cc2d7b9c43b15e31ffe
     name: tf-controller
@@ -93,7 +103,7 @@ entries:
     version: 0.1.7
   - apiVersion: v2
     appVersion: v0.9.0-rc.4
-    created: "2022-03-28T12:12:48.32196062Z"
+    created: "2022-04-05T11:37:59.731378788Z"
     description: A Helm chart for TF-controller
     digest: e48159f4b0b073ed6a921f5e43f28daa94b7abdaeabd2214d293592b15369b60
     name: tf-controller
@@ -103,7 +113,7 @@ entries:
     version: 0.1.6
   - apiVersion: v2
     appVersion: v0.9.0-rc.3
-    created: "2022-03-28T12:12:48.321379866Z"
+    created: "2022-04-05T11:37:59.730611599Z"
     description: A Helm chart for TF-controller
     digest: 509b79d5e4bb9b5d90c7df4ca9813441e604a4b53a46dbc2473e1362974fa104
     name: tf-controller
@@ -113,7 +123,7 @@ entries:
     version: 0.1.5
   - apiVersion: v2
     appVersion: v0.9.0-rc.3
-    created: "2022-03-28T12:12:48.320960031Z"
+    created: "2022-04-05T11:37:59.730023008Z"
     description: A Helm chart for TF-controller
     digest: 19b0b1743355aedbf75e84ea918f65d043f20f64a6cd01b4e8b83cd7ec3f11a3
     name: tf-controller
@@ -123,7 +133,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: v0.9.0-rc.2
-    created: "2022-03-28T12:12:48.320527894Z"
+    created: "2022-04-05T11:37:59.729353618Z"
     description: A Helm chart for TF-controller
     digest: bf49cc3e28078db1dc3834cc3ade1d9afe1242beb346829c1c6cff30a927f286
     name: tf-controller
@@ -133,7 +143,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: v0.9.0-rc.1
-    created: "2022-03-28T12:12:48.320074948Z"
+    created: "2022-04-05T11:37:59.728677228Z"
     description: A Helm chart for TF-controller
     digest: 5228c16cdca65a226765e8cabfaf70e3a812af515d47aaaa27fe04a34f98b777
     name: tf-controller
@@ -143,7 +153,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 0.8.0
-    created: "2022-03-28T12:12:48.319667567Z"
+    created: "2022-04-05T11:37:59.728040537Z"
     description: A Helm chart for TF-controller
     digest: 2b43597c7f9425b216fe73927067adbbbb2c4b31d6a7da90f2adbba0b88e94fe
     name: tf-controller
@@ -153,7 +163,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 0.8.0
-    created: "2022-03-28T12:12:48.319290432Z"
+    created: "2022-04-05T11:37:59.727120351Z"
     description: A Helm chart for TF-controller
     digest: 5e2f047e69bcc74012ef2119671eadb7c77a268acb206c304ddd993ecf86c516
     name: tf-controller
@@ -161,4 +171,4 @@ entries:
     urls:
     - https://weaveworks.github.io/tf-controller/tf-controller-0.1.0.tgz
     version: 0.1.0
-generated: "2022-03-28T12:12:48.318749071Z"
+generated: "2022-04-05T11:37:59.726153765Z"
