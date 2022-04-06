@@ -167,6 +167,9 @@ func TestMain(m *testing.M) {
 	server.RouteToHandler("GET", "/tf-hcl-var-with-outputs.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/tf-hcl-var-with-outputs.tar.gz")
 	})
+	server.RouteToHandler("GET", "/tf-hcl-vars-advanced-example.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-hcl-vars-advanced-example.tar.gz")
+	})
 	// for health check http test
 	server.RouteToHandler("GET", "/get", func(writer http.ResponseWriter, request *http.Request) {
 		ghttp.RespondWith(http.StatusOK, "ok")
