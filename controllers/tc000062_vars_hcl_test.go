@@ -116,7 +116,7 @@ func Test_000062_vars_hcl_test(t *testing.T) {
 			Vars: []infrav1.Variable{
 				{
 					Name:  "cluster_name",
-					Value: utils.MustJSONEncodeBytes([]byte(clusterName)),
+					Value: utils.MustJSONEncodeBytes(t, []byte(clusterName)),
 				},
 			},
 			VarsFrom: []infrav1.VarsReference{

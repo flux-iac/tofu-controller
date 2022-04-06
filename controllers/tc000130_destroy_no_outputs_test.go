@@ -105,15 +105,15 @@ func Test_000130_destroy_no_outputs_test(t *testing.T) {
 			Vars: []infrav1.Variable{
 				{
 					Name:  "kubeconfig",
-					Value: utils.MustJSONEncodeBytes([]byte(testEnvKubeConfigPath)),
+					Value: utils.MustJSONEncodeBytes(t, []byte(testEnvKubeConfigPath)),
 				},
 				{
 					Name:  "context",
-					Value: utils.MustJSONEncodeBytes([]byte("envtest")),
+					Value: utils.MustJSONEncodeBytes(t, []byte("envtest")),
 				},
 				{
 					Name:  "config_name",
-					Value: utils.MustJSONEncodeBytes([]byte("cm-" + terraformName)),
+					Value: utils.MustJSONEncodeBytes(t, []byte("cm-"+terraformName)),
 				},
 			},
 		},
