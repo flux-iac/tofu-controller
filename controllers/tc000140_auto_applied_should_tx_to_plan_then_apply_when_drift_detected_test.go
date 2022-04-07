@@ -2,10 +2,11 @@ package controllers
 
 import (
 	"context"
-	"github.com/weaveworks/tf-controller/utils"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/weaveworks/tf-controller/utils"
 
 	. "github.com/onsi/gomega"
 
@@ -98,15 +99,15 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 			Vars: []infrav1.Variable{
 				{
 					Name:  "kubeconfig",
-					Value: utils.JsonEncodeBytes([]byte(testEnvKubeConfigPath)),
+					Value: utils.MustJSONEncodeBytes(t, []byte(testEnvKubeConfigPath)),
 				},
 				{
 					Name:  "context",
-					Value: utils.JsonEncodeBytes([]byte("envtest")),
+					Value: utils.MustJSONEncodeBytes(t, []byte("envtest")),
 				},
 				{
 					Name:  "config_name",
-					Value: utils.JsonEncodeBytes([]byte("cm-" + terraformName)),
+					Value: utils.MustJSONEncodeBytes(t, []byte("cm-"+terraformName)),
 				},
 			},
 		},
