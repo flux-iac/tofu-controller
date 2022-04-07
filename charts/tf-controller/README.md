@@ -20,6 +20,8 @@ helm upgrade -i tf-controller tf-controller/tf-controller \
 
 The following table lists the configurable parameters of the TF-controller chart and their default values.
 
+__Note__: If you need to use the `imagePullSecrets` it would be best to set `serviceAccount.create: true` and `runner.serviceAccount.create: true`
+
 | Parameter                                         | Default                                     | Description
 | -----------------------------------------------   |---------------------------------------------| ---
 | `image.repository`                                | `ghcr.io/weaveworks/tf-controller`          | Controller image repository
