@@ -18,9 +18,11 @@ spec:
       labels:
         {{- include "tf-controller.selectorLabels" . | nindent 10 }}
     spec:
+      {{- if not .Values.serviceAccount.create }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- end }}
       containers:
       - args:
