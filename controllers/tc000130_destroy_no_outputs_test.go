@@ -2,10 +2,11 @@ package controllers
 
 import (
 	"context"
-	"github.com/weaveworks/tf-controller/utils"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/weaveworks/tf-controller/utils"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
@@ -176,7 +177,7 @@ func Test_000130_destroy_no_outputs_test(t *testing.T) {
 			return nil
 		}
 		return map[string]interface{}{
-			"SavedPlan":             tfplanSecret.Labels["savedPlan"],
+			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
 			"Is TFPlan empty ?":     string(tfplanSecret.Data["tfplan"]) == "",
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
 		}

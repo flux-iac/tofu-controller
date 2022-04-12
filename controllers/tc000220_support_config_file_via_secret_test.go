@@ -174,7 +174,7 @@ credentials "app.terraform.io" {
 			return nil
 		}
 		return map[string]interface{}{
-			"SavedPlan":         tfplanSecret.Labels["savedPlan"],
+			"SavedPlan":         tfplanSecret.Annotations["savedPlan"],
 			"Is TFPlan empty ?": string(tfplanSecret.Data["tfplan"]) == "",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{

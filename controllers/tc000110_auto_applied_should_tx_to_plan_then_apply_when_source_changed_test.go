@@ -143,7 +143,7 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 			return nil
 		}
 		return map[string]interface{}{
-			"SavedPlan":             tfplanSecret.Labels["savedPlan"],
+			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
 			"TFPlanEmpty":           string(tfplanSecret.Data["tfplan"]) == "",
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
 		}
@@ -237,7 +237,7 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 			return nil
 		}
 		return map[string]interface{}{
-			"SavedPlan":   tfplanSecret.Labels["savedPlan"],
+			"SavedPlan":   tfplanSecret.Annotations["savedPlan"],
 			"TFPlanEmpty": string(tfplanSecret.Data["tfplan"]) == "",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
