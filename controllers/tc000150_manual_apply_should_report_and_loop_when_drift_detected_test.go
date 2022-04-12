@@ -2,11 +2,12 @@ package controllers
 
 import (
 	"context"
-	"github.com/weaveworks/tf-controller/utils"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/weaveworks/tf-controller/utils"
 
 	. "github.com/onsi/gomega"
 
@@ -170,7 +171,7 @@ func Test_000150_manual_apply_should_report_and_loop_when_drift_detected_test(t 
 			return nil
 		}
 		return map[string]interface{}{
-			"SavedPlan":             tfplanSecret.Labels["savedPlan"],
+			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
 			"Is TFPlan empty ?":     string(tfplanSecret.Data["tfplan"]) == "",
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
 		}
