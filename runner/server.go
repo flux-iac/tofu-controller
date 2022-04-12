@@ -29,6 +29,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+const (
+	TFPlanName                = "tfplan"
+	SavedPlanSecretAnnotation = "savedPlan"
+)
+
 type TerraformRunnerServer struct {
 	UnimplementedRunnerServer
 	tf *tfexec.Terraform
@@ -327,14 +332,12 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 		return nil, fmt.Errorf("no TF instance found")
 	}
 
-	const tfplanFilename = "tfplan"
-
 	var tfplan []byte
 	if req.BackendCompletelyDisable {
 		tfplan = []byte("dummy plan")
 	} else {
 		var err error
-		tfplan, err = ioutil.ReadFile(filepath.Join(r.tf.WorkingDir(), tfplanFilename))
+		tfplan, err = ioutil.ReadFile(filepath.Join(r.tf.WorkingDir(), TFPlanName))
 		if err != nil {
 			err = fmt.Errorf("error running Plan: %s", err)
 			return nil, err
@@ -368,7 +371,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 		return nil, err
 	}
 
-	tfplanData := map[string][]byte{tfplanFilename: tfplan}
+	tfplanData := map[string][]byte{TFPlanName: tfplan}
 	tfplanSecret = corev1.Secret{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Secret",
@@ -377,11 +380,9 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "tfplan-default-" + req.Name,
 			Namespace: req.Namespace,
-			Labels: map[string]string{
-				"savedPlan": planName,
-			},
 			Annotations: map[string]string{
-				"encoding": "gzip",
+				"encoding":                "gzip",
+				SavedPlanSecretAnnotation: planName,
 			},
 			OwnerReferences: []metav1.OwnerReference{
 				{
@@ -405,11 +406,6 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 }
 
 func (r *TerraformRunnerServer) LoadTFPlan(ctx context.Context, req *LoadTFPlanRequest) (*LoadTFPlanReply, error) {
-	const (
-		TFPlanName           = "tfplan"
-		SavedPlanSecretLabel = "savedPlan"
-	)
-
 	if req.TfInstance != "1" {
 		return nil, fmt.Errorf("no TF instance found")
 	}
@@ -422,10 +418,10 @@ func (r *TerraformRunnerServer) LoadTFPlan(ctx context.Context, req *LoadTFPlanR
 		return nil, err
 	}
 
-	if tfplanSecret.Labels[SavedPlanSecretLabel] != req.PendingPlan {
+	if tfplanSecret.Annotations[SavedPlanSecretAnnotation] != req.PendingPlan {
 		err = fmt.Errorf("error pending plan and plan's name in the secret are not matched: %s != %s",
 			req.PendingPlan,
-			tfplanSecret.Labels[SavedPlanSecretLabel])
+			tfplanSecret.Annotations[SavedPlanSecretAnnotation])
 		return nil, err
 	}
 
