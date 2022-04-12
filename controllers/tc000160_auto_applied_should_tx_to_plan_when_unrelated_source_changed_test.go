@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"context"
-	"github.com/weaveworks/tf-controller/utils"
 	"testing"
 	"time"
+
+	"github.com/weaveworks/tf-controller/utils"
 
 	. "github.com/onsi/gomega"
 
@@ -216,7 +217,7 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 			return nil
 		}
 		return map[string]interface{}{
-			"SavedPlan":             tfplanSecret.Labels["savedPlan"],
+			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
 			"TFPlanEmpty":           string(tfplanSecret.Data["tfplan"]) == "",
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
 		}
