@@ -25,6 +25,7 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
 ### Q2 2022
   * [ ] Improve security
   * [ ] Performance and scalability
+  * [ ] Cloud cost estimation
   * [ ] Interop with Notification controller's Events and Alert
   * [ ] CLI implementation: `tfctl`
   * [ ] Test coverage reaching 72.5%
