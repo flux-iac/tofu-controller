@@ -15,6 +15,7 @@ New Features and Bug Fixing:
   * Add Helm chart an option to specify AWS Security Group policy (@nalum)
   * Move plan revision from labels to annotations (@nalum)
   * Update images to include fix for CVE-2022-28391 (@chanwit)
+  * Update Terraform binary to 1.1.8 (@chanwit)
 
 Enhancement:
 
