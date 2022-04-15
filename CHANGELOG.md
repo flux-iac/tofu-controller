@@ -2,6 +2,22 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.9.4
+
+**Release date:** 2022-04-15
+
+This pre-release contains the following changes.
+
+New Features and Bug Fixing:
+  * Fix Helm chart to support image pull secrets for `tf-runner` Service Accounts (@nalum) 
+  * Upgrade Source Controller API to v0.22.4 (@tomhuang12)
+  * Fix json bytes encoding (@phoban01)
+  * Add Helm chart an option to specify AWS Security Group policy (@nalum)
+  * Move plan revision from labels to annotations (@nalum)
+  * Update images to include fix for CVE-2022-28391 (@chanwit)
+
+Enhancement:
+
 # v0.9.3
 
 **Release date:** 2022-03-28
