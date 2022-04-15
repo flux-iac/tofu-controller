@@ -32,7 +32,8 @@ FROM alpine:3.15.3
 LABEL org.opencontainers.image.source="https://github.com/weaveworks/tf-controller"
 
 RUN apk add --no-cache ca-certificates tini git openssh-client gnupg && \
-    apk add --no-cache libretls=3.3.4-r3
+    apk add --no-cache libretls=3.3.4-r3 && \
+    apk add --no-cache busybox=1.34.1-r5
 
 COPY --from=builder /workspace/tf-runner /usr/local/bin/
 COPY --from=builder /workspace/terraform /usr/local/bin/
