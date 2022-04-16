@@ -17,8 +17,6 @@ New Features and Bug Fixing:
   * Update images to include fix for CVE-2022-28391 (@chanwit)
   * Update Terraform binary to 1.1.8 (@chanwit)
 
-Enhancement:
-
 # v0.9.3
 
 **Release date:** 2022-03-28
