@@ -1,0 +1,41 @@
+project_name: tf-controller
+
+release:
+  prerelease: "true"
+  extra_files:
+    - glob: config/release/*.yaml
+
+checksum:
+  name_template: "checksums.txt"
+  extra_files:
+    - glob: config/release/*.yaml
+
+builds:
+  - id: tfctl
+    main: ./cmd/tfctl
+    binary: tfctl
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      -  -X main.BuildSHA={{.ShortCommit}} -X main.BuildVersion={{.Tag}}
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - 6
+      - 7
+
+archives:
+  - id: tfctl
+    builds:
+      - tfctl
+    name_template: "tfctl_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    replacements:
+      darwin: Darwin
+      linux: Linux
+    format: tar.gz
+
