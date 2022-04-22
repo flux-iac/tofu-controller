@@ -63,3 +63,19 @@ signs:
       - "${artifact}"
     artifacts: checksum
     output: true
+
+brews:
+  - name: tfctl
+    ids:
+    - tfctl
+    tap:
+      owner: weaveworks
+      name: homebrew-tap
+    commit_author:
+      name: weaveworksbot
+      email: team+gitbot@weave.works
+    folder: Formula
+    homepage: https://weaveworks.github.io/tf-controller
+    install: |
+      bin.install "tfctl"
+
