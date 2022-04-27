@@ -602,6 +602,18 @@ to allow the Terraform process to gracefully shutdown. Consider increasing for
 large, complex or slow-moving Terraform managed resources.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>refreshBeforeApply</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>RefreshBeforeApply forces refreshing of the state before the apply step.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -891,6 +903,18 @@ int64
 <p>Configure the termination grace period for the runner pod. Use this parameter
 to allow the Terraform process to gracefully shutdown. Consider increasing for
 large, complex or slow-moving Terraform managed resources.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>refreshBeforeApply</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>RefreshBeforeApply forces refreshing of the state before the apply step.</p>
 </td>
 </tr>
 </tbody>

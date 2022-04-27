@@ -51,7 +51,7 @@ func (r *TerraformRunnerServer) LookPath(ctx context.Context, req *LookPathReque
 }
 
 func (r *TerraformRunnerServer) UploadAndExtract(ctx context.Context, req *UploadAndExtractRequest) (*UploadAndExtractReply, error) {
-	tmpDir, err := os.MkdirTemp("", fmt.Sprintf("%s-%s-", req.Namespace, req.Name))
+	tmpDir, err := securejoin.SecureJoin(os.TempDir(), fmt.Sprintf("%s-%s", req.Namespace, req.Name))
 	if err != nil {
 		return nil, err
 	}
@@ -481,6 +481,10 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 	var applyOpt []tfexec.ApplyOption
 	if req.DirOrPlan != "" {
 		applyOpt = []tfexec.ApplyOption{tfexec.DirOrPlan(req.DirOrPlan)}
+	}
+
+	if req.RefreshBeforeApply {
+		applyOpt = []tfexec.ApplyOption{tfexec.Refresh(true)}
 	}
 
 	if err := r.tf.Apply(ctx, applyOpt...); err != nil {
