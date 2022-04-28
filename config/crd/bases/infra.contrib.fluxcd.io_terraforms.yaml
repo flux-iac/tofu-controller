@@ -156,6 +156,11 @@ spec:
                 description: Path to the directory containing Terraform (.tf) files.
                   Defaults to 'None', which translates to the root path of the SourceRef.
                 type: string
+              refreshBeforeApply:
+                default: false
+                description: RefreshBeforeApply forces refreshing of the state before
+                  the apply step.
+                type: boolean
               retryInterval:
                 description: The interval at which to retry a previously failed reconciliation.
                   When not specified, the controller uses the TerraformSpec.Interval

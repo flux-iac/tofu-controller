@@ -163,6 +163,11 @@ type TerraformSpec struct {
 	// +kubebuilder:default:=30
 	// +optional
 	RunnerTerminationGracePeriodSeconds *int64 `json:"runnerTerminationGracePeriodSeconds,omitempty"`
+
+	// RefreshBeforeApply forces refreshing of the state before the apply step.
+	// +kubebuilder:default:=false
+	// +optional
+	RefreshBeforeApply bool `json:"refreshBeforeApply,omitempty"`
 }
 
 type PlanStatus struct {

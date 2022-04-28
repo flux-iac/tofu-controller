@@ -1003,7 +1003,8 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	}
 
 	applyRequest := &runner.ApplyRequest{
-		TfInstance: tfInstance,
+		TfInstance:         tfInstance,
+		RefreshBeforeApply: terraform.Spec.RefreshBeforeApply,
 	}
 	if r.backendCompletelyDisable(terraform) {
 		// do nothing
