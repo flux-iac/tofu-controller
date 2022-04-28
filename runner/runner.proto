@@ -154,6 +154,7 @@ message LoadTFPlanReply {
 message ApplyRequest {
   string tfInstance = 1;
   string dirOrPlan = 2;
+  bool   refreshBeforeApply = 3;
 }
 
 message ApplyReply {
