@@ -170,7 +170,7 @@ type TerraformSpec struct {
 	RefreshBeforeApply bool `json:"refreshBeforeApply,omitempty"`
 
 	// +optional
-	RunnerPod RunnerPod `json:"runnerPod,omitempty"`
+	RunnerPodTemplate RunnerPodTemplate `json:"runnerPodTemplate,omitempty"`
 }
 
 type PlanStatus struct {

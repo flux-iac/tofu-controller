@@ -17,6 +17,7 @@ func Test_000260_runner_pod_test(t *testing.T) {
 		terraformName      = "runner-pod-test"
 		sourceName         = "runner-pod-test"
 		serviceAccountName = "helloworld-tf-runner"
+		runnerPodImage     = "ghcr.io/weaveworks/tf-runner:test"
 	)
 
 	var stringMap = map[string]string{
@@ -42,10 +43,13 @@ func Test_000260_runner_pod_test(t *testing.T) {
 				Namespace: "flux-system",
 			},
 			ServiceAccountName: serviceAccountName,
-			RunnerPod: infrav1.RunnerPod{
+			RunnerPodTemplate: infrav1.RunnerPodTemplate{
 				Metadata: infrav1.RunnerPodMetadata{
 					Labels:      stringMap,
 					Annotations: stringMap,
+				},
+				Spec: infrav1.RunnerPodSpec{
+					Image: runnerPodImage,
 				},
 			},
 		},
@@ -53,6 +57,7 @@ func Test_000260_runner_pod_test(t *testing.T) {
 
 	spec := reconciler.runnerPodSpec(helloWorldTF)
 	g.Expect(spec.ServiceAccountName == serviceAccountName)
+	g.Expect(spec.Containers[0].Image == runnerPodImage)
 
 	podTemplate := runnerPodTemplate(helloWorldTF)
 	g.Expect(func() bool {
