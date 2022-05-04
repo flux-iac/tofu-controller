@@ -385,3 +385,31 @@ spec:
     outputs:
     - age_key:age.agekey
 ```
+
+### Customize runner pod metadata
+
+In some situations, it is needed to add custom labels and annotations to the runner pod used to reconcile Terraform.
+For example, for Azure AKS to grant pod active directory permissions using Azure Active Directory (AAD) Pod Identity, 
+a label like `aadpodidbinding: $IDENTITY_NAME` on the pod is required. This enables the capability.
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: "auto"
+  interval: 1m
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  runnerPod:
+    metadata:
+      labels:
+        aadpodidbinding: myIdentity
+      annotations:
+        company.com/abc: xyz
+```
