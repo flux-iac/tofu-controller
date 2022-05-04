@@ -1878,20 +1878,7 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 
 func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform) (string, error) {
 
-	podNamespace := terraform.Namespace
-	podName := fmt.Sprintf("%s-tf-runner", terraform.Name)
-	runnerPodTemplate := corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: podNamespace,
-			Name:      podName,
-			Labels: map[string]string{
-				"app.kubernetes.io/created-by": "tf-controller",
-				"app.kubernetes.io/name":       "tf-runner",
-				"app.kubernetes.io/instance":   podName,
-				infrav1.RunnerLabel:            terraform.Namespace,
-			},
-		},
-	}
+	runnerPodTemplate := runnerPodTemplate(terraform)
 
 	runnerPod := *runnerPodTemplate.DeepCopy()
 	runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
@@ -1948,12 +1935,41 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	return runnerPod.Status.PodIP, nil
 }
 
-func getRunnerPodImage() string {
-	runnerPodImage := os.Getenv("RUNNER_POD_IMAGE")
+func getRunnerPodImage(image string) string {
+	runnerPodImage := image
+	if runnerPodImage == "" {
+		runnerPodImage = os.Getenv("RUNNER_POD_IMAGE")
+	}
 	if runnerPodImage == "" {
 		runnerPodImage = "ghcr.io/weaveworks/tf-runner:latest"
 	}
 	return runnerPodImage
+}
+
+func runnerPodTemplate(terraform infrav1.Terraform) corev1.Pod {
+	podNamespace := terraform.Namespace
+	podName := fmt.Sprintf("%s-tf-runner", terraform.Name)
+	runnerPodTemplate := corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: podNamespace,
+			Name:      podName,
+			Labels: map[string]string{
+				"app.kubernetes.io/created-by": "tf-controller",
+				"app.kubernetes.io/name":       "tf-runner",
+				"app.kubernetes.io/instance":   podName,
+				infrav1.RunnerLabel:            terraform.Namespace,
+			},
+			Annotations: terraform.Spec.RunnerPodTemplate.Metadata.Annotations,
+		},
+	}
+
+	// add runner pod custom labels
+	if len(terraform.Spec.RunnerPodTemplate.Metadata.Labels) != 0 {
+		for k, v := range terraform.Spec.RunnerPodTemplate.Metadata.Labels {
+			runnerPodTemplate.Labels[k] = v
+		}
+	}
+	return runnerPodTemplate
 }
 
 func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.PodSpec {
@@ -1970,7 +1986,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 			{
 				Name:            "tf-runner",
 				Args:            []string{"--grpc-port", fmt.Sprintf("%d", r.RunnerGRPCPort)},
-				Image:           getRunnerPodImage(),
+				Image:           getRunnerPodImage(terraform.Spec.RunnerPodTemplate.Spec.Image),
 				ImagePullPolicy: corev1.PullIfNotPresent,
 				Ports: []corev1.ContainerPort{
 					{

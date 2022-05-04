@@ -98,6 +98,33 @@ type HealthCheck struct {
 	Timeout *metav1.Duration `json:"timeout,omitempty"`
 }
 
+type RunnerPodTemplate struct {
+
+	// +optional
+	Metadata RunnerPodMetadata `json:"metadata,omitempty"`
+
+	// +optional
+	Spec RunnerPodSpec `json:"spec,omitempty"`
+}
+
+type RunnerPodMetadata struct {
+
+	// Labels to add to the runner pod
+	// +optional
+	Labels map[string]string `json:"labels,omitempty"`
+
+	// Annotations to add to the runner pod
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
+}
+
+type RunnerPodSpec struct {
+
+	// Runner pod image to use other than default
+	// +optional
+	Image string `json:"image,omitempty"`
+}
+
 func (in HealthCheck) GetTimeout() time.Duration {
 	if in.Timeout != nil {
 		return in.Timeout.Duration

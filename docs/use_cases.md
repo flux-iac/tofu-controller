@@ -385,3 +385,58 @@ spec:
     outputs:
     - age_key:age.agekey
 ```
+
+### Customize runner pod metadata
+
+In some situations, it is needed to add custom labels and annotations to the runner pod used to reconcile Terraform.
+For example, for Azure AKS to grant pod active directory permissions using Azure Active Directory (AAD) Pod Identity, 
+a label like `aadpodidbinding: myIdentity` on the pod is required.
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: "auto"
+  interval: 1m
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  runnerPodTemplate:
+    metadata:
+      labels:
+        aadpodidbinding: myIdentity
+      annotations:
+        company.com/abc: xyz
+```
+
+### Customize runner pod image
+
+By default, the Terraform controller uses `RUNNER_POD_IMAGE` environment variable to identify the runner pod image to use.
+You can customize the image to use on the global level by updating the value of the environment variable or you
+can specify an image to use per Terraform object for its reconciliation.
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: "auto"
+  interval: 1m
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  runnerPodTemplate:
+    spec:
+      image: registry.io/tf-runner:xyz
+```
+
+You can use [`runner.Dockerfile`](https://github.com/weaveworks/tf-controller/blob/main/runner.Dockerfile) as a basis of customizing runner pod image.
