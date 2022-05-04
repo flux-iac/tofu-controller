@@ -166,6 +166,22 @@ spec:
                   When not specified, the controller uses the TerraformSpec.Interval
                   value to retry failures.
                 type: string
+              runnerPod:
+                properties:
+                  metadata:
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        description: Annotations to add to the runner pod
+                        type: object
+                      labels:
+                        additionalProperties:
+                          type: string
+                        description: Labels to add to the runner pod
+                        type: object
+                    type: object
+                type: object
               runnerTerminationGracePeriodSeconds:
                 default: 30
                 description: Configure the termination grace period for the runner

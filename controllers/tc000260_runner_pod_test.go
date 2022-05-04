@@ -19,10 +19,15 @@ func Test_000260_runner_pod_test(t *testing.T) {
 		serviceAccountName = "helloworld-tf-runner"
 	)
 
+	var stringMap = map[string]string{
+		"company.com/abc": "xyz",
+		"company.com/xyz": "abc",
+	}
+
 	g := NewWithT(t)
 
-	It("shoud reconcile a runner pod")
-	By("pass a terraform object, the runner pod spec should be accurate")
+	It("generate a runner pod template")
+	By("passing a terraform object, the runner pod template should be accurate")
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
@@ -37,9 +42,30 @@ func Test_000260_runner_pod_test(t *testing.T) {
 				Namespace: "flux-system",
 			},
 			ServiceAccountName: serviceAccountName,
+			RunnerPod: infrav1.RunnerPod{
+				Metadata: infrav1.RunnerPodMetadata{
+					Labels:      stringMap,
+					Annotations: stringMap,
+				},
+			},
 		},
 	}
 
 	spec := reconciler.runnerPodSpec(helloWorldTF)
 	g.Expect(spec.ServiceAccountName == serviceAccountName)
+
+	podTemplate := runnerPodTemplate(helloWorldTF)
+	g.Expect(func() bool {
+		for k, v := range stringMap {
+			if v != podTemplate.ObjectMeta.Labels[k] {
+				return false
+			}
+		}
+		for k, v := range stringMap {
+			if v != podTemplate.ObjectMeta.Annotations[k] {
+				return false
+			}
+		}
+		return true
+	})
 }
