@@ -386,6 +386,8 @@ spec:
     - age_key:age.agekey
 ```
 
+## Customize runner pod
+
 ### Customize runner pod metadata
 
 In some situations, it is needed to add custom labels and annotations to the runner pod used to reconcile Terraform.
