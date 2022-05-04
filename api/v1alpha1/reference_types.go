@@ -98,6 +98,23 @@ type HealthCheck struct {
 	Timeout *metav1.Duration `json:"timeout,omitempty"`
 }
 
+type RunnerPod struct {
+
+	// +optional
+	Metadata RunnerPodMetadata `json:"metadata,omitempty"`
+}
+
+type RunnerPodMetadata struct {
+
+	// Labels to add to the runner pod
+	// +optional
+	Labels map[string]string `json:"labels,omitempty"`
+
+	// Annotations to add to the runner pod
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
+}
+
 func (in HealthCheck) GetTimeout() time.Duration {
 	if in.Timeout != nil {
 		return in.Timeout.Duration

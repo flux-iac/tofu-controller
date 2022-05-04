@@ -1878,20 +1878,7 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 
 func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform) (string, error) {
 
-	podNamespace := terraform.Namespace
-	podName := fmt.Sprintf("%s-tf-runner", terraform.Name)
-	runnerPodTemplate := corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: podNamespace,
-			Name:      podName,
-			Labels: map[string]string{
-				"app.kubernetes.io/created-by": "tf-controller",
-				"app.kubernetes.io/name":       "tf-runner",
-				"app.kubernetes.io/instance":   podName,
-				infrav1.RunnerLabel:            terraform.Namespace,
-			},
-		},
-	}
+	runnerPodTemplate := runnerPodTemplate(terraform)
 
 	runnerPod := *runnerPodTemplate.DeepCopy()
 	runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
@@ -1954,6 +1941,32 @@ func getRunnerPodImage() string {
 		runnerPodImage = "ghcr.io/weaveworks/tf-runner:latest"
 	}
 	return runnerPodImage
+}
+
+func runnerPodTemplate(terraform infrav1.Terraform) corev1.Pod {
+	podNamespace := terraform.Namespace
+	podName := fmt.Sprintf("%s-tf-runner", terraform.Name)
+	runnerPodTemplate := corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: podNamespace,
+			Name:      podName,
+			Labels: map[string]string{
+				"app.kubernetes.io/created-by": "tf-controller",
+				"app.kubernetes.io/name":       "tf-runner",
+				"app.kubernetes.io/instance":   podName,
+				infrav1.RunnerLabel:            terraform.Namespace,
+			},
+			Annotations: terraform.Spec.RunnerPod.Metadata.Annotations,
+		},
+	}
+
+	// add runner pod custom labels
+	if len(terraform.Spec.RunnerPod.Metadata.Labels) != 0 {
+		for k, v := range terraform.Spec.RunnerPod.Metadata.Labels {
+			runnerPodTemplate.Labels[k] = v
+		}
+	}
+	return runnerPodTemplate
 }
 
 func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.PodSpec {
