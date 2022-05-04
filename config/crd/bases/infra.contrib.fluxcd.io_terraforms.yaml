@@ -166,7 +166,7 @@ spec:
                   When not specified, the controller uses the TerraformSpec.Interval
                   value to retry failures.
                 type: string
-              runnerPod:
+              runnerPodTemplate:
                 properties:
                   metadata:
                     properties:
@@ -180,6 +180,12 @@ spec:
                           type: string
                         description: Labels to add to the runner pod
                         type: object
+                    type: object
+                  spec:
+                    properties:
+                      image:
+                        description: Runner pod image to use other than default
+                        type: string
                     type: object
                 type: object
               runnerTerminationGracePeriodSeconds:

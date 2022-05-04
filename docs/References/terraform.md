@@ -307,44 +307,11 @@ bool
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.RunnerPod">RunnerPod
-</h3>
-<p>
-(<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
-</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>metadata</code><br>
-<em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.RunnerPodMetadata">
-RunnerPodMetadata
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
 <h3 id="infra.contrib.fluxcd.io/v1alpha1.RunnerPodMetadata">RunnerPodMetadata
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.RunnerPod">RunnerPod</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha1.RunnerPodTemplate">RunnerPodTemplate</a>)
 </p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
@@ -378,6 +345,100 @@ map[string]string
 <td>
 <em>(Optional)</em>
 <p>Annotations to add to the runner pod</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.RunnerPodSpec">RunnerPodSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.RunnerPodTemplate">RunnerPodTemplate</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>image</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Runner pod image to use other than default</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.RunnerPodTemplate">RunnerPodTemplate
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>metadata</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.RunnerPodMetadata">
+RunnerPodMetadata
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>spec</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.RunnerPodSpec">
+RunnerPodSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<br/>
+<br/>
+<table>
+<tr>
+<td>
+<code>image</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Runner pod image to use other than default</p>
+</td>
+</tr>
+</table>
 </td>
 </tr>
 </tbody>
@@ -693,10 +754,10 @@ bool
 </tr>
 <tr>
 <td>
-<code>runnerPod</code><br>
+<code>runnerPodTemplate</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.RunnerPod">
-RunnerPod
+<a href="#infra.contrib.fluxcd.io/v1alpha1.RunnerPodTemplate">
+RunnerPodTemplate
 </a>
 </em>
 </td>
@@ -1009,10 +1070,10 @@ bool
 </tr>
 <tr>
 <td>
-<code>runnerPod</code><br>
+<code>runnerPodTemplate</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.RunnerPod">
-RunnerPod
+<a href="#infra.contrib.fluxcd.io/v1alpha1.RunnerPodTemplate">
+RunnerPodTemplate
 </a>
 </em>
 </td>

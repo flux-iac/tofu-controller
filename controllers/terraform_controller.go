@@ -1935,8 +1935,11 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	return runnerPod.Status.PodIP, nil
 }
 
-func getRunnerPodImage() string {
-	runnerPodImage := os.Getenv("RUNNER_POD_IMAGE")
+func getRunnerPodImage(image string) string {
+	runnerPodImage := image
+	if runnerPodImage == "" {
+		runnerPodImage = os.Getenv("RUNNER_POD_IMAGE")
+	}
 	if runnerPodImage == "" {
 		runnerPodImage = "ghcr.io/weaveworks/tf-runner:latest"
 	}
@@ -1956,13 +1959,13 @@ func runnerPodTemplate(terraform infrav1.Terraform) corev1.Pod {
 				"app.kubernetes.io/instance":   podName,
 				infrav1.RunnerLabel:            terraform.Namespace,
 			},
-			Annotations: terraform.Spec.RunnerPod.Metadata.Annotations,
+			Annotations: terraform.Spec.RunnerPodTemplate.Metadata.Annotations,
 		},
 	}
 
 	// add runner pod custom labels
-	if len(terraform.Spec.RunnerPod.Metadata.Labels) != 0 {
-		for k, v := range terraform.Spec.RunnerPod.Metadata.Labels {
+	if len(terraform.Spec.RunnerPodTemplate.Metadata.Labels) != 0 {
+		for k, v := range terraform.Spec.RunnerPodTemplate.Metadata.Labels {
 			runnerPodTemplate.Labels[k] = v
 		}
 	}
@@ -1983,7 +1986,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 			{
 				Name:            "tf-runner",
 				Args:            []string{"--grpc-port", fmt.Sprintf("%d", r.RunnerGRPCPort)},
-				Image:           getRunnerPodImage(),
+				Image:           getRunnerPodImage(terraform.Spec.RunnerPodTemplate.Spec.Image),
 				ImagePullPolicy: corev1.PullIfNotPresent,
 				Ports: []corev1.ContainerPort{
 					{
