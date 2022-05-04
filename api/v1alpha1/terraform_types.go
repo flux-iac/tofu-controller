@@ -168,6 +168,9 @@ type TerraformSpec struct {
 	// +kubebuilder:default:=false
 	// +optional
 	RefreshBeforeApply bool `json:"refreshBeforeApply,omitempty"`
+
+	// +optional
+	RunnerPodTemplate RunnerPodTemplate `json:"runnerPodTemplate,omitempty"`
 }
 
 type PlanStatus struct {
