@@ -1979,6 +1979,26 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 	}
 
 	gracefulTermPeriod := terraform.Spec.RunnerTerminationGracePeriodSeconds
+	envvars := []corev1.EnvVar{
+		{
+			Name: "POD_NAME",
+			ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.name",
+				},
+			},
+		},
+		{
+			Name: "POD_NAMESPACE",
+			ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.namespace",
+				},
+			},
+		},
+	}
+
+	envvars = append(envvars, terraform.Spec.RunnerPodTemplate.Spec.Env...)
 
 	return corev1.PodSpec{
 		TerminationGracePeriodSeconds: gracefulTermPeriod,
@@ -1994,24 +2014,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 						ContainerPort: int32(r.RunnerGRPCPort),
 					},
 				},
-				Env: []corev1.EnvVar{
-					{
-						Name: "POD_NAME",
-						ValueFrom: &corev1.EnvVarSource{
-							FieldRef: &corev1.ObjectFieldSelector{
-								FieldPath: "metadata.name",
-							},
-						},
-					},
-					{
-						Name: "POD_NAMESPACE",
-						ValueFrom: &corev1.EnvVarSource{
-							FieldRef: &corev1.ObjectFieldSelector{
-								FieldPath: "metadata.namespace",
-							},
-						},
-					},
-				},
+				Env: envvars,
 			},
 		},
 		ServiceAccountName: serviceAccountName,
