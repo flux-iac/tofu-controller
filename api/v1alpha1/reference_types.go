@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -123,6 +124,22 @@ type RunnerPodSpec struct {
 	// Runner pod image to use other than default
 	// +optional
 	Image string `json:"image,omitempty"`
+
+	// List of sources to populate environment variables in the container.
+	// The keys defined within a source must be a C_IDENTIFIER. All invalid keys
+	// will be reported as an event when the container is starting. When a key exists in multiple
+	// sources, the value associated with the last source will take precedence.
+	// Values defined by an Env with a duplicate key will take precedence.
+	// Cannot be updated.
+	// +optional
+	EnvFrom []corev1.EnvFromSource `json:"envFrom,omitempty"`
+
+	// List of environment variables to set in the container.
+	// Cannot be updated.
+	// +optional
+	// +patchMergeKey=name
+	// +patchStrategy=merge
+	Env []corev1.EnvVar `json:"env,omitempty" patchStrategy:"merge" patchMergeKey:"name"`
 }
 
 func (in HealthCheck) GetTimeout() time.Duration {

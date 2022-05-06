@@ -151,6 +151,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 		if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
 			// nothing to delete
+			log.Info("insecure local runner")
 			return
 		}
 
@@ -190,11 +191,13 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			})
 			if err != nil {
 				retErr = fmt.Errorf("failed waiting for the terminating runner pod: %v", err)
+				log.Error(retErr, "error in polling")
 			}
 		}
 	}(ctx, r.Client, terraform)
 
 	// resolve source reference
+	log.Info("getting source")
 	sourceObj, err := r.getSource(ctx, terraform)
 
 	// Examine if the object is under deletion
@@ -222,6 +225,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 		} else {
 			// retry on transient errors
+			log.Error(err, "retry")
 			return ctrl.Result{Requeue: true}, err
 		}
 	}
@@ -288,6 +292,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	// next reconcile is .Spec.Interval in the future
+	log.Info("requeue")
 	return ctrl.Result{RequeueAfter: terraform.Spec.Interval.Duration}, nil
 }
 
@@ -419,7 +424,6 @@ func (l LocalPrintfer) Printf(format string, v ...interface{}) {
 }
 
 func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source) (retTerraform infrav1.Terraform, retErr error) {
-
 	log := ctrl.LoggerFrom(ctx)
 	revision := sourceObj.GetArtifact().Revision
 	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
@@ -429,6 +433,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		tmpDir     string
 		err        error
 	)
+	log.Info("setting up terraform")
 	terraform, tfInstance, tmpDir, err = r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey)
 
 	defer func() {
@@ -445,6 +450,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 	}()
 
 	if err != nil {
+		log.Error(err, "error in terraform setup")
 		return terraform, err
 	}
 
@@ -458,9 +464,11 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 			if outputsDrifted, err := r.outputsMayBeDrifted(ctx, terraform); outputsDrifted == true && err == nil {
 				terraform, err = r.processOutputs(ctx, runnerClient, terraform, tfInstance, revision)
 				if err != nil {
+					log.Error(err, "error processing outputs")
 					return terraform, err
 				}
 			} else if err != nil {
+				log.Error(err, "error checking for output drift")
 				return terraform, err
 			}
 
@@ -469,11 +477,13 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 
 		// immediately return if err is not about drift
 		if driftDetectionErr.Error() != infrav1.DriftDetectedReason {
+			log.Error(driftDetectionErr, "detected non drift error")
 			return terraform, driftDetectionErr
 		}
 
 		// immediately return if drift is detected but it's not "force" or "auto"
 		if driftDetectionErr.Error() == infrav1.DriftDetectedReason && !r.forceOrAutoApply(terraform) {
+			log.Error(driftDetectionErr, "will not force / auto apply detected drift")
 			return terraform, driftDetectionErr
 		}
 
@@ -493,6 +503,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 	if r.shouldPlan(terraform) {
 		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision)
 		if err != nil {
+			log.Error(err, "error planning")
 			return terraform, err
 		}
 
@@ -505,6 +516,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 	if r.shouldApply(terraform) {
 		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision)
 		if err != nil {
+			log.Error(err, "error applying")
 			return terraform, err
 		}
 
@@ -518,12 +530,14 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 
 	terraform, err = r.processOutputs(ctx, runnerClient, terraform, tfInstance, revision)
 	if err != nil {
+		log.Error(err, "error process outputs")
 		return terraform, err
 	}
 
 	if r.shouldDoHealthChecks(terraform) {
 		terraform, err = r.doHealthChecks(ctx, terraform, runnerClient)
 		if err != nil {
+			log.Error(err, "error with health check")
 			return terraform, err
 		}
 
@@ -741,6 +755,10 @@ terraform {
 	tfInstance = newTerraformReply.Id
 	envs := map[string]string{}
 
+	for _, env := range terraform.Spec.RunnerPodTemplate.Spec.Env {
+		envs[env.Name] = env.Value
+	}
+
 	disableTestLogging := os.Getenv("DISABLE_TF_LOGS") == "1"
 	if !disableTestLogging {
 		envs["DISABLE_TF_LOGS"] = "1"
@@ -748,19 +766,20 @@ terraform {
 
 	if tfrcFilepath != "" {
 		envs["TF_CLI_CONFIG_FILE"] = tfrcFilepath
-		if setEnvReply, err := runnerClient.SetEnv(ctx,
-			&runner.SetEnvRequest{
-				TfInstance: tfInstance,
-				Envs:       envs,
-			}); err != nil {
-			err = fmt.Errorf("error setting env for Terraform: %s %s", err, setEnvReply.Message)
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.TFExecInitFailedReason,
-				err.Error(),
-			), tfInstance, tmpDir, err
-		}
+	}
+
+	if setEnvReply, err := runnerClient.SetEnv(ctx,
+		&runner.SetEnvRequest{
+			TfInstance: tfInstance,
+			Envs:       envs,
+		}); err != nil {
+		err = fmt.Errorf("error setting env for Terraform: %s %s", err, setEnvReply.Message)
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.TFExecInitFailedReason,
+			err.Error(),
+		), tfInstance, tmpDir, err
 	}
 
 	log.Info("new terraform", "workingDir", workingDir)
@@ -1979,6 +1998,42 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 	}
 
 	gracefulTermPeriod := terraform.Spec.RunnerTerminationGracePeriodSeconds
+	envvars := []corev1.EnvVar{}
+	envvarsMap := map[string]corev1.EnvVar{
+		"POD_NAME": {
+			Name: "POD_NAME",
+			ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.name",
+				},
+			},
+		},
+		"POD_NAMESPACE": {
+			Name: "POD_NAMESPACE",
+			ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.namespace",
+				},
+			},
+		},
+	}
+
+	for _, envName := range []string{"HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"} {
+		if envValue := os.Getenv(envName); envValue != "" {
+			envvarsMap[envName] = corev1.EnvVar{
+				Name:  envName,
+				Value: envValue,
+			}
+		}
+	}
+
+	for _, env := range terraform.Spec.RunnerPodTemplate.Spec.Env {
+		envvarsMap[env.Name] = env
+	}
+
+	for _, env := range envvarsMap {
+		envvars = append(envvars, env)
+	}
 
 	return corev1.PodSpec{
 		TerminationGracePeriodSeconds: gracefulTermPeriod,
@@ -1994,24 +2049,8 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 						ContainerPort: int32(r.RunnerGRPCPort),
 					},
 				},
-				Env: []corev1.EnvVar{
-					{
-						Name: "POD_NAME",
-						ValueFrom: &corev1.EnvVarSource{
-							FieldRef: &corev1.ObjectFieldSelector{
-								FieldPath: "metadata.name",
-							},
-						},
-					},
-					{
-						Name: "POD_NAMESPACE",
-						ValueFrom: &corev1.EnvVarSource{
-							FieldRef: &corev1.ObjectFieldSelector{
-								FieldPath: "metadata.namespace",
-							},
-						},
-					},
-				},
+				Env:     envvars,
+				EnvFrom: terraform.Spec.RunnerPodTemplate.Spec.EnvFrom,
 			},
 		},
 		ServiceAccountName: serviceAccountName,
