@@ -1979,8 +1979,9 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 	}
 
 	gracefulTermPeriod := terraform.Spec.RunnerTerminationGracePeriodSeconds
-	envvars := []corev1.EnvVar{
-		{
+	envvars := []corev1.EnvVar{}
+	envvarsMap := map[string]corev1.EnvVar{
+		"POD_NAME": {
 			Name: "POD_NAME",
 			ValueFrom: &corev1.EnvVarSource{
 				FieldRef: &corev1.ObjectFieldSelector{
@@ -1988,7 +1989,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 				},
 			},
 		},
-		{
+		"POD_NAMESPACE": {
 			Name: "POD_NAMESPACE",
 			ValueFrom: &corev1.EnvVarSource{
 				FieldRef: &corev1.ObjectFieldSelector{
@@ -2000,19 +2001,19 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 
 	for _, envName := range []string{"HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"} {
 		if envValue := os.Getenv(envName); envValue != "" {
-			envvars = append(envvars, corev1.EnvVar{
+			envvarsMap[envName] = corev1.EnvVar{
 				Name:  envName,
 				Value: envValue,
-			})
+			}
 		}
 	}
 
 	for _, env := range terraform.Spec.RunnerPodTemplate.Spec.Env {
-		for i, existingEnv := range envvars {
-			if existingEnv.Name == env.Name {
-				envvars[i] = env
-			}
-		}
+		envvarsMap[env.Name] = env
+	}
+
+	for _, env := range envvarsMap {
+		envvars = append(envvars, env)
 	}
 
 	return corev1.PodSpec{
