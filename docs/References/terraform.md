@@ -379,6 +379,40 @@ string
 <p>Runner pod image to use other than default</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>envFrom</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#envfromsource-v1-core">
+[]Kubernetes core/v1.EnvFromSource
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>List of sources to populate environment variables in the container.
+The keys defined within a source must be a C_IDENTIFIER. All invalid keys
+will be reported as an event when the container is starting. When a key exists in multiple
+sources, the value associated with the last source will take precedence.
+Values defined by an Env with a duplicate key will take precedence.
+Cannot be updated.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>env</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#envvar-v1-core">
+[]Kubernetes core/v1.EnvVar
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>List of environment variables to set in the container.
+Cannot be updated.</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -436,6 +470,40 @@ string
 <td>
 <em>(Optional)</em>
 <p>Runner pod image to use other than default</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>envFrom</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#envfromsource-v1-core">
+[]Kubernetes core/v1.EnvFromSource
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>List of sources to populate environment variables in the container.
+The keys defined within a source must be a C_IDENTIFIER. All invalid keys
+will be reported as an event when the container is starting. When a key exists in multiple
+sources, the value associated with the last source will take precedence.
+Values defined by an Env with a duplicate key will take precedence.
+Cannot be updated.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>env</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#envvar-v1-core">
+[]Kubernetes core/v1.EnvVar
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>List of environment variables to set in the container.
+Cannot be updated.</p>
 </td>
 </tr>
 </table>

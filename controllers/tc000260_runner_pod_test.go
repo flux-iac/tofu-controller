@@ -5,6 +5,7 @@ import (
 
 	. "github.com/onsi/gomega"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -50,6 +51,12 @@ func Test_000260_runner_pod_test(t *testing.T) {
 				},
 				Spec: infrav1.RunnerPodSpec{
 					Image: runnerPodImage,
+					Env: []corev1.EnvVar{
+						{
+							Name:  "TEST_NAME",
+							Value: "TEST_VALUE",
+						},
+					},
 				},
 			},
 		},
@@ -58,6 +65,8 @@ func Test_000260_runner_pod_test(t *testing.T) {
 	spec := reconciler.runnerPodSpec(helloWorldTF)
 	g.Expect(spec.ServiceAccountName == serviceAccountName)
 	g.Expect(spec.Containers[0].Image == runnerPodImage)
+	g.Expect(spec.Containers[0].Env[2].Name == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[0].Name)
+	g.Expect(spec.Containers[0].Env[2].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[0].Value)
 
 	podTemplate := runnerPodTemplate(helloWorldTF)
 	g.Expect(func() bool {
