@@ -1998,7 +1998,22 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 		},
 	}
 
-	envvars = append(envvars, terraform.Spec.RunnerPodTemplate.Spec.Env...)
+	for _, envName := range []string{"HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"} {
+		if envValue := os.Getenv(envName); envValue != "" {
+			envvars = append(envvars, corev1.EnvVar{
+				Name:  envName,
+				Value: envValue,
+			})
+		}
+	}
+
+	for _, env := range terraform.Spec.RunnerPodTemplate.Spec.Env {
+		for i, existingEnv := range envvars {
+			if existingEnv.Name == env.Name {
+				envvars[i] = env
+			}
+		}
+	}
 
 	return corev1.PodSpec{
 		TerminationGracePeriodSeconds: gracefulTermPeriod,
