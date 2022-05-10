@@ -741,6 +741,10 @@ terraform {
 	tfInstance = newTerraformReply.Id
 	envs := map[string]string{}
 
+	for _, env := range terraform.Spec.RunnerPodTemplate.Spec.Env {
+		envs[env.Name] = env.Value
+	}
+
 	disableTestLogging := os.Getenv("DISABLE_TF_LOGS") == "1"
 	if !disableTestLogging {
 		envs["DISABLE_TF_LOGS"] = "1"
