@@ -335,13 +335,13 @@ func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
 	})
 }
 
-func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
+func Test_000260_runner_pod_test_envvar_proxy_output(t *testing.T) {
 	Spec("This spec describes the behaviour of a Terraform resource when variables are provided via EnvVars.")
 	It("should be reconciled and output the variable in an output.")
 
 	const (
-		sourceName    = "gr-envvars-variable-output"
-		terraformName = "tf-envvars-variable-output"
+		sourceName    = "gr-envvar-variable-output"
+		terraformName = "tf-envvar-variable-output"
 	)
 	g := NewWithT(t)
 	ctx := context.Background()
@@ -382,10 +382,10 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
-		URL: server.URL() + "/terraform-envvars-variable-output.tar.gz",
+		URL: server.URL() + "/terraform-envvar-variable-output.tar.gz",
 		Artifact: &sourcev1.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
-			URL:            server.URL() + "/terraform-envvars-variable-output.tar.gz",
+			URL:            server.URL() + "/terraform-envvar-variable-output.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Checksum:       "1329c5b6743c8115f17782c8f4ad89ddf1279e41ed33cb1cba5491cc31c02863",
 			LastUpdateTime: metav1.Time{Time: updatedTime},
@@ -411,7 +411,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 		},
 		Spec: infrav1.TerraformSpec{
 			ApprovePlan: "auto",
-			Path:        "./terraform-envvars-variable-output",
+			Path:        "./terraform-envvar-variable-output",
 			SourceRef: infrav1.CrossNamespaceSourceReference{
 				Kind:      "GitRepository",
 				Name:      sourceName,
@@ -421,8 +421,16 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 				Spec: infrav1.RunnerPodSpec{
 					Env: []corev1.EnvVar{
 						{
-							Name:  "TF_VAR_test_env_var",
-							Value: "TEST_ENVVAR_VALUE",
+							Name:  "HTTP_PROXY",
+							Value: "http://test.proxy:1234",
+						},
+						{
+							Name:  "HTTPS_PROXY",
+							Value: "http://test.proxy:1234",
+						},
+						{
+							Name:  "NO_PROXY",
+							Value: "no.proxy",
 						},
 					},
 				},
@@ -462,19 +470,22 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 
 	By("checking that the output secret contains the correct output data, provisioned by the TF resource.")
 	expectedOutputValue := map[string]string{
-		"Name":        terraformName,
-		"Namespace":   "flux-system",
-		"Value":       "TEST_ENVVAR_VALUE",
-		"OwnerRef[0]": string(createdHelloWorldTF.UID),
+		"Name":              terraformName,
+		"Namespace":         "flux-system",
+		"Value HTTPS_PROXY": "http://test.proxy:1234",
+		"Value HTTP_PROXY":  "http://test.proxy:1234",
+		"Value NO_PROXY":    "no.proxy",
+		"OwnerRef[0]":       string(createdHelloWorldTF.UID),
 	}
 	g.Eventually(func() (map[string]string, error) {
 		err := k8sClient.Get(ctx, outputKey, &outputSecret)
-		value := string(outputSecret.Data["test_env_var"])
 		return map[string]string{
-			"Name":        outputSecret.Name,
-			"Namespace":   outputSecret.Namespace,
-			"Value":       value,
-			"OwnerRef[0]": string(outputSecret.OwnerReferences[0].UID),
+			"Name":              outputSecret.Name,
+			"Namespace":         outputSecret.Namespace,
+			"Value HTTPS_PROXY": string(outputSecret.Data["https_proxy"]),
+			"Value HTTP_PROXY":  string(outputSecret.Data["http_proxy"]),
+			"Value NO_PROXY":    string(outputSecret.Data["no_proxy"]),
+			"OwnerRef[0]":       string(outputSecret.OwnerReferences[0].UID),
 		}, err
 	}, timeout, interval).Should(Equal(expectedOutputValue), "expected output %v", expectedOutputValue)
 }
