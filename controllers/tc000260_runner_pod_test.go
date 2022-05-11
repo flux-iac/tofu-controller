@@ -471,7 +471,7 @@ func Test_000260_runner_pod_test_envvar_proxy_output(t *testing.T) {
 
 	By("checking that the output secret contains the correct output data, provisioned by the TF resource.")
 	expectedOutputValue := map[string]string{
-		"Name":              terraformName,
+		"Name":              terraformNameSecret,
 		"Namespace":         "flux-system",
 		"Value HTTPS_PROXY": "http://test.proxy:1234",
 		"Value HTTP_PROXY":  "http://test.proxy:1234",
