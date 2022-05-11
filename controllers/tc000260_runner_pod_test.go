@@ -340,8 +340,9 @@ func Test_000260_runner_pod_test_envvar_proxy_output(t *testing.T) {
 	It("should be reconciled and output the variable in an output.")
 
 	const (
-		sourceName    = "gr-envvar-variable-output"
-		terraformName = "tf-envvar-variable-output"
+		sourceName          = "gr-envvar-variable-output"
+		terraformName       = "tf-envvar-variable-output"
+		terraformNameSecret = "tf-envvar-variable-output-secret"
 	)
 	g := NewWithT(t)
 	ctx := context.Background()
@@ -437,7 +438,7 @@ func Test_000260_runner_pod_test_envvar_proxy_output(t *testing.T) {
 			},
 			Interval: metav1.Duration{Duration: time.Second * 10},
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
-				Name: terraformName,
+				Name: terraformNameSecret,
 			},
 		},
 	}
@@ -458,7 +459,7 @@ func Test_000260_runner_pod_test_envvar_proxy_output(t *testing.T) {
 
 	It("should be reconciled and produce the correct output secret.")
 	By("checking that the named output secret contains a binary data.")
-	outputKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
+	outputKey := types.NamespacedName{Namespace: "flux-system", Name: terraformNameSecret}
 	outputSecret := corev1.Secret{}
 	g.Eventually(func() (int, error) {
 		err := k8sClient.Get(ctx, outputKey, &outputSecret)
