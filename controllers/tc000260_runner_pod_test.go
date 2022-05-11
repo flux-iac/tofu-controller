@@ -466,7 +466,7 @@ func Test_000260_runner_pod_test_envvar_proxy_output(t *testing.T) {
 			return -1, err
 		}
 		return len(outputSecret.Data), nil
-	}, timeout, interval).Should(Equal(1))
+	}, timeout, interval).Should(Equal(3))
 
 	By("checking that the output secret contains the correct output data, provisioned by the TF resource.")
 	expectedOutputValue := map[string]string{
