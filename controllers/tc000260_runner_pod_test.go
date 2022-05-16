@@ -335,7 +335,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
 	})
 }
 
-func Test_000260_runner_pod_test_envvar_proxy_output(t *testing.T) {
+func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 	Spec("This spec describes the behaviour of a Terraform resource when variables are provided via EnvVars.")
 	It("should be reconciled and output the variable in an output.")
 
@@ -388,7 +388,7 @@ func Test_000260_runner_pod_test_envvar_proxy_output(t *testing.T) {
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/terraform-envvar-variable-output.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-			Checksum:       "78af943b0f3f65a62c9f4fae147108872b96aec31455a94f44adfa431724cd3a",
+			Checksum:       "72637c4e56394f5e728c7eaf85f959497189cc35d1441957840a96812026a5d6",
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
