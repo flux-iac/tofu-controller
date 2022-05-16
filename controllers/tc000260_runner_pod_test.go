@@ -388,7 +388,7 @@ func Test_000260_runner_pod_test_envvar_proxy_output(t *testing.T) {
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/terraform-envvar-variable-output.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-			Checksum:       "1329c5b6743c8115f17782c8f4ad89ddf1279e41ed33cb1cba5491cc31c02863",
+			Checksum:       "78af943b0f3f65a62c9f4fae147108872b96aec31455a94f44adfa431724cd3a",
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
