@@ -42,6 +42,10 @@ spec:
               fieldPath: metadata.namespace
         - name: RUNNER_POD_IMAGE
           value: "{{ .Values.runner.image.repository }}:{{ .Values.runner.image.tag}}"
+        {{- range $key, $value := .Values.extraEnv }}
+        - name: {{ $key }}
+          value: {{ $value }}
+        {{- end }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag}}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         livenessProbe:
