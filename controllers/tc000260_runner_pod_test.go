@@ -458,7 +458,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 	}, timeout, interval).Should(BeTrue())
 
 	It("should be reconciled and produce the correct output secret.")
-	By("checking that the named output secret contains a binary data.")
+	By("checking that the named output secret contains 3 data fields.")
 	outputKey := types.NamespacedName{Namespace: "flux-system", Name: terraformNameSecret}
 	outputSecret := corev1.Secret{}
 	g.Eventually(func() (int, error) {

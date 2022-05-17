@@ -752,19 +752,20 @@ terraform {
 
 	if tfrcFilepath != "" {
 		envs["TF_CLI_CONFIG_FILE"] = tfrcFilepath
-		if setEnvReply, err := runnerClient.SetEnv(ctx,
-			&runner.SetEnvRequest{
-				TfInstance: tfInstance,
-				Envs:       envs,
-			}); err != nil {
-			err = fmt.Errorf("error setting env for Terraform: %s %s", err, setEnvReply.Message)
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.TFExecInitFailedReason,
-				err.Error(),
-			), tfInstance, tmpDir, err
-		}
+	}
+
+	if setEnvReply, err := runnerClient.SetEnv(ctx,
+		&runner.SetEnvRequest{
+			TfInstance: tfInstance,
+			Envs:       envs,
+		}); err != nil {
+		err = fmt.Errorf("error setting env for Terraform: %s %s", err, setEnvReply.Message)
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.TFExecInitFailedReason,
+			err.Error(),
+		), tfInstance, tmpDir, err
 	}
 
 	log.Info("new terraform", "workingDir", workingDir)

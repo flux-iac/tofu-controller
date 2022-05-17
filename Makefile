@@ -82,7 +82,7 @@ test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests
 
 # usage: make TARGET=250 target-test
 .PHONY: target-test
-target-test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests.
+target-test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests. e.g make TARGET=250 target-test
 	$(TEST_SETTINGS) go test ./controllers -coverprofile cover.out -v -run $(TARGET)
 
 gen-grpc:
