@@ -6,6 +6,8 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.7.0
   creationTimestamp: null
   name: terraforms.infra.contrib.fluxcd.io
+  labels:
+    {{- include "tf-controller.labels" . | nindent 4 }}
 spec:
   group: infra.contrib.fluxcd.io
   names:
