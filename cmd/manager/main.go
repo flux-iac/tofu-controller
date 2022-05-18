@@ -134,13 +134,9 @@ func main() {
 	}
 
 	var eventRecorder *events.Recorder
-	if eventsAddr != "" {
-		if er, err := events.NewRecorder(mgr, ctrl.Log, eventsAddr, controllerName); err != nil {
-			setupLog.Error(err, "unable to create event recorder")
-			os.Exit(1)
-		} else {
-			eventRecorder = er
-		}
+	if eventRecorder, err = events.NewRecorder(mgr, ctrl.Log, eventsAddr, controllerName); err != nil {
+		setupLog.Error(err, "unable to create event recorder")
+		os.Exit(1)
 	}
 
 	signalHandlerContext := ctrl.SetupSignalHandler()
