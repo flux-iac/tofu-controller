@@ -66,6 +66,7 @@ func (r *TerraformRunnerServer) UploadAndExtract(ctx context.Context, req *Uploa
 	buf := bytes.NewBuffer(req.TarGz)
 	if _, err = untar.Untar(buf, tmpDir); err != nil {
 		logger.Error().Err(err).Str("namespace", req.Namespace).Str("name", req.Name).Msg("unable to extract tar file")
+		return nil, fmt.Errorf("failed to untar artifact, error: %w", err)
 	}
 
 	dirPath, err := securejoin.SecureJoin(tmpDir, req.Path)
