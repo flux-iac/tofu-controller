@@ -22,7 +22,7 @@ func JSONEncodeBytes(b []byte) (*apiextensionsv1.JSON, error) {
 func MustJSONEncodeBytes(t *testing.T, b []byte) *apiextensionsv1.JSON {
 	data, err := json.Marshal(string(b))
 	if err != nil {
-		t.Error(fmt.Errorf("could not encode bytes to json: %w", err))
+		t.Error(fmt.Errorf("could not encode bytes to json", err))
 	}
 	return &apiextensionsv1.JSON{Raw: data}
 }
