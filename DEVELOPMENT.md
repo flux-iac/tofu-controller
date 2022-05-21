@@ -1,15 +1,23 @@
 # Development
 
+We follow the Flux development best practices.
+
 > **Note:** Please take a look at <https://fluxcd.io/docs/contributing/flux/>
 > to find out about how to contribute to Flux and how to interact with the
 > Flux Development team.
 
+## Code Reviews
+
+Although you are a contributor with the write access to this repository,
+please do not merge PRs by yourself. Please ask the project's [maintainers](MAINTAINERS)
+to merge PRs for you after reviews.
+
 ## How to run the test suite
 
 Prerequisites:
-* go >= 1.17
+* go = 1.17.x
 * kubebuilder >= 2.3
-* kustomize >= 3.1
+* kustomize = 4.x
 * kubectl >= 1.21
 
 You can run the unit tests by simply doing
