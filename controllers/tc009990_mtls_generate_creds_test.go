@@ -18,7 +18,7 @@ import (
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_000250_mtls_generate_creds_test(t *testing.T) {
+func Test_009990_mtls_generate_creds_test(t *testing.T) {
 	Spec("This spec describes the behaviour when generating tls certs for mTLS")
 
 	const (
