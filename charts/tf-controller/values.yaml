@@ -8,6 +8,9 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: "v0.9.4"
 
+# extraEnv -- Additional container environment variables.
+extraEnv: {}
+
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
