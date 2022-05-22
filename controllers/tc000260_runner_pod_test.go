@@ -176,9 +176,9 @@ func Test_000260_runner_pod_test_env_vars_proxy(t *testing.T) {
 		"company.com/xyz": "abc",
 	}
 
-	os.Setenv("HTTP_PROXY", "http://test.proxy:1234")
-	os.Setenv("HTTPS_PROXY", "http://test.proxy:1234")
-	os.Setenv("NO_PROXY", "weave.works")
+	os.Setenv("HTTP_PROXY", "http://runner_pod_test_env_vars_proxy:1234")
+	os.Setenv("HTTPS_PROXY", "http://runner_pod_test_env_vars_proxy:1234")
+	os.Setenv("NO_PROXY", "runner.pod.test.env.vars.proxy")
 
 	g := NewWithT(t)
 
@@ -260,9 +260,9 @@ func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
 		"company.com/xyz": "abc",
 	}
 
-	os.Setenv("HTTP_PROXY", "http://test.proxy:1234")
-	os.Setenv("HTTPS_PROXY", "http://test.proxy:1234")
-	os.Setenv("NO_PROXY", "weave.works")
+	os.Setenv("HTTP_PROXY", "http://runner_pod_test_env_vars_proxy_overwrite:1234")
+	os.Setenv("HTTPS_PROXY", "http://runner_pod_test_env_vars_proxy_overwrite:1234")
+	os.Setenv("NO_PROXY", "runner.pod.test.env.vars.proxy.overwrite")
 
 	g := NewWithT(t)
 
@@ -300,7 +300,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
 						},
 						{
 							Name:  "HTTP_PROXY",
-							Value: "http://test.proxy:1235",
+							Value: "http://runner_pod_test_env_vars_proxy_overwrite:1235",
 						},
 					},
 				},
@@ -316,6 +316,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
 	g.Expect(spec.Containers[0].Env[5].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[0].Value)
 	g.Expect(spec.Containers[0].Env[6].Name == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Name)
 	g.Expect(spec.Containers[0].Env[6].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Value)
+
 	g.Expect(spec.Containers[0].Env[2].Name == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[2].Name)
 	g.Expect(spec.Containers[0].Env[2].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[2].Value)
 
@@ -346,6 +347,9 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 	)
 	g := NewWithT(t)
 	ctx := context.Background()
+
+	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
+	g.Expect(err).Should(BeNil())
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")
@@ -412,7 +416,12 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 		},
 		Spec: infrav1.TerraformSpec{
 			ApprovePlan: "auto",
-			Path:        "./terraform-envvar-variable-output",
+			BackendConfig: &infrav1.BackendConfigSpec{
+				SecretSuffix:    terraformName,
+				InClusterConfig: false,
+				ConfigPath:      testEnvKubeConfigPath,
+			},
+			Path: "./terraform-envvar-variable-output",
 			SourceRef: infrav1.CrossNamespaceSourceReference{
 				Kind:      "GitRepository",
 				Name:      sourceName,
@@ -423,11 +432,11 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 					Env: []corev1.EnvVar{
 						{
 							Name:  "HTTP_PROXY",
-							Value: "http://test.proxy:1234",
+							Value: "http://runner_pod_test_env_vars_proxy_output:1234",
 						},
 						{
 							Name:  "HTTPS_PROXY",
-							Value: "http://test.proxy:1234",
+							Value: "http://runner_pod_test_env_vars_proxy_output:1234",
 						},
 						{
 							Name:  "NO_PROXY",
@@ -457,6 +466,27 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 		return true
 	}, timeout, interval).Should(BeTrue())
 
+	It("should apply successfully.")
+	By("checking that the status of the TF resource is `TerraformAppliedSucceed`.")
+	g.Eventually(func() map[string]interface{} {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return nil
+		}
+		for _, c := range createdHelloWorldTF.Status.Conditions {
+			if c.Type == "Apply" {
+				return map[string]interface{}{
+					"Type":   c.Type,
+					"Reason": c.Reason,
+				}
+			}
+		}
+		return nil
+	}, timeout, interval).Should(Equal(map[string]interface{}{
+		"Type":   "Apply",
+		"Reason": infrav1.TFExecApplySucceedReason,
+	}))
+
 	It("should be reconciled and produce the correct output secret.")
 	By("checking that the named output secret contains 3 data fields.")
 	outputKey := types.NamespacedName{Namespace: "flux-system", Name: terraformNameSecret}
@@ -467,14 +497,14 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 			return -1, err
 		}
 		return len(outputSecret.Data), nil
-	}, timeout, interval).Should(Equal(3))
+	}, timeout*2, interval).Should(Equal(3))
 
 	By("checking that the output secret contains the correct output data, provisioned by the TF resource.")
 	expectedOutputValue := map[string]string{
 		"Name":              terraformNameSecret,
 		"Namespace":         "flux-system",
-		"Value HTTPS_PROXY": "http://test.proxy:1234",
-		"Value HTTP_PROXY":  "http://test.proxy:1234",
+		"Value HTTPS_PROXY": "http://runner_pod_test_env_vars_proxy_output:1234",
+		"Value HTTP_PROXY":  "http://runner_pod_test_env_vars_proxy_output:1234",
 		"Value NO_PROXY":    "cluster.local,terraform.io,registry.terraform.io,releases.hashicorp.com",
 		"OwnerRef[0]":       string(createdHelloWorldTF.UID),
 	}
