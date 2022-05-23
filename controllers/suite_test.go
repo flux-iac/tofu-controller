@@ -82,7 +82,6 @@ func TestMain(m *testing.M) {
 	var logSink io.Writer
 
 	logSink = os.Stderr
-
 	if os.Getenv("DISABLE_K8S_LOGS") == "1" {
 		logSink = io.Discard
 	}
