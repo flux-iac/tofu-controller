@@ -23,9 +23,10 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/fluxcd/pkg/runtime/logger"
 	flag "github.com/spf13/pflag"
-
 	"github.com/weaveworks/tf-controller/mtls"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 /* Please prepare the following envs for this program
@@ -40,6 +41,10 @@ import (
            fieldPath: metadata.namespace
 */
 
+var (
+	logOptions logger.Options
+)
+
 func main() {
 	var (
 		grpcPort int
@@ -52,6 +57,14 @@ func main() {
 
 	_ = os.Getenv("POD_NAME")
 	podNamespace := os.Getenv("POD_NAMESPACE")
+
+	if os.Getenv("DISABLE_TF_LOGS") != "1" {
+		logOptions = logger.Options{
+			LogEncoding: "json",
+			LogLevel:    "info",
+		}
+		ctrl.SetLogger(logger.NewLogger(logOptions))
+	}
 
 	// catch the SIGTERM from the kubelet to gracefully terminate
 	sigterm := make(chan os.Signal, 1)
