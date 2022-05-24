@@ -181,7 +181,9 @@ func (r *TerraformRunnerServer) NewTerraform(ctx context.Context, req *NewTerraf
 	if !disableTestLogging {
 		r.tf.SetStdout(os.Stdout)
 		r.tf.SetStderr(os.Stderr)
-		r.tf.SetLogger(&LocalPrintfer{logger: log})
+		if os.Getenv("ENABLE_SENSITIVE_TF_LOGS") == "1" {
+			r.tf.SetLogger(&LocalPrintfer{logger: log})
+		}
 	}
 
 	return &NewTerraformReply{Id: "1"}, nil
