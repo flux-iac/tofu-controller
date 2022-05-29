@@ -681,11 +681,11 @@ terraform {
 				DirPath:       workingDir,
 				BackendConfig: []byte(backendConfig),
 			})
-
-		log.Info(fmt.Sprintf("write backend config: %s", writeBackendConfigReply.Message))
 		if err != nil {
+			log.Error(err, "write backend config error")
 			return terraform, tfInstance, tmpDir, err
 		}
+		log.Info(fmt.Sprintf("write backend config: %s", writeBackendConfigReply.Message))
 	}
 
 	var tfrcFilepath string
