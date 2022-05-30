@@ -2,6 +2,24 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.9.5
+
+**Release date:** 2022-05-30
+
+This pre-release contains the following changes.
+
+New Features:
+  * Update Terraform binary to 1.1.9 (@chanwit)
+  * Allow runner pod metadata customization (@tomhuang12)
+  * Support runner pod environment variables specification (@nalum)
+  * Implement `.spec.refreshBeforeApply` to refresh the state before apply (@chanwit)
+  * Use controller runtime logging library in runner (@chanwit)
+
+Bug Fixing:
+  * Fix nil reference for event recorder (@chanwit)
+  * Fix insertion of sensitive information to runner pod logging (@chanwit)
+  * Fix nil reference for in writeBackendConfig (@chanwit)
+
 # v0.9.4
 
 **Release date:** 2022-04-15
