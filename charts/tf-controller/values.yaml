@@ -6,7 +6,7 @@ image:
   repository: ghcr.io/weaveworks/tf-controller
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.9.5-rc.3"
+  tag: "v0.9.5"
 
 # extraEnv -- Additional container environment variables.
 extraEnv: {}
@@ -27,7 +27,7 @@ serviceAccount:
 runner:
   image:
     repository: ghcr.io/weaveworks/tf-runner
-    tag: "v0.9.5-rc.3"
+    tag: "v0.9.5"
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
