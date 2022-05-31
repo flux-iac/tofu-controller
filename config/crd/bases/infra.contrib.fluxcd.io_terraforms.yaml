@@ -63,6 +63,8 @@ spec:
                 properties:
                   configPath:
                     type: string
+                  customConfiguration:
+                    type: string
                   disable:
                     description: Disable is to completely disable the backend configuration.
                     type: boolean
