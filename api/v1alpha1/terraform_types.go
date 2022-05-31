@@ -277,6 +277,9 @@ type BackendConfigSpec struct {
 	InClusterConfig bool `json:"inClusterConfig"`
 
 	// +optional
+	CustomConfiguration string `json:"customConfiguration,omitempty"`
+
+	// +optional
 	ConfigPath string `json:"configPath,omitempty"`
 
 	// +optional
