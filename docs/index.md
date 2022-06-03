@@ -46,5 +46,5 @@ To get started, follow the [getting started](/tf-controller/getting_started) gui
 
 |  Version   | Terraform | Source Controller | Flux v2 |
 |:----------:|:---------:|:-----------------:|:-------:|
-| **v0.9.3** |  v1.1.7   |      v0.21.2      | v0.27.x |
+| **v0.9.5** |  v1.1.9   |      v0.21.2      | v0.27.x |
 |   v0.8.0   |  v1.1.4   |      v0.20.1      | v0.25.x |
