@@ -13,7 +13,7 @@
     
     
       
-        <title>Getting Started - TF-controller</title>
+        <title>Terraform Enterprise Integration - TF-controller</title>
       
     
     
@@ -64,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#getting-started" class="md-skip">
+        <a href="#terraform-enterprise-integration" class="md-skip">
           Skip to content
         </a>
       
@@ -97,7 +97,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Getting Started
+              Terraform Enterprise Integration
             
           </span>
         </div>
@@ -242,86 +242,11 @@
 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Getting Started
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
         Getting Started
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    Installation
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
-    Quick start
-  </a>
-  
-    <nav class="md-nav" aria-label="Quick start">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#define-source" class="md-nav__link">
-    Define source
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#the-gitops-automation-mode" class="md-nav__link">
-    The GitOps Automation mode
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#other-examples" class="md-nav__link">
-    Other Examples
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -347,11 +272,87 @@
 
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../tfe_integration/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Terraform Enterprise Integration
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Terraform Enterprise Integration
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#terraform-login" class="md-nav__link">
+    Terraform Login
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prepare-an-tfrc-file" class="md-nav__link">
+    Prepare an TFRC file
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-a-secret" class="md-nav__link">
+    Create a Secret
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#terraform-object" class="md-nav__link">
+    Terraform Object
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#terraform-module" class="md-nav__link">
+    Terraform Module
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#terraform-cloud" class="md-nav__link">
+    Terraform Cloud
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -446,42 +447,43 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    Installation
+  <a href="#terraform-login" class="md-nav__link">
+    Terraform Login
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
-    Quick start
+  <a href="#prepare-an-tfrc-file" class="md-nav__link">
+    Prepare an TFRC file
   </a>
-  
-    <nav class="md-nav" aria-label="Quick start">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#define-source" class="md-nav__link">
-    Define source
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#the-gitops-automation-mode" class="md-nav__link">
-    The GitOps Automation mode
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#other-examples" class="md-nav__link">
-    Other Examples
+  <a href="#create-a-secret" class="md-nav__link">
+    Create a Secret
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#terraform-object" class="md-nav__link">
+    Terraform Object
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#terraform-module" class="md-nav__link">
+    Terraform Module
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#terraform-cloud" class="md-nav__link">
+    Terraform Cloud
   </a>
   
 </li>
@@ -498,69 +500,99 @@
             <article class="md-content__inner md-typeset">
               
                 
-  <a href="https://github.com/weaveworks/tf-controller/edit/master/docs/getting_started.md" title="Edit this page" class="md-content__button md-icon">
+  <a href="https://github.com/weaveworks/tf-controller/edit/master/docs/tfe_integration.md" title="Edit this page" class="md-content__button md-icon">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
   </a>
 
 
 
-<h1 id="getting-started">Getting Started</h1>
-<h2 id="installation">Installation</h2>
-<p>Before using TF-controller, you have to install Flux by using either <code>flux install</code> or <code>flux bootstrap</code> command.
-After that you can install TF-controller manually with Helm by:</p>
-<pre><code class="language-shell"># Add tf-controller helm repository
-helm repo add tf-controller https://weaveworks.github.io/tf-controller/
-
-# Install tf-controller
-helm upgrade -i tf-controller tf-controller/tf-controller \
-    --namespace flux-system
+<h1 id="terraform-enterprise-integration">Terraform Enterprise Integration</h1>
+<p>Starting from v0.9.5, Weave TF-controller officially supports integration to Terraform Cloud (TFC) and 
+Terraform Enterprise (TFE). Here are the steps to set up TF-controller for your TFE instance.</p>
+<h2 id="terraform-login">Terraform Login</h2>
+<p>First, you need to obtain an API token from your TFE. You can use <code>terraform login</code> command to do so.</p>
+<pre><code class="language-shell">terraform login tfe.dev.example.com
 </code></pre>
-<p>For details on configurable parameters of the TF-controller chart,
-please see <a href="https://github.com/weaveworks/tf-controller/tree/main/charts/tf-controller#tf-controller-for-flux">chart readme</a>.</p>
-<p>Alternatively, you can install TF-controller via <code>kubectl</code>:</p>
-<pre><code class="language-shell">export TF_CON_VER=v0.9.5
-kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
-kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
-kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
+<p>Then you can find your API token inside <code>$HOME/.terraform.d/credentials.tfrc.json</code>.
+Content of the file will look like this:</p>
+<pre><code class="language-json">{
+  &quot;credentials&quot;: {
+    &quot;tfe.dev.example.com&quot;: {
+      &quot;token&quot;: &quot;mXXXXXXXXX.atlasv1.ixXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&quot;
+    }
+  }
+}
 </code></pre>
-<h2 id="quick-start">Quick start</h2>
-<p>Here's a simple example of how to GitOps your Terraform resources with TF-controller and Flux.</p>
-<h3 id="define-source">Define source</h3>
-<p>First, we need to define a Source controller's source (<code>GitRepostory</code>, or <code>Bucket</code>), for example:</p>
-<pre><code class="language-yaml">apiVersion: source.toolkit.fluxcd.io/v1beta1
-kind: GitRepository
-metadata:
-  name: helloworld
-  namespace: flux-system
-spec:
-  interval: 30s
-  url: https://github.com/tf-controller/helloworld
-  ref:
-    branch: main
+<h2 id="prepare-an-tfrc-file">Prepare an TFRC file</h2>
+<p>TF-controller accepts an TFRC file in the HCL format. So you have to prepare <code>terraform.tfrc</code> file using contents from above.</p>
+<pre><code class="language-hcl">credentials &quot;tfe.dev.example.com&quot; {
+  token = &quot;mXXXXXXXXX.atlasv1.ixXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&quot;
+}
 </code></pre>
-<h3 id="the-gitops-automation-mode">The GitOps Automation mode</h3>
-<p>The GitOps automation mode could be enabled by setting <code>.spec.approvePlan=auto</code>. In this mode, Terraform resources will be planned,
-and automatically applied for you.</p>
-<pre><code class="language-yaml">apiVersion: infra.contrib.fluxcd.io/v1alpha1
+<h2 id="create-a-secret">Create a Secret</h2>
+<p>We will now create a Kubernetes Secret from your<code>terraform.tfrc</code> file, 
+name it <code>tfe-cli-config</code> and put it inside the <code>flux-system</code> namespace.</p>
+<pre><code class="language-shell">kubectl create secret generic \
+  tfe-cli-config \
+  --namespace=flux-system \
+  --from-file=terraform.tfrc=./terraform.tfrc
+</code></pre>
+<h2 id="terraform-object">Terraform Object</h2>
+<p>In your Terraform object, you'll have to 1. disable the backend by setting <code>spec.backendConfig.disable: true</code>, and 2. point <code>spec.cliConfigSecretRef:</code> to the Secret created in the previous step, like this:</p>
+<pre><code class="language-yaml">---
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
-  name: helloworld
+  name: tfe-demo
   namespace: flux-system
 spec:
-  interval: 1m
   approvePlan: &quot;auto&quot;
-  path: ./
+  interval: 2m
+  path: ./terraform/tfe-demo
+  backendConfig:
+    disable: true
+  cliConfigSecretRef:
+    name: tfe-cli-config
+    namespace: flux-system
+  vars:
+  - name: subject
+    value: &quot;World&quot;
   sourceRef:
     kind: GitRepository
-    name: helloworld
+    name: flux-system
     namespace: flux-system
+  writeOutputsToSecret:
+    name: tfe-helloworld-output
+    outputs:
+    - greeting
 </code></pre>
-<p>For a full list of features and how to use them, follow the <a href="/tf-controller/use_cases">use cases</a> guide.</p>
-<h2 id="other-examples">Other Examples</h2>
-<ul>
-<li>A Terraform GitOps with Flux to automatically reconcile your <a href="https://github.com/tf-controller/aws-iam-policies">AWS IAM Policies</a>.</li>
-<li>GitOps an existing EKS cluster, by partially import its nodegroup and manage it with TF-controller: <a href="https://github.com/tf-controller/eks-scaling">An EKS scaling example</a>.</li>
-</ul>
+<h2 id="terraform-module">Terraform Module</h2>
+<p>Don't forget that you need to tell your Terraform model to use your enterprise instance as well. Here's an example,</p>
+<pre><code class="language-hcl">terraform {
+  required_version = &quot;&gt;= 1.1.0&quot;
+  cloud {
+    hostname = &quot;tfe.dev.example.com&quot;
+    organization = &quot;weaveworks&quot;
+
+    workspaces {
+      name = &quot;dev&quot;
+    }
+  }
+}
+
+variable &quot;subject&quot; {
+   type = string
+   default = &quot;World&quot;
+   description = &quot;Subject to hello&quot;
+}
+
+output &quot;greeting&quot; {
+  value = &quot;Hello ${var.subject} from Terraform Enterprise&quot;
+}
+</code></pre>
+<p>Here's the <a href="https://drive.google.com/file/d/1710YQVHK1TIJsgmdW6b9c9fLJVjlmJxx/view?usp=sharing">video demonstration</a> on how to set up a GitOps config repository for Terraform Enterprise integration.</p>
+<h2 id="terraform-cloud">Terraform Cloud</h2>
+<p>For connecting to Terraform Cloud, please replace your hostname to <code>app.terraform.io</code>.</p>
 
               
             </article>
@@ -576,7 +608,7 @@ spec:
     <nav class="md-footer__inner md-grid" aria-label="Footer" >
       
         
-        <a href=".." class="md-footer__link md-footer__link--prev" aria-label="Previous: Overview" rel="prev">
+        <a href="../tfctl/" class="md-footer__link md-footer__link--prev" aria-label="Previous: tfctl" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
           </div>
@@ -585,20 +617,20 @@ spec:
               <span class="md-footer__direction">
                 Previous
               </span>
-              Overview
+              tfctl
             </div>
           </div>
         </a>
       
       
         
-        <a href="../tfctl/" class="md-footer__link md-footer__link--next" aria-label="Next: tfctl" rel="next">
+        <a href="../use_cases/" class="md-footer__link md-footer__link--next" aria-label="Next: Use Cases" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              tfctl
+              Use Cases
             </div>
           </div>
           <div class="md-footer__button md-icon">
