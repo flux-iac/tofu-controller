@@ -3,6 +3,8 @@
 Starting from v0.9.5, Weave TF-controller officially supports integration to Terraform Cloud (TFC) and 
 Terraform Enterprise (TFE). Here are the steps to set up TF-controller for your TFE instance.
 
+![](tfe_integration_01.png)
+
 ## Terraform Login
 
 First, you need to obtain an API token from your TFE. You can use `terraform login` command to do so.
