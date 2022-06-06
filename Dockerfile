@@ -4,6 +4,9 @@ FROM golang:1.17 as builder
 RUN apt-get update && apt-get install -y unzip
 
 WORKDIR /workspace
+# Copy API and it's go module
+COPY api/ api/
+
 # Copy the Go Modules manifests
 COPY go.mod go.mod
 COPY go.sum go.sum
@@ -13,7 +16,6 @@ RUN go mod download
 
 # Copy the go source
 COPY cmd/manager/main.go cmd/manager/main.go
-COPY api/ api/
 COPY controllers/ controllers/
 COPY mtls/ mtls/
 COPY runner/ runner/
