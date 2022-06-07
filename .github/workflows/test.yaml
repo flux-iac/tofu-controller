@@ -32,7 +32,7 @@ jobs:
       - name: Setup Terraform
         run: |
           export TF_VERSION=1.1.9
-          wget https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip /terraform_${TF_VERSION}_linux_amd64.zip
+          wget https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
           unzip -q terraform_${TF_VERSION}_linux_amd64.zip
           mv terraform $(which terraform)
       - name: Run tests
