@@ -7,7 +7,9 @@ on:
       - main
 
 permissions:
-  contents: read # for actions/checkout to fetch code
+  contents: write # needed to write releases
+  id-token: write # needed for keyless signing
+  packages: write # needed for ghcr access
 
 env:
   CONTROLLER: ${{ github.event.repository.name }}
@@ -70,7 +72,7 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
-          username: chanwit
+          username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
       - name: Publish multi-arch tf-controller container image
         uses: docker/build-push-action@v2
