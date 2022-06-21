@@ -81,11 +81,11 @@ spec:
                   enough information to retrieve secret in any namespace
                 properties:
                   name:
-                    description: Name is unique within a namespace to reference a
+                    description: name is unique within a namespace to reference a
                       secret resource.
                     type: string
                   namespace:
-                    description: Namespace defines the space within which the secret
+                    description: namespace defines the space within which the secret
                       name must be unique.
                     type: string
                 type: object
@@ -621,6 +621,35 @@ spec:
                   - type
                   type: object
                 type: array
+              inventory:
+                description: Inventory contains the list of Terraform resource object
+                  references that have been successfully applied.
+                properties:
+                  entries:
+                    description: Entries of Kubernetes resource object references.
+                    items:
+                      description: ResourceRef contains the information necessary
+                        to locate a resource within a cluster.
+                      properties:
+                        id:
+                          description: ID is the resource identifier. This is cloud-specific.
+                            For example, ARN is an ID on AWS.
+                          type: string
+                        "n":
+                          description: Terraform resource's name.
+                          type: string
+                        t:
+                          description: Type is Terraform resource's type
+                          type: string
+                      required:
+                      - id
+                      - "n"
+                      - t
+                      type: object
+                    type: array
+                required:
+                - entries
+                type: object
               lastAppliedByDriftDetectionAt:
                 description: LastAppliedByDriftDetectionAt is the time when the last
                   drift was detected and terraform apply was performed as a result
