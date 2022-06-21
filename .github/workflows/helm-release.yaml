@@ -3,7 +3,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write # needed to push chart
+  contents: write # needed to write releases
+  id-token: write # needed for keyless signing
+  packages: write # needed for ghcr access
 
 jobs:
   publish:
@@ -14,3 +16,15 @@ jobs:
         uses: stefanprodan/helm-gh-pages@v1.4.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+      - name: Publish Helm OCI
+        run: |
+          VERSION=$(yq e '.version' charts/tf-controller/Chart.yaml)
+          mkdir helm-release
+          helm package charts/tf-controller/ -d helm-release
+          helm push helm-release/tf-controller-${VERSION}.tgz oci://ghcr.io/weaveworks/charts

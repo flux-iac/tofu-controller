@@ -8,4 +8,4 @@ generatorOptions:
 images:
   - name: weaveworks/tf-controller
     newName: ghcr.io/weaveworks/tf-controller
-    newTag: v0.9.5
+    newTag: v0.10.0-rc.1
