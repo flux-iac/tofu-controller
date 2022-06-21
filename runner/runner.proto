@@ -20,6 +20,7 @@ service Runner {
   rpc SaveTFPlan(SaveTFPlanRequest) returns (SaveTFPlanReply) {}
   rpc LoadTFPlan(LoadTFPlanRequest) returns (LoadTFPlanReply) {}
   rpc Apply(ApplyRequest) returns (ApplyReply) {}
+  rpc GetInventory(GetInventoryRequest) returns (GetInventoryReply) {}
   rpc Destroy(DestroyRequest) returns (DestroyReply) {}
   rpc Output(OutputRequest) returns (OutputReply) {}
   rpc WriteOutputs(WriteOutputsRequest) returns (WriteOutputsReply) {}
@@ -159,6 +160,20 @@ message ApplyRequest {
 
 message ApplyReply {
   string message = 1;
+}
+
+message GetInventoryRequest {
+  string tfInstance = 1;
+}
+
+message GetInventoryReply {
+  repeated Inventory inventories = 1;
+}
+
+message Inventory {
+  string name = 1;
+  string type = 2;
+  string identifier = 3;
 }
 
 message DestroyRequest {

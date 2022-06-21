@@ -307,6 +307,94 @@ bool
 </table>
 </div>
 </div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.ResourceInventory">ResourceInventory
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformStatus">TerraformStatus</a>)
+</p>
+<p>ResourceInventory contains a list of Kubernetes resource object references that have been applied by a Kustomization.</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>entries</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.ResourceRef">
+[]ResourceRef
+</a>
+</em>
+</td>
+<td>
+<p>Entries of Kubernetes resource object references.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.ResourceRef">ResourceRef
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.ResourceInventory">ResourceInventory</a>)
+</p>
+<p>ResourceRef contains the information necessary to locate a resource within a cluster.</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>n</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Terraform resource&rsquo;s name.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>t</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Type is Terraform resource&rsquo;s type</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>id</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>ID is the resource identifier. This is cloud-specific. For example, ARN is an ID on AWS.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="infra.contrib.fluxcd.io/v1alpha1.RunnerPodMetadata">RunnerPodMetadata
 </h3>
 <p>
@@ -1299,6 +1387,20 @@ PlanStatus
 </td>
 <td>
 <em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>inventory</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.ResourceInventory">
+ResourceInventory
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Inventory contains the list of Terraform resource object references that have been successfully applied.</p>
 </td>
 </tr>
 </tbody>

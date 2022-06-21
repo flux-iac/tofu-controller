@@ -226,6 +226,10 @@ type TerraformStatus struct {
 
 	// +optional
 	Plan PlanStatus `json:"plan,omitempty"`
+
+	// Inventory contains the list of Terraform resource object references that have been successfully applied.
+	// +optional
+	Inventory *ResourceInventory `json:"inventory,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -350,7 +354,7 @@ func TerraformOutputsWritten(terraform Terraform, revision string, message strin
 	return terraform
 }
 
-func TerraformApplied(terraform Terraform, revision string, message string, isDestroyApply bool) Terraform {
+func TerraformApplied(terraform Terraform, revision string, message string, isDestroyApply bool, entries []ResourceRef) Terraform {
 	newCondition := metav1.Condition{
 		Type:    "Apply",
 		Status:  metav1.ConditionTrue,
@@ -371,6 +375,8 @@ func TerraformApplied(terraform Terraform, revision string, message string, isDe
 	if revision != "" {
 		(&terraform).Status.LastAppliedRevision = revision
 	}
+
+	(&terraform).Status.Inventory = &ResourceInventory{Entries: entries}
 
 	SetTerraformReadiness(&terraform, metav1.ConditionTrue, TFExecApplySucceedReason, message+": "+revision, revision)
 	return terraform
