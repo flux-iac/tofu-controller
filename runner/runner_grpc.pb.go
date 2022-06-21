@@ -35,6 +35,7 @@ type RunnerClient interface {
 	SaveTFPlan(ctx context.Context, in *SaveTFPlanRequest, opts ...grpc.CallOption) (*SaveTFPlanReply, error)
 	LoadTFPlan(ctx context.Context, in *LoadTFPlanRequest, opts ...grpc.CallOption) (*LoadTFPlanReply, error)
 	Apply(ctx context.Context, in *ApplyRequest, opts ...grpc.CallOption) (*ApplyReply, error)
+	GetInventory(ctx context.Context, in *GetInventoryRequest, opts ...grpc.CallOption) (*GetInventoryReply, error)
 	Destroy(ctx context.Context, in *DestroyRequest, opts ...grpc.CallOption) (*DestroyReply, error)
 	Output(ctx context.Context, in *OutputRequest, opts ...grpc.CallOption) (*OutputReply, error)
 	WriteOutputs(ctx context.Context, in *WriteOutputsRequest, opts ...grpc.CallOption) (*WriteOutputsReply, error)
@@ -169,6 +170,15 @@ func (c *runnerClient) Apply(ctx context.Context, in *ApplyRequest, opts ...grpc
 	return out, nil
 }
 
+func (c *runnerClient) GetInventory(ctx context.Context, in *GetInventoryRequest, opts ...grpc.CallOption) (*GetInventoryReply, error) {
+	out := new(GetInventoryReply)
+	err := c.cc.Invoke(ctx, "/runner.Runner/GetInventory", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *runnerClient) Destroy(ctx context.Context, in *DestroyRequest, opts ...grpc.CallOption) (*DestroyReply, error) {
 	out := new(DestroyReply)
 	err := c.cc.Invoke(ctx, "/runner.Runner/Destroy", in, out, opts...)
@@ -249,6 +259,7 @@ type RunnerServer interface {
 	SaveTFPlan(context.Context, *SaveTFPlanRequest) (*SaveTFPlanReply, error)
 	LoadTFPlan(context.Context, *LoadTFPlanRequest) (*LoadTFPlanReply, error)
 	Apply(context.Context, *ApplyRequest) (*ApplyReply, error)
+	GetInventory(context.Context, *GetInventoryRequest) (*GetInventoryReply, error)
 	Destroy(context.Context, *DestroyRequest) (*DestroyReply, error)
 	Output(context.Context, *OutputRequest) (*OutputReply, error)
 	WriteOutputs(context.Context, *WriteOutputsRequest) (*WriteOutputsReply, error)
@@ -301,6 +312,9 @@ func (UnimplementedRunnerServer) LoadTFPlan(context.Context, *LoadTFPlanRequest)
 }
 func (UnimplementedRunnerServer) Apply(context.Context, *ApplyRequest) (*ApplyReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Apply not implemented")
+}
+func (UnimplementedRunnerServer) GetInventory(context.Context, *GetInventoryRequest) (*GetInventoryReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetInventory not implemented")
 }
 func (UnimplementedRunnerServer) Destroy(context.Context, *DestroyRequest) (*DestroyReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Destroy not implemented")
@@ -570,6 +584,24 @@ func _Runner_Apply_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Runner_GetInventory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInventoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RunnerServer).GetInventory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/runner.Runner/GetInventory",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RunnerServer).GetInventory(ctx, req.(*GetInventoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Runner_Destroy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DestroyRequest)
 	if err := dec(in); err != nil {
@@ -754,6 +786,10 @@ var Runner_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Apply",
 			Handler:    _Runner_Apply_Handler,
+		},
+		{
+			MethodName: "GetInventory",
+			Handler:    _Runner_GetInventory_Handler,
 		},
 		{
 			MethodName: "Destroy",

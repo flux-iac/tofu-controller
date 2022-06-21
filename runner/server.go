@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	tfjson "github.com/hashicorp/terraform-json"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -602,6 +603,60 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 	}
 
 	return &ApplyReply{Message: "ok"}, nil
+}
+
+func getInvetoryFromTerraformModule(m *tfjson.StateModule) []*Inventory {
+	var result []*Inventory
+	for _, r := range m.Resources {
+		var id string
+		// TODO ARN is AWS-specific. Will need to support other cloud identifiers in the future.
+		if val, ok := r.AttributeValues["arn"]; ok {
+			id = val.(string)
+		} else if val, ok := r.AttributeValues["id"]; ok {
+			id = val.(string)
+		}
+		result = append(result, &Inventory{
+			Name:       r.Name,
+			Type:       r.Type,
+			Identifier: id,
+		})
+	}
+
+	// recursively get all resources from submodules
+	for _, childModule := range m.ChildModules {
+		childInventory := getInvetoryFromTerraformModule(childModule)
+		result = append(result, childInventory...)
+	}
+
+	return result
+}
+
+func (r *TerraformRunnerServer) GetInventory(ctx context.Context, req *GetInventoryRequest) (*GetInventoryReply, error) {
+	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log.Info("get inventory")
+	if req.TfInstance != "1" {
+		err := fmt.Errorf("no TF instance found")
+		log.Error(err, "get inventory: no terraform")
+		return nil, err
+	}
+	state, err := r.tf.Show(ctx)
+	if err != nil {
+		log.Error(err, "get inventory: unable to get state via show command")
+		return nil, err
+	}
+
+	// state contains no values after resource destruction for example
+	if state.Values == nil {
+		log.Info("get inventory: state values is nil")
+		return &GetInventoryReply{Inventories: []*Inventory{}}, nil
+	}
+
+	if state.Values.RootModule == nil {
+		log.Info("get inventory: root module is nil")
+		return &GetInventoryReply{Inventories: []*Inventory{}}, nil
+	}
+
+	return &GetInventoryReply{Inventories: getInvetoryFromTerraformModule(state.Values.RootModule)}, nil
 }
 
 func (r *TerraformRunnerServer) Output(ctx context.Context, req *OutputRequest) (*OutputReply, error) {

@@ -66,3 +66,4 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+          skip-files: '/usr/local/bin/terraform' # false positive

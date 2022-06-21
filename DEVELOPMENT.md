@@ -10,7 +10,15 @@ We follow the Flux development best practices.
 
 Although you are a contributor with the write access to this repository,
 please do not merge PRs by yourself. Please ask the project's [maintainers](MAINTAINERS)
-to merge PRs for you after reviews.
+to merge them for you after reviews.
+
+## Protobuf Setup
+
+TF-controller requires a specific version of Protobuf compiler and its Go plugins. 
+
+* Protoc: version [3.19.4](https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip)
+* Go plugin: `go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.27.1`
+* Go plugin: `go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2`
 
 ## How to run the test suite
 
