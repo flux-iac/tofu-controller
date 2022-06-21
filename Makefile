@@ -86,7 +86,7 @@ target-test: manifests generate download-crd-deps fmt vet envtest api-docs ## Ru
 	$(TEST_SETTINGS) go test ./controllers -coverprofile cover.out -v -run $(TARGET)
 
 gen-grpc:
-	protoc --go_out=. --go_opt=Mrunner/runner.proto=runner/ --go-grpc_out=. --go-grpc_opt=Mrunner/runner.proto=runner/ runner/runner.proto
+	./tools/bin/protoc --go_out=. --go_opt=Mrunner/runner.proto=runner/ --go-grpc_out=. --go-grpc_opt=Mrunner/runner.proto=runner/ runner/runner.proto
 ##@ Build
 
 .PHONY: build
