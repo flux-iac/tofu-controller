@@ -1023,6 +1023,9 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	}
 
 	var isDestroyApplied bool
+
+	var inventoryEntries []infrav1.ResourceRef
+
 	// this a special case, when backend is completely disabled.
 	// we need to use "destroy" command instead of apply
 	if r.backendCompletelyDisable(terraform) && terraform.Spec.Destroy == true {
@@ -1053,10 +1056,29 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		}
 		log.Info(fmt.Sprintf("apply: %s", applyReply.Message))
 
+		getInventoryRequest := &runner.GetInventoryRequest{TfInstance: tfInstance}
+		getInventoryReply, err := runnerClient.GetInventory(ctx, getInventoryRequest)
+		if err != nil {
+			err = fmt.Errorf("error getting inventory after Apply: %s", err)
+			return infrav1.TerraformAppliedFailResetPlanAndNotReady(
+				terraform,
+				revision,
+				infrav1.TFExecApplyFailedReason,
+				err.Error(),
+			), err
+		}
+		for _, iv := range getInventoryReply.Inventories {
+			inventoryEntries = append(inventoryEntries, infrav1.ResourceRef{
+				Name:       iv.GetName(),
+				Type:       iv.GetType(),
+				Identifier: iv.GetIdentifier(),
+			})
+		}
+
 		isDestroyApplied = terraform.Status.Plan.IsDestroyPlan
 	}
 
-	terraform = infrav1.TerraformApplied(terraform, revision, "Applied successfully", isDestroyApplied)
+	terraform = infrav1.TerraformApplied(terraform, revision, "Applied successfully", isDestroyApplied, inventoryEntries)
 
 	return terraform, nil
 }
