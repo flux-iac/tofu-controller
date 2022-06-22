@@ -171,6 +171,10 @@ type TerraformSpec struct {
 
 	// +optional
 	RunnerPodTemplate RunnerPodTemplate `json:"runnerPodTemplate,omitempty"`
+
+	// EnableInventory enables the object to store resource entries as the inventory for external use.
+	// +optional
+	EnableInventory bool `json:"enableInventory,omitempty"`
 }
 
 type PlanStatus struct {
@@ -376,7 +380,9 @@ func TerraformApplied(terraform Terraform, revision string, message string, isDe
 		(&terraform).Status.LastAppliedRevision = revision
 	}
 
-	(&terraform).Status.Inventory = &ResourceInventory{Entries: entries}
+	if len(entries) > 0 {
+		(&terraform).Status.Inventory = &ResourceInventory{Entries: entries}
+	}
 
 	SetTerraformReadiness(&terraform, metav1.ConditionTrue, TFExecApplySucceedReason, message+": "+revision, revision)
 	return terraform

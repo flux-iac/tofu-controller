@@ -1056,26 +1056,31 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		}
 		log.Info(fmt.Sprintf("apply: %s", applyReply.Message))
 
-		getInventoryRequest := &runner.GetInventoryRequest{TfInstance: tfInstance}
-		getInventoryReply, err := runnerClient.GetInventory(ctx, getInventoryRequest)
-		if err != nil {
-			err = fmt.Errorf("error getting inventory after Apply: %s", err)
-			return infrav1.TerraformAppliedFailResetPlanAndNotReady(
-				terraform,
-				revision,
-				infrav1.TFExecApplyFailedReason,
-				err.Error(),
-			), err
-		}
-		for _, iv := range getInventoryReply.Inventories {
-			inventoryEntries = append(inventoryEntries, infrav1.ResourceRef{
-				Name:       iv.GetName(),
-				Type:       iv.GetType(),
-				Identifier: iv.GetIdentifier(),
-			})
-		}
-
 		isDestroyApplied = terraform.Status.Plan.IsDestroyPlan
+
+		if terraform.Spec.EnableInventory {
+			getInventoryRequest := &runner.GetInventoryRequest{TfInstance: tfInstance}
+			getInventoryReply, err := runnerClient.GetInventory(ctx, getInventoryRequest)
+			if err != nil {
+				err = fmt.Errorf("error getting inventory after Apply: %s", err)
+				return infrav1.TerraformAppliedFailResetPlanAndNotReady(
+					terraform,
+					revision,
+					infrav1.TFExecApplyFailedReason,
+					err.Error(),
+				), err
+			}
+			for _, iv := range getInventoryReply.Inventories {
+				inventoryEntries = append(inventoryEntries, infrav1.ResourceRef{
+					Name:       iv.GetName(),
+					Type:       iv.GetType(),
+					Identifier: iv.GetIdentifier(),
+				})
+			}
+			log.Info(fmt.Sprintf("got inventory - entries count: %d", len(inventoryEntries)))
+		} else {
+			log.Info("inventory is disabled by default")
+		}
 	}
 
 	terraform = infrav1.TerraformApplied(terraform, revision, "Applied successfully", isDestroyApplied, inventoryEntries)
