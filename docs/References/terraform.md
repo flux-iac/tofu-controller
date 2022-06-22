@@ -921,6 +921,18 @@ RunnerPodTemplate
 <em>(Optional)</em>
 </td>
 </tr>
+<tr>
+<td>
+<code>enableInventory</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>EnableInventory enables the object to store resource entries as the inventory for external use.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -1235,6 +1247,18 @@ RunnerPodTemplate
 </td>
 <td>
 <em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>enableInventory</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>EnableInventory enables the object to store resource entries as the inventory for external use.</p>
 </td>
 </tr>
 </tbody>
