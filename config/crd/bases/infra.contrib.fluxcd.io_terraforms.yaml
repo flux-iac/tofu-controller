@@ -103,6 +103,10 @@ spec:
                   be resource intensive in the context of a large cluster or complex
                   Terraform statefile. Defaults to false.
                 type: boolean
+              enableInventory:
+                description: EnableInventory enables the object to store resource
+                  entries as the inventory for external use.
+                type: boolean
               force:
                 default: false
                 description: Force instructs the controller to unconditionally re-plan

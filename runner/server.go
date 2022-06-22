@@ -605,7 +605,7 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 	return &ApplyReply{Message: "ok"}, nil
 }
 
-func getInvetoryFromTerraformModule(m *tfjson.StateModule) []*Inventory {
+func getInventoryFromTerraformModule(m *tfjson.StateModule) []*Inventory {
 	var result []*Inventory
 	for _, r := range m.Resources {
 		var id string
@@ -624,7 +624,7 @@ func getInvetoryFromTerraformModule(m *tfjson.StateModule) []*Inventory {
 
 	// recursively get all resources from submodules
 	for _, childModule := range m.ChildModules {
-		childInventory := getInvetoryFromTerraformModule(childModule)
+		childInventory := getInventoryFromTerraformModule(childModule)
 		result = append(result, childInventory...)
 	}
 
@@ -656,7 +656,7 @@ func (r *TerraformRunnerServer) GetInventory(ctx context.Context, req *GetInvent
 		return &GetInventoryReply{Inventories: []*Inventory{}}, nil
 	}
 
-	return &GetInventoryReply{Inventories: getInvetoryFromTerraformModule(state.Values.RootModule)}, nil
+	return &GetInventoryReply{Inventories: getInventoryFromTerraformModule(state.Values.RootModule)}, nil
 }
 
 func (r *TerraformRunnerServer) Output(ctx context.Context, req *OutputRequest) (*OutputReply, error) {
