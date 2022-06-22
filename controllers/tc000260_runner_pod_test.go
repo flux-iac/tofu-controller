@@ -179,6 +179,11 @@ func Test_000260_runner_pod_test_env_vars_proxy(t *testing.T) {
 	os.Setenv("HTTP_PROXY", "http://runner_pod_test_env_vars_proxy:1234")
 	os.Setenv("HTTPS_PROXY", "http://runner_pod_test_env_vars_proxy:1234")
 	os.Setenv("NO_PROXY", "runner.pod.test.env.vars.proxy")
+	defer func() {
+		os.Setenv("HTTP_PROXY", "")
+		os.Setenv("HTTPS_PROXY", "")
+		os.Setenv("NO_PROXY", "")
+	}()
 
 	g := NewWithT(t)
 
@@ -263,6 +268,11 @@ func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
 	os.Setenv("HTTP_PROXY", "http://runner_pod_test_env_vars_proxy_overwrite:1234")
 	os.Setenv("HTTPS_PROXY", "http://runner_pod_test_env_vars_proxy_overwrite:1234")
 	os.Setenv("NO_PROXY", "runner.pod.test.env.vars.proxy.overwrite")
+	defer func() {
+		os.Setenv("HTTP_PROXY", "")
+		os.Setenv("HTTPS_PROXY", "")
+		os.Setenv("NO_PROXY", "")
+	}()
 
 	g := NewWithT(t)
 
@@ -519,4 +529,5 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 			"OwnerRef[0]":       string(outputSecret.OwnerReferences[0].UID),
 		}, err
 	}, timeout, interval).Should(Equal(expectedOutputValue), "expected output %v", expectedOutputValue)
+
 }
