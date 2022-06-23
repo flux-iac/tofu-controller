@@ -1,20 +1,16 @@
 replicaCount: 1
 concurrency: 1
 logLevel: info
-
 image:
   repository: ghcr.io/weaveworks/tf-controller
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.10.0-rc.2"
-
+  tag: "v0.10.0-rc.3"
 # extraEnv -- Additional container environment variables.
 extraEnv: {}
-
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
-
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
@@ -23,11 +19,10 @@ serviceAccount:
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
-
 runner:
   image:
     repository: ghcr.io/weaveworks/tf-runner
-    tag: "v0.10.0-rc.2"
+    tag: "v0.10.0-rc.3"
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -35,17 +30,14 @@ runner:
     annotations: {}
     # The name of the service account for runner pod to use.
     name: ""
-
 installCRDs: true
-
 podAnnotations: {}
-
 podSecurityContext: {}
-  # fsGroup: 1337
+# fsGroup: 1337
 
 securityContext: {}
-  # allowPrivilegeEscalation: false
-  # readOnlyRootFilesystem: true
+# allowPrivilegeEscalation: false
+# readOnlyRootFilesystem: true
 
 resources:
   limits:
@@ -54,21 +46,16 @@ resources:
   requests:
     cpu: 200m
     memory: 64Mi
-
 rbac:
   create: true
-
 nodeSelector: {}
-
 tolerations: []
-
 affinity: {}
-
 # Create an AWS EKS Security Group Policy with the supplied Security Group IDs
 # https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html#deploy-securitygrouppolicy
 eksSecurityGroupPolicy:
   create: false
   ids: []
-    # - sg-1234567890
-    # - sg-1234567891
-    # - sg-1234567892
+  # - sg-1234567890
+  # - sg-1234567891
+  # - sg-1234567892
