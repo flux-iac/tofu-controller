@@ -4,7 +4,7 @@ MANAGER_IMG ?= ghcr.io/weaveworks/tf-controller
 RUNNER_IMG  ?= ghcr.io/weaveworks/tf-runner
 TAG ?= latest
 BUILD_SHA ?= $(shell git rev-parse --short HEAD)
-BUILD_VERSION ?= $(shell git tag -l v[0-9].[0-9].[0-9] | tail -n1)
+BUILD_VERSION ?= $(shell git describe --tags $$(git rev-list --tags --max-count=1))
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.22
