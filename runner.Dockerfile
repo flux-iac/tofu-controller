@@ -44,9 +44,9 @@ COPY --from=builder /workspace/terraform /usr/local/bin/
 # https://github.com/gliderlabs/docker-alpine/issues/367#issuecomment-354316460
 RUN [ ! -e /etc/nsswitch.conf ] && echo 'hosts: files dns' > /etc/nsswitch.conf
 
-RUN addgroup -S controller && adduser -S controller -G controller && chmod +x /usr/local/bin/terraform
+RUN addgroup --gid 65532 -S runner && adduser --uid 65532 -S runner -G runner && chmod +x /usr/local/bin/terraform
 
-USER controller
+USER 65532:65532
 
 ENV GNUPGHOME=/tmp
 
