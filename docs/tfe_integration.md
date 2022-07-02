@@ -100,7 +100,5 @@ output "greeting" {
 }
 ```
 
-Here's the [video demonstration](https://drive.google.com/file/d/1710YQVHK1TIJsgmdW6b9c9fLJVjlmJxx/view?usp=sharing) on how to set up a GitOps config repository for Terraform Enterprise integration.
-
 ## Terraform Cloud
 For connecting to Terraform Cloud, please replace your hostname to `app.terraform.io`.
