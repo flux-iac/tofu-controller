@@ -38,9 +38,9 @@ COPY --from=builder /workspace/tf-controller /usr/local/bin/
 # https://github.com/gliderlabs/docker-alpine/issues/367#issuecomment-354316460
 RUN [ ! -e /etc/nsswitch.conf ] && echo 'hosts: files dns' > /etc/nsswitch.conf
 
-RUN addgroup -S controller && adduser -S controller -G controller
+RUN addgroup --gid 65532 -S controller && adduser --uid 65532 -S controller -G controller
 
-USER controller
+USER 65532:65532
 
 ENV GNUPGHOME=/tmp
 

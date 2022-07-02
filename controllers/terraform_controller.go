@@ -2053,6 +2053,9 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 		envvars = append(envvars, env)
 	}
 
+	vFalse := false
+	vTrue := true
+	vUser := int64(65532)
 	return corev1.PodSpec{
 		TerminationGracePeriodSeconds: gracefulTermPeriod,
 		Containers: []corev1.Container{
@@ -2069,6 +2072,34 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 				},
 				Env:     envvars,
 				EnvFrom: terraform.Spec.RunnerPodTemplate.Spec.EnvFrom,
+				// TODO: this security context might break OpenShift because of SCC. We need verification.
+				// TODO how to support it via Spec or Helm Chart
+				SecurityContext: &corev1.SecurityContext{
+					Capabilities: &corev1.Capabilities{
+						Drop: []corev1.Capability{"ALL"},
+					},
+					AllowPrivilegeEscalation: &vFalse,
+					RunAsNonRoot:             &vTrue,
+					RunAsUser:                &vUser,
+					SeccompProfile: &corev1.SeccompProfile{
+						Type: corev1.SeccompProfileTypeRuntimeDefault,
+					},
+					ReadOnlyRootFilesystem: &vTrue,
+				},
+				VolumeMounts: []corev1.VolumeMount{
+					{
+						Name:      "temp",
+						MountPath: "/tmp",
+					},
+				},
+			},
+		},
+		Volumes: []corev1.Volume{
+			{
+				Name: "temp",
+				VolumeSource: corev1.VolumeSource{
+					EmptyDir: &corev1.EmptyDirVolumeSource{},
+				},
 			},
 		},
 		ServiceAccountName: serviceAccountName,
