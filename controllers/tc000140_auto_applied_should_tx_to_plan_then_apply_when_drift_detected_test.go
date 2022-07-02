@@ -274,11 +274,18 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":    "Ready",
-		"Reason":  "Progressing",
-		"Message": "Applying",
-	}))
+	}, timeout, interval).Should(Or(
+		Equal(map[string]interface{}{
+			"Type":    "Ready",
+			"Reason":  "Progressing",
+			"Message": "Applying",
+		}),
+		Equal(map[string]interface{}{
+			"Type":    "Ready",
+			"Reason":  "NoDrift",
+			"Message": "No drift: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		}),
+	))
 
 	By("checking that the status of the TF object then must be transitioned to applied")
 	g.Eventually(func() map[string]interface{} {
