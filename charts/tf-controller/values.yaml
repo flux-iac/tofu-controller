@@ -32,12 +32,22 @@ runner:
     name: ""
 installCRDs: true
 podAnnotations: {}
-podSecurityContext: {}
-# fsGroup: 1337
 
-securityContext: {}
-# allowPrivilegeEscalation: false
-# readOnlyRootFilesystem: true
+# Pod-level security context
+podSecurityContext:
+  fsGroup: 1337
+
+# Container-level security context
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 65532
+  seccompProfile:
+    type: RuntimeDefault
 
 resources:
   limits:
