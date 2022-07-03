@@ -31,6 +31,9 @@ spec:
         - --log-encoding=json
         - --enable-leader-election
         - --concurrent={{ .Values.concurrency }}
+        - --ca-cert-validity-duration={{ .Values.caCertValidityDuration }}
+        - --cert-rotation-check-frequency={{ .Values.certRotationCheckFrequency }}
+        - --cert-validity-duration={{ .Values.certValidityDuration }}
         command:
         - /sbin/tini
         - --

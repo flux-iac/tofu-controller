@@ -1,5 +1,8 @@
 replicaCount: 1
 concurrency: 1
+caCertValidityDuration: 168h0m
+certRotationCheckFrequency: 30m0s
+certValidityDuration: 6h0m
 logLevel: info
 image:
   repository: ghcr.io/weaveworks/tf-controller
