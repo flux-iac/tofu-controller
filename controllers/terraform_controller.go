@@ -99,10 +99,15 @@ type TerraformReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
 func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (retResult ctrl.Result, retErr error) {
-	// TODO need to think about many controller instances are sharing the same secret
 
-	// should be blocked if cert is not ready yet
+	// Should be blocked if cert is not ready yet
+	<-r.CertRotator.Ready
+
 	if r.CertRotator.IsCertReady(ctx) == false {
+		// Trigger the CA rotation
+		if len(r.CertRotator.TriggerCARotation) < cap(r.CertRotator.TriggerCARotation) {
+			r.CertRotator.TriggerCARotation <- struct{}{}
+		}
 		return ctrl.Result{Requeue: true}, fmt.Errorf("server cert not ready yet")
 	}
 
@@ -1682,8 +1687,7 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, terraform
 	// if the cert is not valid, refresh it, recreate the pod and wait for the ip to
 	// be available before connecting
 	if !isCertValid {
-		nsSAN := fmt.Sprintf("*.%s.pod.cluster.local", terraform.Namespace)
-		if err := r.CertRotator.RefreshRunnerCertIfNeeded(ctx, nsSAN, &tlsSecret); err != nil {
+		if err := r.CertRotator.GenerateRunnerCertForNamespace(ctx, terraform.Namespace, &tlsSecret); err != nil {
 			return nil, fmt.Errorf("failed to refresh cert before opening runner connection: %w", err)
 		}
 
@@ -1905,8 +1909,7 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 
 	// this hostname will be used to generate a cert valid
 	// for all pods in the given namespace
-	hostname := fmt.Sprintf("*.%s.pod.cluster.local", terraform.Namespace)
-	if err := r.CertRotator.RefreshRunnerCertIfNeeded(ctx, hostname, &tlsSecret); err != nil {
+	if err := r.CertRotator.GenerateRunnerCertForNamespace(ctx, terraform.Namespace, &tlsSecret); err != nil {
 		return err
 	}
 

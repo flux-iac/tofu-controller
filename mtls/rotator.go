@@ -72,6 +72,7 @@ type CertRotator struct {
 	CertValidityDuration   time.Duration
 	RotationCheckFrequency time.Duration
 	LookaheadInterval      time.Duration
+	TriggerCARotation      chan struct{}
 }
 
 // AddRotator adds the CertRotator to the manager
@@ -96,21 +97,32 @@ func (cr *CertRotator) Start(ctx context.Context) error {
 
 	// explicitly rotate on the first round so that the certificate
 	// can be bootstrapped, otherwise manager exits before a cert can be written
-	if err := cr.refreshCAandServerCertIfNeeded(); err != nil {
+	if err := cr.refreshCAAndServerCertIfNeeded(); err != nil {
 		crLog.Error(err, "could not refresh cert on startup")
 		return err
 	}
 
 	close(cr.Ready)
 
+	cr.TriggerCARotation = make(chan struct{}, 1)
+	defer func() {
+		close(cr.TriggerCARotation)
+	}()
+
 	ticker := time.NewTicker(cr.RotationCheckFrequency)
 
 tickerLoop:
 	for {
 		select {
+		case <-cr.TriggerCARotation:
+			cr.Ready = make(chan struct{})
+			if err := cr.refreshCAAndServerCertIfNeeded(); err != nil {
+				crLog.Error(err, "error rotating certs via trigger")
+			}
+			close(cr.Ready)
 		case <-ticker.C:
-			if err := cr.refreshCAandServerCertIfNeeded(); err != nil {
-				crLog.Error(err, "error rotating certs")
+			if err := cr.refreshCAAndServerCertIfNeeded(); err != nil {
+				crLog.Error(err, "error rotating certs via ticker")
 			}
 		case <-ctx.Done():
 			break tickerLoop
@@ -138,8 +150,8 @@ func (cr *CertRotator) IsCertReady(ctx context.Context) bool {
 	return true
 }
 
-// refreshCAandServerCertIfNeeded returns whether there's any error when refreshing the certs if needed.
-func (cr *CertRotator) refreshCAandServerCertIfNeeded() error {
+// refreshCAAndServerCertIfNeeded returns whether there's any error when refreshing the certs if needed.
+func (cr *CertRotator) refreshCAAndServerCertIfNeeded() error {
 	refreshFn := func() (bool, error) {
 		ctx := context.Background()
 
@@ -263,28 +275,31 @@ func (cr *CertRotator) refreshCerts(ctx context.Context, refreshCA bool, secret 
 	return nil
 }
 
-func (cr *CertRotator) RefreshRunnerCertIfNeeded(ctx context.Context, hostname string, tlsCertSecret *corev1.Secret) error {
+func (cr *CertRotator) GenerateRunnerCertForNamespace(ctx context.Context, namespace string, tlsCertSecret *corev1.Secret) error {
+	hostname := fmt.Sprintf("*.%s.pod.cluster.local", namespace)
 
 	if err := cr.client.Get(ctx, client.ObjectKeyFromObject(tlsCertSecret), tlsCertSecret); err != nil {
 		if !apierrors.IsNotFound(err) {
 			return err
 		}
+
 		// create the runner tls secret
 		if err := cr.client.Create(ctx, tlsCertSecret); err != nil {
 			return err
 		}
 	}
 
-	var caArtifacts *KeyPairArtifacts
+	// Validity is from -1 to cr.CertValidityDuration
 	now := time.Now()
 	begin := now.Add(-1 * time.Hour)
 	end := now.Add(cr.CertValidityDuration)
-	caSecret := &corev1.Secret{}
-	if err := cr.client.Get(ctx, cr.SecretKey, caSecret); err != nil {
+
+	var caSecret corev1.Secret
+	if err := cr.client.Get(ctx, cr.SecretKey, &caSecret); err != nil {
 		return err
 	}
 
-	caArtifacts, err := parseArtifacts(caCertName, caKeyName, caSecret)
+	caArtifacts, err := parseArtifacts(caCertName, caKeyName, &caSecret)
 	if err != nil {
 		return err
 	}
