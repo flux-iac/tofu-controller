@@ -31,8 +31,7 @@ func StartGRPCServerForTesting(ctx context.Context, server *runner.TerraformRunn
 		},
 	}
 
-	hostname := fmt.Sprintf("*.%s.pod.cluster.local", namespace)
-	if err := rotator.RefreshRunnerCertIfNeeded(ctx, hostname, tlsSecret); err != nil {
+	if err := rotator.GenerateRunnerCertForNamespace(ctx, namespace, tlsSecret); err != nil {
 		return err
 	}
 
