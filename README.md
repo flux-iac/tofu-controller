@@ -22,23 +22,18 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
 
 ## Roadmap
 
-### Q2 2022
-  * [ ] Improve security
-  * [ ] Performance and scalability
+### Q3 2022
+  * [ ] Performance
+  * [ ] Scalability
   * [ ] Cloud cost estimation
   * [ ] Interop with Notification controller's Events and Alert
-  * [ ] CLI implementation: `tfctl`
-  * [ ] Test coverage reaching 72.5%
+  * [ ] Test coverage reaching 72.5% 
 
-### Q3 2022
+### Q4 2022
   * [ ] ARM64 & Gravitron support
   * [ ] Containerd compatibility
   * [ ] Write back and show plan in PRs
   * [ ] Test coverage reaching 75%
 
-### Q4 2022
-  * [ ] Test coverage reaching 77.5%
-
 ### Q1 2023
-  * TBD
-
+  * [ ] Test coverage reaching 77.5%
