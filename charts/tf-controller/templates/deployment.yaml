@@ -4,6 +4,7 @@ metadata:
   labels:
     {{- include "tf-controller.labels" . | nindent 4 }}
   name: {{ include "tf-controller.fullname" . }}
+  namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
