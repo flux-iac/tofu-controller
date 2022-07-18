@@ -205,6 +205,44 @@ The statefile is stored in a secret named: `tfstate-default-${secretSuffix}`. Th
 
 You can disable the backend
 
+### Use custom backend
+
+If you wish to use a custom backend, you can configure it by defining the `backendConfig.customConfiguration` with one of the backends such as GCS or S3:
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: "auto"
+  backendConfig:
+    customConfiguration: |
+      backend "s3" {
+        bucket                      = "s3-terraform-state1"
+        key                         = "dev/terraform.tfstate"
+        region                      = "us-east-1"
+        endpoint                    = "http://localhost:4566"
+        skip_credentials_validation = true
+        skip_metadata_api_check     = true
+        force_path_style            = true
+        dynamodb_table              = "terraformlock"
+        dynamodb_endpoint           = "http://localhost:4566"
+        encrypt                     = true
+      }
+  interval: 1m
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  runnerPodTemplate:
+    spec:
+      image: registry.io/tf-runner:xyz
+```
+
+
 ### Backup the statefile
 
 For the following `terraform` resources:

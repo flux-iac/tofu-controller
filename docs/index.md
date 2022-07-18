@@ -7,12 +7,12 @@ and application resources, in the Kubernetes and Terraform universe, at your own
 
 "At your own pace" means you don't need to GitOps-ify everything at once.
 
-TF-controller offers many GitOps models:  
-  1. **GitOps Automation Model:** GitOps your Terraform resources from the provision steps to the enforcement steps, like a whole EKS cluster.  
+TF-controller offers many GitOps models:
+  1. **GitOps Automation Model:** GitOps your Terraform resources from the provision steps to the enforcement steps, like a whole EKS cluster.
   2. **Hybrid GitOps Automation Model:** GitOps parts of your existing infrastructure resources. For example, you have an existing EKS cluster.
-     You can choose to GitOps only its nodegroup, or its security group.  
-  3. **State Enforcement Model:** You have a TFSTATE file, and you'd like to use GitOps enforce it, without changing anything else.  
-  4. **Drift Detection Model:** You have a TFSTATE file, and you'd like to use GitOps just for drift detection, so you can decide to do things later when a drift occurs.  
+     You can choose to GitOps only its nodegroup, or its security group.
+  3. **State Enforcement Model:** You have a TFSTATE file, and you'd like to use GitOps enforce it, without changing anything else.
+  4. **Drift Detection Model:** You have a TFSTATE file, and you'd like to use GitOps just for drift detection, so you can decide to do things later when a drift occurs.
 
 To get started, follow the [getting started](/tf-controller/getting_started) guide.
 
