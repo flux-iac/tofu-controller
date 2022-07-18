@@ -101,7 +101,7 @@ will be `flux-system:tf-controller`. You'll obtain a Role ARN to use in the next
 Finally, annotate the ServiceAccount with the obtained Role ARN in your cluster:
 
 ```shell
-kubectl annotate -n flux-system serviceaccount tf-controller eks.amazon.com/role-arn=ROLE_ARN
+kubectl annotate -n flux-system serviceaccount tf-controller eks.amazonaws.com/role-arn=ROLE_ARN
 ```
 
 ## Setting Terraform Variables
@@ -289,7 +289,7 @@ spec:
 
 ## Destroy resources on deletion
 
-The resources created by terraform are not defaulted to destroyed after the object is deleted from the cluster. To enable destroy resources on object deletion, set `.spec.destroyResourcesOnDeletion` to `true`. 
+The resources created by terraform are not defaulted to destroyed after the object is deleted from the cluster. To enable destroy resources on object deletion, set `.spec.destroyResourcesOnDeletion` to `true`.
 
 ```yaml
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
@@ -391,7 +391,7 @@ spec:
 ### Customize runner pod metadata
 
 In some situations, it is needed to add custom labels and annotations to the runner pod used to reconcile Terraform.
-For example, for Azure AKS to grant pod active directory permissions using Azure Active Directory (AAD) Pod Identity, 
+For example, for Azure AKS to grant pod active directory permissions using Azure Active Directory (AAD) Pod Identity,
 a label like `aadpodidbinding: myIdentity` on the pod is required.
 
 ```yaml
