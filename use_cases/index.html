@@ -766,16 +766,24 @@ spec:
 </code></pre>
 <h2 id="use-with-aws-eks-irsa">Use with AWS EKS IRSA</h2>
 <p>AWS Elastic Kubernetes Service (EKS) offers IAM Roles for Service Accounts (IRSA) as a mechanism by which to provide
-credentials for the Terraform controller.</p>
+credentials to Kubernetes pods. This can be used to provide the required AWS credentials to Terraform runners
+for performing plans and applies.</p>
 <p>You can use <code>eksctl</code> to associate an OIDC provider with your EKS cluster, for example:</p>
 <pre><code class="language-shell">eksctl utils associate-iam-oidc-provider --cluster CLUSTER_NAME --approve
 </code></pre>
 <p>Then follow the instructions <a href="https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html">here</a>
 to add a trust policy to the IAM role which grants the necessary permissions for Terraform.
 Please note that if you have installed the controller following the README, then the <code>namespace:serviceaccountname</code>
-will be <code>flux-system:tf-controller</code>. You'll obtain a Role ARN to use in the next step.</p>
-<p>Finally, annotate the ServiceAccount with the obtained Role ARN in your cluster:</p>
-<pre><code class="language-shell">kubectl annotate -n flux-system serviceaccount tf-controller eks.amazonaws.com/role-arn=ROLE_ARN
+will be <code>flux-system:tf-runner</code>. You'll obtain a Role ARN to use in the next step.</p>
+<p>Finally, annotate the ServiceAccount for the <code>tf-runner</code> with the obtained Role ARN in your cluster:</p>
+<pre><code class="language-shell">kubectl annotate -n flux-system serviceaccount tf-runner eks.amazonaws.com/role-arn=ROLE_ARN
+</code></pre>
+<p>If deploying the <code>tf-controller</code> via Helm, this can be accomplished as follows:</p>
+<pre><code class="language-yaml">values:
+  runner:
+    serviceAccount:
+      annotations:
+        eks.amazonaws.com/role-arn: ROLE_ARN
 </code></pre>
 <h2 id="setting-terraform-variables">Setting Terraform Variables</h2>
 <p><strong>This is a breaking change of the <code>v1alpha1</code> API.</strong>
