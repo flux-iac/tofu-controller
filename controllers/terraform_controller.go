@@ -496,6 +496,14 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		return terraform, nil
 	}
 
+	if terraform.Spec.BackendConfig.CustomConfiguration != "" {
+		terraform, err = r.validate(ctx, terraform, tfInstance, runnerClient, revision)
+		if err != nil {
+			log.Error(err, "error validating")
+			return terraform, err
+		}
+	}
+
 	if r.shouldPlan(terraform) {
 		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision)
 		if err != nil {
@@ -902,6 +910,39 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 	}
 
 	terraform = infrav1.TerraformNoDrift(terraform, revision, infrav1.NoDriftReason, "No drift")
+	return terraform, nil
+}
+
+func (r *TerraformReconciler) validate(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string) (infrav1.Terraform, error) {
+
+	log := ctrl.LoggerFrom(ctx)
+
+	log.Info("calling validate ...")
+
+	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
+	terraform = infrav1.TerraformProgressing(terraform, "Terraform Validating")
+	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+		log.Error(err, "unable to update status before Terraform Validating")
+		return terraform, err
+	}
+
+	validationRequest := &runner.ValidationRequest{
+		TfInstance:         tfInstance,
+		RefreshBeforeApply: terraform.Spec.RefreshBeforeApply,
+	}
+
+	validationReply, err := runnerClient.Validate(ctx, validationRequest)
+	if err != nil {
+		err = fmt.Errorf("error running Validation: %s", err)
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.TFExecPlanFailedReason,
+			err.Error(),
+		), err
+	}
+	log.Info(fmt.Sprintf("validation: %s", validationReply.Message))
+
 	return terraform, nil
 }
 
