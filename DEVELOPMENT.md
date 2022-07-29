@@ -14,7 +14,7 @@ to merge them for you after reviews.
 
 ## Protobuf Setup
 
-TF-controller requires a specific version of Protobuf compiler and its Go plugins. 
+TF-controller requires a specific version of Protobuf compiler and its Go plugins.
 
 * Protoc: version [3.19.4](https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip)
 * Go plugin: `go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.27.1`
@@ -108,3 +108,36 @@ make deploy
 ```
 
 Running the above will also deploy `source-controller` and its CRDs to the cluster.
+
+
+## How to debug tests
+
+Enable remote debug session:
+
+```sh
+ make TARGET=001 target-debug-test
+```
+
+Add vscode launch configuration:
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+			"name": "Attach manager",
+			"type": "go",
+			"request": "attach",
+			"mode": "remote",
+			"remotePath": "",
+			"port":2345,
+			"host":"127.0.0.1",
+			"showLog": true,
+			"trace": "log",
+			"logOutput": "rpc"
+		}
+    ]
+}
+```
+
+Add needed breakpoints and Start Debugging (F5)
