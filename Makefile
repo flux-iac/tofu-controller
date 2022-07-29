@@ -206,3 +206,7 @@ release-manifests:
 	kustomize build ./config/crd > ./config/release/tf-controller.crds.yaml
 	kustomize build ./config/rbac > ./config/release/tf-controller.rbac.yaml
 	kustomize build ./config/manager > ./config/release/tf-controller.deployment.yaml
+
+.PHONY: target-debug-test
+target-debug-test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests. e.g make TARGET=250 target-debug-test
+	$(TEST_SETTINGS) dlv test ./controllers --listen=:2345 --headless=true --api-version=2 --accept-multiclient -test.v -test.run=$(TARGET)
