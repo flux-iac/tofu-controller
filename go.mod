@@ -56,6 +56,7 @@ require (
 	github.com/chai2010/gettext-go v0.0.0-20160711120539-c6fed771bfd5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emicklei/go-restful v2.9.5+incompatible // indirect
+	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/color v1.13.0 // indirect
@@ -147,5 +148,8 @@ require (
 
 replace (
 	github.com/hashicorp/terraform-exec v0.15.0 => github.com/tf-controller/terraform-exec v0.15.1-0.20220114135154-c06c64609ee0
-	k8s.io/kubectl v0.23.2 => k8s.io/kubectl v0.24.0
+	k8s.io/kubectl v0.23.2 => k8s.io/kubectl v0.24.3
+
+	// Fix CVE-2022-1996
+	github.com/emicklei/go-restful v2.9.5+incompatible => github.com/emicklei/go-restful/v3 v3.8.0
 )
