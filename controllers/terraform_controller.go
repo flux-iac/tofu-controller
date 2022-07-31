@@ -1574,7 +1574,7 @@ func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terrafor
 	return r.lookupOrCreateRunner_000(ctx, terraform)
 }
 
-//lookupOrCreateRunner_000
+// lookupOrCreateRunner_000
 func (r *TerraformReconciler) lookupOrCreateRunner_000(ctx context.Context, terraform infrav1.Terraform) (runner.RunnerClient, func() error, error) {
 	// we have to make sure that the secret is valid before we can create the runner.
 	err := r.reconcileRunnerSecret(ctx, &terraform)
@@ -1812,49 +1812,113 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 }
 
 func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform) (string, error) {
-	runnerPodTemplate := runnerPodTemplate(terraform)
-
-	runnerPod := *runnerPodTemplate.DeepCopy()
-	runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
-
-	var err error
-	err = r.Get(ctx, runnerPodKey, &runnerPod)
-	if err != nil && apierrors.IsNotFound(err) == false {
-		return "", err
-	}
+	log := ctrl.LoggerFrom(ctx)
+	type state string
+	const (
+		stateUnknown       state = "unknown"
+		stateRunning       state = "running"
+		stateNotFound      state = "not-found"
+		stateMustBeDeleted state = "must-be-deleted"
+		stateTerminating   state = "terminating"
+	)
 
 	const (
 		interval = time.Second * 3
 		timeout  = time.Second * 60
 	)
 
-	// if the old pod has been terminating, wait for it to be deleted.
-	if err == nil && runnerPod.DeletionTimestamp != nil {
-		podErr := wait.PollImmediate(interval, timeout, func() (bool, error) {
-			err = r.Get(ctx, runnerPodKey, &runnerPod)
+	var err error
+	tlsSecretName, err := r.CertRotator.GetRunnerTLSSecretName()
+	if err != nil {
+		return "", err
+	}
 
-			if err != nil && apierrors.IsNotFound(err) == false {
-				return false, err
-			}
+	// runnerPod := *runnerPodTemplate.DeepCopy()
+	// runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
 
+	createNewPod := func() error {
+		runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
+		newRunnerPod := *runnerPodTemplate.DeepCopy()
+		newRunnerPod.Spec = r.runnerPodSpec(terraform)
+		if err := r.Create(ctx, &newRunnerPod); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	waitForPodToBeTerminated := func() error {
+		runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
+		runnerPod := *runnerPodTemplate.DeepCopy()
+		runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
+		err = wait.PollImmediate(interval, timeout, func() (bool, error) {
+			err := r.Get(ctx, runnerPodKey, &runnerPod)
 			if err != nil && apierrors.IsNotFound(err) {
 				return true, nil
 			}
 			return false, nil
 		})
-		if podErr != nil {
-			return "", fmt.Errorf("failed to wait for the old pod termination: %v", podErr)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	podState := stateUnknown
+
+	runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
+	runnerPod := *runnerPodTemplate.DeepCopy()
+	runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
+	err = r.Get(ctx, runnerPodKey, &runnerPod)
+	if err != nil && apierrors.IsNotFound(err) {
+		podState = stateNotFound
+	} else if err == nil {
+		label, found := runnerPod.Labels["tf.weave.works/tls-secret-name"]
+		if !found || label != tlsSecretName {
+			podState = stateMustBeDeleted
+		} else if runnerPod.DeletionTimestamp != nil {
+			podState = stateTerminating
+		} else if runnerPod.Status.Phase == corev1.PodRunning {
+			podState = stateRunning
 		}
 	}
 
-	if err != nil && apierrors.IsNotFound(err) {
-		newRunnerPod := *runnerPodTemplate.DeepCopy()
-		newRunnerPod.Spec = r.runnerPodSpec(terraform)
-		if err := r.Create(ctx, &newRunnerPod); err != nil {
+	log.Info("show runner pod state: ", "state", podState)
+
+	switch podState {
+	case stateNotFound:
+		// create new pod
+		err := createNewPod()
+		if err != nil {
 			return "", err
 		}
+	case stateMustBeDeleted:
+		// delete old pod
+		if err := r.Delete(ctx, &runnerPod); err != nil {
+			return "", err
+		}
+		// wait for pod to be terminated
+		if err := waitForPodToBeTerminated(); err != nil {
+			return "", fmt.Errorf("failed to wait for the old pod termination: %v", err)
+		}
+		// create new pod
+		if err := createNewPod(); err != nil {
+			return "", err
+		}
+	case stateTerminating:
+		// wait for pod to be terminated
+		if err := waitForPodToBeTerminated(); err != nil {
+			return "", fmt.Errorf("failed to wait for the old pod termination: %v", err)
+		}
+		// create new pod
+		err := createNewPod()
+		if err != nil {
+			return "", err
+		}
+	case stateRunning:
+		// do nothing
 	}
 
+	// wait for pod ip
 	if wait.PollImmediate(interval, timeout, func() (bool, error) {
 		if err := r.Get(ctx, runnerPodKey, &runnerPod); err != nil {
 			return false, fmt.Errorf("failed to get runner pod: %w", err)
@@ -1881,7 +1945,7 @@ func getRunnerPodImage(image string) string {
 	return runnerPodImage
 }
 
-func runnerPodTemplate(terraform infrav1.Terraform) corev1.Pod {
+func runnerPodTemplate(terraform infrav1.Terraform, secretName string) corev1.Pod {
 	podNamespace := terraform.Namespace
 	podName := fmt.Sprintf("%s-tf-runner", terraform.Name)
 	runnerPodTemplate := corev1.Pod{
@@ -1889,10 +1953,11 @@ func runnerPodTemplate(terraform infrav1.Terraform) corev1.Pod {
 			Namespace: podNamespace,
 			Name:      podName,
 			Labels: map[string]string{
-				"app.kubernetes.io/created-by": "tf-controller",
-				"app.kubernetes.io/name":       "tf-runner",
-				"app.kubernetes.io/instance":   podName,
-				infrav1.RunnerLabel:            terraform.Namespace,
+				"app.kubernetes.io/created-by":   "tf-controller",
+				"app.kubernetes.io/name":         "tf-runner",
+				"app.kubernetes.io/instance":     podName,
+				infrav1.RunnerLabel:              terraform.Namespace,
+				"tf.weave.works/tls-secret-name": secretName,
 			},
 			Annotations: terraform.Spec.RunnerPodTemplate.Metadata.Annotations,
 		},

@@ -214,11 +214,11 @@ tickerLoop:
 			if _, ok := cr.knownNamespaceTLSMap[namespace]; !ok {
 				secret, err := cr.generateNamespaceTLS(namespace)
 				if err != nil {
-					crLog.Error(err, "error generating TLS for namespace %s", namespace)
+					crLog.Error(err, "error generating TLS for ", "namespace", namespace)
 				}
 				cr.knownNamespaceTLSMap[namespace] = &TriggerResult{Secret: secret, Err: err}
 			} else {
-				crLog.Info("TLS for namespace %s already generated", namespace)
+				crLog.Info("TLS already generated for ", "namespace", namespace)
 			}
 			trigger.Ready <- cr.knownNamespaceTLSMap[namespace]
 
