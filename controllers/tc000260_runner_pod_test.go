@@ -27,8 +27,9 @@ func Test_000260_runner_pod_test(t *testing.T) {
 	)
 
 	var stringMap = map[string]string{
-		"company.com/abc": "xyz",
-		"company.com/xyz": "abc",
+		"company.com/abc":                "xyz",
+		"company.com/xyz":                "abc",
+		"tf.weave.works/tls-secret-name": "runner.tls-123",
 	}
 
 	g := NewWithT(t)
@@ -65,7 +66,7 @@ func Test_000260_runner_pod_test(t *testing.T) {
 	g.Expect(spec.ServiceAccountName == serviceAccountName)
 	g.Expect(spec.Containers[0].Image == runnerPodImage)
 
-	podTemplate := runnerPodTemplate(helloWorldTF)
+	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123")
 	g.Expect(func() bool {
 		for k, v := range stringMap {
 			if v != podTemplate.ObjectMeta.Labels[k] {
@@ -92,8 +93,9 @@ func Test_000260_runner_pod_test_env_vars(t *testing.T) {
 	)
 
 	var stringMap = map[string]string{
-		"company.com/abc": "xyz",
-		"company.com/xyz": "abc",
+		"company.com/abc":                "xyz",
+		"company.com/xyz":                "abc",
+		"tf.weave.works/tls-secret-name": "runner.tls-123",
 	}
 
 	g := NewWithT(t)
@@ -145,7 +147,7 @@ func Test_000260_runner_pod_test_env_vars(t *testing.T) {
 	g.Expect(spec.Containers[0].Env[3].Name == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Name)
 	g.Expect(spec.Containers[0].Env[3].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Value)
 
-	podTemplate := runnerPodTemplate(helloWorldTF)
+	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123")
 	g.Expect(func() bool {
 		for k, v := range stringMap {
 			if v != podTemplate.ObjectMeta.Labels[k] {
@@ -172,8 +174,9 @@ func Test_000260_runner_pod_test_env_vars_proxy(t *testing.T) {
 	)
 
 	var stringMap = map[string]string{
-		"company.com/abc": "xyz",
-		"company.com/xyz": "abc",
+		"company.com/abc":                "xyz",
+		"company.com/xyz":                "abc",
+		"tf.weave.works/tls-secret-name": "runner.tls-123",
 	}
 
 	os.Setenv("HTTP_PROXY", "http://runner_pod_test_env_vars_proxy:1234")
@@ -234,7 +237,7 @@ func Test_000260_runner_pod_test_env_vars_proxy(t *testing.T) {
 	g.Expect(spec.Containers[0].Env[6].Name == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Name)
 	g.Expect(spec.Containers[0].Env[6].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Value)
 
-	podTemplate := runnerPodTemplate(helloWorldTF)
+	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123")
 	g.Expect(func() bool {
 		for k, v := range stringMap {
 			if v != podTemplate.ObjectMeta.Labels[k] {
@@ -261,8 +264,9 @@ func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
 	)
 
 	var stringMap = map[string]string{
-		"company.com/abc": "xyz",
-		"company.com/xyz": "abc",
+		"company.com/abc":                "xyz",
+		"company.com/xyz":                "abc",
+		"tf.weave.works/tls-secret-name": "runner.tls-123",
 	}
 
 	os.Setenv("HTTP_PROXY", "http://runner_pod_test_env_vars_proxy_overwrite:1234")
@@ -330,7 +334,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
 	g.Expect(spec.Containers[0].Env[2].Name == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[2].Name)
 	g.Expect(spec.Containers[0].Env[2].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[2].Value)
 
-	podTemplate := runnerPodTemplate(helloWorldTF)
+	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123")
 	g.Expect(func() bool {
 		for k, v := range stringMap {
 			if v != podTemplate.ObjectMeta.Labels[k] {
