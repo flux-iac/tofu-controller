@@ -2,7 +2,7 @@ VERSION=e2e-$(git rev-parse --short HEAD)-$(if [[ $(git diff --stat) != '' ]]; t
 
 kind create cluster
 
-[[ -z "$SKIP_IMAGE_BUILD" ]] && make docker-buildx MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION BUILD_ARGS="--no-cache --load"
+[[ -z "$SKIP_IMAGE_BUILD" ]] && make docker-build MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION # BUILD_ARGS="--no-cache"
 
 kind load docker-image test/tf-controller:$VERSION
 kind load docker-image test/tf-runner:$VERSION
