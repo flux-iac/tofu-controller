@@ -1577,7 +1577,7 @@ func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terrafor
 // lookupOrCreateRunner_000
 func (r *TerraformReconciler) lookupOrCreateRunner_000(ctx context.Context, terraform infrav1.Terraform) (runner.RunnerClient, func() error, error) {
 	// we have to make sure that the secret is valid before we can create the runner.
-	err := r.reconcileRunnerSecret(ctx, &terraform)
+	secret, err := r.reconcileRunnerSecret(ctx, &terraform)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1593,7 +1593,7 @@ func (r *TerraformReconciler) lookupOrCreateRunner_000(ctx context.Context, terr
 		hostname = terraform.GetRunnerHostname(podIP)
 	}
 
-	conn, err := r.getRunnerConnection(terraform, hostname, r.RunnerGRPCPort)
+	conn, err := r.getRunnerConnection(secret, hostname, r.RunnerGRPCPort)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1602,22 +1602,7 @@ func (r *TerraformReconciler) lookupOrCreateRunner_000(ctx context.Context, terr
 	return runnerClient, connClose, nil
 }
 
-func (r *TerraformReconciler) getRunnerConnection(terraform infrav1.Terraform, hostname string, port int) (*grpc.ClientConn, error) {
-	// blocks until the tls cert is valid
-	trigger := mtls.Trigger{
-		Namespace: terraform.Namespace,
-		Ready:     make(chan *mtls.TriggerResult),
-	}
-
-	r.CertRotator.TriggerNamespaceTLSGeneration <- trigger
-	result := <-trigger.Ready
-
-	tlsSecret := result.Secret
-	err := result.Err
-	if err != nil {
-		return nil, fmt.Errorf("failed to get tls secret: %w", err)
-	}
-
+func (r *TerraformReconciler) getRunnerConnection(tlsSecret *corev1.Secret, hostname string, port int) (*grpc.ClientConn, error) {
 	addr := fmt.Sprintf("%s:%d", hostname, port)
 	credentials, err := mtls.GetGRPCClientCredentials(tlsSecret)
 	if err != nil {
@@ -1792,7 +1777,7 @@ func (r *TerraformReconciler) templateParse(content map[string]string, text stri
 // if the cert is not present in the secret or is invalid, it will generate a new cert and
 // write it to the secret. One secret per namespace is created in order to sidestep the need
 // for specifying a pod ip in the certificate SAN field.
-func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terraform *infrav1.Terraform) error {
+func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terraform *infrav1.Terraform) (*corev1.Secret, error) {
 	log := ctrl.LoggerFrom(ctx)
 
 	log.Info("trigger namespace tls secret generation")
@@ -1805,10 +1790,10 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 
 	result := <-trigger.Ready
 	if result.Err != nil {
-		return errors.Wrap(result.Err, "failed to get tls generation result")
+		return nil, errors.Wrap(result.Err, "failed to get tls generation result")
 	}
 
-	return nil
+	return result.Secret, nil
 }
 
 func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform) (string, error) {
