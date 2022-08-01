@@ -30,8 +30,18 @@ spec:
     crds: CreateReplace
   values:
     replicaCount: 1
+    concurrency: 100
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 400m
+        memory: 64Mi
+    caCertValidityDuration: 24h
+    certRotationCheckFrequency: 30m
     image:
-      tag: v0.9.5
+      tag: v0.10.0
     runner:
       image:
-        tag: v0.9.5
+        tag: v0.10.0
