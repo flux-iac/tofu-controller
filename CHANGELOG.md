@@ -2,6 +2,23 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.10.0
+
+**Release date:** 2022-08-02
+
+This pre-release contains the following changes.
+
+New Features and Bug Fixing:
+  * Add support for Terraform Enterprise (@chanwit)
+  * Implement resource inventory (@chanwit)
+  * Improve security to make the images work with Weave GitOps Enterprise (@chanwit)
+  * Re-implement certificate rotator (@chanwit)
+  * Correct IRSA docs (@benreynolds-drizly)
+  * Update Kubernetes libraries to v0.24.3 (@chanwit)
+  * Update go-restful to fix CVE-2022-1996 (@chanwit)
+  * Add pprof to the /debug/pprof endpoint (@chanwit)
+  * Fix race condition to make sure that gRPC client and the runner use the same TLS (@chanwit)
+
 # v0.9.5
 
 **Release date:** 2022-05-30
