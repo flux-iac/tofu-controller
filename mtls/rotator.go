@@ -173,9 +173,12 @@ tickerLoop:
 			if err := cr.refreshCACertsIfNeeded(); err != nil {
 				crLog.Error(err, "could not refresh cert")
 			}
-			n := len(cr.artifactCaches)
-			secret := cr.artifactCaches[n-1].certSecret
-			trigger.Ready <- &TriggerResult{Secret: secret, Err: nil}
+			// if no channel passing it, skip
+			if trigger.Ready != nil {
+				n := len(cr.artifactCaches)
+				secret := cr.artifactCaches[n-1].certSecret
+				trigger.Ready <- &TriggerResult{Secret: secret, Err: nil}
+			}
 
 		case <-ticker.C:
 			if err := cr.refreshCACertsIfNeeded(); err != nil {

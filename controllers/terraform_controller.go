@@ -1882,7 +1882,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		}
 	}
 
-	log.Info("show runner pod state: ", "state", podState)
+	log.Info("show runner pod state: ", "name", terraform.Name, "state", podState)
 
 	switch podState {
 	case stateNotFound:

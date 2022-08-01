@@ -28,6 +28,7 @@ import (
 	"github.com/fluxcd/pkg/runtime/leaderelection"
 	"github.com/fluxcd/pkg/runtime/logger"
 	"github.com/fluxcd/pkg/runtime/metrics"
+	"github.com/fluxcd/pkg/runtime/pprof"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	flag "github.com/spf13/pflag"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
@@ -89,7 +90,7 @@ func main() {
 	flag.DurationVar(&caValidityDuration, "ca-cert-validity-duration", time.Hour*24*7,
 		"The duration that the ca certificate certificates should be valid for. Default is 1 week.")
 	flag.DurationVar(&certValidityDuration, "cert-validity-duration", 6*time.Hour,
-		"The duration that the mTLS certificate that the runner pod should be valid for.")
+		"(Deprecated) The duration that the mTLS certificate that the runner pod should be valid for.")
 	flag.DurationVar(&rotationCheckFrequency, "cert-rotation-check-frequency", 30*time.Minute,
 		"The interval that the mTLS certificate rotator should check the certificate validity.")
 	flag.IntVar(&runnerGRPCPort, "runner-grpc-port", 30000, "The port which will be exposed on the runner pod for gRPC connections.")
@@ -132,6 +133,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	pprof.SetupHandlers(mgr, setupLog)
+
 	var eventRecorder *events.Recorder
 	if eventRecorder, err = events.NewRecorder(mgr, ctrl.Log, eventsAddr, controllerName); err != nil {
 		setupLog.Error(err, "unable to create event recorder")
@@ -148,7 +151,7 @@ func main() {
 		DNSName:                       "tf-controller",
 		CAValidityDuration:            caValidityDuration,
 		RotationCheckFrequency:        rotationCheckFrequency,
-		LookaheadInterval:             2 * time.Hour,
+		LookaheadInterval:             4 * rotationCheckFrequency, // we do 4 rotation checks ahead
 		TriggerCARotation:             make(chan mtls.Trigger),
 		TriggerNamespaceTLSGeneration: make(chan mtls.Trigger),
 	}
