@@ -23,8 +23,8 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
 ## Roadmap
 
 ### Q3 2022
-  * [ ] Performance
-  * [ ] Scalability
+  * [x] Performance
+  * [x] Scalability
   * [ ] Cloud cost estimation
   * [ ] Interop with Notification controller's Events and Alert
   * [ ] Test coverage reaching 72.5% 
