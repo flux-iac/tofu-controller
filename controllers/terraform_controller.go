@@ -2047,12 +2047,22 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 						Name:      "temp",
 						MountPath: "/tmp",
 					},
+					{
+						Name:      "home",
+						MountPath: "/home/runner",
+					},
 				},
 			},
 		},
 		Volumes: []corev1.Volume{
 			{
 				Name: "temp",
+				VolumeSource: corev1.VolumeSource{
+					EmptyDir: &corev1.EmptyDirVolumeSource{},
+				},
+			},
+			{
+				Name: "home",
 				VolumeSource: corev1.VolumeSource{
 					EmptyDir: &corev1.EmptyDirVolumeSource{},
 				},
