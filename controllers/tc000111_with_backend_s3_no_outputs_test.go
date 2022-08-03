@@ -85,7 +85,7 @@ func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
 	backendConfig := fmt.Sprintf(`
 	backend "s3" {
-		bucket                      = "s3-terraform-state1"
+		bucket                      = "s3-terraform-state"
 		key                         = "dev/terraform.tfstate"
 		region                      = "us-east-1"
 		endpoint                    = "http://localhost:4566"
@@ -140,4 +140,26 @@ func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 		return len(createdHelloWorldTF.Status.Conditions)
 	}, timeout, interval).ShouldNot(BeZero())
 
+	It("should be planned.")
+	By("checking that Plan fails.")
+	g.Eventually(func() interface{} {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return nil
+		}
+		for _, c := range createdHelloWorldTF.Status.Conditions {
+			if c.Type == "Plan" {
+				return map[string]interface{}{
+					"Type":    c.Type,
+					"Reason":  c.Reason,
+					"Message": c.Message,
+				}
+			}
+		}
+		return createdHelloWorldTF.Status
+	}, timeout, interval).ShouldNot(Equal(map[string]interface{}{
+		"Type":    "Plan",
+		"Reason":  "TerraformPlannedNoChanges",
+		"Message": "Plan no changes",
+	}))
 }
