@@ -612,6 +612,9 @@ func (r *TerraformReconciler) setupTerraform(ctx context.Context, runnerClient r
 		), tfInstance, tmpDir, err
 	}
 
+	// we fix timeout of UploadAndExtract to be 30s
+	// ctx30s, cancelCtx30s := context.WithTimeout(ctx, 30*time.Second)
+	// defer cancelCtx30s()
 	uploadAndExtractReply, err := runnerClient.UploadAndExtract(ctx, &runner.UploadAndExtractRequest{
 		Namespace: terraform.Namespace,
 		Name:      terraform.Name,
@@ -1574,7 +1577,7 @@ func (r *TerraformReconciler) lookupOrCreateRunner_000(ctx context.Context, terr
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
 		hostname = "localhost"
 	} else {
-		podIP, err := r.reconcileRunnerPod(ctx, terraform)
+		podIP, err := r.reconcileRunnerPod(ctx, terraform, secret)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -1784,7 +1787,7 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 	return result.Secret, nil
 }
 
-func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform) (string, error) {
+func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform, tlsSecret *corev1.Secret) (string, error) {
 	log := ctrl.LoggerFrom(ctx)
 	type state string
 	const (
@@ -1800,19 +1803,12 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		timeout  = time.Second * 60
 	)
 
-	var err error
-	tlsSecretName, err := r.CertRotator.GetRunnerTLSSecretName()
-	if err != nil {
-		return "", err
-	}
-
-	// runnerPod := *runnerPodTemplate.DeepCopy()
-	// runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
+	tlsSecretName := tlsSecret.Name
 
 	createNewPod := func() error {
 		runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
 		newRunnerPod := *runnerPodTemplate.DeepCopy()
-		newRunnerPod.Spec = r.runnerPodSpec(terraform)
+		newRunnerPod.Spec = r.runnerPodSpec(terraform, tlsSecretName)
 		if err := r.Create(ctx, &newRunnerPod); err != nil {
 			return err
 		}
@@ -1823,7 +1819,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
 		runnerPod := *runnerPodTemplate.DeepCopy()
 		runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
-		err = wait.PollImmediate(interval, timeout, func() (bool, error) {
+		err := wait.PollImmediate(interval, timeout, func() (bool, error) {
 			err := r.Get(ctx, runnerPodKey, &runnerPod)
 			if err != nil && apierrors.IsNotFound(err) {
 				return true, nil
@@ -1841,7 +1837,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
 	runnerPod := *runnerPodTemplate.DeepCopy()
 	runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
-	err = r.Get(ctx, runnerPodKey, &runnerPod)
+	err := r.Get(ctx, runnerPodKey, &runnerPod)
 	if err != nil && apierrors.IsNotFound(err) {
 		podState = stateNotFound
 	} else if err == nil {
@@ -1945,7 +1941,7 @@ func runnerPodTemplate(terraform infrav1.Terraform, secretName string) corev1.Po
 	return runnerPodTemplate
 }
 
-func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.PodSpec {
+func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecretName string) corev1.PodSpec {
 	serviceAccountName := terraform.Spec.ServiceAccountName
 	if serviceAccountName == "" {
 		serviceAccountName = "tf-runner"
@@ -1992,10 +1988,6 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 	vFalse := false
 	vTrue := true
 	vUser := int64(65532)
-	tlsSecretName, err := r.CertRotator.GetRunnerTLSSecretName()
-	if err != nil {
-		tlsSecretName = infrav1.RunnerTLSSecretName
-	}
 
 	return corev1.PodSpec{
 		TerminationGracePeriodSeconds: gracefulTermPeriod,
