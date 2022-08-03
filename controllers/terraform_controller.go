@@ -159,39 +159,27 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 
 		if terraform.Spec.GetAlwaysCleanupRunnerPod() == true {
-			podKey := getRunnerPodObjectKey(terraform)
-			var pod corev1.Pod
-			if err := cli.Get(ctx, podKey, &pod); err != nil {
-				if !apierrors.IsNotFound(err) {
-					log.Error(err, "unable to get pod for cleaning up")
-					retErr = err
-				}
-				return
-			}
-
-			if err := cli.Delete(ctx, &pod); err != nil {
-				log.Error(err, "unable to delete pod")
-				retErr = err
-				return
-			}
-
 			// wait for runner pod complete termination
 			var (
-				interval = time.Second * 5
+				interval = time.Second * 3
 				timeout  = time.Second * 120
 			)
 			err := wait.PollImmediate(interval, timeout, func() (bool, error) {
 				var runnerPod corev1.Pod
 				err := r.Get(ctx, getRunnerPodObjectKey(terraform), &runnerPod)
-				if err == nil {
+
+				if err != nil && apierrors.IsNotFound(err) {
+					return true, nil
+				}
+
+				if err := cli.Delete(ctx, &runnerPod); err != nil {
+					log.Error(err, "unable to delete pod")
 					return false, nil
 				}
 
-				if apierrors.IsNotFound(err) {
-					return true, nil
-				}
 				return false, err
 			})
+
 			if err != nil {
 				retErr = fmt.Errorf("failed waiting for the terminating runner pod: %v", err)
 				log.Error(retErr, "error in polling")
