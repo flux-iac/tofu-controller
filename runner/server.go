@@ -351,35 +351,6 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 	return &GenerateVarsForTFReply{Message: "ok"}, nil
 }
 
-func (r *TerraformRunnerServer) Validate(ctx context.Context, req *ValidationRequest) (*ValidationReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
-	log.Info("validating terraform files")
-	ctx, cancel := context.WithCancel(ctx)
-	go func() {
-		select {
-		case <-r.Done:
-			cancel()
-		case <-ctx.Done():
-		}
-	}()
-
-	if req.TfInstance != "1" {
-		err := fmt.Errorf("no TF instance found")
-		log.Error(err, "no terraform")
-		return nil, err
-	}
-
-	validation, err := r.tf.Validate(ctx)
-	if err != nil {
-		log.Error(err, "error validating TF")
-		return nil, err
-	}
-	return &ValidationReply{
-		Validation: validation.Valid,
-		Message:    "ok",
-	}, nil
-}
-
 func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*PlanReply, error) {
 	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
 	log.Info("creating a plan")

@@ -15,7 +15,6 @@ service Runner {
   rpc ProcessCliConfig(ProcessCliConfigRequest) returns (ProcessCliConfigReply) {}
 
   rpc GenerateVarsForTF(GenerateVarsForTFRequest) returns (GenerateVarsForTFReply) {}
-  rpc Validate(ValidationRequest) returns (ValidationReply) {}
   rpc Plan(PlanRequest) returns (PlanReply) {}
   rpc ShowPlanFileRaw(ShowPlanFileRawRequest) returns (ShowPlanFileRawReply) {}
   rpc SaveTFPlan(SaveTFPlanRequest) returns (SaveTFPlanReply) {}
@@ -105,18 +104,6 @@ message GenerateVarsForTFRequest {
 
 message GenerateVarsForTFReply {
   string message = 1;
-}
-
-message ValidationRequest {
-  string tfInstance = 1;
-  string dirOrPlan = 2;
-  bool   refreshBeforeApply = 3;
-}
-
-
-message ValidationReply {
-  bool validation = 1;
-  string message = 2;
 }
 
 message PlanRequest {
