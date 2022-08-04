@@ -172,7 +172,10 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 					return true, nil
 				}
 
-				if err := cli.Delete(ctx, &runnerPod); err != nil {
+				if err := cli.Delete(ctx, &runnerPod,
+					client.GracePeriodSeconds(1), // force kill = 1 second
+					client.PropagationPolicy(metav1.DeletePropagationForeground),
+				); err != nil {
 					log.Error(err, "unable to delete pod")
 					return false, nil
 				}
