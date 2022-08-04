@@ -1588,7 +1588,9 @@ func (r *TerraformReconciler) lookupOrCreateRunner_000(ctx context.Context, terr
 		hostname = terraform.GetRunnerHostname(podIP)
 	}
 
-	conn, err := r.getRunnerConnection(secret, hostname, r.RunnerGRPCPort)
+	dialCtx, dialCancel := context.WithTimeout(ctx, 30*time.Second)
+	defer dialCancel()
+	conn, err := r.getRunnerConnection(dialCtx, secret, hostname, r.RunnerGRPCPort)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1597,7 +1599,7 @@ func (r *TerraformReconciler) lookupOrCreateRunner_000(ctx context.Context, terr
 	return runnerClient, connClose, nil
 }
 
-func (r *TerraformReconciler) getRunnerConnection(tlsSecret *corev1.Secret, hostname string, port int) (*grpc.ClientConn, error) {
+func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret *corev1.Secret, hostname string, port int) (*grpc.ClientConn, error) {
 	addr := fmt.Sprintf("%s:%d", hostname, port)
 	credentials, err := mtls.GetGRPCClientCredentials(tlsSecret)
 	if err != nil {
@@ -1617,7 +1619,11 @@ func (r *TerraformReconciler) getRunnerConnection(tlsSecret *corev1.Secret, host
 		  }
 		}]}`
 
-	return grpc.Dial(addr, grpc.WithTransportCredentials(credentials), grpc.WithDefaultServiceConfig(retryPolicy))
+	return grpc.DialContext(ctx, addr,
+		grpc.WithTransportCredentials(credentials),
+		grpc.WithBlock(),
+		grpc.WithDefaultServiceConfig(retryPolicy),
+	)
 }
 
 func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient) (infrav1.Terraform, error) {
