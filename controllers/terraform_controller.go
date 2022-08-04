@@ -73,13 +73,14 @@ import (
 // TerraformReconciler reconciles a Terraform object
 type TerraformReconciler struct {
 	client.Client
-	httpClient      *retryablehttp.Client
-	EventRecorder   kuberecorder.EventRecorder
-	MetricsRecorder *metrics.Recorder
-	StatusPoller    *polling.StatusPoller
-	Scheme          *runtime.Scheme
-	CertRotator     *mtls.CertRotator
-	RunnerGRPCPort  int
+	httpClient            *retryablehttp.Client
+	EventRecorder         kuberecorder.EventRecorder
+	MetricsRecorder       *metrics.Recorder
+	StatusPoller          *polling.StatusPoller
+	Scheme                *runtime.Scheme
+	CertRotator           *mtls.CertRotator
+	RunnerGRPCPort        int
+	RunnerCreationTimeout time.Duration
 }
 
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete
@@ -1801,11 +1802,8 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		stateTerminating   state = "terminating"
 	)
 
-	const (
-		interval = time.Second * 3
-		timeout  = time.Second * 60
-	)
-
+	const interval = time.Second * 5
+	timeout := r.RunnerCreationTimeout // default is 120 seconds
 	tlsSecretName := tlsSecret.Name
 
 	createNewPod := func() error {
