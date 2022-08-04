@@ -77,6 +77,7 @@ func main() {
 		certValidityDuration   time.Duration
 		rotationCheckFrequency time.Duration
 		runnerGRPCPort         int
+		runnerCreationTimeout  time.Duration
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
@@ -87,13 +88,14 @@ func main() {
 	flag.BoolVar(&watchAllNamespaces, "watch-all-namespaces", true,
 		"Watch for custom resources in all namespaces, if set to false it will only watch the runtime namespace.")
 	flag.IntVar(&httpRetry, "http-retry", 9, "The maximum number of retries when failing to fetch artifacts over HTTP.")
-	flag.DurationVar(&caValidityDuration, "ca-cert-validity-duration", time.Hour*24*7,
+	flag.DurationVar(&caValidityDuration, "ca-cert-validity-duration", 24*7*time.Hour,
 		"The duration that the ca certificate certificates should be valid for. Default is 1 week.")
 	flag.DurationVar(&certValidityDuration, "cert-validity-duration", 6*time.Hour,
 		"(Deprecated) The duration that the mTLS certificate that the runner pod should be valid for.")
 	flag.DurationVar(&rotationCheckFrequency, "cert-rotation-check-frequency", 30*time.Minute,
 		"The interval that the mTLS certificate rotator should check the certificate validity.")
 	flag.IntVar(&runnerGRPCPort, "runner-grpc-port", 30000, "The port which will be exposed on the runner pod for gRPC connections.")
+	flag.DurationVar(&runnerCreationTimeout, "runner-creation-timeout", 120*time.Second, "Timeout for creating a runner pod.")
 
 	clientOptions.BindFlags(flag.CommandLine)
 	logOptions.BindFlags(flag.CommandLine)
@@ -169,13 +171,14 @@ func main() {
 	}
 
 	reconciler := &controllers.TerraformReconciler{
-		Client:          mgr.GetClient(),
-		Scheme:          mgr.GetScheme(),
-		EventRecorder:   eventRecorder,
-		MetricsRecorder: metricsRecorder,
-		StatusPoller:    polling.NewStatusPoller(mgr.GetClient(), mgr.GetRESTMapper(), polling.Options{}),
-		CertRotator:     rotator,
-		RunnerGRPCPort:  runnerGRPCPort,
+		Client:                mgr.GetClient(),
+		Scheme:                mgr.GetScheme(),
+		EventRecorder:         eventRecorder,
+		MetricsRecorder:       metricsRecorder,
+		StatusPoller:          polling.NewStatusPoller(mgr.GetClient(), mgr.GetRESTMapper(), polling.Options{}),
+		CertRotator:           rotator,
+		RunnerGRPCPort:        runnerGRPCPort,
+		RunnerCreationTimeout: runnerCreationTimeout,
 	}
 
 	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {
