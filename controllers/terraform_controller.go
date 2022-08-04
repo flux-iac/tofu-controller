@@ -1869,7 +1869,10 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		}
 	case stateMustBeDeleted:
 		// delete old pod
-		if err := r.Delete(ctx, &runnerPod); err != nil {
+		if err := r.Delete(ctx, &runnerPod,
+			client.GracePeriodSeconds(1), // force kill = 1 second
+			client.PropagationPolicy(metav1.DeletePropagationForeground),
+		); err != nil {
 			return "", err
 		}
 		// wait for pod to be terminated
@@ -1894,6 +1897,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		// do nothing
 	}
 
+	// TODO continue here
 	// wait for pod ip
 	if wait.PollImmediate(interval, timeout, func() (bool, error) {
 		if err := r.Get(ctx, runnerPodKey, &runnerPod); err != nil {
@@ -1904,6 +1908,14 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		}
 		return false, nil
 	}) != nil {
+
+		if err := r.Delete(ctx, &runnerPod,
+			client.GracePeriodSeconds(1), // force kill = 1 second
+			client.PropagationPolicy(metav1.DeletePropagationForeground),
+		); err != nil {
+			return "", fmt.Errorf("failed to obtain pod ip and delete runner pod: %w", err)
+		}
+
 		return "", fmt.Errorf("failed to create and obtain pod ip")
 	}
 
