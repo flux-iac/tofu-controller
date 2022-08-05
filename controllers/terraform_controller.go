@@ -753,21 +753,31 @@ terraform {
 
 	for _, env := range terraform.Spec.RunnerPodTemplate.Spec.Env {
 		if env.ValueFrom != nil {
+			var err error
+
 			if env.ValueFrom.SecretKeyRef != nil {
 				secret := corev1.Secret{}
-				r.Client.Get(ctx, types.NamespacedName{
+				err = r.Client.Get(ctx, types.NamespacedName{
 					Namespace: terraform.GetObjectMeta().GetNamespace(),
 					Name:      env.ValueFrom.SecretKeyRef.Name,
 				}, &secret)
 				envs[env.Name] = string(secret.Data[env.ValueFrom.SecretKeyRef.Key])
 			} else if env.ValueFrom.ConfigMapKeyRef != nil {
 				cm := corev1.ConfigMap{}
-				r.Client.Get(ctx, types.NamespacedName{
+				err = r.Client.Get(ctx, types.NamespacedName{
 					Namespace: terraform.GetObjectMeta().GetNamespace(),
 					Name:      env.ValueFrom.ConfigMapKeyRef.Name,
 				}, &cm)
 				envs[env.Name] = string(cm.Data[env.ValueFrom.ConfigMapKeyRef.Key])
 			}
+
+			err = fmt.Errorf("error getting valuesFrom document for Terraform: %s", err)
+			return infrav1.TerraformNotReady(
+				terraform,
+				revision,
+				infrav1.TFExecInitFailedReason,
+				err.Error(),
+			), tfInstance, tmpDir, err
 		} else {
 			envs[env.Name] = env.Value
 		}
