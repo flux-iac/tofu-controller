@@ -771,13 +771,15 @@ terraform {
 				envs[env.Name] = string(cm.Data[env.ValueFrom.ConfigMapKeyRef.Key])
 			}
 
-			err = fmt.Errorf("error getting valuesFrom document for Terraform: %s", err)
-			return infrav1.TerraformNotReady(
-				terraform,
-				revision,
-				infrav1.TFExecInitFailedReason,
-				err.Error(),
-			), tfInstance, tmpDir, err
+			if err != nil {
+				err = fmt.Errorf("error getting valuesFrom document for Terraform: %s", err)
+				return infrav1.TerraformNotReady(
+					terraform,
+					revision,
+					infrav1.TFExecInitFailedReason,
+					err.Error(),
+				), tfInstance, tmpDir, err
+			}
 		} else {
 			envs[env.Name] = env.Value
 		}
