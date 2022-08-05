@@ -3,7 +3,13 @@
 ## Installation
 
 Before using TF-controller, you have to install Flux by using either `flux install` or `flux bootstrap` command.
-After that you can install TF-controller manually with Helm by:
+After that you can install TF-controller with Flux HelmRelease by:
+
+```shell
+kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml
+```
+
+or manually with Helm by:
 
 ```shell
 # Add tf-controller helm repository
@@ -20,7 +26,7 @@ please see [chart readme](https://github.com/weaveworks/tf-controller/tree/main/
 Alternatively, you can install TF-controller via `kubectl`:
 
 ```shell
-export TF_CON_VER=v0.9.5
+export TF_CON_VER=v0.10.1
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
