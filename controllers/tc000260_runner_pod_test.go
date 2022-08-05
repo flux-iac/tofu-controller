@@ -656,15 +656,15 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_with_value(t *testing.T)
 	}, timeout, interval).Should(BeTrue())
 
 	It("should fail to plan.")
-	By("checking that the status of the TF resource is `TFExecPlanFailedReason` due to `no such host` failure.")
+	By("checking that the status of the TF resource is `TFExecPlanFailedReason` due to `no such host` or `server misbehaving` failure.")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			t.Logf("===\nType: %s\nReason: %s\nMessage: %s===", c.Type, c.Reason, c.Message)
-			if strings.Contains(c.Message, "dial tcp: lookup vault on") && strings.Contains(c.Message, "no such host") {
+			t.Logf("\n===\nType: %s\nReason: %s\nMessage: %s\n===", c.Type, c.Reason, c.Message)
+			if strings.Contains(c.Message, "dial tcp: lookup vault on") && (strings.Contains(c.Message, "no such host") || strings.Contains(c.Message, "server misbehaving")) {
 				return map[string]interface{}{
 					"Type":   c.Type,
 					"Reason": c.Reason,
@@ -794,7 +794,7 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_without_value(t *testing
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			t.Logf("===\nType: %s\nReason: %s\nMessage: %s===", c.Type, c.Reason, c.Message)
+			t.Logf("\n===\nType: %s\nReason: %s\nMessage: %s\n===", c.Type, c.Reason, c.Message)
 			if strings.Contains(c.Message, "no vault token found") {
 				return map[string]interface{}{
 					"Type":   c.Type,
@@ -963,8 +963,8 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_secretRef(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			t.Logf("===\nType: %s\nReason: %s\nMessage: %s===", c.Type, c.Reason, c.Message)
-			if strings.Contains(c.Message, "dial tcp: lookup vault on") && strings.Contains(c.Message, "no such host") {
+			t.Logf("\n===\nType: %s\nReason: %s\nMessage: %s\n===", c.Type, c.Reason, c.Message)
+			if strings.Contains(c.Message, "dial tcp: lookup vault on") && (strings.Contains(c.Message, "no such host") || strings.Contains(c.Message, "server misbehaving")) {
 				return map[string]interface{}{
 					"Type":   c.Type,
 					"Reason": c.Reason,
@@ -1132,8 +1132,8 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_configMapRef(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			t.Logf("===\nType: %s\nReason: %s\nMessage: %s===", c.Type, c.Reason, c.Message)
-			if strings.Contains(c.Message, "dial tcp: lookup vault on") && strings.Contains(c.Message, "no such host") {
+			t.Logf("\n===\nType: %s\nReason: %s\nMessage: %s\n===", c.Type, c.Reason, c.Message)
+			if strings.Contains(c.Message, "dial tcp: lookup vault on") && (strings.Contains(c.Message, "no such host") || strings.Contains(c.Message, "server misbehaving")) {
 				return map[string]interface{}{
 					"Type":   c.Type,
 					"Reason": c.Reason,
