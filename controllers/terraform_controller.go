@@ -23,7 +23,6 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"html/template"
 	"io"
 	"net"
@@ -33,6 +32,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/fluxcd/pkg/runtime/events"
@@ -763,12 +764,14 @@ terraform {
 		envs["TF_CLI_CONFIG_FILE"] = tfrcFilepath
 	}
 
-	if setEnvReply, err := runnerClient.SetEnv(ctx,
+	// SetEnv returns a nil for the first return values if there is an error, so
+	// let's ignore that as it's not used elsewhere.
+	if _, err := runnerClient.SetEnv(ctx,
 		&runner.SetEnvRequest{
 			TfInstance: tfInstance,
 			Envs:       envs,
 		}); err != nil {
-		err = fmt.Errorf("error setting env for Terraform: %s %s", err, setEnvReply.Message)
+		err = fmt.Errorf("error setting env for Terraform: %s", err)
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
