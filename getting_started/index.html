@@ -507,7 +507,10 @@
 <h1 id="getting-started">Getting Started</h1>
 <h2 id="installation">Installation</h2>
 <p>Before using TF-controller, you have to install Flux by using either <code>flux install</code> or <code>flux bootstrap</code> command.
-After that you can install TF-controller manually with Helm by:</p>
+After that you can install TF-controller with Flux HelmRelease by:</p>
+<pre><code class="language-shell">kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml
+</code></pre>
+<p>or manually with Helm by:</p>
 <pre><code class="language-shell"># Add tf-controller helm repository
 helm repo add tf-controller https://weaveworks.github.io/tf-controller/
 
@@ -518,7 +521,7 @@ helm upgrade -i tf-controller tf-controller/tf-controller \
 <p>For details on configurable parameters of the TF-controller chart,
 please see <a href="https://github.com/weaveworks/tf-controller/tree/main/charts/tf-controller#tf-controller-for-flux">chart readme</a>.</p>
 <p>Alternatively, you can install TF-controller via <code>kubectl</code>:</p>
-<pre><code class="language-shell">export TF_CON_VER=v0.9.5
+<pre><code class="language-shell">export TF_CON_VER=v0.10.1
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
