@@ -2,6 +2,20 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.10.1
+
+**Release date:** 2022-08-05
+
+This release is a huge improvement as we have successfully reconciled 1,500 Terraform modules concurrently.
+This pre-release contains the following changes.
+
+Bug Fixing:
+  * Fix pod deletion process (@chanwit)
+  * Make the gRPC dial process more reliable (@chanwit)
+  * Add the runner pod creation timeout, default at 5m0s (@chanwit)
+  * Fix another race condition secret (@chanwit)
+  * Map runner's home to a volume to make it writeable (@chanwit)
+
 # v0.10.0
 
 **Release date:** 2022-08-02
