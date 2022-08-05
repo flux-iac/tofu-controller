@@ -73,13 +73,14 @@ import (
 // TerraformReconciler reconciles a Terraform object
 type TerraformReconciler struct {
 	client.Client
-	httpClient      *retryablehttp.Client
-	EventRecorder   kuberecorder.EventRecorder
-	MetricsRecorder *metrics.Recorder
-	StatusPoller    *polling.StatusPoller
-	Scheme          *runtime.Scheme
-	CertRotator     *mtls.CertRotator
-	RunnerGRPCPort  int
+	httpClient            *retryablehttp.Client
+	EventRecorder         kuberecorder.EventRecorder
+	MetricsRecorder       *metrics.Recorder
+	StatusPoller          *polling.StatusPoller
+	Scheme                *runtime.Scheme
+	CertRotator           *mtls.CertRotator
+	RunnerGRPCPort        int
+	RunnerCreationTimeout time.Duration
 }
 
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete
@@ -159,39 +160,30 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 
 		if terraform.Spec.GetAlwaysCleanupRunnerPod() == true {
-			podKey := getRunnerPodObjectKey(terraform)
-			var pod corev1.Pod
-			if err := cli.Get(ctx, podKey, &pod); err != nil {
-				if !apierrors.IsNotFound(err) {
-					log.Error(err, "unable to get pod for cleaning up")
-					retErr = err
-				}
-				return
-			}
-
-			if err := cli.Delete(ctx, &pod); err != nil {
-				log.Error(err, "unable to delete pod")
-				retErr = err
-				return
-			}
-
 			// wait for runner pod complete termination
 			var (
-				interval = time.Second * 5
+				interval = time.Second * 3
 				timeout  = time.Second * 120
 			)
 			err := wait.PollImmediate(interval, timeout, func() (bool, error) {
 				var runnerPod corev1.Pod
 				err := r.Get(ctx, getRunnerPodObjectKey(terraform), &runnerPod)
-				if err == nil {
+
+				if err != nil && apierrors.IsNotFound(err) {
+					return true, nil
+				}
+
+				if err := cli.Delete(ctx, &runnerPod,
+					client.GracePeriodSeconds(1), // force kill = 1 second
+					client.PropagationPolicy(metav1.DeletePropagationForeground),
+				); err != nil {
+					log.Error(err, "unable to delete pod")
 					return false, nil
 				}
 
-				if apierrors.IsNotFound(err) {
-					return true, nil
-				}
 				return false, err
 			})
+
 			if err != nil {
 				retErr = fmt.Errorf("failed waiting for the terminating runner pod: %v", err)
 				log.Error(retErr, "error in polling")
@@ -624,6 +616,9 @@ func (r *TerraformReconciler) setupTerraform(ctx context.Context, runnerClient r
 		), tfInstance, tmpDir, err
 	}
 
+	// we fix timeout of UploadAndExtract to be 30s
+	// ctx30s, cancelCtx30s := context.WithTimeout(ctx, 30*time.Second)
+	// defer cancelCtx30s()
 	uploadAndExtractReply, err := runnerClient.UploadAndExtract(ctx, &runner.UploadAndExtractRequest{
 		Namespace: terraform.Namespace,
 		Name:      terraform.Name,
@@ -1586,14 +1581,16 @@ func (r *TerraformReconciler) lookupOrCreateRunner_000(ctx context.Context, terr
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
 		hostname = "localhost"
 	} else {
-		podIP, err := r.reconcileRunnerPod(ctx, terraform)
+		podIP, err := r.reconcileRunnerPod(ctx, terraform, secret)
 		if err != nil {
 			return nil, nil, err
 		}
 		hostname = terraform.GetRunnerHostname(podIP)
 	}
 
-	conn, err := r.getRunnerConnection(secret, hostname, r.RunnerGRPCPort)
+	dialCtx, dialCancel := context.WithTimeout(ctx, 30*time.Second)
+	defer dialCancel()
+	conn, err := r.getRunnerConnection(dialCtx, secret, hostname, r.RunnerGRPCPort)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1602,7 +1599,7 @@ func (r *TerraformReconciler) lookupOrCreateRunner_000(ctx context.Context, terr
 	return runnerClient, connClose, nil
 }
 
-func (r *TerraformReconciler) getRunnerConnection(tlsSecret *corev1.Secret, hostname string, port int) (*grpc.ClientConn, error) {
+func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret *corev1.Secret, hostname string, port int) (*grpc.ClientConn, error) {
 	addr := fmt.Sprintf("%s:%d", hostname, port)
 	credentials, err := mtls.GetGRPCClientCredentials(tlsSecret)
 	if err != nil {
@@ -1622,7 +1619,11 @@ func (r *TerraformReconciler) getRunnerConnection(tlsSecret *corev1.Secret, host
 		  }
 		}]}`
 
-	return grpc.Dial(addr, grpc.WithTransportCredentials(credentials), grpc.WithDefaultServiceConfig(retryPolicy))
+	return grpc.DialContext(ctx, addr,
+		grpc.WithTransportCredentials(credentials),
+		grpc.WithBlock(),
+		grpc.WithDefaultServiceConfig(retryPolicy),
+	)
 }
 
 func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient) (infrav1.Terraform, error) {
@@ -1796,7 +1797,7 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 	return result.Secret, nil
 }
 
-func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform) (string, error) {
+func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform, tlsSecret *corev1.Secret) (string, error) {
 	log := ctrl.LoggerFrom(ctx)
 	type state string
 	const (
@@ -1807,24 +1808,14 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		stateTerminating   state = "terminating"
 	)
 
-	const (
-		interval = time.Second * 3
-		timeout  = time.Second * 60
-	)
-
-	var err error
-	tlsSecretName, err := r.CertRotator.GetRunnerTLSSecretName()
-	if err != nil {
-		return "", err
-	}
-
-	// runnerPod := *runnerPodTemplate.DeepCopy()
-	// runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
+	const interval = time.Second * 5
+	timeout := r.RunnerCreationTimeout // default is 120 seconds
+	tlsSecretName := tlsSecret.Name
 
 	createNewPod := func() error {
 		runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
 		newRunnerPod := *runnerPodTemplate.DeepCopy()
-		newRunnerPod.Spec = r.runnerPodSpec(terraform)
+		newRunnerPod.Spec = r.runnerPodSpec(terraform, tlsSecretName)
 		if err := r.Create(ctx, &newRunnerPod); err != nil {
 			return err
 		}
@@ -1835,7 +1826,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
 		runnerPod := *runnerPodTemplate.DeepCopy()
 		runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
-		err = wait.PollImmediate(interval, timeout, func() (bool, error) {
+		err := wait.PollImmediate(interval, timeout, func() (bool, error) {
 			err := r.Get(ctx, runnerPodKey, &runnerPod)
 			if err != nil && apierrors.IsNotFound(err) {
 				return true, nil
@@ -1853,7 +1844,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
 	runnerPod := *runnerPodTemplate.DeepCopy()
 	runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
-	err = r.Get(ctx, runnerPodKey, &runnerPod)
+	err := r.Get(ctx, runnerPodKey, &runnerPod)
 	if err != nil && apierrors.IsNotFound(err) {
 		podState = stateNotFound
 	} else if err == nil {
@@ -1878,7 +1869,10 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		}
 	case stateMustBeDeleted:
 		// delete old pod
-		if err := r.Delete(ctx, &runnerPod); err != nil {
+		if err := r.Delete(ctx, &runnerPod,
+			client.GracePeriodSeconds(1), // force kill = 1 second
+			client.PropagationPolicy(metav1.DeletePropagationForeground),
+		); err != nil {
 			return "", err
 		}
 		// wait for pod to be terminated
@@ -1903,6 +1897,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		// do nothing
 	}
 
+	// TODO continue here
 	// wait for pod ip
 	if wait.PollImmediate(interval, timeout, func() (bool, error) {
 		if err := r.Get(ctx, runnerPodKey, &runnerPod); err != nil {
@@ -1913,6 +1908,14 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		}
 		return false, nil
 	}) != nil {
+
+		if err := r.Delete(ctx, &runnerPod,
+			client.GracePeriodSeconds(1), // force kill = 1 second
+			client.PropagationPolicy(metav1.DeletePropagationForeground),
+		); err != nil {
+			return "", fmt.Errorf("failed to obtain pod ip and delete runner pod: %w", err)
+		}
+
 		return "", fmt.Errorf("failed to create and obtain pod ip")
 	}
 
@@ -1957,7 +1960,7 @@ func runnerPodTemplate(terraform infrav1.Terraform, secretName string) corev1.Po
 	return runnerPodTemplate
 }
 
-func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.PodSpec {
+func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecretName string) corev1.PodSpec {
 	serviceAccountName := terraform.Spec.ServiceAccountName
 	if serviceAccountName == "" {
 		serviceAccountName = "tf-runner"
@@ -2004,10 +2007,6 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 	vFalse := false
 	vTrue := true
 	vUser := int64(65532)
-	tlsSecretName, err := r.CertRotator.GetRunnerTLSSecretName()
-	if err != nil {
-		tlsSecretName = infrav1.RunnerTLSSecretName
-	}
 
 	return corev1.PodSpec{
 		TerminationGracePeriodSeconds: gracefulTermPeriod,
@@ -2047,12 +2046,22 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform) corev1.
 						Name:      "temp",
 						MountPath: "/tmp",
 					},
+					{
+						Name:      "home",
+						MountPath: "/home/runner",
+					},
 				},
 			},
 		},
 		Volumes: []corev1.Volume{
 			{
 				Name: "temp",
+				VolumeSource: corev1.VolumeSource{
+					EmptyDir: &corev1.EmptyDirVolumeSource{},
+				},
+			},
+			{
+				Name: "home",
 				VolumeSource: corev1.VolumeSource{
 					EmptyDir: &corev1.EmptyDirVolumeSource{},
 				},

@@ -62,7 +62,7 @@ func Test_000260_runner_pod_test(t *testing.T) {
 		},
 	}
 
-	spec := reconciler.runnerPodSpec(helloWorldTF)
+	spec := reconciler.runnerPodSpec(helloWorldTF, "runner.tls-123")
 	g.Expect(spec.ServiceAccountName == serviceAccountName)
 	g.Expect(spec.Containers[0].Image == runnerPodImage)
 
@@ -138,7 +138,7 @@ func Test_000260_runner_pod_test_env_vars(t *testing.T) {
 		},
 	}
 
-	spec := reconciler.runnerPodSpec(helloWorldTF)
+	spec := reconciler.runnerPodSpec(helloWorldTF, "runner.tls-123")
 	g.Expect(spec.ServiceAccountName == serviceAccountName)
 	g.Expect(spec.Containers[0].Image == runnerPodImage)
 	g.Expect(len(spec.Containers[0].Env) == 4)
@@ -228,7 +228,7 @@ func Test_000260_runner_pod_test_env_vars_proxy(t *testing.T) {
 		},
 	}
 
-	spec := reconciler.runnerPodSpec(helloWorldTF)
+	spec := reconciler.runnerPodSpec(helloWorldTF, "runner.tls-123")
 	g.Expect(spec.ServiceAccountName == serviceAccountName)
 	g.Expect(spec.Containers[0].Image == runnerPodImage)
 	g.Expect(len(spec.Containers[0].Env) == 7)
@@ -322,7 +322,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
 		},
 	}
 
-	spec := reconciler.runnerPodSpec(helloWorldTF)
+	spec := reconciler.runnerPodSpec(helloWorldTF, "runner.tls-123")
 	g.Expect(spec.ServiceAccountName == serviceAccountName)
 	g.Expect(spec.Containers[0].Image == runnerPodImage)
 	g.Expect(len(spec.Containers[0].Env) == 7)
