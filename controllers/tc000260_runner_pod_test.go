@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"context"
+	"encoding/base64"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -533,5 +535,610 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 			"OwnerRef[0]":       string(outputSecret.OwnerReferences[0].UID),
 		}, err
 	}, timeout, interval).Should(Equal(expectedOutputValue), "expected output %v", expectedOutputValue)
+}
 
+func Test_000260_runner_pod_test_env_vars_provider_vars_with_value(t *testing.T) {
+	Spec("This spec describes the behaviour of a Terraform resource when variables are provided via EnvVars.")
+	It("should be reconciled and a vault provider successfully created.")
+
+	const (
+		sourceName    = "gr-envvar-provider-vars-with-value"
+		terraformName = "tf-envvar-provider-vars-with-value"
+	)
+	g := NewWithT(t)
+	ctx := context.Background()
+
+	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
+	g.Expect(err).Should(BeNil())
+
+	Given("a GitRepository")
+	By("defining a new GitRepository resource.")
+	updatedTime := time.Now()
+	testRepo := sourcev1.GitRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      sourceName,
+			Namespace: "flux-system",
+		},
+		Spec: sourcev1.GitRepositorySpec{
+			URL: "https://github.com/openshift-fluxv2-poc/podinfo",
+			Reference: &sourcev1.GitRepositoryRef{
+				Branch: "master",
+			},
+			Interval:          metav1.Duration{Duration: time.Second * 30},
+			GitImplementation: "go-git",
+		},
+	}
+
+	By("creating the GitRepository resource in the cluster.")
+	It("should be created successfully.")
+	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+
+	Given("the GitRepository's reconciled status")
+	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
+	testRepo.Status = sourcev1.GitRepositoryStatus{
+		ObservedGeneration: int64(1),
+		Conditions: []metav1.Condition{
+			{
+				Type:               "Ready",
+				Status:             metav1.ConditionTrue,
+				LastTransitionTime: metav1.Time{Time: updatedTime},
+				Reason:             "GitOperationSucceed",
+				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+			},
+		},
+		URL: server.URL() + "/terraform-envvar-provider-vars.tar.gz",
+		Artifact: &sourcev1.Artifact{
+			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			URL:            server.URL() + "/terraform-envvar-provider-vars.tar.gz",
+			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+			Checksum:       "964c61b6e7251a91fbba153bfed53b071d11f897bb22c7a4e33afa41b53c799c",
+			LastUpdateTime: metav1.Time{Time: updatedTime},
+		},
+	}
+
+	It("should be updated successfully.")
+	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
+
+	By("checking that the status and its URL gets reconciled.")
+	gitRepoKey := types.NamespacedName{Namespace: "flux-system", Name: sourceName}
+	createdRepo := &sourcev1.GitRepository{}
+	g.Expect(k8sClient.Get(ctx, gitRepoKey, createdRepo)).Should(Succeed())
+
+	Given("a Terraform resource with auto approve, attached to the given GitRepository resource")
+	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
+	By("specifying the .spec.writeOutputsToSecret.")
+
+	helloWorldTF := infrav1.Terraform{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      terraformName,
+			Namespace: "flux-system",
+		},
+		Spec: infrav1.TerraformSpec{
+			ApprovePlan: "auto",
+			BackendConfig: &infrav1.BackendConfigSpec{
+				SecretSuffix:    terraformName,
+				InClusterConfig: false,
+				ConfigPath:      testEnvKubeConfigPath,
+			},
+			Path: "./terraform-envvar-provider-vars",
+			SourceRef: infrav1.CrossNamespaceSourceReference{
+				Kind:      "GitRepository",
+				Name:      sourceName,
+				Namespace: "flux-system",
+			},
+			RunnerPodTemplate: infrav1.RunnerPodTemplate{
+				Spec: infrav1.RunnerPodSpec{
+					Env: []corev1.EnvVar{
+						{
+							Name:  "VAULT_TOKEN",
+							Value: "token",
+						},
+					},
+				},
+			},
+			Interval: metav1.Duration{Duration: time.Second * 10},
+		},
+	}
+	It("should be created and attached successfully.")
+	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+
+	By("checking that the TF resource existed inside the cluster.")
+	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
+	createdHelloWorldTF := infrav1.Terraform{}
+	g.Eventually(func() bool {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return false
+		}
+		return true
+	}, timeout, interval).Should(BeTrue())
+
+	It("should fail to plan.")
+	By("checking that the status of the TF resource is `TFExecPlanFailedReason` due to `no such host` failure.")
+	g.Eventually(func() map[string]interface{} {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return nil
+		}
+		for _, c := range createdHelloWorldTF.Status.Conditions {
+			if strings.Contains(c.Message, "dial tcp: lookup vault on") && strings.Contains(c.Message, "no such host") {
+				return map[string]interface{}{
+					"Type":   c.Type,
+					"Reason": c.Reason,
+				}
+			}
+		}
+		return nil
+	}, timeout, interval).Should(Equal(map[string]interface{}{
+		"Type":   "Ready",
+		"Reason": infrav1.TFExecPlanFailedReason,
+	}))
+}
+
+func Test_000260_runner_pod_test_env_vars_provider_vars_without_value(t *testing.T) {
+	Spec("This spec describes the behaviour of a Terraform resource when variables are provided via EnvVars.")
+	It("should be reconciled and a vault provider successfully created.")
+
+	const (
+		sourceName    = "gr-envvar-provider-vars-without-value"
+		terraformName = "tf-envvar-provider-vars-without-value"
+	)
+	g := NewWithT(t)
+	ctx := context.Background()
+
+	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
+	g.Expect(err).Should(BeNil())
+
+	Given("a GitRepository")
+	By("defining a new GitRepository resource.")
+	updatedTime := time.Now()
+	testRepo := sourcev1.GitRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      sourceName,
+			Namespace: "flux-system",
+		},
+		Spec: sourcev1.GitRepositorySpec{
+			URL: "https://github.com/openshift-fluxv2-poc/podinfo",
+			Reference: &sourcev1.GitRepositoryRef{
+				Branch: "master",
+			},
+			Interval:          metav1.Duration{Duration: time.Second * 30},
+			GitImplementation: "go-git",
+		},
+	}
+
+	By("creating the GitRepository resource in the cluster.")
+	It("should be created successfully.")
+	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+
+	Given("the GitRepository's reconciled status")
+	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
+	testRepo.Status = sourcev1.GitRepositoryStatus{
+		ObservedGeneration: int64(1),
+		Conditions: []metav1.Condition{
+			{
+				Type:               "Ready",
+				Status:             metav1.ConditionTrue,
+				LastTransitionTime: metav1.Time{Time: updatedTime},
+				Reason:             "GitOperationSucceed",
+				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+			},
+		},
+		URL: server.URL() + "/terraform-envvar-provider-vars.tar.gz",
+		Artifact: &sourcev1.Artifact{
+			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			URL:            server.URL() + "/terraform-envvar-provider-vars.tar.gz",
+			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+			Checksum:       "964c61b6e7251a91fbba153bfed53b071d11f897bb22c7a4e33afa41b53c799c",
+			LastUpdateTime: metav1.Time{Time: updatedTime},
+		},
+	}
+
+	It("should be updated successfully.")
+	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
+
+	By("checking that the status and its URL gets reconciled.")
+	gitRepoKey := types.NamespacedName{Namespace: "flux-system", Name: sourceName}
+	createdRepo := &sourcev1.GitRepository{}
+	g.Expect(k8sClient.Get(ctx, gitRepoKey, createdRepo)).Should(Succeed())
+
+	Given("a Terraform resource with auto approve, attached to the given GitRepository resource")
+	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
+	By("specifying the .spec.writeOutputsToSecret.")
+
+	helloWorldTF := infrav1.Terraform{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      terraformName,
+			Namespace: "flux-system",
+		},
+		Spec: infrav1.TerraformSpec{
+			ApprovePlan: "auto",
+			BackendConfig: &infrav1.BackendConfigSpec{
+				SecretSuffix:    terraformName,
+				InClusterConfig: false,
+				ConfigPath:      testEnvKubeConfigPath,
+			},
+			Path: "./terraform-envvar-provider-vars",
+			SourceRef: infrav1.CrossNamespaceSourceReference{
+				Kind:      "GitRepository",
+				Name:      sourceName,
+				Namespace: "flux-system",
+			},
+			Interval: metav1.Duration{Duration: time.Second * 10},
+		},
+	}
+	It("should be created and attached successfully.")
+	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+
+	By("checking that the TF resource existed inside the cluster.")
+	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
+	createdHelloWorldTF := infrav1.Terraform{}
+	g.Eventually(func() bool {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return false
+		}
+		return true
+	}, timeout, interval).Should(BeTrue())
+
+	It("should fail to plan.")
+	By("checking that the status of the TF resource is `TFExecPlanFailedReason` due to `no vault token found` failure.")
+	g.Eventually(func() map[string]interface{} {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return nil
+		}
+		for _, c := range createdHelloWorldTF.Status.Conditions {
+			if strings.Contains(c.Message, "no vault token found") {
+				return map[string]interface{}{
+					"Type":   c.Type,
+					"Reason": c.Reason,
+				}
+			}
+		}
+		return nil
+	}, timeout, interval).Should(Equal(map[string]interface{}{
+		"Type":   "Ready",
+		"Reason": infrav1.TFExecPlanFailedReason,
+	}))
+}
+
+func Test_000260_runner_pod_test_env_vars_valueFrom_secretRef(t *testing.T) {
+	Spec("This spec describes the behaviour of a Terraform resource when variables are provided via EnvVars.")
+	It("should be reconciled and a vault provider successfully created.")
+
+	const (
+		sourceName                = "gr-envvar-valuesfrom-secretref"
+		terraformName             = "tf-envvar-valuesfrom-secretref"
+		terraformNameSecret       = "tf-envvar-valuesfrom-secretref-secret"
+		terraformSecretRefName    = "tf-envvar-valuesfrom-secretref-name"
+		terraformSecretRefNameKey = "tf-envvar-valuesfrom-secretref-name-key"
+	)
+	g := NewWithT(t)
+	ctx := context.Background()
+
+	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
+	g.Expect(err).Should(BeNil())
+
+	Given("a GitRepository")
+	By("defining a new GitRepository resource.")
+	updatedTime := time.Now()
+	testRepo := sourcev1.GitRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      sourceName,
+			Namespace: "flux-system",
+		},
+		Spec: sourcev1.GitRepositorySpec{
+			URL: "https://github.com/openshift-fluxv2-poc/podinfo",
+			Reference: &sourcev1.GitRepositoryRef{
+				Branch: "master",
+			},
+			Interval:          metav1.Duration{Duration: time.Second * 30},
+			GitImplementation: "go-git",
+		},
+	}
+
+	By("creating the GitRepository resource in the cluster.")
+	It("should be created successfully.")
+	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+
+	Given("the GitRepository's reconciled status")
+	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
+	testRepo.Status = sourcev1.GitRepositoryStatus{
+		ObservedGeneration: int64(1),
+		Conditions: []metav1.Condition{
+			{
+				Type:               "Ready",
+				Status:             metav1.ConditionTrue,
+				LastTransitionTime: metav1.Time{Time: updatedTime},
+				Reason:             "GitOperationSucceed",
+				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+			},
+		},
+		URL: server.URL() + "/terraform-envvar-provider-vars.tar.gz",
+		Artifact: &sourcev1.Artifact{
+			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			URL:            server.URL() + "/terraform-envvar-provider-vars.tar.gz",
+			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+			Checksum:       "964c61b6e7251a91fbba153bfed53b071d11f897bb22c7a4e33afa41b53c799c",
+			LastUpdateTime: metav1.Time{Time: updatedTime},
+		},
+	}
+
+	It("should be updated successfully.")
+	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
+
+	By("checking that the status and its URL gets reconciled.")
+	gitRepoKey := types.NamespacedName{Namespace: "flux-system", Name: sourceName}
+	createdRepo := &sourcev1.GitRepository{}
+	g.Expect(k8sClient.Get(ctx, gitRepoKey, createdRepo)).Should(Succeed())
+
+	Given("a Secret")
+	It("should exist")
+	testSecret := corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      terraformSecretRefName,
+			Namespace: "flux-system",
+		},
+		Data: map[string][]byte{
+			terraformSecretRefNameKey: []byte(base64.StdEncoding.EncodeToString([]byte("secret-token"))),
+		},
+	}
+	By("creating it with the client")
+	g.Expect(k8sClient.Create(ctx, &testSecret)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &testSecret)).Should(Succeed()) }()
+
+	Given("a Terraform resource with auto approve, attached to the given GitRepository resource")
+	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
+	By("specifying the .spec.writeOutputsToSecret.")
+
+	helloWorldTF := infrav1.Terraform{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      terraformName,
+			Namespace: "flux-system",
+		},
+		Spec: infrav1.TerraformSpec{
+			ApprovePlan: "auto",
+			BackendConfig: &infrav1.BackendConfigSpec{
+				SecretSuffix:    terraformName,
+				InClusterConfig: false,
+				ConfigPath:      testEnvKubeConfigPath,
+			},
+			Path: "./terraform-envvar-provider-vars",
+			SourceRef: infrav1.CrossNamespaceSourceReference{
+				Kind:      "GitRepository",
+				Name:      sourceName,
+				Namespace: "flux-system",
+			},
+			RunnerPodTemplate: infrav1.RunnerPodTemplate{
+				Spec: infrav1.RunnerPodSpec{
+					Env: []corev1.EnvVar{
+						{
+							Name: "VAULT_TOKEN",
+							ValueFrom: &corev1.EnvVarSource{
+								SecretKeyRef: &corev1.SecretKeySelector{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: terraformSecretRefName,
+									},
+									Key: terraformSecretRefNameKey,
+								},
+							},
+						},
+					},
+				},
+			},
+			Interval: metav1.Duration{Duration: time.Second * 10},
+			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
+				Name: terraformNameSecret,
+			},
+		},
+	}
+	It("should be created and attached successfully.")
+	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+
+	By("checking that the TF resource existed inside the cluster.")
+	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
+	createdHelloWorldTF := infrav1.Terraform{}
+	g.Eventually(func() bool {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return false
+		}
+		return true
+	}, timeout, interval).Should(BeTrue())
+
+	It("should fail to plan.")
+	By("checking that the status of the TF resource is `TFExecPlanFailedReason` due to `no such host` failure.")
+	g.Eventually(func() map[string]interface{} {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return nil
+		}
+		for _, c := range createdHelloWorldTF.Status.Conditions {
+			if strings.Contains(c.Message, "dial tcp: lookup vault on") && strings.Contains(c.Message, "no such host") {
+				return map[string]interface{}{
+					"Type":   c.Type,
+					"Reason": c.Reason,
+				}
+			}
+		}
+		return nil
+	}, timeout, interval).Should(Equal(map[string]interface{}{
+		"Type":   "Ready",
+		"Reason": infrav1.TFExecPlanFailedReason,
+	}))
+}
+
+func Test_000260_runner_pod_test_env_vars_valueFrom_configMapRef(t *testing.T) {
+	Spec("This spec describes the behaviour of a Terraform resource when variables are provided via EnvVars.")
+	It("should be reconciled and a vault provider successfully created.")
+
+	const (
+		sourceName                   = "gr-envvar-valuefrom-configmapref"
+		terraformName                = "tf-envvar-valuefrom-configmapref"
+		terraformNameSecret          = "tf-envvar-valuefrom-configmapref-secret"
+		terraformConfigMapRefName    = "tf-envvar-valuefrom-configmapref-name"
+		terraformConfigMapRefNameKey = "tf-envvar-valuefrom-configmapref-name-key"
+	)
+	g := NewWithT(t)
+	ctx := context.Background()
+
+	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
+	g.Expect(err).Should(BeNil())
+
+	Given("a GitRepository")
+	By("defining a new GitRepository resource.")
+	updatedTime := time.Now()
+	testRepo := sourcev1.GitRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      sourceName,
+			Namespace: "flux-system",
+		},
+		Spec: sourcev1.GitRepositorySpec{
+			URL: "https://github.com/openshift-fluxv2-poc/podinfo",
+			Reference: &sourcev1.GitRepositoryRef{
+				Branch: "master",
+			},
+			Interval:          metav1.Duration{Duration: time.Second * 30},
+			GitImplementation: "go-git",
+		},
+	}
+
+	By("creating the GitRepository resource in the cluster.")
+	It("should be created successfully.")
+	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+
+	Given("the GitRepository's reconciled status")
+	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
+	testRepo.Status = sourcev1.GitRepositoryStatus{
+		ObservedGeneration: int64(1),
+		Conditions: []metav1.Condition{
+			{
+				Type:               "Ready",
+				Status:             metav1.ConditionTrue,
+				LastTransitionTime: metav1.Time{Time: updatedTime},
+				Reason:             "GitOperationSucceed",
+				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+			},
+		},
+		URL: server.URL() + "/terraform-envvar-provider-vars.tar.gz",
+		Artifact: &sourcev1.Artifact{
+			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			URL:            server.URL() + "/terraform-envvar-provider-vars.tar.gz",
+			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+			Checksum:       "964c61b6e7251a91fbba153bfed53b071d11f897bb22c7a4e33afa41b53c799c",
+			LastUpdateTime: metav1.Time{Time: updatedTime},
+		},
+	}
+
+	It("should be updated successfully.")
+	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
+
+	By("checking that the status and its URL gets reconciled.")
+	gitRepoKey := types.NamespacedName{Namespace: "flux-system", Name: sourceName}
+	createdRepo := &sourcev1.GitRepository{}
+	g.Expect(k8sClient.Get(ctx, gitRepoKey, createdRepo)).Should(Succeed())
+
+	Given("a Secret")
+	It("should exist")
+	testConfigMap := corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      terraformConfigMapRefName,
+			Namespace: "flux-system",
+		},
+		Data: map[string]string{
+			terraformConfigMapRefNameKey: "config-token",
+		},
+	}
+	By("creating it with the client")
+	g.Expect(k8sClient.Create(ctx, &testConfigMap)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &testConfigMap)).Should(Succeed()) }()
+
+	Given("a Terraform resource with auto approve, attached to the given GitRepository resource")
+	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
+	By("specifying the .spec.writeOutputsToSecret.")
+
+	helloWorldTF := infrav1.Terraform{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      terraformName,
+			Namespace: "flux-system",
+		},
+		Spec: infrav1.TerraformSpec{
+			ApprovePlan: "auto",
+			BackendConfig: &infrav1.BackendConfigSpec{
+				SecretSuffix:    terraformName,
+				InClusterConfig: false,
+				ConfigPath:      testEnvKubeConfigPath,
+			},
+			Path: "./terraform-envvar-provider-vars",
+			SourceRef: infrav1.CrossNamespaceSourceReference{
+				Kind:      "GitRepository",
+				Name:      sourceName,
+				Namespace: "flux-system",
+			},
+			RunnerPodTemplate: infrav1.RunnerPodTemplate{
+				Spec: infrav1.RunnerPodSpec{
+					Env: []corev1.EnvVar{
+						{
+							Name: "VAULT_TOKEN",
+							ValueFrom: &corev1.EnvVarSource{
+								ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: terraformConfigMapRefName,
+									},
+									Key: terraformConfigMapRefNameKey,
+								},
+							},
+						},
+					},
+				},
+			},
+			Interval: metav1.Duration{Duration: time.Second * 10},
+			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
+				Name: terraformNameSecret,
+			},
+		},
+	}
+	It("should be created and attached successfully.")
+	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+
+	By("checking that the TF resource existed inside the cluster.")
+	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
+	createdHelloWorldTF := infrav1.Terraform{}
+	g.Eventually(func() bool {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return false
+		}
+		return true
+	}, timeout, interval).Should(BeTrue())
+
+	It("should fail to plan.")
+	By("checking that the status of the TF resource is `TFExecPlanFailedReason` due to `no such host` failure.")
+	g.Eventually(func() map[string]interface{} {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return nil
+		}
+		for _, c := range createdHelloWorldTF.Status.Conditions {
+			if strings.Contains(c.Message, "dial tcp: lookup vault on") && strings.Contains(c.Message, "no such host") {
+				return map[string]interface{}{
+					"Type":   c.Type,
+					"Reason": c.Reason,
+				}
+			}
+		}
+		return nil
+	}, timeout, interval).Should(Equal(map[string]interface{}{
+		"Type":   "Ready",
+		"Reason": infrav1.TFExecPlanFailedReason,
+	}))
 }

@@ -752,7 +752,25 @@ terraform {
 	envs := map[string]string{}
 
 	for _, env := range terraform.Spec.RunnerPodTemplate.Spec.Env {
-		envs[env.Name] = env.Value
+		if env.ValueFrom != nil {
+			if env.ValueFrom.SecretKeyRef != nil {
+				secret := corev1.Secret{}
+				r.Client.Get(ctx, types.NamespacedName{
+					Namespace: terraform.GetObjectMeta().GetNamespace(),
+					Name:      env.ValueFrom.SecretKeyRef.Name,
+				}, &secret)
+				envs[env.Name] = string(secret.Data[env.ValueFrom.SecretKeyRef.Key])
+			} else if env.ValueFrom.ConfigMapKeyRef != nil {
+				cm := corev1.ConfigMap{}
+				r.Client.Get(ctx, types.NamespacedName{
+					Namespace: terraform.GetObjectMeta().GetNamespace(),
+					Name:      env.ValueFrom.ConfigMapKeyRef.Name,
+				}, &cm)
+				envs[env.Name] = string(cm.Data[env.ValueFrom.ConfigMapKeyRef.Key])
+			}
+		} else {
+			envs[env.Name] = env.Value
+		}
 	}
 
 	disableTestLogging := os.Getenv("DISABLE_TF_LOGS") == "1"
