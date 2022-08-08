@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -11,39 +11,7 @@ import (
 )
 
 func TestSourceRevisionChangePredicate_Update(t *testing.T) {
-	g := NewWithT(t)
-	predicate := SourceRevisionChangePredicate{}
-	var result bool
-
-	// First false case
-	result = predicate.Update(event.UpdateEvent{
-		ObjectOld: nil,
-		ObjectNew: nil,
-	})
-	g.Expect(result).To(BeFalse())
-
-	// Second false case
-	result = predicate.Update(event.UpdateEvent{
-		ObjectOld: struct{ client.Object }{},
-		ObjectNew: struct {
-			client.Object
-			sourcev1.Source
-		}{},
-	})
-	g.Expect(result).To(BeFalse())
-
-	// Second false case
-	result = predicate.Update(event.UpdateEvent{
-		ObjectOld: struct {
-			client.Object
-			sourcev1.Source
-		}{},
-		ObjectNew: struct{ client.Object }{},
-	})
-	g.Expect(result).To(BeFalse())
-
-	// Last false case
-	oldSource := &sourcev1.GitRepository{
+	fixtureSource := &sourcev1.GitRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "source",
 			Namespace: "flux-system",
@@ -58,6 +26,33 @@ func TestSourceRevisionChangePredicate_Update(t *testing.T) {
 		},
 	}
 
+	g := NewWithT(t)
+	predicate := SourceRevisionChangePredicate{}
+	var result bool
+
+	// First false case
+	result = predicate.Update(event.UpdateEvent{
+		ObjectOld: nil,
+		ObjectNew: nil,
+	})
+	g.Expect(result).To(BeFalse())
+
+	// Second false case
+	result = predicate.Update(event.UpdateEvent{
+		ObjectOld: struct{ client.Object }{},
+		ObjectNew: fixtureSource.DeepCopy(),
+	})
+	g.Expect(result).To(BeFalse())
+
+	// Second false case
+	result = predicate.Update(event.UpdateEvent{
+		ObjectOld: fixtureSource.DeepCopy(),
+		ObjectNew: struct{ client.Object }{},
+	})
+	g.Expect(result).To(BeFalse())
+
+	// Last false case
+	oldSource := fixtureSource.DeepCopy()
 	oldSource.Status = sourcev1.GitRepositoryStatus{
 		ObservedGeneration: int64(1),
 		Conditions: []metav1.Condition{
@@ -79,7 +74,7 @@ func TestSourceRevisionChangePredicate_Update(t *testing.T) {
 		},
 	}
 
-	newSource := oldSource.DeepCopy()
+	newSource := fixtureSource.DeepCopy()
 	newSource.Status = sourcev1.GitRepositoryStatus{
 		ObservedGeneration: int64(1),
 		Conditions: []metav1.Condition{

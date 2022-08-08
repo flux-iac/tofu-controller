@@ -6,11 +6,11 @@ replace github.com/weaveworks/tf-controller/api => ./api
 
 require (
 	github.com/cyphar/filepath-securejoin v0.2.3
-	github.com/fluxcd/pkg/apis/meta v0.12.2
+	github.com/fluxcd/pkg/apis/meta v0.14.2
 	github.com/fluxcd/pkg/runtime v0.14.1
 	github.com/fluxcd/pkg/ssa v0.15.2
 	github.com/fluxcd/pkg/untar v0.1.0
-	github.com/fluxcd/source-controller/api v0.24.0
+	github.com/fluxcd/source-controller/api v0.26.0
 	github.com/go-logr/logr v1.2.3
 	github.com/hashicorp/go-retryablehttp v0.7.1
 	github.com/hashicorp/go-version v1.4.0
@@ -147,9 +147,9 @@ require (
 )
 
 replace (
-	github.com/hashicorp/terraform-exec v0.15.0 => github.com/tf-controller/terraform-exec v0.15.1-0.20220114135154-c06c64609ee0
-	k8s.io/kubectl v0.23.2 => k8s.io/kubectl v0.24.3
-
 	// Fix CVE-2022-1996
 	github.com/emicklei/go-restful v2.9.5+incompatible => github.com/emicklei/go-restful/v3 v3.8.0
+
+	github.com/hashicorp/terraform-exec v0.15.0 => github.com/tf-controller/terraform-exec v0.15.1-0.20220114135154-c06c64609ee0
+	k8s.io/kubectl v0.23.2 => k8s.io/kubectl v0.24.3
 )

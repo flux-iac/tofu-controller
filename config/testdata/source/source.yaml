@@ -1,4 +1,5 @@
-apiVersion: source.toolkit.fluxcd.io/v1beta1
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: GitRepository
 metadata:
   name: helloworld
@@ -7,3 +8,13 @@ spec:
   url: https://github.com/tf-controller/helloworld.git
   ref:
     branch: main
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: OCIRepository
+metadata:
+  name: helloworld-oci
+spec:
+  interval: 1m
+  url: oci://ghcr.io/tf-controller/helloworld
+  ref:
+    tag: main
