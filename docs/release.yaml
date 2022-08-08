@@ -30,7 +30,7 @@ spec:
     crds: CreateReplace
   values:
     replicaCount: 1
-    concurrency: 10
+    concurrency: 24
     resources:
       limits:
         cpu: 1000m
