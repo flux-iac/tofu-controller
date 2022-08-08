@@ -1,7 +1,8 @@
 replicaCount: 1
-concurrency: 1
+concurrency: 24
 caCertValidityDuration: 168h0m
 certRotationCheckFrequency: 30m0s
+# Deprecated
 certValidityDuration: 6h0m
 runnerCreationTimeout: 5m0s
 logLevel: info
