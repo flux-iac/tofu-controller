@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/utils"
@@ -76,7 +76,7 @@ func Test_000062_vars_hcl_test(t *testing.T) {
 	createdRepo := &sourcev1.GitRepository{}
 	g.Eventually(func() bool {
 		_ = k8sClient.Get(ctx, gitRepoKey, createdRepo)
-		for _, c := range *createdRepo.GetStatusConditions() {
+		for _, c := range createdRepo.Status.Conditions {
 			if c.Type == "Ready" && c.Status == metav1.ConditionTrue {
 				return true
 			}
