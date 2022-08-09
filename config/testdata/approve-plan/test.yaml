@@ -1,3 +1,4 @@
+---
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
@@ -21,3 +22,15 @@ spec:
   sourceRef:
     kind: GitRepository
     name: helloworld
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld-oci-auto-approve
+spec:
+  interval: 10s
+  approvePlan: "auto"
+  path: ./
+  sourceRef:
+    kind: OCIRepository
+    name: helloworld-oci

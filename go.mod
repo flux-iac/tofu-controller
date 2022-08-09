@@ -6,16 +6,16 @@ replace github.com/weaveworks/tf-controller/api => ./api
 
 require (
 	github.com/cyphar/filepath-securejoin v0.2.3
-	github.com/fluxcd/pkg/apis/meta v0.12.2
+	github.com/fluxcd/pkg/apis/meta v0.14.2
 	github.com/fluxcd/pkg/runtime v0.14.1
 	github.com/fluxcd/pkg/ssa v0.15.2
 	github.com/fluxcd/pkg/untar v0.1.0
-	github.com/fluxcd/source-controller/api v0.24.0
+	github.com/fluxcd/source-controller/api v0.26.0
 	github.com/go-logr/logr v1.2.3
 	github.com/hashicorp/go-retryablehttp v0.7.1
 	github.com/hashicorp/go-version v1.4.0
 	github.com/hashicorp/hc-install v0.3.1
-	github.com/hashicorp/terraform-exec v0.15.0
+	github.com/hashicorp/terraform-exec v0.16.1
 	github.com/hashicorp/terraform-json v0.13.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/gomega v1.19.0
@@ -40,7 +40,6 @@ require (
 
 require (
 	cloud.google.com/go/compute v1.5.0 // indirect
-	cloud.google.com/go/iam v0.3.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest v0.11.18 // indirect
@@ -147,9 +146,10 @@ require (
 )
 
 replace (
-	github.com/hashicorp/terraform-exec v0.15.0 => github.com/tf-controller/terraform-exec v0.15.1-0.20220114135154-c06c64609ee0
-	k8s.io/kubectl v0.23.2 => k8s.io/kubectl v0.24.3
-
 	// Fix CVE-2022-1996
 	github.com/emicklei/go-restful v2.9.5+incompatible => github.com/emicklei/go-restful/v3 v3.8.0
+
+	// v0.15.1-0.20220809152546-4850a69faedb is actually the v0.16.1a tag of the fork
+	github.com/hashicorp/terraform-exec v0.16.1 => github.com/tf-controller/terraform-exec v0.15.1-0.20220809152546-4850a69faedb
+	k8s.io/kubectl v0.23.2 => k8s.io/kubectl v0.24.3
 )

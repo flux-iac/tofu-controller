@@ -3,11 +3,11 @@ module github.com/weaveworks/tf-controller/api
 go 1.17
 
 require (
-	github.com/fluxcd/pkg/apis/meta v0.12.2
-	github.com/fluxcd/source-controller/api v0.24.0
-	k8s.io/api v0.24.0
-	k8s.io/apiextensions-apiserver v0.24.0
-	k8s.io/apimachinery v0.24.0
+	github.com/fluxcd/pkg/apis/meta v0.14.2
+	github.com/fluxcd/source-controller/api v0.26.0
+	k8s.io/api v0.24.3
+	k8s.io/apiextensions-apiserver v0.24.3
+	k8s.io/apimachinery v0.24.3
 	sigs.k8s.io/controller-runtime v0.11.2
 )
 

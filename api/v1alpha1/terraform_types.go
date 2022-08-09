@@ -40,6 +40,7 @@ const (
 	RunnerLabel           = "infra.contrib.fluxcd.io/terraform"
 	GitRepositoryIndexKey = ".metadata.gitRepository"
 	BucketIndexKey        = ".metadata.bucket"
+	OCIRepositoryIndexKey = ".metadata.ociRepository"
 )
 
 // WriteOutputsToSecretSpec defines where to store outputs, and which outputs to be stored.
