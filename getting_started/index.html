@@ -529,7 +529,7 @@ kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/$
 <h2 id="quick-start">Quick start</h2>
 <p>Here's a simple example of how to GitOps your Terraform resources with TF-controller and Flux.</p>
 <h3 id="define-source">Define source</h3>
-<p>First, we need to define a Source controller's source (<code>GitRepostory</code>, or <code>Bucket</code>), for example:</p>
+<p>First, we need to define a Source controller's source (<code>GitRepostory</code>, <code>Bucket</code>, <code>OCIRepository</code>), for example:</p>
 <pre><code class="language-yaml">apiVersion: source.toolkit.fluxcd.io/v1beta1
 kind: GitRepository
 metadata:
