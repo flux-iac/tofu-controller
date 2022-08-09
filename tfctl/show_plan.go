@@ -62,7 +62,12 @@ func (c *CLI) ShowPlan(out io.Writer, resource string) error {
 		return fmt.Errorf("failed to write plan: %w", err)
 	}
 
-	tf, err := tfexec.NewTerraform(tmpDir, c.terraform)
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current working directory: %w", err)
+	}
+
+	tf, err := tfexec.NewTerraform(wd, c.terraform)
 	if err != nil {
 		return fmt.Errorf("failed to create Terraform instance: %w", err)
 	}
