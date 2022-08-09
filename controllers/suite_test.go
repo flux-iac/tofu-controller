@@ -175,6 +175,9 @@ func TestMain(m *testing.M) {
 	server.RouteToHandler("GET", "/terraform-envvar-variable-output.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/terraform-envvar-variable-output.tar.gz")
 	})
+	server.RouteToHandler("GET", "/terraform-envvar-provider-vars.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/terraform-envvar-provider-vars.tar.gz")
+	})
 	// for health check http test
 	server.RouteToHandler("GET", "/get", func(writer http.ResponseWriter, request *http.Request) {
 		ghttp.RespondWith(http.StatusOK, "ok")

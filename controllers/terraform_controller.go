@@ -23,7 +23,6 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"html/template"
 	"io"
 	"net"
@@ -33,6 +32,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/fluxcd/pkg/runtime/events"
@@ -746,7 +747,37 @@ terraform {
 	envs := map[string]string{}
 
 	for _, env := range terraform.Spec.RunnerPodTemplate.Spec.Env {
-		envs[env.Name] = env.Value
+		if env.ValueFrom != nil {
+			var err error
+
+			if env.ValueFrom.SecretKeyRef != nil {
+				secret := corev1.Secret{}
+				err = r.Client.Get(ctx, types.NamespacedName{
+					Namespace: terraform.GetObjectMeta().GetNamespace(),
+					Name:      env.ValueFrom.SecretKeyRef.Name,
+				}, &secret)
+				envs[env.Name] = string(secret.Data[env.ValueFrom.SecretKeyRef.Key])
+			} else if env.ValueFrom.ConfigMapKeyRef != nil {
+				cm := corev1.ConfigMap{}
+				err = r.Client.Get(ctx, types.NamespacedName{
+					Namespace: terraform.GetObjectMeta().GetNamespace(),
+					Name:      env.ValueFrom.ConfigMapKeyRef.Name,
+				}, &cm)
+				envs[env.Name] = string(cm.Data[env.ValueFrom.ConfigMapKeyRef.Key])
+			}
+
+			if err != nil {
+				err = fmt.Errorf("error getting valuesFrom document for Terraform: %s", err)
+				return infrav1.TerraformNotReady(
+					terraform,
+					revision,
+					infrav1.TFExecInitFailedReason,
+					err.Error(),
+				), tfInstance, tmpDir, err
+			}
+		} else {
+			envs[env.Name] = env.Value
+		}
 	}
 
 	disableTestLogging := os.Getenv("DISABLE_TF_LOGS") == "1"
@@ -758,12 +789,14 @@ terraform {
 		envs["TF_CLI_CONFIG_FILE"] = tfrcFilepath
 	}
 
-	if setEnvReply, err := runnerClient.SetEnv(ctx,
+	// SetEnv returns a nil for the first return values if there is an error, so
+	// let's ignore that as it's not used elsewhere.
+	if _, err := runnerClient.SetEnv(ctx,
 		&runner.SetEnvRequest{
 			TfInstance: tfInstance,
 			Envs:       envs,
 		}); err != nil {
-		err = fmt.Errorf("error setting env for Terraform: %s %s", err, setEnvReply.Message)
+		err = fmt.Errorf("error setting env for Terraform: %s", err)
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
