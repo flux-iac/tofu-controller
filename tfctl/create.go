@@ -26,8 +26,8 @@ func (c *CLI) Create(
 ) error {
 	sourceParams := strings.Split(source, "/")
 	if len(sourceParams) != 2 ||
-		!(sourceParams[0] == "GitRepository" || sourceParams[0] == "Bucket") {
-		return fmt.Errorf("source must be of kind GitRepository or Bucket")
+		!(sourceParams[0] == "GitRepository" || sourceParams[0] == "Bucket" || sourceParams[0] == "OCIRepository") {
+		return fmt.Errorf("source must be of kind GitRepository or Bucket or OCIRepository")
 	}
 
 	intervalParsed, err := time.ParseDuration(interval)
