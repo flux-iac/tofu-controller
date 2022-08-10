@@ -116,6 +116,7 @@ message PlanRequest {
 message PlanReply {
   bool drifted = 1;
   string message = 2;
+  string stateLockIdentifier = 3;
 }
 
 message ShowPlanFileRawRequest {
@@ -160,6 +161,7 @@ message ApplyRequest {
 
 message ApplyReply {
   string message = 1;
+  string stateLockIdentifier = 2;
 }
 
 message GetInventoryRequest {
@@ -182,6 +184,7 @@ message DestroyRequest {
 
 message DestroyReply {
   string message = 1;
+  string stateLockIdentifier = 2;
 }
 
 message OutputRequest {
@@ -228,6 +231,7 @@ message InitRequest {
 
 message InitReply {
   string message = 1;
+  string stateLockIdentifier = 2;
 }
 
 message UploadRequest {

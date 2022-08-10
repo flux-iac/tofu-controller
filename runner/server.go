@@ -218,11 +218,16 @@ func (r *TerraformRunnerServer) SetEnv(ctx context.Context, req *SetEnvRequest) 
 
 func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*InitReply, error) {
 	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	reply := &InitReply{
+		Message: "ok",
+	}
+
 	log.Info("initializing")
 	if req.TfInstance != "1" {
+		reply.Message = "not ok"
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "no terraform")
-		return nil, err
+		return reply, err
 	}
 
 	var terraform infrav1.Terraform
@@ -290,11 +295,17 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 	initOpts := []tfexec.InitOption{tfexec.Upgrade(req.Upgrade), tfexec.ForceCopy(req.ForceCopy)}
 	initOpts = append(initOpts, backendConfigsOpts...)
 	if err := r.tf.Init(ctx, initOpts...); err != nil {
+		reply.Message = "not ok"
+
+		if stateErr, ok := err.(*tfexec.ErrStateLocked); ok {
+			reply.StateLockIdentifier = stateErr.ID
+		}
+
 		log.Error(err, "unable to initialize")
-		return nil, err
+		return reply, err
 	}
 
-	return &InitReply{Message: "ok"}, nil
+	return reply, nil
 }
 
 // GenerateVarsForTF renders the Terraform variables as a json file for the given inputs
@@ -414,6 +425,9 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 
 func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*PlanReply, error) {
 	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	reply := &PlanReply{
+		Message: "ok",
+	}
 	log.Info("creating a plan")
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
@@ -425,9 +439,10 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 	}()
 
 	if req.TfInstance != "1" {
+		reply.Message = "not ok"
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "no terraform")
-		return nil, err
+		return reply, err
 	}
 
 	var planOpt []tfexec.PlanOption
@@ -445,13 +460,19 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 
 	drifted, err := r.tf.Plan(ctx, planOpt...)
 	if err != nil {
+		reply.Message = "not ok"
+		reply.Drifted = drifted
+
+		if stateErr, ok := err.(*tfexec.ErrStateLocked); ok {
+			reply.StateLockIdentifier = stateErr.ID
+		}
+
 		log.Error(err, "error creating the plan")
-		return nil, err
+		return reply, err
 	}
-	return &PlanReply{
-		Drifted: drifted,
-		Message: "ok",
-	}, nil
+
+	reply.Drifted = drifted
+	return reply, nil
 }
 
 func (r *TerraformRunnerServer) ShowPlanFileRaw(ctx context.Context, req *ShowPlanFileRawRequest) (*ShowPlanFileRawReply, error) {
@@ -857,6 +878,16 @@ func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *Finali
 }
 
 func (r *TerraformRunnerServer) ForceUnlock(ctx context.Context, req *ForceUnlockRequest) (*ForceUnlockReply, error) {
-	r.tf.ForceUnlock(ctx, req.LockIdentifier)
-	return nil, nil
+	reply := &ForceUnlockReply{
+		Success: true,
+		Message: fmt.Sprintf("Successfully unlocked state with lock identifier: %s", req.GetLockIdentifier()),
+	}
+	err := r.tf.ForceUnlock(ctx, req.LockIdentifier)
+
+	if err != nil {
+		reply.Success = false
+		reply.Message = fmt.Sprintf("Error unlocking the state: %s", err)
+	}
+
+	return reply, err
 }
