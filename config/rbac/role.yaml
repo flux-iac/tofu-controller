@@ -58,6 +58,7 @@ rules:
   resources:
   - buckets
   - gitrepositories
+  - ocirepositories
   verbs:
   - get
   - list
@@ -67,5 +68,6 @@ rules:
   resources:
   - buckets/status
   - gitrepositories/status
+  - ocirepositories/status
   verbs:
   - get
