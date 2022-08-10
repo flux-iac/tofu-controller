@@ -377,6 +377,7 @@ spec:
                     enum:
                     - GitRepository
                     - Bucket
+                    - OCIRepository
                     type: string
                   name:
                     description: Name of the referent.
