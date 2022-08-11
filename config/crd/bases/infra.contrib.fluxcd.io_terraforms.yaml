@@ -80,18 +80,18 @@ spec:
                     description: BackendConfigStateSpec allows the user to set ForceUnlock
                     properties:
                       forceUnlock:
-                        default: false
+                        default: "no"
                         description: "ForceUnlock a Terraform state if it has become
                           locked for any reason. \n This is an Enum and has the expected
-                          values of: \n - auto - true - false \n WARNING: Only use
-                          `auto` in the cases where you are absolutely certain that
-                          no other system is using this state, you could otherwise
-                          end up in a bad place See https://www.terraform.io/language/state/locking#force-unlock
+                          values of: \n - auto - yes - no \n WARNING: Only use `auto`
+                          in the cases where you are absolutely certain that no other
+                          system is using this state, you could otherwise end up in
+                          a bad place See https://www.terraform.io/language/state/locking#force-unlock
                           for more information on the terraform state lock and force
                           unlock."
                         enum:
-                        - true
-                        - false
+                        - "yes"
+                        - "no"
                         - auto
                         type: string
                       lockIdentifier:

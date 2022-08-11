@@ -44,23 +44,26 @@ func (c *CLI) setForceUnlockAndReconcile(ctx context.Context, kubeClient client.
 		if terraform.Spec.BackendConfig == nil {
 			terraform.Spec.BackendConfig = &infrav1.BackendConfigSpec{
 				State: &infrav1.BackendConfigStateSpec{
-					ForceUnlock: lockID,
+					ForceUnlock:    infrav1.ForceUnlockEnumYes,
+					LockIdentifier: lockID,
 				},
 			}
 		} else {
 			if terraform.Spec.BackendConfig.State == nil {
 				terraform.Spec.BackendConfig.State = &infrav1.BackendConfigStateSpec{
-					ForceUnlock: lockID,
+					ForceUnlock:    infrav1.ForceUnlockEnumYes,
+					LockIdentifier: lockID,
 				}
 			} else {
-				if terraform.Spec.BackendConfig.State.ForceUnlock != infrav1.StateForceUnlockAutoValue {
-					terraform.Spec.BackendConfig.State.ForceUnlock = lockID
-					fmt.Fprintf(out, " Setting ForceUnlock to '%s' on resource %s/%s\n", lockID, c.namespace, namespacedName.Name)
-				} else {
-					fmt.Fprintf(out, " ForceUnlock set to '%s' on resource %s/%s\n", infrav1.StateForceUnlockAutoValue, c.namespace, namespacedName.Name)
+				terraform.Spec.BackendConfig.State.LockIdentifier = lockID
+
+				if terraform.Spec.BackendConfig.State.ForceUnlock != infrav1.ForceUnlockEnumAuto {
+					terraform.Spec.BackendConfig.State.ForceUnlock = infrav1.ForceUnlockEnumYes
 				}
 			}
 		}
+
+		fmt.Fprintf(out, " Setting LockIdentifier to '%s' on resource %s/%s\n", lockID, c.namespace, namespacedName.Name)
 
 		if ann := terraform.GetAnnotations(); ann == nil {
 			terraform.SetAnnotations(map[string]string{

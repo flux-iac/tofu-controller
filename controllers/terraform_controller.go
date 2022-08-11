@@ -662,7 +662,7 @@ terraform {
 		if !terraform.Spec.BackendConfig.Disable {
 			// If we have a lock id we want to force unlock the state
 			if terraform.Spec.BackendConfig.State != nil {
-				if terraform.Spec.BackendConfig.State.ForceUnlock == infrav1.ForceUnlockEnumTrue || terraform.Spec.BackendConfig.State.ForceUnlock == infrav1.ForceUnlockEnumAuto {
+				if terraform.Spec.BackendConfig.State.ForceUnlock == infrav1.ForceUnlockEnumYes || terraform.Spec.BackendConfig.State.ForceUnlock == infrav1.ForceUnlockEnumAuto {
 					lockIdentifier = terraform.Spec.BackendConfig.State.LockIdentifier
 				}
 			}
