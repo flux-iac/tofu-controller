@@ -645,7 +645,7 @@ terraform {
 }
 `
 	// This variable is going to be used to force unlock the state if it is locked
-	forceUnlockID := ""
+	lockIdentifier := ""
 	// Check if we want to Disable the K8S backend via an envvar
 	DisableTFK8SBackend := os.Getenv("DISABLE_TF_K8S_BACKEND") == "1"
 
@@ -662,8 +662,8 @@ terraform {
 		if !terraform.Spec.BackendConfig.Disable {
 			// If we have a lock id we want to force unlock the state
 			if terraform.Spec.BackendConfig.State != nil {
-				if terraform.Spec.BackendConfig.State.ForceUnlock != "" {
-					forceUnlockID = terraform.Spec.BackendConfig.State.ForceUnlock
+				if terraform.Spec.BackendConfig.State.ForceUnlock == infrav1.ForceUnlockEnumTrue || terraform.Spec.BackendConfig.State.ForceUnlock == infrav1.ForceUnlockEnumAuto {
+					lockIdentifier = terraform.Spec.BackendConfig.State.LockIdentifier
 				}
 			}
 
@@ -716,9 +716,9 @@ terraform {
 	}
 
 	// If we have a lock id need to force unlock it
-	if forceUnlockID != "" {
+	if lockIdentifier != "" {
 		_, err := runnerClient.ForceUnlock(context.Background(), &runner.ForceUnlockRequest{
-			LockIdentifier: forceUnlockID,
+			LockIdentifier: lockIdentifier,
 		})
 
 		if err != nil {
@@ -882,6 +882,7 @@ terraform {
 	initReply, err := runnerClient.Init(ctx, initRequest)
 	if err != nil {
 		err = fmt.Errorf("error running Init: %s", err)
+		r.isStateLocked(initReply.StateLockIdentifier)
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
@@ -934,6 +935,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 	planReply, err := runnerClient.Plan(ctx, planRequest)
 	if err != nil {
 		err = fmt.Errorf("error running Plan: %s", err)
+		r.isStateLocked(planReply.StateLockIdentifier)
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
@@ -1011,6 +1013,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	planReply, err := runnerClient.Plan(ctx, planRequest)
 	if err != nil {
 		err = fmt.Errorf("error running Plan: %s", err)
+		r.isStateLocked(planReply.StateLockIdentifier)
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
@@ -1115,6 +1118,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		log.Info(fmt.Sprintf("destroy: %s", destroyReply.Message))
 		if err != nil {
 			err = fmt.Errorf("error running Destroy: %s", err)
+			r.isStateLocked(destroyReply.StateLockIdentifier)
 			return infrav1.TerraformAppliedFailResetPlanAndNotReady(
 				terraform,
 				revision,
@@ -1127,6 +1131,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		applyReply, err := runnerClient.Apply(ctx, applyRequest)
 		if err != nil {
 			err = fmt.Errorf("error running Apply: %s", err)
+			r.isStateLocked(applyReply.StateLockIdentifier)
 			return infrav1.TerraformAppliedFailResetPlanAndNotReady(
 				terraform,
 				revision,
@@ -1704,17 +1709,17 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret
 	}
 
 	const retryPolicy = `{
-		"methodConfig": [{
-		  "name": [{"service": "runner.Runner"}],
-		  "waitForReady": true,
-		  "retryPolicy": {
-			  "MaxAttempts": 4,
-			  "InitialBackoff": ".01s",
-			  "MaxBackoff": ".01s",
-			  "BackoffMultiplier": 1.0,
-			  "RetryableStatusCodes": [ "UNAVAILABLE" ]
-		  }
-		}]}`
+"methodConfig": [{
+  "name": [{"service": "runner.Runner"}],
+  "waitForReady": true,
+  "retryPolicy": {
+    "MaxAttempts": 4,
+    "InitialBackoff": ".01s",
+    "MaxBackoff": ".01s",
+    "BackoffMultiplier": 1.0,
+    "RetryableStatusCodes": [ "UNAVAILABLE" ]
+  }
+}]}`
 
 	return grpc.DialContext(ctx, addr,
 		grpc.WithTransportCredentials(credentials),
@@ -2182,4 +2187,8 @@ func (r *TerraformReconciler) outputsMayBeDrifted(ctx context.Context, terraform
 	}
 
 	return false, nil
+}
+
+func (r *TerraformReconciler) isStateLocked(lockID string) error {
+	return nil
 }
