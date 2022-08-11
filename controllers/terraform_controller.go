@@ -882,7 +882,7 @@ terraform {
 	initReply, err := runnerClient.Init(ctx, initRequest)
 	if err != nil {
 		err = fmt.Errorf("error running Init: %s", err)
-		r.isStateLocked(initReply.StateLockIdentifier)
+		r.setForceUnlock(ctx, terraform, initReply.StateLockIdentifier)
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
@@ -935,7 +935,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 	planReply, err := runnerClient.Plan(ctx, planRequest)
 	if err != nil {
 		err = fmt.Errorf("error running Plan: %s", err)
-		r.isStateLocked(planReply.StateLockIdentifier)
+		r.setForceUnlock(ctx, terraform, planReply.StateLockIdentifier)
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
@@ -1013,7 +1013,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	planReply, err := runnerClient.Plan(ctx, planRequest)
 	if err != nil {
 		err = fmt.Errorf("error running Plan: %s", err)
-		r.isStateLocked(planReply.StateLockIdentifier)
+		r.setForceUnlock(ctx, terraform, planReply.StateLockIdentifier)
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
@@ -1118,7 +1118,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		log.Info(fmt.Sprintf("destroy: %s", destroyReply.Message))
 		if err != nil {
 			err = fmt.Errorf("error running Destroy: %s", err)
-			r.isStateLocked(destroyReply.StateLockIdentifier)
+			r.setForceUnlock(ctx, terraform, destroyReply.StateLockIdentifier)
 			return infrav1.TerraformAppliedFailResetPlanAndNotReady(
 				terraform,
 				revision,
@@ -1131,7 +1131,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		applyReply, err := runnerClient.Apply(ctx, applyRequest)
 		if err != nil {
 			err = fmt.Errorf("error running Apply: %s", err)
-			r.isStateLocked(applyReply.StateLockIdentifier)
+			r.setForceUnlock(ctx, terraform, applyReply.StateLockIdentifier)
 			return infrav1.TerraformAppliedFailResetPlanAndNotReady(
 				terraform,
 				revision,
@@ -2189,6 +2189,6 @@ func (r *TerraformReconciler) outputsMayBeDrifted(ctx context.Context, terraform
 	return false, nil
 }
 
-func (r *TerraformReconciler) isStateLocked(lockID string) error {
+func (r *TerraformReconciler) setForceUnlock(ctx context.Context, terraform infrav1.Terraform, lockID string) error {
 	return nil
 }
