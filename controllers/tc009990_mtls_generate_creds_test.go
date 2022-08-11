@@ -184,7 +184,7 @@ func Test_009990_mtls_generate_creds_test(t *testing.T) {
 			return 1
 		}
 		return bytes.Compare(runnerSecret.Data["tls.crt"], updatedRunnerSecret.Data["tls.crt"])
-	}, timeout, interval).ShouldNot(BeZero())
+	}, timeout*2, interval*4).ShouldNot(BeZero())
 
 	g.Expect(bytes.Compare(runnerSecret.Data["tls.crt"], updatedRunnerSecret.Data["tls.crt"])).ToNot(BeZero())
 
