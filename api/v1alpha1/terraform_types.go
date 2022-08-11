@@ -296,9 +296,11 @@ type BackendConfigSpec struct {
 type BackendConfigStateSpec struct {
 	// ForceUnlock a Terraform state if it has become locked for any reason.
 	//
-	// Leave this empty to do nothing, set this to the value of the `Lock Info: ID: [value]`,
-	// e.g. `f2ab685b-f84d-ac0b-a125-378a22877e8d`, to force unlock the state and
-	// finally set this to `auto` to have the state lock automatically unlocked.
+	// This is an Enum and has the expected values of:
+	//
+	// - auto
+	// - true
+	// - false
 	//
 	// WARNING: Only use `auto` in the cases where you are absolutely certain that
 	// no other system is using this state, you could otherwise end up in a bad place
@@ -306,8 +308,30 @@ type BackendConfigStateSpec struct {
 	// information on the terraform state lock and force unlock.
 	//
 	// +optional
-	ForceUnlock string `json:"forceUnlock,omitempty"`
+	// +kubebuilder:validation:Enum=true;false;auto
+	// +kubebuilder:default=false
+	ForceUnlock ForceUnlockEnum `json:"forceUnlock,omitempty"`
+
+	// LockIdentifier holds the Identifier required by Terraform to unlock the state
+	// if it ever gets into a locked state.
+	//
+	// You'll need to put the Lock Identifier in here while setting ForceUnlock to
+	// either `true` or `auto`.
+	//
+	// Leave this empty to do nothing, set this to the value of the `Lock Info: ID: [value]`,
+	// e.g. `f2ab685b-f84d-ac0b-a125-378a22877e8d`, to force unlock the state.
+	//
+	// +optional
+	LockIdentifier string `json:"lockIdentifier,omitempty"`
 }
+
+type ForceUnlockEnum string
+
+const (
+	ForceUnlockEnumAuto  ForceUnlockEnum = "auto"
+	ForceUnlockEnumTrue  ForceUnlockEnum = "true"
+	ForceUnlockEnumFalse ForceUnlockEnum = "false"
+)
 
 const (
 	TerraformKind             = "Terraform"
@@ -316,7 +340,6 @@ const (
 	DisabledValue             = "disabled"
 	ApprovePlanAutoValue      = "auto"
 	ApprovePlanDisableValue   = "disable"
-	StateForceUnlockAutoValue = "auto"
 
 	// ArtifactFailedReason represents the fact that the
 	// source artifact download failed.
