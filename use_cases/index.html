@@ -459,6 +459,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#using-oci-artifact-as-source" class="md-nav__link">
+    Using OCI Artifact as Source
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -675,6 +682,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-oci-artifact-as-source" class="md-nav__link">
+    Using OCI Artifact as Source
+  </a>
   
 </li>
       
@@ -1062,6 +1076,45 @@ spec:
       image: registry.io/tf-runner:xyz
 </code></pre>
 <p>You can use <a href="https://github.com/weaveworks/tf-controller/blob/main/runner.Dockerfile"><code>runner.Dockerfile</code></a> as a basis of customizing runner pod image.</p>
+<h2 id="using-oci-artifact-as-source">Using OCI Artifact as Source</h2>
+<p>To use OCI artifacts as the source of TF-controller, you need Flux2 version v0.32.0 or higher.</p>
+<p>Assuming that you have Terraform files (your root module may contain sub-modules) under ./modules,
+you can use Flux CLI to create an OCI artifact for your Terraform modules
+by running the following commands:</p>
+<pre><code class="language-bash">flux push artifact oci://ghcr.io/tf-controller/helloworld:$(git rev-parse --short HEAD) \
+    --path=&quot;./modules&quot; \
+    --source=&quot;$(git config --get remote.origin.url)&quot; \
+    --revision=&quot;$(git branch --show-current)/$(git rev-parse HEAD)&quot;
+
+flux tag artifact oci://ghcr.io/tf-controller/helloworld:$(git rev-parse --short HEAD) \
+    --tag main
+</code></pre>
+<p>Then you define a source (<code>OCIRepository</code>), and use it as the <code>sourceRef</code> of your Terraform object.</p>
+<pre><code class="language-yaml">---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: OCIRepository
+metadata:
+  name: helloworld-oci
+spec:
+  interval: 1m
+  url: oci://ghcr.io/tf-controller/helloworld
+  ref:
+    tag: main
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld-tf-oci
+spec:
+  path: ./
+  approvePlan: &quot;auto&quot;
+  interval: 1m
+  sourceRef:
+    kind: OCIRepository
+    name: helloworld-oci
+  writeOutputsToSecret:
+    name: helloworld-outputs
+</code></pre>
 
               
             </article>
