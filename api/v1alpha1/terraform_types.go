@@ -299,8 +299,8 @@ type BackendConfigStateSpec struct {
 	// This is an Enum and has the expected values of:
 	//
 	// - auto
-	// - true
-	// - false
+	// - yes
+	// - no
 	//
 	// WARNING: Only use `auto` in the cases where you are absolutely certain that
 	// no other system is using this state, you could otherwise end up in a bad place
@@ -308,8 +308,8 @@ type BackendConfigStateSpec struct {
 	// information on the terraform state lock and force unlock.
 	//
 	// +optional
-	// +kubebuilder:validation:Enum=true;false;auto
-	// +kubebuilder:default=false
+	// +kubebuilder:validation:Enum:=yes;no;auto
+	// +kubebuilder:default:string=no
 	ForceUnlock ForceUnlockEnum `json:"forceUnlock,omitempty"`
 
 	// LockIdentifier holds the Identifier required by Terraform to unlock the state
@@ -328,9 +328,9 @@ type BackendConfigStateSpec struct {
 type ForceUnlockEnum string
 
 const (
-	ForceUnlockEnumAuto  ForceUnlockEnum = "auto"
-	ForceUnlockEnumTrue  ForceUnlockEnum = "true"
-	ForceUnlockEnumFalse ForceUnlockEnum = "false"
+	ForceUnlockEnumAuto ForceUnlockEnum = "auto"
+	ForceUnlockEnumYes  ForceUnlockEnum = "yes"
+	ForceUnlockEnumNo   ForceUnlockEnum = "no"
 )
 
 const (
