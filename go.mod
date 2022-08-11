@@ -10,7 +10,7 @@ require (
 	github.com/fluxcd/pkg/runtime v0.14.1
 	github.com/fluxcd/pkg/ssa v0.15.2
 	github.com/fluxcd/pkg/untar v0.1.0
-	github.com/fluxcd/source-controller/api v0.26.0
+	github.com/fluxcd/source-controller/api v0.26.1
 	github.com/go-logr/logr v1.2.3
 	github.com/hashicorp/go-retryablehttp v0.7.1
 	github.com/hashicorp/go-version v1.4.0
