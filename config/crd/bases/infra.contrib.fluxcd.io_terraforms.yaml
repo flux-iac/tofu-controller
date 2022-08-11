@@ -80,17 +80,28 @@ spec:
                     description: BackendConfigStateSpec allows the user to set ForceUnlock
                     properties:
                       forceUnlock:
+                        default: false
                         description: "ForceUnlock a Terraform state if it has become
-                          locked for any reason. \n Leave this empty to do nothing,
-                          set this to the value of the `Lock Info: ID: [value]`, e.g.
-                          `f2ab685b-f84d-ac0b-a125-378a22877e8d`, to force unlock
-                          the state and finally set this to `auto` to have the state
-                          lock automatically unlocked. \n WARNING: Only use `auto`
-                          in the cases where you are absolutely certain that no other
-                          system is using this state, you could otherwise end up in
-                          a bad place See https://www.terraform.io/language/state/locking#force-unlock
+                          locked for any reason. \n This is an Enum and has the expected
+                          values of: \n - auto - true - false \n WARNING: Only use
+                          `auto` in the cases where you are absolutely certain that
+                          no other system is using this state, you could otherwise
+                          end up in a bad place See https://www.terraform.io/language/state/locking#force-unlock
                           for more information on the terraform state lock and force
                           unlock."
+                        enum:
+                        - true
+                        - false
+                        - auto
+                        type: string
+                      lockIdentifier:
+                        description: "LockIdentifier holds the Identifier required
+                          by Terraform to unlock the state if it ever gets into a
+                          locked state. \n You'll need to put the Lock Identifier
+                          in here while setting ForceUnlock to either `true` or `auto`.
+                          \n Leave this empty to do nothing, set this to the value
+                          of the `Lock Info: ID: [value]`, e.g. `f2ab685b-f84d-ac0b-a125-378a22877e8d`,
+                          to force unlock the state."
                         type: string
                     type: object
                 type: object
