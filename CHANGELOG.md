@@ -2,6 +2,20 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.11.0
+
+**Release date:** 2022-08-12
+
+This release is another milestone of the project as it is the first release of TF-controller
+that supports Flux's OCIRepository.
+
+New Features and Bug Fixing:
+  * Added support for Flux's OCIRepository (@chanwit)
+  * Fixed EnvVars to pick up `valueFrom` to work with Secrets and ConfigMaps (@Nalum)
+  * Fixed tfctl to show plan in the working directory (@github-vincent-miszczak)
+  * Updated tfexec to v0.16.1 for the force-lock option (@chanwit)
+  * Updated the Source controller to v0.26.1 (@chanwit)
+
 # v0.10.1
 
 **Release date:** 2022-08-05
@@ -42,7 +56,7 @@ This pre-release contains the following changes.
 New Features:
   * Update Terraform binary to 1.1.9 (@chanwit)
   * Allow runner pod metadata customization (@tomhuang12)
-  * Support runner pod environment variables specification (@nalum)
+  * Support runner pod environment variables specification (@Nalum)
   * Implement `.spec.refreshBeforeApply` to refresh the state before apply (@chanwit)
   * Use controller runtime logging library in runner (@chanwit)
 
@@ -58,11 +72,11 @@ Bug Fixing:
 This pre-release contains the following changes.
 
 New Features and Bug Fixing:
-  * Fix Helm chart to support image pull secrets for `tf-runner` Service Accounts (@nalum) 
+  * Fix Helm chart to support image pull secrets for `tf-runner` Service Accounts (@Nalum)
   * Upgrade Source Controller API to v0.22.4 (@tomhuang12)
   * Fix json bytes encoding (@phoban01)
-  * Add Helm chart an option to specify AWS Security Group policy (@nalum)
-  * Move plan revision from labels to annotations (@nalum)
+  * Add Helm chart an option to specify AWS Security Group policy (@Nalum)
+  * Move plan revision from labels to annotations (@Nalum)
   * Update images to include fix for CVE-2022-28391 (@chanwit)
   * Update Terraform binary to 1.1.8 (@chanwit)
 
