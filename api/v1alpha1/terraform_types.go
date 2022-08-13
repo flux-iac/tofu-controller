@@ -82,13 +82,16 @@ type TerraformSpec struct {
 	// +optional
 	BackendConfig *BackendConfigSpec `json:"backendConfig,omitempty"`
 
+	// +optional
+	BackendConfigsFrom []BackendConfigsReference `json:"backendConfigsFrom,omitempty"`
+
 	// List of input variables to set for the Terraform program.
 	// +optional
 	Vars []Variable `json:"vars,omitempty"`
 
 	// List of references to a Secret or a ConfigMap to generate variables for
 	// Terraform resources based on its data, selectively by varsKey. Values of the later
-	// Secret / ConfigMap with the samek keys will override those of the former.
+	// Secret / ConfigMap with the same keys will override those of the former.
 	// +optional
 	VarsFrom []VarsReference `json:"varsFrom,omitempty"`
 

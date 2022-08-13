@@ -3,13 +3,14 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/credentials"
+	corev1 "k8s.io/api/core/v1"
 	"log"
 	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	types2 "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -89,6 +90,23 @@ func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 	createdRepo := sourcev1.GitRepository{}
 	g.Expect(k8sClient.Get(ctx, gitRepoKey, &createdRepo)).Should(Succeed())
 
+	By("preparing s3-backend-configs secret")
+	s3BackendConfigs := corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "s3-backend-configs",
+			Namespace: "flux-system",
+		},
+		Data: map[string][]byte{
+			"access_key":  []byte("test"),
+			"secret_key":  []byte("test"),
+			"bucket":      []byte("s3-terraform-state"),
+			"invalid_key": []byte("invalid-key"),
+		},
+		Type: corev1.SecretTypeOpaque,
+	}
+	g.Expect(k8sClient.Create(ctx, &s3BackendConfigs)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &s3BackendConfigs)).Should(Succeed()) }()
+
 	var stack *localstack.Instance
 	{
 		ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
@@ -99,7 +117,10 @@ func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 		if err != nil {
 			log.Fatalf("Could not connect to Docker %v", err)
 		}
-		if err := stack.StartWithContext(ctx, localstack.S3, localstack.DynamoDB, localstack.SQS); err != nil {
+		if err := stack.StartWithContext(ctx,
+			localstack.S3,
+			localstack.DynamoDB,
+			localstack.SQS); err != nil {
 			log.Fatalf("Could not start localstack %v", err)
 		}
 
@@ -158,9 +179,6 @@ func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
 	backendConfig := fmt.Sprintf(`
 	backend "s3" {
-		access_key                  = "test"
-		secret_key                  = "test"
-		bucket                      = "s3-terraform-state"
 		key                         = "dev/terraform.tfstate"
 		region                      = "us-east-1"
 		endpoint                    = "%s"
@@ -181,6 +199,18 @@ func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 			ApprovePlan: "auto",
 			BackendConfig: &infrav1.BackendConfigSpec{
 				CustomConfiguration: backendConfig,
+			},
+			BackendConfigsFrom: []infrav1.BackendConfigsReference{
+				{
+					Kind: "Secret",
+					Name: s3BackendConfigs.Name,
+					Keys: []string{
+						"access_key",
+						"secret_key",
+						"bucket",
+					},
+					Optional: false,
+				},
 			},
 			Path: "./terraform-hello-world-example",
 			SourceRef: infrav1.CrossNamespaceSourceReference{

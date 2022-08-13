@@ -816,17 +816,18 @@ terraform {
 
 	// TODO we currently use a fork version of TFExec to workaround the forceCopy bug
 	// https://github.com/hashicorp/terraform-exec/issues/262
-	/*
-		initOpts := []tfexec.InitOption{tfexec.Upgrade(true), tfexec.ForceCopy(true)}
-		if r.backendCompletelyDisable(terraform) {
-			initOpts = append(initOpts, tfexec.ForceCopy(false))
-		}
-	*/
+
+	terraformBytes, err := terraform.ToBytes(r.Scheme)
+	if err != nil {
+		// transient error?
+		return terraform, tfInstance, tmpDir, err
+	}
 
 	initRequest := &runner.InitRequest{
 		TfInstance: tfInstance,
 		Upgrade:    true,
 		ForceCopy:  true,
+		Terraform:  terraformBytes,
 	}
 	if r.backendCompletelyDisable(terraform) {
 		initRequest.ForceCopy = false
@@ -846,13 +847,7 @@ terraform {
 
 	log.Info("tfexec initialized terraform")
 
-	terraformBytes, err := terraform.ToBytes(r.Scheme)
-	if err != nil {
-		// transient error?
-		return terraform, tfInstance, tmpDir, err
-	}
 	generateVarsForTFReply, err := runnerClient.GenerateVarsForTF(ctx, &runner.GenerateVarsForTFRequest{
-		Terraform:  terraformBytes,
 		WorkingDir: workingDir,
 	})
 	if err != nil {

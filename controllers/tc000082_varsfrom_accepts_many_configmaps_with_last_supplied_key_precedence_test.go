@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/hashicorp/terraform-exec/tfexec"
 	. "github.com/onsi/gomega"
 
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
@@ -71,7 +70,10 @@ func Test_000082_varsfrom_accepts_many_configmaps_with_last_supplied_precedence(
 	g.Expect(err).Should(BeNil())
 
 	By("creating a new TF exec instance")
-	tfExec, err := tfexec.NewTerraform(workDir, execPath)
+	_, err = runnerServer.NewTerraform(ctx, &runner.NewTerraformRequest{
+		WorkingDir: workDir,
+		ExecPath:   execPath,
+	})
 	g.Expect(err).Should(BeNil())
 
 	By("creating a new TF resource with slice of ConfigMaps")
@@ -104,13 +106,22 @@ func Test_000082_varsfrom_accepts_many_configmaps_with_last_supplied_precedence(
 
 	terraformBytes, err := terraform.ToBytes(reconciler.Scheme)
 	g.Expect(err).To(BeNil())
-	_, err = runnerServer.GenerateVarsForTF(ctx, &runner.GenerateVarsForTFRequest{
-		WorkingDir: tfExec.WorkingDir(),
+
+	_, err = runnerServer.Init(ctx, &runner.InitRequest{
+		TfInstance: "1",
+		Upgrade:    false,
+		ForceCopy:  false,
 		Terraform:  terraformBytes,
 	})
+	g.Expect(err).Should(BeNil())
+
+	_, err = runnerServer.GenerateVarsForTF(ctx, &runner.GenerateVarsForTFRequest{
+		WorkingDir: workDir,
+	})
+	g.Expect(err).Should(BeNil())
 
 	By("verifying the generated vars file matches the expected result")
-	varsFilePath := filepath.Join(tfExec.WorkingDir(), generatedVarsFile)
+	varsFilePath := filepath.Join(workDir, generatedVarsFile)
 
 	// read vars file
 	data, err := os.ReadFile(varsFilePath)

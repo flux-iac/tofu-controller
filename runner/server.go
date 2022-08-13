@@ -48,8 +48,9 @@ type TerraformRunnerServer struct {
 	UnimplementedRunnerServer
 	tf *tfexec.Terraform
 	client.Client
-	Scheme *runtime.Scheme
-	Done   chan os.Signal
+	Scheme    *runtime.Scheme
+	Done      chan os.Signal
+	terraform *infrav1.Terraform
 }
 
 const loggerName = "runner.terraform"
@@ -223,9 +224,71 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 		return nil, err
 	}
 
-	initOpts := []tfexec.InitOption{tfexec.Upgrade(req.Upgrade), tfexec.ForceCopy(req.ForceCopy)}
-	err := r.tf.Init(ctx, initOpts...)
+	var terraform infrav1.Terraform
+	err := terraform.FromBytes(req.Terraform, r.Scheme)
 	if err != nil {
+		log.Error(err, "there was a problem getting the terraform resource")
+		return nil, err
+	}
+	// cache the Terraform resource when initializing
+	r.terraform = &terraform
+
+	log.Info("mapping the Spec.BackendConfigsFrom")
+	backendConfigsOpts := []tfexec.InitOption{}
+	for _, bf := range terraform.Spec.BackendConfigsFrom {
+		objectKey := types.NamespacedName{
+			Namespace: terraform.Namespace,
+			Name:      bf.Name,
+		}
+		if bf.Kind == "Secret" {
+			var s corev1.Secret
+			err := r.Get(ctx, objectKey, &s)
+			if err != nil && bf.Optional == false {
+				log.Error(err, "unable to get object key", "objectKey", objectKey, "secret", s.ObjectMeta.Name)
+				return nil, err
+			}
+			// if VarsKeys is null, use all
+			if bf.Keys == nil {
+				for key, val := range s.Data {
+					backendConfigsOpts = append(backendConfigsOpts, tfexec.BackendConfig(key+"="+string(val)))
+				}
+			} else {
+				for _, key := range bf.Keys {
+					backendConfigsOpts = append(backendConfigsOpts, tfexec.BackendConfig(key+"="+string(s.Data[key])))
+				}
+			}
+		} else if bf.Kind == "ConfigMap" {
+			var cm corev1.ConfigMap
+			err := r.Get(ctx, objectKey, &cm)
+			if err != nil && bf.Optional == false {
+				log.Error(err, "unable to get object key", "objectKey", objectKey, "configmap", cm.ObjectMeta.Name)
+				return nil, err
+			}
+
+			// if Keys is null, use all
+			if bf.Keys == nil {
+				for key, val := range cm.Data {
+					backendConfigsOpts = append(backendConfigsOpts, tfexec.BackendConfig(key+"="+val))
+				}
+				for key, val := range cm.BinaryData {
+					backendConfigsOpts = append(backendConfigsOpts, tfexec.BackendConfig(key+"="+string(val)))
+				}
+			} else {
+				for _, key := range bf.Keys {
+					if val, ok := cm.Data[key]; ok {
+						backendConfigsOpts = append(backendConfigsOpts, tfexec.BackendConfig(key+"="+val))
+					}
+					if val, ok := cm.BinaryData[key]; ok {
+						backendConfigsOpts = append(backendConfigsOpts, tfexec.BackendConfig(key+"="+string(val)))
+					}
+				}
+			}
+		}
+	}
+
+	initOpts := []tfexec.InitOption{tfexec.Upgrade(req.Upgrade), tfexec.ForceCopy(req.ForceCopy)}
+	initOpts = append(initOpts, backendConfigsOpts...)
+	if err := r.tf.Init(ctx, initOpts...); err != nil {
 		log.Error(err, "unable to initialize")
 		return nil, err
 	}
@@ -238,12 +301,9 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *GenerateVarsForTFRequest) (*GenerateVarsForTFReply, error) {
 	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
 	log.Info("setting up the input variables")
-	var terraform infrav1.Terraform
-	err := terraform.FromBytes(req.Terraform, r.Scheme)
-	if err != nil {
-		log.Error(err, "there was a problem getting the terraform resource")
-		return nil, err
-	}
+
+	// use from the cached object
+	terraform := *r.terraform
 
 	log.Info("mapping the Spec.Vars")
 	vars := map[string]*apiextensionsv1.JSON{}
