@@ -640,7 +640,14 @@ func (r *TerraformReconciler) setupTerraform(ctx context.Context, runnerClient r
 	var backendConfig string
 	DisableTFK8SBackend := os.Getenv("DISABLE_TF_K8S_BACKEND") == "1"
 
-	if terraform.Spec.BackendConfig != nil {
+	if terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.CustomConfiguration != "" {
+		backendConfig = fmt.Sprintf(`
+terraform {
+  %v
+}
+`,
+			terraform.Spec.BackendConfig.CustomConfiguration)
+	} else if terraform.Spec.BackendConfig != nil {
 		backendConfig = fmt.Sprintf(`
 terraform {
   backend "kubernetes" {
