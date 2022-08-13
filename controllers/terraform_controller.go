@@ -642,10 +642,11 @@ func (r *TerraformReconciler) setupTerraform(ctx context.Context, runnerClient r
 
 	if terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.CustomConfiguration != "" {
 		backendConfig = fmt.Sprintf(`
-		terraform {
-			%v
-		}
-		`, terraform.Spec.BackendConfig.CustomConfiguration)
+terraform {
+  %v
+}
+`,
+			terraform.Spec.BackendConfig.CustomConfiguration)
 	} else if terraform.Spec.BackendConfig != nil {
 		backendConfig = fmt.Sprintf(`
 terraform {
