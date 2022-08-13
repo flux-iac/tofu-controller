@@ -61,6 +61,17 @@ bool
 </tr>
 <tr>
 <td>
+<code>customConfiguration</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
 <code>configPath</code><br>
 <em>
 string
