@@ -98,8 +98,7 @@ message ProcessCliConfigReply {
 }
 
 message GenerateVarsForTFRequest {
-  bytes terraform = 1;
-  string workingDir = 2;
+  string workingDir = 1;
 }
 
 message GenerateVarsForTFReply {
@@ -223,6 +222,7 @@ message InitRequest {
   string tfInstance = 1;
   bool upgrade = 2;
   bool forceCopy = 3;
+  bytes terraform = 4;
 }
 
 message InitReply {
