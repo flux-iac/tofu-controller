@@ -64,6 +64,8 @@ spec:
                 properties:
                   configPath:
                     type: string
+                  customConfiguration:
+                    type: string
                   disable:
                     description: Disable is to completely disable the backend configuration.
                     type: boolean
@@ -76,6 +78,39 @@ spec:
                   secretSuffix:
                     type: string
                 type: object
+              backendConfigsFrom:
+                items:
+                  properties:
+                    keys:
+                      description: Keys is the data key where a specific value can
+                        be found at. Defaults to all keys.
+                      items:
+                        type: string
+                      type: array
+                    kind:
+                      description: Kind of the values referent, valid values are ('Secret',
+                        'ConfigMap').
+                      enum:
+                      - Secret
+                      - ConfigMap
+                      type: string
+                    name:
+                      description: Name of the configs referent. Should reside in
+                        the same namespace as the referring resource.
+                      maxLength: 253
+                      minLength: 1
+                      type: string
+                    optional:
+                      description: Optional marks this BackendConfigsReference as
+                        optional. When set, a not found error for the values reference
+                        is ignored, but any Key or transient error will still result
+                        in a reconciliation failure.
+                      type: boolean
+                  required:
+                  - kind
+                  - name
+                  type: object
+                type: array
               cliConfigSecretRef:
                 description: SecretReference represents a Secret Reference. It has
                   enough information to retrieve secret in any namespace
