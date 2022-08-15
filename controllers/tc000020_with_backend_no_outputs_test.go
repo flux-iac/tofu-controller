@@ -86,7 +86,6 @@ func Test_000020_with_backend_no_outputs_test(t *testing.T) {
 
 	Given("a Terraform resource with auto approve, backend configured, attached to the given GitRepository.")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
-	inClusterConfig := false
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
@@ -96,7 +95,7 @@ func Test_000020_with_backend_no_outputs_test(t *testing.T) {
 			ApprovePlan: "auto",
 			BackendConfig: &infrav1.BackendConfigSpec{
 				SecretSuffix:    terraformName,
-				InClusterConfig: &inClusterConfig,
+				InClusterConfig: false,
 				ConfigPath:      testEnvKubeConfigPath,
 			},
 			Path: "./terraform-hello-world-example",
