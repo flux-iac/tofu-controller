@@ -83,7 +83,6 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
 	g.Expect(err).Should(BeNil())
 
-	inClusterConfig := false
 	testTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
@@ -92,7 +91,7 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 		Spec: infrav1.TerraformSpec{
 			BackendConfig: &infrav1.BackendConfigSpec{
 				SecretSuffix:    terraformName,
-				InClusterConfig: &inClusterConfig,
+				InClusterConfig: false,
 				ConfigPath:      testEnvKubeConfigPath,
 			},
 			ApprovePlan: infrav1.ApprovePlanAutoValue,

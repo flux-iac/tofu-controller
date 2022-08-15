@@ -425,7 +425,6 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
 	By("specifying the .spec.writeOutputsToSecret.")
 
-	inClusterConfig := false
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
@@ -435,7 +434,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 			ApprovePlan: "auto",
 			BackendConfig: &infrav1.BackendConfigSpec{
 				SecretSuffix:    terraformName,
-				InClusterConfig: &inClusterConfig,
+				InClusterConfig: false,
 				ConfigPath:      testEnvKubeConfigPath,
 			},
 			Path: "./terraform-envvar-variable-output",
@@ -610,7 +609,6 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_with_value(t *testing.T)
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
 	By("specifying the .spec.writeOutputsToSecret.")
 
-	inClusterConfig := false
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
@@ -620,7 +618,7 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_with_value(t *testing.T)
 			ApprovePlan: "auto",
 			BackendConfig: &infrav1.BackendConfigSpec{
 				SecretSuffix:    terraformName,
-				InClusterConfig: &inClusterConfig,
+				InClusterConfig: false,
 				ConfigPath:      testEnvKubeConfigPath,
 			},
 			Path: "./terraform-envvar-provider-vars",
@@ -751,7 +749,6 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_without_value(t *testing
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
 	By("specifying the .spec.writeOutputsToSecret.")
 
-	inClusterConfig := false
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
@@ -761,7 +758,7 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_without_value(t *testing
 			ApprovePlan: "auto",
 			BackendConfig: &infrav1.BackendConfigSpec{
 				SecretSuffix:    terraformName,
-				InClusterConfig: &inClusterConfig,
+				InClusterConfig: false,
 				ConfigPath:      testEnvKubeConfigPath,
 			},
 			Path: "./terraform-envvar-provider-vars",
@@ -900,7 +897,6 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_secretRef(t *testing.T) {
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
 	By("specifying the .spec.writeOutputsToSecret.")
 
-	inClusterConfig := false
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
@@ -910,7 +906,7 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_secretRef(t *testing.T) {
 			ApprovePlan: "auto",
 			BackendConfig: &infrav1.BackendConfigSpec{
 				SecretSuffix:    terraformName,
-				InClusterConfig: &inClusterConfig,
+				InClusterConfig: false,
 				ConfigPath:      testEnvKubeConfigPath,
 			},
 			Path: "./terraform-envvar-provider-vars",
@@ -1069,7 +1065,6 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_configMapRef(t *testing.T) {
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
 	By("specifying the .spec.writeOutputsToSecret.")
 
-	inClusterConfig := false
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
@@ -1079,7 +1074,7 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_configMapRef(t *testing.T) {
 			ApprovePlan: "auto",
 			BackendConfig: &infrav1.BackendConfigSpec{
 				SecretSuffix:    terraformName,
-				InClusterConfig: &inClusterConfig,
+				InClusterConfig: false,
 				ConfigPath:      testEnvKubeConfigPath,
 			},
 			Path: "./terraform-envvar-provider-vars",

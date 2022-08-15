@@ -673,12 +673,6 @@ terraform {
 					terraform.Spec.BackendConfig.SecretSuffix = terraform.Name
 				}
 
-				// Default to true if InClusterConfig is not set
-				if terraform.Spec.BackendConfig.InClusterConfig == nil {
-					icc := true
-					terraform.Spec.BackendConfig.InClusterConfig = &icc
-				}
-
 				// The config path is only required if we're not setting up an InClusterConfig
 				configPath := ""
 
@@ -698,7 +692,7 @@ terraform {
 }
 `,
 					terraform.Spec.BackendConfig.SecretSuffix,
-					*terraform.Spec.BackendConfig.InClusterConfig,
+					terraform.Spec.BackendConfig.InClusterConfig,
 					configPath,
 					terraform.Namespace)
 			}
