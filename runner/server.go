@@ -224,10 +224,9 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 
 	log.Info("initializing")
 	if req.TfInstance != "1" {
-		reply.Message = "not ok"
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "no terraform")
-		return reply, err
+		return nil, err
 	}
 
 	var terraform infrav1.Terraform
