@@ -661,13 +661,6 @@ terraform {
 `,
 					terraform.Spec.BackendConfig.CustomConfiguration)
 			} else {
-				// If we have a lock id we want to force unlock the state
-				if terraform.Spec.BackendConfig.State != nil {
-					if terraform.Spec.BackendConfig.State.ForceUnlock == infrav1.ForceUnlockEnumYes || terraform.Spec.BackendConfig.State.ForceUnlock == infrav1.ForceUnlockEnumAuto {
-						lockIdentifier = terraform.Spec.BackendConfig.State.LockIdentifier
-					}
-				}
-
 				// Set a default suffix if it is not set
 				if terraform.Spec.BackendConfig.SecretSuffix == "" {
 					terraform.Spec.BackendConfig.SecretSuffix = terraform.Name
@@ -724,6 +717,13 @@ terraform {
 			return terraform, tfInstance, tmpDir, err
 		}
 		log.Info(fmt.Sprintf("write backend config: %s", writeBackendConfigReply.Message))
+	}
+
+	// If we have a lock id we want to force unlock the state
+	if terraform.Spec.TerraformState != nil {
+		if terraform.Spec.TerraformState.ForceUnlock == infrav1.ForceUnlockEnumYes || terraform.Spec.TerraformState.ForceUnlock == infrav1.ForceUnlockEnumAuto {
+			lockIdentifier = terraform.Spec.TerraformState.LockIdentifier
+		}
 	}
 
 	// If we have a lock id need to force unlock it

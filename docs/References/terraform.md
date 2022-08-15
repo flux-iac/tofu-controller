@@ -92,81 +92,6 @@ map[string]string
 <em>(Optional)</em>
 </td>
 </tr>
-<tr>
-<td>
-<code>state</code><br>
-<em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.BackendConfigStateSpec">
-BackendConfigStateSpec
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.BackendConfigStateSpec">BackendConfigStateSpec
-</h3>
-<p>
-(<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.BackendConfigSpec">BackendConfigSpec</a>)
-</p>
-<p>BackendConfigStateSpec allows the user to set ForceUnlock</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>forceUnlock</code><br>
-<em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.ForceUnlockEnum">
-ForceUnlockEnum
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>ForceUnlock a Terraform state if it has become locked for any reason.</p>
-<p>This is an Enum and has the expected values of:</p>
-<ul>
-<li>auto</li>
-<li>yes</li>
-<li>no</li>
-</ul>
-<p>WARNING: Only use <code>auto</code> in the cases where you are absolutely certain that
-no other system is using this state, you could otherwise end up in a bad place
-See <a href="https://www.terraform.io/language/state/locking#force-unlock">https://www.terraform.io/language/state/locking#force-unlock</a> for more
-information on the terraform state lock and force unlock.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>lockIdentifier</code><br>
-<em>
-string
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>LockIdentifier holds the Identifier required by Terraform to unlock the state
-if it ever gets into a locked state.</p>
-<p>You&rsquo;ll need to put the Lock Identifier in here while setting ForceUnlock to
-either <code>true</code> or <code>auto</code>.</p>
-<p>Leave this empty to do nothing, set this to the value of the <code>Lock Info: ID: [value]</code>,
-e.g. <code>f2ab685b-f84d-ac0b-a125-378a22877e8d</code>, to force unlock the state.</p>
-</td>
-</tr>
 </tbody>
 </table>
 </div>
@@ -312,7 +237,7 @@ string
 (<code>string</code> alias)</h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.BackendConfigStateSpec">BackendConfigStateSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformStatusSpec">TerraformStatusSpec</a>)
 </p>
 <h3 id="infra.contrib.fluxcd.io/v1alpha1.HealthCheck">HealthCheck
 </h3>
@@ -1107,6 +1032,19 @@ bool
 <p>EnableInventory enables the object to store resource entries as the inventory for external use.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>state</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformStatusSpec">
+TerraformStatusSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -1448,6 +1386,19 @@ bool
 <p>EnableInventory enables the object to store resource entries as the inventory for external use.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>state</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformStatusSpec">
+TerraformStatusSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1612,6 +1563,68 @@ ResourceInventory
 <td>
 <em>(Optional)</em>
 <p>Inventory contains the list of Terraform resource object references that have been successfully applied.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.TerraformStatusSpec">TerraformStatusSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+</p>
+<p>TerraformStatusSpec allows the user to set ForceUnlock</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>forceUnlock</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.ForceUnlockEnum">
+ForceUnlockEnum
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>ForceUnlock a Terraform state if it has become locked for any reason.</p>
+<p>This is an Enum and has the expected values of:</p>
+<ul>
+<li>auto</li>
+<li>yes</li>
+<li>no</li>
+</ul>
+<p>WARNING: Only use <code>auto</code> in the cases where you are absolutely certain that
+no other system is using this state, you could otherwise end up in a bad place
+See <a href="https://www.terraform.io/language/state/locking#force-unlock">https://www.terraform.io/language/state/locking#force-unlock</a> for more
+information on the terraform state lock and force unlock.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>lockIdentifier</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>LockIdentifier holds the Identifier required by Terraform to unlock the state
+if it ever gets into a locked state.</p>
+<p>You&rsquo;ll need to put the Lock Identifier in here while setting ForceUnlock to
+either <code>true</code> or <code>auto</code>.</p>
+<p>Leave this empty to do nothing, set this to the value of the <code>Lock Info: ID: [value]</code>,
+e.g. <code>f2ab685b-f84d-ac0b-a125-378a22877e8d</code>, to force unlock the state.</p>
 </td>
 </tr>
 </tbody>

@@ -41,25 +41,16 @@ func (c *CLI) setForceUnlockAndReconcile(ctx context.Context, kubeClient client.
 
 		patch := client.MergeFrom(terraform.DeepCopy())
 
-		if terraform.Spec.BackendConfig == nil {
-			terraform.Spec.BackendConfig = &infrav1.BackendConfigSpec{
-				State: &infrav1.BackendConfigStateSpec{
-					ForceUnlock:    infrav1.ForceUnlockEnumYes,
-					LockIdentifier: lockID,
-				},
+		if terraform.Spec.TerraformState == nil {
+			terraform.Spec.TerraformState = &infrav1.TerraformStatusSpec{
+				ForceUnlock:    infrav1.ForceUnlockEnumYes,
+				LockIdentifier: lockID,
 			}
 		} else {
-			if terraform.Spec.BackendConfig.State == nil {
-				terraform.Spec.BackendConfig.State = &infrav1.BackendConfigStateSpec{
-					ForceUnlock:    infrav1.ForceUnlockEnumYes,
-					LockIdentifier: lockID,
-				}
-			} else {
-				terraform.Spec.BackendConfig.State.LockIdentifier = lockID
+			terraform.Spec.TerraformState.LockIdentifier = lockID
 
-				if terraform.Spec.BackendConfig.State.ForceUnlock != infrav1.ForceUnlockEnumAuto {
-					terraform.Spec.BackendConfig.State.ForceUnlock = infrav1.ForceUnlockEnumYes
-				}
+			if terraform.Spec.TerraformState.ForceUnlock != infrav1.ForceUnlockEnumAuto {
+				terraform.Spec.TerraformState.ForceUnlock = infrav1.ForceUnlockEnumYes
 			}
 		}
 
