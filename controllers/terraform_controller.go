@@ -715,6 +715,12 @@ terraform {
 		if err != nil {
 			return terraform, tfInstance, tmpDir, err
 		}
+
+		err = r.setForceUnlock(ctx, terraform, "")
+
+		if err != nil {
+			return terraform, tfInstance, tmpDir, err
+		}
 	}
 
 	var tfrcFilepath string
@@ -2196,5 +2202,24 @@ func (r *TerraformReconciler) outputsMayBeDrifted(ctx context.Context, terraform
 }
 
 func (r *TerraformReconciler) setForceUnlock(ctx context.Context, terraform infrav1.Terraform, lockID string) error {
-	return nil
+	if lockID != "" {
+		if terraform.Spec.TerraformState != nil {
+			terraform.Spec.TerraformState = &infrav1.TerraformStateSpec{
+				ForceUnlock:    infrav1.ForceUnlockEnumYes,
+				LockIdentifier: lockID,
+			}
+		} else {
+			terraform.Spec.TerraformState.LockIdentifier = lockID
+
+			if terraform.Spec.TerraformState.ForceUnlock != infrav1.ForceUnlockEnumAuto {
+				terraform.Spec.TerraformState.ForceUnlock = infrav1.ForceUnlockEnumYes
+			}
+		}
+	} else if terraform.Spec.TerraformState.ForceUnlock == infrav1.ForceUnlockEnumYes {
+		terraform.Spec.TerraformState = nil
+	}
+
+	patch := client.MergeFrom(terraform.DeepCopy())
+	err := r.Patch(ctx, &terraform, patch)
+	return err
 }
