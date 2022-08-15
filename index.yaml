@@ -2,8 +2,18 @@ apiVersion: v1
 entries:
   tf-controller:
   - apiVersion: v2
+    appVersion: v0.12.0-rc.1
+    created: "2022-08-15T05:21:36.312876982Z"
+    description: The Helm chart for Weave GitOps Terraform Controller
+    digest: 542e9472a99fdb1f700f372c49aa56ed57ed0316a99f2d8b34abef5f6a6de070
+    name: tf-controller
+    type: application
+    urls:
+    - https://weaveworks.github.io/tf-controller/tf-controller-0.5.0.tgz
+    version: 0.5.0
+  - apiVersion: v2
     appVersion: v0.11.0
-    created: "2022-08-11T17:44:26.423477736Z"
+    created: "2022-08-15T05:21:36.310973068Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: 86a9d9c26db378ae32a0d7d2942b7df6d411ddd52654b2c067d0b4d630b6f78f
     name: tf-controller
@@ -13,7 +23,7 @@ entries:
     version: 0.4.3
   - apiVersion: v2
     appVersion: v0.11.0-rc.3
-    created: "2022-08-11T17:44:26.422613125Z"
+    created: "2022-08-15T05:21:36.310108662Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: ab848041fd0dd274f5463a06cb0da708e77b1f830ccdcadf64036537dc7f7ebc
     name: tf-controller
@@ -23,7 +33,7 @@ entries:
     version: 0.4.2
   - apiVersion: v2
     appVersion: v0.11.0-rc.2
-    created: "2022-08-11T17:44:26.421678113Z"
+    created: "2022-08-15T05:21:36.309318557Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: def47c6f7056acc0078ad6232f65c445e9afa909a332e296200b99a2d0e53a0f
     name: tf-controller
@@ -33,7 +43,7 @@ entries:
     version: 0.4.1
   - apiVersion: v2
     appVersion: v0.11.0-rc.1
-    created: "2022-08-11T17:44:26.4207055Z"
+    created: "2022-08-15T05:21:36.308513451Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: e11db07f683f28736daed5fef6df964647262924e085bf2269cb80949fa6b5c0
     name: tf-controller
@@ -43,7 +53,7 @@ entries:
     version: 0.4.0
   - apiVersion: v2
     appVersion: v0.10.1
-    created: "2022-08-11T17:44:26.419654087Z"
+    created: "2022-08-15T05:21:36.307686645Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: 7a119de7d7df7fe94d3ae1fa25cfd184e838f851a7e0e40cb8800abb7992b345
     name: tf-controller
@@ -53,7 +63,7 @@ entries:
     version: 0.3.9
   - apiVersion: v2
     appVersion: v0.10.0
-    created: "2022-08-11T17:44:26.418205968Z"
+    created: "2022-08-15T05:21:36.306817739Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: f236d76a140b573a8934ff161a82bab6854b91b5dcfac01d26dcfa20f2f4a8b1
     name: tf-controller
@@ -63,7 +73,7 @@ entries:
     version: 0.3.8
   - apiVersion: v2
     appVersion: v0.10.0-rc.8
-    created: "2022-08-11T17:44:26.416701448Z"
+    created: "2022-08-15T05:21:36.306010033Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: cfb9a7ffc993bdd1d789269161e46924277579b2baaa0ee4858aadd13330d08e
     name: tf-controller
@@ -73,7 +83,7 @@ entries:
     version: 0.3.7
   - apiVersion: v2
     appVersion: v0.10.0-rc.7
-    created: "2022-08-11T17:44:26.415171228Z"
+    created: "2022-08-15T05:21:36.305212927Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: a450de9792f8885e1dce9b67ad62b7c96630d2286e3e21887767b57f8d8f435a
     name: tf-controller
@@ -83,7 +93,7 @@ entries:
     version: 0.3.6
   - apiVersion: v2
     appVersion: v0.10.0-rc.6
-    created: "2022-08-11T17:44:26.414232416Z"
+    created: "2022-08-15T05:21:36.304368521Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: 0ce0f4ae9b37d030054ee298453d0cb71d8db8156401e2e23c84d9f991c2aa0e
     name: tf-controller
@@ -93,7 +103,7 @@ entries:
     version: 0.3.5
   - apiVersion: v2
     appVersion: v0.10.0-rc.5
-    created: "2022-08-11T17:44:26.413355204Z"
+    created: "2022-08-15T05:21:36.303573216Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: c9aecc8f189c84ef337125407fe5ecc753721d1088b0fbdba0bcc79379c1e0e6
     name: tf-controller
@@ -103,7 +113,7 @@ entries:
     version: 0.3.4
   - apiVersion: v2
     appVersion: v0.10.0-rc.5
-    created: "2022-08-11T17:44:26.412599294Z"
+    created: "2022-08-15T05:21:36.30278461Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: 7cd976a3614bf45645d38366b2d9f86d8ee907481e6ff7160ac7e13c45aa9d53
     name: tf-controller
@@ -113,7 +123,7 @@ entries:
     version: 0.3.3
   - apiVersion: v2
     appVersion: v0.10.0-rc.3
-    created: "2022-08-11T17:44:26.411869585Z"
+    created: "2022-08-15T05:21:36.301472301Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: bcfc1795e2bf697d6e0cb792fd97f381f323c564388e164a611ce499e1f656ec
     name: tf-controller
@@ -123,7 +133,7 @@ entries:
     version: 0.3.2
   - apiVersion: v2
     appVersion: v0.10.0-rc.2
-    created: "2022-08-11T17:44:26.411062774Z"
+    created: "2022-08-15T05:21:36.300565694Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: c2a7b71191bd9f02cb96c0eccbc60d28947c0fb17c3dbf2e6c8b0d58ba5427a6
     name: tf-controller
@@ -133,7 +143,7 @@ entries:
     version: 0.3.1
   - apiVersion: v2
     appVersion: v0.9.5
-    created: "2022-08-11T17:44:26.410235164Z"
+    created: "2022-08-15T05:21:36.299297985Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: 31c4c2e2a5a467be748cccdfb74af88d3706e3f33965370ff2de71692cec2dc9
     name: tf-controller
@@ -143,7 +153,7 @@ entries:
     version: 0.3.0
   - apiVersion: v2
     appVersion: v0.9.5-rc.3
-    created: "2022-08-11T17:44:26.409411553Z"
+    created: "2022-08-15T05:21:36.29859758Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: 79cff79de0ff8486b0010e6e0ec9c718009f0149522884c47b8e4e67e8b77e7d
     name: tf-controller
@@ -153,7 +163,7 @@ entries:
     version: 0.2.9
   - apiVersion: v2
     appVersion: v0.9.4
-    created: "2022-08-11T17:44:26.408653643Z"
+    created: "2022-08-15T05:21:36.297897775Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: 51dcfc245be661ca239c31eebe71e240de7494fcf46d64ee921bd22276e564bd
     name: tf-controller
@@ -163,7 +173,7 @@ entries:
     version: 0.2.8
   - apiVersion: v2
     appVersion: v0.9.3
-    created: "2022-08-11T17:44:26.408055935Z"
+    created: "2022-08-15T05:21:36.297243671Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: 71e07088649c151118621b924ecab6d82529cbc11c287ac2ec3a9804de45137f
     name: tf-controller
@@ -173,7 +183,7 @@ entries:
     version: 0.2.6
   - apiVersion: v2
     appVersion: v0.9.3
-    created: "2022-08-11T17:44:26.407267725Z"
+    created: "2022-08-15T05:21:36.296587366Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: 4c4125b6313a9d900280c826bca170aec2f7b9ed6df56b3322c7bd1f7bdd3b12
     name: tf-controller
@@ -183,7 +193,7 @@ entries:
     version: 0.2.5
   - apiVersion: v2
     appVersion: v0.9.2
-    created: "2022-08-11T17:44:26.406465114Z"
+    created: "2022-08-15T05:21:36.295939762Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: cf41cde1688c6e9fb9778637795880ab526848cc3d1239f80ef7a832797e33df
     name: tf-controller
@@ -193,7 +203,7 @@ entries:
     version: 0.2.4
   - apiVersion: v2
     appVersion: v0.9.0
-    created: "2022-08-11T17:44:26.405683104Z"
+    created: "2022-08-15T05:21:36.295306557Z"
     description: The Helm chart for Weave GitOps Terraform Controller
     digest: d213bdbc3f558a2df710ccb33a4562cc6827df6dfbc946cb6cb5b4c0005d0e90
     name: tf-controller
@@ -203,7 +213,7 @@ entries:
     version: 0.2.3
   - apiVersion: v2
     appVersion: v0.9.0-rc.8
-    created: "2022-08-11T17:44:26.404803293Z"
+    created: "2022-08-15T05:21:36.294676253Z"
     description: A Helm chart for TF-controller
     digest: 2024d2deaf3eea109eb04d70a2fd6307375a2cc0c867291638885bcc049285bf
     name: tf-controller
@@ -213,7 +223,7 @@ entries:
     version: 0.2.2
   - apiVersion: v2
     appVersion: v0.9.0-rc.8
-    created: "2022-08-11T17:44:26.404070983Z"
+    created: "2022-08-15T05:21:36.294048948Z"
     description: A Helm chart for TF-controller
     digest: baa896da81ce8c4e3c4a3cd1c0d8874fdc1841bfec8bdd75da2c0963bbaaf901
     name: tf-controller
@@ -223,7 +233,7 @@ entries:
     version: 0.2.1
   - apiVersion: v2
     appVersion: v0.9.0-rc.8
-    created: "2022-08-11T17:44:26.403195872Z"
+    created: "2022-08-15T05:21:36.293429144Z"
     description: A Helm chart for TF-controller
     digest: fa3050d7ebaf9912070f8fcda8ea05334772d8a5057e0c3271ffbeb5869f749e
     name: tf-controller
@@ -233,7 +243,7 @@ entries:
     version: 0.2.0
   - apiVersion: v2
     appVersion: v0.9.0-rc.7
-    created: "2022-08-11T17:44:26.402173758Z"
+    created: "2022-08-15T05:21:36.292805339Z"
     description: A Helm chart for TF-controller
     digest: 94ba8c2068b6398abc7468e07856998ad3fa32df38c06f27dd2c3a714e481668
     name: tf-controller
@@ -243,7 +253,7 @@ entries:
     version: 0.1.9
   - apiVersion: v2
     appVersion: v0.9.0-rc.6
-    created: "2022-08-11T17:44:26.40153465Z"
+    created: "2022-08-15T05:21:36.292155935Z"
     description: A Helm chart for TF-controller
     digest: c7e2a4be49792a07ff1d5de74068841244e6a18cd80941e77b79b85d878d5ebd
     name: tf-controller
@@ -253,7 +263,7 @@ entries:
     version: 0.1.8
   - apiVersion: v2
     appVersion: v0.9.0-rc.5
-    created: "2022-08-11T17:44:26.401019743Z"
+    created: "2022-08-15T05:21:36.29153313Z"
     description: A Helm chart for TF-controller
     digest: 91e49f670b821c0d405c433f99be81227d8632d468092cc2d7b9c43b15e31ffe
     name: tf-controller
@@ -263,7 +273,7 @@ entries:
     version: 0.1.7
   - apiVersion: v2
     appVersion: v0.9.0-rc.4
-    created: "2022-08-11T17:44:26.400407135Z"
+    created: "2022-08-15T05:21:36.290881126Z"
     description: A Helm chart for TF-controller
     digest: e48159f4b0b073ed6a921f5e43f28daa94b7abdaeabd2214d293592b15369b60
     name: tf-controller
@@ -273,7 +283,7 @@ entries:
     version: 0.1.6
   - apiVersion: v2
     appVersion: v0.9.0-rc.3
-    created: "2022-08-11T17:44:26.399117018Z"
+    created: "2022-08-15T05:21:36.289889319Z"
     description: A Helm chart for TF-controller
     digest: 509b79d5e4bb9b5d90c7df4ca9813441e604a4b53a46dbc2473e1362974fa104
     name: tf-controller
@@ -283,7 +293,7 @@ entries:
     version: 0.1.5
   - apiVersion: v2
     appVersion: v0.9.0-rc.3
-    created: "2022-08-11T17:44:26.398578911Z"
+    created: "2022-08-15T05:21:36.287686203Z"
     description: A Helm chart for TF-controller
     digest: 19b0b1743355aedbf75e84ea918f65d043f20f64a6cd01b4e8b83cd7ec3f11a3
     name: tf-controller
@@ -293,7 +303,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: v0.9.0-rc.2
-    created: "2022-08-11T17:44:26.398048705Z"
+    created: "2022-08-15T05:21:36.287072399Z"
     description: A Helm chart for TF-controller
     digest: bf49cc3e28078db1dc3834cc3ade1d9afe1242beb346829c1c6cff30a927f286
     name: tf-controller
@@ -303,7 +313,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: v0.9.0-rc.1
-    created: "2022-08-11T17:44:26.397515198Z"
+    created: "2022-08-15T05:21:36.286447494Z"
     description: A Helm chart for TF-controller
     digest: 5228c16cdca65a226765e8cabfaf70e3a812af515d47aaaa27fe04a34f98b777
     name: tf-controller
@@ -313,7 +323,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 0.8.0
-    created: "2022-08-11T17:44:26.396990491Z"
+    created: "2022-08-15T05:21:36.285765789Z"
     description: A Helm chart for TF-controller
     digest: 2b43597c7f9425b216fe73927067adbbbb2c4b31d6a7da90f2adbba0b88e94fe
     name: tf-controller
@@ -323,7 +333,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 0.8.0
-    created: "2022-08-11T17:44:26.396430683Z"
+    created: "2022-08-15T05:21:36.285075384Z"
     description: A Helm chart for TF-controller
     digest: 5e2f047e69bcc74012ef2119671eadb7c77a268acb206c304ddd993ecf86c516
     name: tf-controller
@@ -331,4 +341,4 @@ entries:
     urls:
     - https://weaveworks.github.io/tf-controller/tf-controller-0.1.0.tgz
     version: 0.1.0
-generated: "2022-08-11T17:44:26.395664273Z"
+generated: "2022-08-15T05:21:36.284229678Z"
