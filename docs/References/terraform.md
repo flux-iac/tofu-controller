@@ -96,6 +96,75 @@ map[string]string
 </table>
 </div>
 </div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.BackendConfigsReference">BackendConfigsReference
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>kind</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Kind of the values referent, valid values are (&lsquo;Secret&rsquo;, &lsquo;ConfigMap&rsquo;).</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>name</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name of the configs referent. Should reside in the same namespace as the
+referring resource.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>keys</code><br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Keys is the data key where a specific value can be found at. Defaults to all keys.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>optional</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Optional marks this BackendConfigsReference as optional. When set, a not found error
+for the values reference is ignored, but any Key or
+transient error will still result in a reconciliation failure.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="infra.contrib.fluxcd.io/v1alpha1.CrossNamespaceSourceReference">CrossNamespaceSourceReference
 </h3>
 <p>
@@ -692,6 +761,19 @@ BackendConfigSpec
 </tr>
 <tr>
 <td>
+<code>backendConfigsFrom</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.BackendConfigsReference">
+[]BackendConfigsReference
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
 <code>vars</code><br>
 <em>
 <a href="#infra.contrib.fluxcd.io/v1alpha1.Variable">
@@ -717,7 +799,7 @@ BackendConfigSpec
 <em>(Optional)</em>
 <p>List of references to a Secret or a ConfigMap to generate variables for
 Terraform resources based on its data, selectively by varsKey. Values of the later
-Secret / ConfigMap with the samek keys will override those of the former.</p>
+Secret / ConfigMap with the same keys will override those of the former.</p>
 </td>
 </tr>
 <tr>
@@ -1020,6 +1102,19 @@ BackendConfigSpec
 </tr>
 <tr>
 <td>
+<code>backendConfigsFrom</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.BackendConfigsReference">
+[]BackendConfigsReference
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
 <code>vars</code><br>
 <em>
 <a href="#infra.contrib.fluxcd.io/v1alpha1.Variable">
@@ -1045,7 +1140,7 @@ BackendConfigSpec
 <em>(Optional)</em>
 <p>List of references to a Secret or a ConfigMap to generate variables for
 Terraform resources based on its data, selectively by varsKey. Values of the later
-Secret / ConfigMap with the samek keys will override those of the former.</p>
+Secret / ConfigMap with the same keys will override those of the former.</p>
 </td>
 </tr>
 <tr>
@@ -1549,8 +1644,7 @@ referring resource.</p>
 </td>
 <td>
 <em>(Optional)</em>
-<p>VarsKeys is the data key where the values.yaml or a specific value can be
-found at. Defaults to all keys.</p>
+<p>VarsKeys is the data key at which a specific value can be found. Defaults to all keys.</p>
 </td>
 </tr>
 <tr>
