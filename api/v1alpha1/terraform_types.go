@@ -180,6 +180,9 @@ type TerraformSpec struct {
 	// EnableInventory enables the object to store resource entries as the inventory for external use.
 	// +optional
 	EnableInventory bool `json:"enableInventory,omitempty"`
+
+	// +optional
+	TerraformState *TerraformStatusSpec `json:"state,omitempty"`
 }
 
 type PlanStatus struct {
@@ -277,7 +280,6 @@ type BackendConfigSpec struct {
 	SecretSuffix string `json:"secretSuffix,omitempty"`
 
 	// +optional
-	// +kubebuilder:default:bool=true
 	InClusterConfig bool `json:"inClusterConfig,omitempty"`
 
 	// +optional
@@ -288,13 +290,10 @@ type BackendConfigSpec struct {
 
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-
-	// +optional
-	State *BackendConfigStateSpec `json:"state,omitempty"`
 }
 
-// BackendConfigStateSpec allows the user to set ForceUnlock
-type BackendConfigStateSpec struct {
+// TerraformStatusSpec allows the user to set ForceUnlock
+type TerraformStatusSpec struct {
 	// ForceUnlock a Terraform state if it has become locked for any reason.
 	//
 	// This is an Enum and has the expected values of:
