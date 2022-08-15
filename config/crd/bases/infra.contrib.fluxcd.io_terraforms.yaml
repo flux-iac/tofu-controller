@@ -69,6 +69,7 @@ spec:
                     description: Disable is to completely disable the backend configuration.
                     type: boolean
                   inClusterConfig:
+                    default: true
                     type: boolean
                   labels:
                     additionalProperties:

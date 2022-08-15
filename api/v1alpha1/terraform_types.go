@@ -277,7 +277,8 @@ type BackendConfigSpec struct {
 	SecretSuffix string `json:"secretSuffix,omitempty"`
 
 	// +optional
-	InClusterConfig *bool `json:"inClusterConfig,omitempty"`
+	// +kubebuilder:default:bool=true
+	InClusterConfig bool `json:"inClusterConfig,omitempty"`
 
 	// +optional
 	CustomConfiguration string `json:"customConfiguration,omitempty"`
