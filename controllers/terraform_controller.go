@@ -698,7 +698,7 @@ terraform {
 }
 `,
 					terraform.Spec.BackendConfig.SecretSuffix,
-					terraform.Spec.BackendConfig.InClusterConfig,
+					*terraform.Spec.BackendConfig.InClusterConfig,
 					configPath,
 					terraform.Namespace)
 			}
@@ -717,17 +717,6 @@ terraform {
 `, terraform.Name, terraform.Namespace)
 	}
 
-	// If we have a lock id need to force unlock it
-	if lockIdentifier != "" {
-		_, err := runnerClient.ForceUnlock(context.Background(), &runner.ForceUnlockRequest{
-			LockIdentifier: lockIdentifier,
-		})
-
-		if err != nil {
-			return terraform, tfInstance, tmpDir, err
-		}
-	}
-
 	if r.backendCompletelyDisable(terraform) {
 		log.Info("BackendConfig is completely disabled")
 	} else {
@@ -741,6 +730,17 @@ terraform {
 			return terraform, tfInstance, tmpDir, err
 		}
 		log.Info(fmt.Sprintf("write backend config: %s", writeBackendConfigReply.Message))
+	}
+
+	// If we have a lock id need to force unlock it
+	if lockIdentifier != "" {
+		_, err := runnerClient.ForceUnlock(context.Background(), &runner.ForceUnlockRequest{
+			LockIdentifier: lockIdentifier,
+		})
+
+		if err != nil {
+			return terraform, tfInstance, tmpDir, err
+		}
 	}
 
 	var tfrcFilepath string
