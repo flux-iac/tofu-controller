@@ -649,45 +649,46 @@ terraform {
 	// Check if we want to Disable the K8S backend via an envvar
 	DisableTFK8SBackend := os.Getenv("DISABLE_TF_K8S_BACKEND") == "1"
 
-	if terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.CustomConfiguration != "" {
-		backendConfig = fmt.Sprintf(`
+	// Do we have a manually configured backend
+	if terraform.Spec.BackendConfig != nil {
+		// Is the backend still enabled
+		if !terraform.Spec.BackendConfig.Disable {
+			if terraform.Spec.BackendConfig.CustomConfiguration != "" {
+				backendConfig = fmt.Sprintf(`
 terraform {
   %v
 }
 `,
-			terraform.Spec.BackendConfig.CustomConfiguration)
-		// Do we have a manually configured backend
-	} else if terraform.Spec.BackendConfig != nil {
-		// Is the backend still enabled
-		if !terraform.Spec.BackendConfig.Disable {
-			// If we have a lock id we want to force unlock the state
-			if terraform.Spec.BackendConfig.State != nil {
-				if terraform.Spec.BackendConfig.State.ForceUnlock == infrav1.ForceUnlockEnumYes || terraform.Spec.BackendConfig.State.ForceUnlock == infrav1.ForceUnlockEnumAuto {
-					lockIdentifier = terraform.Spec.BackendConfig.State.LockIdentifier
+					terraform.Spec.BackendConfig.CustomConfiguration)
+			} else {
+				// If we have a lock id we want to force unlock the state
+				if terraform.Spec.BackendConfig.State != nil {
+					if terraform.Spec.BackendConfig.State.ForceUnlock == infrav1.ForceUnlockEnumYes || terraform.Spec.BackendConfig.State.ForceUnlock == infrav1.ForceUnlockEnumAuto {
+						lockIdentifier = terraform.Spec.BackendConfig.State.LockIdentifier
+					}
 				}
-			}
 
-			// Set a default suffix if it is not set
-			if terraform.Spec.BackendConfig.SecretSuffix == "" {
-				terraform.Spec.BackendConfig.SecretSuffix = terraform.Name
-			}
+				// Set a default suffix if it is not set
+				if terraform.Spec.BackendConfig.SecretSuffix == "" {
+					terraform.Spec.BackendConfig.SecretSuffix = terraform.Name
+				}
 
-			// Default to true if InClusterConfig is not set
-			if terraform.Spec.BackendConfig.InClusterConfig == nil {
-				icc := true
-				terraform.Spec.BackendConfig.InClusterConfig = &icc
-			}
+				// Default to true if InClusterConfig is not set
+				if terraform.Spec.BackendConfig.InClusterConfig == nil {
+					icc := true
+					terraform.Spec.BackendConfig.InClusterConfig = &icc
+				}
 
-			// The config path is only required if we're not setting up an InClusterConfig
-			configPath := ""
+				// The config path is only required if we're not setting up an InClusterConfig
+				configPath := ""
 
-			// If it's not empty then we want to create the string that will be dropped into the config
-			if terraform.Spec.BackendConfig.ConfigPath != "" {
-				configPath = fmt.Sprintf("\n    config_path       = \"%s\"", terraform.Spec.BackendConfig.ConfigPath)
-			}
+				// If it's not empty then we want to create the string that will be dropped into the config
+				if terraform.Spec.BackendConfig.ConfigPath != "" {
+					configPath = fmt.Sprintf("\n    config_path       = \"%s\"", terraform.Spec.BackendConfig.ConfigPath)
+				}
 
-			// Setup the config, note the %v and %s together for in_cluster_config
-			backendConfig = fmt.Sprintf(`
+				// Setup the config, note the %v and %s together for in_cluster_config
+				backendConfig = fmt.Sprintf(`
 terraform {
   backend "kubernetes" {
     secret_suffix     = "%s"
@@ -696,10 +697,11 @@ terraform {
   }
 }
 `,
-				terraform.Spec.BackendConfig.SecretSuffix,
-				terraform.Spec.BackendConfig.InClusterConfig,
-				configPath,
-				terraform.Namespace)
+					terraform.Spec.BackendConfig.SecretSuffix,
+					terraform.Spec.BackendConfig.InClusterConfig,
+					configPath,
+					terraform.Namespace)
+			}
 		}
 		// This else should only be hit if we don't disable the backend via the envvar above
 	} else if !DisableTFK8SBackend {
