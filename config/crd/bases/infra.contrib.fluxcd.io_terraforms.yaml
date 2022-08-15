@@ -425,7 +425,7 @@ spec:
                 - name
                 type: object
               state:
-                description: TerraformStatusSpec allows the user to set ForceUnlock
+                description: TerraformStateSpec allows the user to set ForceUnlock
                 properties:
                   forceUnlock:
                     default: "no"
