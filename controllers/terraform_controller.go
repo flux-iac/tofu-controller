@@ -638,10 +638,7 @@ func (r *TerraformReconciler) setupTerraform(ctx context.Context, runnerClient r
 	workingDir := uploadAndExtractReply.WorkingDir
 	tmpDir = uploadAndExtractReply.TmpDir
 
-	// Set the backendConfig assuming it is going to be disabled
 	var backendConfig string
-
-	// Check if we want to Disable the K8S backend via an envvar
 	DisableTFK8SBackend := os.Getenv("DISABLE_TF_K8S_BACKEND") == "1"
 
 	if terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.CustomConfiguration != "" {
