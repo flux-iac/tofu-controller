@@ -882,7 +882,13 @@ terraform {
 	initReply, err := runnerClient.Init(ctx, initRequest)
 	if err != nil {
 		err = fmt.Errorf("error running Init: %s", err)
-		r.setForceUnlock(ctx, terraform, initReply.StateLockIdentifier)
+
+		if initReply != nil {
+			if fuErr := r.setForceUnlock(ctx, terraform, initReply.StateLockIdentifier); fuErr != nil {
+				err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
+			}
+		}
+
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
@@ -935,7 +941,13 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 	planReply, err := runnerClient.Plan(ctx, planRequest)
 	if err != nil {
 		err = fmt.Errorf("error running Plan: %s", err)
-		r.setForceUnlock(ctx, terraform, planReply.StateLockIdentifier)
+
+		if planReply != nil {
+			if fuErr := r.setForceUnlock(ctx, terraform, planReply.StateLockIdentifier); fuErr != nil {
+				err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
+			}
+		}
+
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
@@ -1013,7 +1025,13 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	planReply, err := runnerClient.Plan(ctx, planRequest)
 	if err != nil {
 		err = fmt.Errorf("error running Plan: %s", err)
-		r.setForceUnlock(ctx, terraform, planReply.StateLockIdentifier)
+
+		if planReply != nil {
+			if fuErr := r.setForceUnlock(ctx, terraform, planReply.StateLockIdentifier); fuErr != nil {
+				err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
+			}
+		}
+
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
@@ -1118,7 +1136,13 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		log.Info(fmt.Sprintf("destroy: %s", destroyReply.Message))
 		if err != nil {
 			err = fmt.Errorf("error running Destroy: %s", err)
-			r.setForceUnlock(ctx, terraform, destroyReply.StateLockIdentifier)
+
+			if destroyReply != nil {
+				if fuErr := r.setForceUnlock(ctx, terraform, destroyReply.StateLockIdentifier); fuErr != nil {
+					err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
+				}
+			}
+
 			return infrav1.TerraformAppliedFailResetPlanAndNotReady(
 				terraform,
 				revision,
@@ -1131,7 +1155,13 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		applyReply, err := runnerClient.Apply(ctx, applyRequest)
 		if err != nil {
 			err = fmt.Errorf("error running Apply: %s", err)
-			r.setForceUnlock(ctx, terraform, applyReply.StateLockIdentifier)
+
+			if applyReply != nil {
+				if fuErr := r.setForceUnlock(ctx, terraform, applyReply.StateLockIdentifier); fuErr != nil {
+					err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
+				}
+			}
+
 			return infrav1.TerraformAppliedFailResetPlanAndNotReady(
 				terraform,
 				revision,
