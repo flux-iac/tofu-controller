@@ -47,12 +47,14 @@ var (
 
 func main() {
 	var (
-		grpcPort      int
-		tlsSecretName string
+		grpcPort           int
+		tlsSecretName      string
+		grpcMaxMessageSize int
 	)
 
 	flag.IntVar(&grpcPort, "grpc-port", 30000, "The port on which to expose the grpc endpoint.")
 	flag.StringVar(&tlsSecretName, "tls-secret-name", "", "The TLS secret name.")
+	flag.IntVar(&grpcMaxMessageSize, "grpc-max-message-size", 4, "The maximum size of gRPC messages in MiB.")
 	flag.Parse()
 
 	addr := fmt.Sprintf(":%d", grpcPort)
@@ -75,7 +77,7 @@ func main() {
 		signal.Stop(sigterm)
 	}()
 
-	err := mtls.RunnerServe(podNamespace, addr, tlsSecretName, sigterm)
+	err := mtls.RunnerServe(podNamespace, addr, tlsSecretName, sigterm, grpcMaxMessageSize)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
