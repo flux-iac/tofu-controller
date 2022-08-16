@@ -563,12 +563,25 @@ func TerraformHealthCheckSucceeded(terraform Terraform, message string) Terrafor
 }
 
 // TerraformForceUnlock will set a new condition on the Terraform resource indicating
-// that the resource has been locked and we are attempting to force unlock it.
+// that we are attempting to force unlock it.
 func TerraformForceUnlock(terraform Terraform, message string) Terraform {
 	newCondition := metav1.Condition{
 		Type:    "ForceUnlock",
 		Status:  metav1.ConditionUnknown,
 		Reason:  "StateLocked",
+		Message: trimString(message, MaxConditionMessageLength),
+	}
+	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+	return terraform
+}
+
+// TerraformLocked will set a new condition on the Terraform resource indicating
+// that the resource has been locked.
+func TerraformLocked(terraform Terraform, message string) Terraform {
+	newCondition := metav1.Condition{
+		Type:    "StateLocked",
+		Status:  metav1.ConditionUnknown,
+		Reason:  "LockHeld",
 		Message: trimString(message, MaxConditionMessageLength),
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)

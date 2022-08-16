@@ -708,6 +708,13 @@ terraform {
 
 	// If we have a lock id need to force unlock it
 	if lockIdentifier != "" {
+		terraform = infrav1.TerraformForceUnlock(terraform, fmt.Sprintf("Terraform Force Unlock with Lock Identifier: %s", lockIdentifier))
+
+		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			log.Error(err, "unable to update status before Terraform force unlock")
+			return terraform, tfInstance, tmpDir, err
+		}
+
 		_, err := runnerClient.ForceUnlock(context.Background(), &runner.ForceUnlockRequest{
 			LockIdentifier: lockIdentifier,
 		})
@@ -2202,7 +2209,17 @@ func (r *TerraformReconciler) outputsMayBeDrifted(ctx context.Context, terraform
 }
 
 func (r *TerraformReconciler) setForceUnlock(ctx context.Context, terraform infrav1.Terraform, lockID string) error {
+	log := ctrl.LoggerFrom(ctx)
+	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
+
 	if lockID != "" {
+		terraform = infrav1.TerraformLocked(terraform, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", lockID))
+
+		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			log.Error(err, "unable to update status before Terraform force unlock")
+			return err
+		}
+
 		if terraform.Spec.TFState != nil {
 			terraform.Spec.TFState = &infrav1.TFStateSpec{
 				ForceUnlock:    infrav1.ForceUnlockEnumNo,
