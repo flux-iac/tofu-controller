@@ -277,7 +277,7 @@ func Test_000130_destroy_no_outputs_test(t *testing.T) {
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
-		"Message":         "Applied successfully",
+		"Message":         "Destroy applied successfully",
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 		"Destroy?":        true,
 	}))

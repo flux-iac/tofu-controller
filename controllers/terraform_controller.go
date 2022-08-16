@@ -276,7 +276,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			terraform.GetRetryInterval().String()),
 			"revision",
 			sourceObj.GetArtifact().Revision)
-		r.fireEvent(ctx, reconciledTerraform, sourceObj.GetArtifact().Revision, events.EventSeverityError, reconcileErr.Error(), nil)
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	} else if reconcileErr != nil {
 		// broadcast the reconciliation failure and requeue at the specified retry interval
@@ -285,7 +284,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			terraform.GetRetryInterval().String()),
 			"revision",
 			sourceObj.GetArtifact().Revision)
-		r.fireEvent(ctx, reconciledTerraform, sourceObj.GetArtifact().Revision, events.EventSeverityError, reconcileErr.Error(), nil)
+		r.event(ctx, reconciledTerraform, sourceObj.GetArtifact().Revision, events.EventSeverityError, reconcileErr.Error(), nil)
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	}
 
@@ -476,13 +475,13 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 			return terraform, driftDetectionErr
 		}
 
-		// immediately return if drift is detected but it's not "force" or "auto"
+		// immediately return if drift is detected, but it's not "force" or "auto"
 		if driftDetectionErr.Error() == infrav1.DriftDetectedReason && !r.forceOrAutoApply(terraform) {
 			log.Error(driftDetectionErr, "will not force / auto apply detected drift")
 			return terraform, driftDetectionErr
 		}
 
-		// ok, patch and continue
+		// ok Drift Detected, patch and continue
 		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
 			log.Error(err, "unable to update status after drift detection")
 			return terraform, err
@@ -519,6 +518,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 			log.Error(err, "unable to update status after applying")
 			return terraform, err
 		}
+
 	} else {
 		log.Info("should apply == false")
 	}
@@ -530,7 +530,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 	}
 
 	if r.shouldDoHealthChecks(terraform) {
-		terraform, err = r.doHealthChecks(ctx, terraform, runnerClient)
+		terraform, err = r.doHealthChecks(ctx, terraform, revision, runnerClient)
 		if err != nil {
 			log.Error(err, "error with health check")
 			return terraform, err
@@ -540,6 +540,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 			log.Error(err, "unable to update status after doing health checks")
 			return terraform, err
 		}
+
 	}
 
 	return terraform, nil
@@ -567,6 +568,7 @@ func (r *TerraformReconciler) processOutputs(ctx context.Context, runnerClient r
 			log.Error(err, "unable to update status after writing outputs")
 			return terraform, err
 		}
+
 	}
 
 	return terraform, nil
@@ -932,18 +934,26 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 		planRequest.Refresh = true
 	}
 
+	eventSent := false
 	planReply, err := runnerClient.Plan(ctx, planRequest)
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
+					msg := fmt.Sprintf("Terraform drift detection error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
+					r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+					eventSent = true
 					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
 			}
 		}
 
-		err = fmt.Errorf("error running Plan: %s", err)
+		if eventSent == false {
+			msg := fmt.Sprintf("Terraform drift detection error: %s", err.Error())
+			r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+		}
 
+		err = fmt.Errorf("error running Plan: %s", err)
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
@@ -974,6 +984,8 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 			rawOutput = showPlanFileRawReply.RawOutput
 			log.Info(fmt.Sprintf("show plan: %s", showPlanFileRawReply.RawOutput))
 		}
+
+		r.event(ctx, terraform, revision, events.EventSeverityError, fmt.Sprintf("Terraform drift detected.\n%s", rawOutput), nil)
 
 		// If drift detected & we use the auto mode, then we continue
 		terraform = infrav1.TerraformDriftDetected(terraform, revision, infrav1.DriftDetectedReason, rawOutput)
@@ -1020,16 +1032,24 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 
 	planReply, err := runnerClient.Plan(ctx, planRequest)
 	if err != nil {
+
+		eventSent := false
 		if st, ok := status.FromError(err); ok {
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
+					msg := fmt.Sprintf("Terraform plan error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
+					r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+					eventSent = true
 					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
 			}
 		}
 
+		if eventSent == false {
+			msg := fmt.Sprintf("Terraform plan error: %s", err.Error())
+			r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+		}
 		err = fmt.Errorf("error running Plan: %s", err)
-
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
@@ -1037,6 +1057,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 			err.Error(),
 		), err
 	}
+
 	drifted := planReply.Drifted
 	log.Info(fmt.Sprintf("plan: %s, found drift: %v", planReply.Message, drifted))
 
@@ -1060,6 +1081,9 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	log.Info(fmt.Sprintf("save tfplan: %s", saveTFPlanReply.Message))
 
 	if drifted {
+		_, approveMessage := infrav1.GetPlanIdAndApproveMessage(revision, "Plan generated")
+		msg := fmt.Sprintf("Terraform planned.\n%s", approveMessage)
+		r.event(ctx, terraform, revision, events.EventSeverityInfo, msg, nil)
 		terraform = infrav1.TerraformPlannedWithChanges(terraform, revision, "Plan generated")
 	} else {
 		terraform = infrav1.TerraformPlannedNoChanges(terraform, revision, "Plan no changes")
@@ -1132,17 +1156,26 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 			TfInstance: tfInstance,
 		})
 		log.Info(fmt.Sprintf("destroy: %s", destroyReply.Message))
+
+		eventSent := false
 		if err != nil {
 			if st, ok := status.FromError(err); ok {
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.DestroyReply); ok {
+						msg := fmt.Sprintf("Terraform destroy error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
+						r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+						eventSent = true
 						terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 					}
 				}
 			}
 
-			err = fmt.Errorf("error running Destroy: %s", err)
+			if eventSent == false {
+				msg := fmt.Sprintf("Terraform destroy error: %s", err.Error())
+				r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+			}
 
+			err = fmt.Errorf("error running Destroy: %s", err)
 			return infrav1.TerraformAppliedFailResetPlanAndNotReady(
 				terraform,
 				revision,
@@ -1152,18 +1185,26 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		}
 		isDestroyApplied = true
 	} else {
+		eventSent := false
 		applyReply, err := runnerClient.Apply(ctx, applyRequest)
 		if err != nil {
 			if st, ok := status.FromError(err); ok {
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.ApplyReply); ok {
+						msg := fmt.Sprintf("Terraform apply error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
+						r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+						eventSent = true
 						terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 					}
 				}
 			}
 
-			err = fmt.Errorf("error running Apply: %s", err)
+			if eventSent == false {
+				msg := fmt.Sprintf("Terraform apply error: %s", err.Error())
+				r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+			}
 
+			err = fmt.Errorf("error running Apply: %s", err)
 			return infrav1.TerraformAppliedFailResetPlanAndNotReady(
 				terraform,
 				revision,
@@ -1175,7 +1216,8 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 
 		isDestroyApplied = terraform.Status.Plan.IsDestroyPlan
 
-		if terraform.Spec.EnableInventory {
+		// if apply was successful, we need to update the inventory, but not if we are destroying
+		if terraform.Spec.EnableInventory && isDestroyApplied == false {
 			getInventoryRequest := &runner.GetInventoryRequest{TfInstance: tfInstance}
 			getInventoryReply, err := runnerClient.GetInventory(ctx, getInventoryRequest)
 			if err != nil {
@@ -1200,7 +1242,15 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		}
 	}
 
-	terraform = infrav1.TerraformApplied(terraform, revision, "Applied successfully", isDestroyApplied, inventoryEntries)
+	if isDestroyApplied {
+		msg := fmt.Sprintf("Terraform destroy applied successfully")
+		r.event(ctx, terraform, revision, events.EventSeverityInfo, msg, nil)
+		terraform = infrav1.TerraformApplied(terraform, revision, "Destroy applied successfully", isDestroyApplied, inventoryEntries)
+	} else {
+		msg := fmt.Sprintf("Terraform applied successfully")
+		r.event(ctx, terraform, revision, events.EventSeverityInfo, msg, nil)
+		terraform = infrav1.TerraformApplied(terraform, revision, "Applied successfully", isDestroyApplied, inventoryEntries)
+	}
 
 	return terraform, nil
 }
@@ -1315,7 +1365,16 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 			err.Error(),
 		), err
 	}
-	log.Info(fmt.Sprintf("write outputs: %s", writeOutputsReply.Message))
+	log.Info(fmt.Sprintf("write outputs: %s, changed: %v", writeOutputsReply.Message, writeOutputsReply.Changed))
+
+	if writeOutputsReply.Changed {
+		keysWritten := []string{}
+		for k, _ := range data {
+			keysWritten = append(keysWritten, k)
+		}
+		msg := fmt.Sprintf("Terraform %d output(s) written.\nOutputs: %s", len(keysWritten), strings.Join(keysWritten, ", "))
+		r.event(ctx, terraform, revision, events.EventSeverityInfo, msg, nil)
+	}
 
 	return infrav1.TerraformOutputsWritten(terraform, revision, "Outputs written"), nil
 }
@@ -1587,7 +1646,7 @@ func (r *TerraformReconciler) IndexBy(kind string) func(o client.Object) []strin
 	}
 }
 
-func (r *TerraformReconciler) fireEvent(ctx context.Context, terraform infrav1.Terraform, revision, severity, msg string, metadata map[string]string) {
+func (r *TerraformReconciler) event(ctx context.Context, terraform infrav1.Terraform, revision, severity, msg string, metadata map[string]string) {
 	if metadata == nil {
 		metadata = map[string]string{}
 	}
@@ -1600,12 +1659,12 @@ func (r *TerraformReconciler) fireEvent(ctx context.Context, terraform infrav1.T
 		reason = c.Reason
 	}
 
-	eventtype := "Normal"
+	eventType := "Normal"
 	if severity == events.EventSeverityError {
-		eventtype = "Warning"
+		eventType = "Warning"
 	}
 
-	r.EventRecorder.AnnotatedEventf(&terraform, metadata, eventtype, reason, msg)
+	r.EventRecorder.AnnotatedEventf(&terraform, metadata, eventType, reason, msg)
 }
 
 func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient, sourceObj sourcev1.Source) (ctrl.Result, error) {
@@ -1761,7 +1820,7 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret
 	)
 }
 
-func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infrav1.Terraform, revision string, runnerClient runner.RunnerClient) (infrav1.Terraform, error) {
 	log := ctrl.LoggerFrom(ctx)
 	log.Info("calling doHealthChecks ...")
 
@@ -1795,8 +1854,9 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 				), err
 			}
 
-			err = r.doTCPHealthCheck(ctx, hc.Name, parsed, hc.GetTimeout())
-			if err != nil {
+			if err := r.doTCPHealthCheck(ctx, hc.Name, parsed, hc.GetTimeout()); err != nil {
+				msg := fmt.Sprintf("Terraform TCP health check error: %s, url: %s", hc.Name, hc.Address)
+				r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
 					err.Error(),
@@ -1812,8 +1872,9 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 				), err
 			}
 
-			err = r.doHTTPHealthCheck(ctx, hc.Name, parsed, hc.GetTimeout())
-			if err != nil {
+			if err := r.doHTTPHealthCheck(ctx, hc.Name, parsed, hc.GetTimeout()); err != nil {
+				msg := fmt.Sprintf("Terraform HTTP health check error: %s, url: %s", hc.Name, hc.URL)
+				r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
 					err.Error(),
@@ -1821,6 +1882,7 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 			}
 		}
 	}
+
 	terraform = infrav1.TerraformHealthCheckSucceeded(terraform, "Health checks succeeded")
 	return terraform, nil
 }
