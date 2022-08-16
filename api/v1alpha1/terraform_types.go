@@ -182,7 +182,7 @@ type TerraformSpec struct {
 	EnableInventory bool `json:"enableInventory,omitempty"`
 
 	// +optional
-	TerraformState *TerraformStateSpec `json:"state,omitempty"`
+	TFState *TFStateSpec `json:"tfstate,omitempty"`
 }
 
 type PlanStatus struct {
@@ -292,8 +292,8 @@ type BackendConfigSpec struct {
 	Labels map[string]string `json:"labels,omitempty"`
 }
 
-// TerraformStateSpec allows the user to set ForceUnlock
-type TerraformStateSpec struct {
+// TFStateSpec allows the user to set ForceUnlock
+type TFStateSpec struct {
 	// ForceUnlock a Terraform state if it has become locked for any reason.
 	//
 	// This is an Enum and has the expected values of:

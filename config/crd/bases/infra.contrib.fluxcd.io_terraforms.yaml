@@ -424,8 +424,13 @@ spec:
                 - kind
                 - name
                 type: object
-              state:
-                description: TerraformStateSpec allows the user to set ForceUnlock
+              suspend:
+                description: Suspend is to tell the controller to suspend subsequent
+                  TF executions, it does not apply to already started executions.
+                  Defaults to false.
+                type: boolean
+              tfstate:
+                description: TFStateSpec allows the user to set ForceUnlock
                 properties:
                   forceUnlock:
                     default: "no"
@@ -451,11 +456,6 @@ spec:
                       force unlock the state."
                     type: string
                 type: object
-              suspend:
-                description: Suspend is to tell the controller to suspend subsequent
-                  TF executions, it does not apply to already started executions.
-                  Defaults to false.
-                type: boolean
               vars:
                 description: List of input variables to set for the Terraform program.
                 items:
