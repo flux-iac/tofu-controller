@@ -700,9 +700,9 @@ terraform {
 	lockIdentifier := ""
 
 	// If we have a lock id we want to force unlock the state
-	if terraform.Spec.TerraformState != nil {
-		if terraform.Spec.TerraformState.ForceUnlock == infrav1.ForceUnlockEnumYes || terraform.Spec.TerraformState.ForceUnlock == infrav1.ForceUnlockEnumAuto {
-			lockIdentifier = terraform.Spec.TerraformState.LockIdentifier
+	if terraform.Spec.TFState != nil {
+		if terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumYes || terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumAuto {
+			lockIdentifier = terraform.Spec.TFState.LockIdentifier
 		}
 	}
 
@@ -2203,20 +2203,20 @@ func (r *TerraformReconciler) outputsMayBeDrifted(ctx context.Context, terraform
 
 func (r *TerraformReconciler) setForceUnlock(ctx context.Context, terraform infrav1.Terraform, lockID string) error {
 	if lockID != "" {
-		if terraform.Spec.TerraformState != nil {
-			terraform.Spec.TerraformState = &infrav1.TerraformStateSpec{
-				ForceUnlock:    infrav1.ForceUnlockEnumYes,
+		if terraform.Spec.TFState != nil {
+			terraform.Spec.TFState = &infrav1.TFStateSpec{
+				ForceUnlock:    infrav1.ForceUnlockEnumNo,
 				LockIdentifier: lockID,
 			}
 		} else {
-			terraform.Spec.TerraformState.LockIdentifier = lockID
-
-			if terraform.Spec.TerraformState.ForceUnlock != infrav1.ForceUnlockEnumAuto {
-				terraform.Spec.TerraformState.ForceUnlock = infrav1.ForceUnlockEnumYes
-			}
+			terraform.Spec.TFState.LockIdentifier = lockID
 		}
-	} else if terraform.Spec.TerraformState.ForceUnlock == infrav1.ForceUnlockEnumYes {
-		terraform.Spec.TerraformState = nil
+	} else {
+		if terraform.Spec.TFState.ForceUnlock != infrav1.ForceUnlockEnumAuto {
+			terraform.Spec.TFState = nil
+		} else {
+			terraform.Spec.TFState.LockIdentifier = ""
+		}
 	}
 
 	patch := client.MergeFrom(terraform.DeepCopy())
