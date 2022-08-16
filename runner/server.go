@@ -218,10 +218,6 @@ func (r *TerraformRunnerServer) SetEnv(ctx context.Context, req *SetEnvRequest) 
 
 func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*InitReply, error) {
 	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
-	reply := &InitReply{
-		Message: "ok",
-	}
-
 	log.Info("initializing")
 	if req.TfInstance != "1" {
 		err := fmt.Errorf("no TF instance found")
@@ -294,17 +290,20 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 	initOpts := []tfexec.InitOption{tfexec.Upgrade(req.Upgrade), tfexec.ForceCopy(req.ForceCopy)}
 	initOpts = append(initOpts, backendConfigsOpts...)
 	if err := r.tf.Init(ctx, initOpts...); err != nil {
-		reply.Message = "not ok"
+		var lockID string
+
+		fmt.Fprintf(os.Stdout, "\n\n\n\n%T\n%s\n\n\n\n", err, err)
 
 		if stateErr, ok := err.(*tfexec.ErrStateLocked); ok {
-			reply.StateLockIdentifier = stateErr.ID
+			log.Info("State Lock Error", stateErr)
+			lockID = stateErr.ID
 		}
 
 		log.Error(err, "unable to initialize")
-		return reply, err
+		return &InitReply{Message: "not ok", StateLockIdentifier: lockID}, err
 	}
 
-	return reply, nil
+	return &InitReply{Message: "ok"}, nil
 }
 
 // GenerateVarsForTF renders the Terraform variables as a json file for the given inputs
@@ -424,9 +423,6 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 
 func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*PlanReply, error) {
 	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
-	reply := &PlanReply{
-		Message: "ok",
-	}
 	log.Info("creating a plan")
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
@@ -438,10 +434,9 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 	}()
 
 	if req.TfInstance != "1" {
-		reply.Message = "not ok"
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "no terraform")
-		return reply, err
+		return nil, err
 	}
 
 	var planOpt []tfexec.PlanOption
@@ -459,19 +454,20 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 
 	drifted, err := r.tf.Plan(ctx, planOpt...)
 	if err != nil {
-		reply.Message = "not ok"
-		reply.Drifted = drifted
+		var lockID string
+
+		fmt.Fprintf(os.Stdout, "\n\n\n\n%T\n%s\n\n\n\n", err, err)
 
 		if stateErr, ok := err.(*tfexec.ErrStateLocked); ok {
-			reply.StateLockIdentifier = stateErr.ID
+			log.Info("State Lock Error", stateErr)
+			lockID = stateErr.ID
 		}
 
 		log.Error(err, "error creating the plan")
-		return reply, err
+		return &PlanReply{Message: "not ok", Drifted: drifted, StateLockIdentifier: lockID}, err
 	}
 
-	reply.Drifted = drifted
-	return reply, nil
+	return &PlanReply{Message: "ok", Drifted: drifted}, nil
 }
 
 func (r *TerraformRunnerServer) ShowPlanFileRaw(ctx context.Context, req *ShowPlanFileRawRequest) (*ShowPlanFileRawReply, error) {
@@ -644,8 +640,17 @@ func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest
 	}
 
 	if err := r.tf.Destroy(ctx); err != nil {
+		var lockID string
+
+		fmt.Fprintf(os.Stdout, "\n\n\n\n%T\n%s\n\n\n\n", err, err)
+
+		if stateErr, ok := err.(*tfexec.ErrStateLocked); ok {
+			log.Info("State Lock Error", stateErr)
+			lockID = stateErr.ID
+		}
+
 		log.Error(err, "unable to destroy")
-		return nil, err
+		return &DestroyReply{Message: "not ok", StateLockIdentifier: lockID}, err
 	}
 
 	return &DestroyReply{Message: "ok"}, nil
@@ -679,8 +684,17 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 	}
 
 	if err := r.tf.Apply(ctx, applyOpt...); err != nil {
+		var lockID string
+
+		fmt.Fprintf(os.Stdout, "\n\n\n\n%T\n%s\n\n\n\n", err, err)
+
+		if stateErr, ok := err.(*tfexec.ErrStateLocked); ok {
+			log.Info("State Lock Error", stateErr)
+			lockID = stateErr.ID
+		}
+
 		log.Error(err, "unable to apply plan")
-		return nil, err
+		return &ApplyReply{Message: "not ok", StateLockIdentifier: lockID}, err
 	}
 
 	return &ApplyReply{Message: "ok"}, nil

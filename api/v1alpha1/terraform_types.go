@@ -356,6 +356,7 @@ const (
 	OutputsWritingFailedReason = "OutputsWritingFailed"
 	HealthChecksFailedReason   = "HealthChecksFailed"
 	TFExecApplySucceedReason   = "TerraformAppliedSucceed"
+	TFExecLockHeldReason       = "LockHeld"
 )
 
 // SetTerraformReadiness sets the ReadyCondition, ObservedGeneration, and LastAttemptedRevision, on the Terraform.
@@ -568,7 +569,7 @@ func TerraformForceUnlock(terraform Terraform, message string) Terraform {
 	newCondition := metav1.Condition{
 		Type:    "ForceUnlock",
 		Status:  metav1.ConditionUnknown,
-		Reason:  "StateLocked",
+		Reason:  TFExecLockHeldReason,
 		Message: trimString(message, MaxConditionMessageLength),
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
@@ -581,7 +582,7 @@ func TerraformLocked(terraform Terraform, message string) Terraform {
 	newCondition := metav1.Condition{
 		Type:    "StateLocked",
 		Status:  metav1.ConditionUnknown,
-		Reason:  "LockHeld",
+		Reason:  TFExecLockHeldReason,
 		Message: trimString(message, MaxConditionMessageLength),
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
