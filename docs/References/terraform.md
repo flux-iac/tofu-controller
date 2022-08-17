@@ -1096,6 +1096,18 @@ bool
 </tr>
 <tr>
 <td>
+<code>targets</code><br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Targets specify the resource, module or collection of resources to target.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>tfstate</code><br>
 <em>
 <a href="#infra.contrib.fluxcd.io/v1alpha1.TFStateSpec">
@@ -1446,6 +1458,18 @@ bool
 <td>
 <em>(Optional)</em>
 <p>EnableInventory enables the object to store resource entries as the inventory for external use.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>targets</code><br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Targets specify the resource, module or collection of resources to target.</p>
 </td>
 </tr>
 <tr>

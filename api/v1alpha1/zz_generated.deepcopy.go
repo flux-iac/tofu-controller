@@ -368,6 +368,11 @@ func (in *TerraformSpec) DeepCopyInto(out *TerraformSpec) {
 		**out = **in
 	}
 	in.RunnerPodTemplate.DeepCopyInto(&out.RunnerPodTemplate)
+	if in.Targets != nil {
+		in, out := &in.Targets, &out.Targets
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.TFState != nil {
 		in, out := &in.TFState, &out.TFState
 		*out = new(TFStateSpec)

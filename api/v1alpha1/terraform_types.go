@@ -181,6 +181,10 @@ type TerraformSpec struct {
 	// +optional
 	EnableInventory bool `json:"enableInventory,omitempty"`
 
+	// Targets specify the resource, module or collection of resources to target.
+	// +optional
+	Targets []string `json:"targets,omitempty"`
+
 	// +optional
 	TFState *TFStateSpec `json:"tfstate,omitempty"`
 }

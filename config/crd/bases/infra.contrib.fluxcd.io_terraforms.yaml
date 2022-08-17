@@ -429,6 +429,12 @@ spec:
                   TF executions, it does not apply to already started executions.
                   Defaults to false.
                 type: boolean
+              targets:
+                description: Targets specify the resource, module or collection of
+                  resources to target.
+                items:
+                  type: string
+                type: array
               tfstate:
                 description: TFStateSpec allows the user to set ForceUnlock
                 properties:
