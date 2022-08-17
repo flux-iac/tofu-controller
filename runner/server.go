@@ -13,6 +13,8 @@ import (
 
 	tfjson "github.com/hashicorp/terraform-json"
 
+	"errors"
+
 	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/fluxcd/pkg/untar"
 	"github.com/go-logr/logr"
@@ -23,7 +25,6 @@ import (
 	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -292,10 +293,10 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 	if err := r.tf.Init(ctx, initOpts...); err != nil {
 		var lockID string
 
-		fmt.Fprintf(os.Stdout, "\n\n\n\n%T\n%s\n\n\n\n", err, err)
-
-		if stateErr, ok := err.(*tfexec.ErrStateLocked); ok {
+		var stateErr *tfexec.ErrStateLocked
+		if errors.As(err, &stateErr) {
 			log.Info("State Lock Error", stateErr)
+			fmt.Fprintf(os.Stdout, "\n\n\n\nINIT ERROR: %#v\n\n\n\n", stateErr)
 			lockID = stateErr.ID
 		}
 
@@ -456,10 +457,10 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 	if err != nil {
 		var lockID string
 
-		fmt.Fprintf(os.Stdout, "\n\n\n\n%T\n%s\n\n\n\n", err, err)
-
-		if stateErr, ok := err.(*tfexec.ErrStateLocked); ok {
+		var stateErr *tfexec.ErrStateLocked
+		if errors.As(err, &stateErr) {
 			log.Info("State Lock Error", stateErr)
+			fmt.Fprintf(os.Stdout, "\n\n\n\nPLAN ERROR: %#v\n\n\n\n", stateErr)
 			lockID = stateErr.ID
 		}
 
@@ -514,7 +515,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 	var tfplanSecret corev1.Secret
 	tfplanSecretExists := true
 	if err := r.Client.Get(ctx, tfplanObjectKey, &tfplanSecret); err != nil {
-		if errors.IsNotFound(err) {
+		if apierrors.IsNotFound(err) {
 			tfplanSecretExists = false
 		} else {
 			err = fmt.Errorf("error getting tfplanSecret: %s", err)
@@ -642,10 +643,10 @@ func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest
 	if err := r.tf.Destroy(ctx); err != nil {
 		var lockID string
 
-		fmt.Fprintf(os.Stdout, "\n\n\n\n%T\n%s\n\n\n\n", err, err)
-
-		if stateErr, ok := err.(*tfexec.ErrStateLocked); ok {
+		var stateErr *tfexec.ErrStateLocked
+		if errors.As(err, &stateErr) {
 			log.Info("State Lock Error", stateErr)
+			fmt.Fprintf(os.Stdout, "\n\n\n\nDESTROY ERROR: %#v\n\n\n\n", stateErr)
 			lockID = stateErr.ID
 		}
 
@@ -686,10 +687,10 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 	if err := r.tf.Apply(ctx, applyOpt...); err != nil {
 		var lockID string
 
-		fmt.Fprintf(os.Stdout, "\n\n\n\n%T\n%s\n\n\n\n", err, err)
-
-		if stateErr, ok := err.(*tfexec.ErrStateLocked); ok {
+		var stateErr *tfexec.ErrStateLocked
+		if errors.As(err, &stateErr) {
 			log.Info("State Lock Error", stateErr)
+			fmt.Fprintf(os.Stdout, "\n\n\n\nAPPLY ERROR: %#v\n\n\n\n", stateErr)
 			lockID = stateErr.ID
 		}
 
