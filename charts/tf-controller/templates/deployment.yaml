@@ -34,7 +34,8 @@ spec:
         - --ca-cert-validity-duration={{ .Values.caCertValidityDuration }}
         - --cert-rotation-check-frequency={{ .Values.certRotationCheckFrequency }}
         - --cert-validity-duration={{ .Values.certValidityDuration }}
-        - --runner-creation-timeout={{ .Values.runnerCreationTimeout }}
+        - --runner-creation-timeout={{ .Values.runner.creationTimeout }}
+        - --runner-grpc-max-message-size={{ .Values.runner.grpc.maxMessageSize }}
         command:
         - /sbin/tini
         - --
