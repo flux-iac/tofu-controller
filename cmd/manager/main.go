@@ -63,21 +63,22 @@ func init() {
 
 func main() {
 	var (
-		metricsAddr            string
-		eventsAddr             string
-		healthAddr             string
-		concurrent             int
-		requeueDependency      time.Duration
-		clientOptions          client.Options
-		logOptions             logger.Options
-		leaderElectionOptions  leaderelection.Options
-		watchAllNamespaces     bool
-		httpRetry              int
-		caValidityDuration     time.Duration
-		certValidityDuration   time.Duration
-		rotationCheckFrequency time.Duration
-		runnerGRPCPort         int
-		runnerCreationTimeout  time.Duration
+		metricsAddr              string
+		eventsAddr               string
+		healthAddr               string
+		concurrent               int
+		requeueDependency        time.Duration
+		clientOptions            client.Options
+		logOptions               logger.Options
+		leaderElectionOptions    leaderelection.Options
+		watchAllNamespaces       bool
+		httpRetry                int
+		caValidityDuration       time.Duration
+		certValidityDuration     time.Duration
+		rotationCheckFrequency   time.Duration
+		runnerGRPCPort           int
+		runnerCreationTimeout    time.Duration
+		runnerGRPCMaxMessageSize int
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
@@ -96,6 +97,7 @@ func main() {
 		"The interval that the mTLS certificate rotator should check the certificate validity.")
 	flag.IntVar(&runnerGRPCPort, "runner-grpc-port", 30000, "The port which will be exposed on the runner pod for gRPC connections.")
 	flag.DurationVar(&runnerCreationTimeout, "runner-creation-timeout", 120*time.Second, "Timeout for creating a runner pod.")
+	flag.IntVar(&runnerGRPCMaxMessageSize, "runner-grpc-max-message-size", 4, "The maximum message size for gRPC connections in MiB.")
 
 	clientOptions.BindFlags(flag.CommandLine)
 	logOptions.BindFlags(flag.CommandLine)
@@ -171,14 +173,15 @@ func main() {
 	}
 
 	reconciler := &controllers.TerraformReconciler{
-		Client:                mgr.GetClient(),
-		Scheme:                mgr.GetScheme(),
-		EventRecorder:         eventRecorder,
-		MetricsRecorder:       metricsRecorder,
-		StatusPoller:          polling.NewStatusPoller(mgr.GetClient(), mgr.GetRESTMapper(), polling.Options{}),
-		CertRotator:           rotator,
-		RunnerGRPCPort:        runnerGRPCPort,
-		RunnerCreationTimeout: runnerCreationTimeout,
+		Client:                   mgr.GetClient(),
+		Scheme:                   mgr.GetScheme(),
+		EventRecorder:            eventRecorder,
+		MetricsRecorder:          metricsRecorder,
+		StatusPoller:             polling.NewStatusPoller(mgr.GetClient(), mgr.GetRESTMapper(), polling.Options{}),
+		CertRotator:              rotator,
+		RunnerGRPCPort:           runnerGRPCPort,
+		RunnerCreationTimeout:    runnerCreationTimeout,
+		RunnerGRPCMaxMessageSize: runnerGRPCMaxMessageSize,
 	}
 
 	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {

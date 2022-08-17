@@ -4,7 +4,6 @@ caCertValidityDuration: 168h0m
 certRotationCheckFrequency: 30m0s
 # Deprecated
 certValidityDuration: 6h0m
-runnerCreationTimeout: 5m0s
 logLevel: info
 image:
   repository: ghcr.io/weaveworks/tf-controller
@@ -28,6 +27,9 @@ runner:
   image:
     repository: ghcr.io/weaveworks/tf-runner
     tag: "v0.12.0-rc.1"
+  grpc:
+    maxMessageSize: 4
+  creationTimeout: 5m0s
   serviceAccount:
     # Specifies whether a service account should be created
     create: true

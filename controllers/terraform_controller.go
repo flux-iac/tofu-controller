@@ -74,14 +74,15 @@ import (
 // TerraformReconciler reconciles a Terraform object
 type TerraformReconciler struct {
 	client.Client
-	httpClient            *retryablehttp.Client
-	EventRecorder         kuberecorder.EventRecorder
-	MetricsRecorder       *metrics.Recorder
-	StatusPoller          *polling.StatusPoller
-	Scheme                *runtime.Scheme
-	CertRotator           *mtls.CertRotator
-	RunnerGRPCPort        int
-	RunnerCreationTimeout time.Duration
+	httpClient               *retryablehttp.Client
+	EventRecorder            kuberecorder.EventRecorder
+	MetricsRecorder          *metrics.Recorder
+	StatusPoller             *polling.StatusPoller
+	Scheme                   *runtime.Scheme
+	CertRotator              *mtls.CertRotator
+	RunnerGRPCPort           int
+	RunnerCreationTimeout    time.Duration
+	RunnerGRPCMaxMessageSize int
 }
 
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete
@@ -2067,6 +2068,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 				Args: []string{
 					"--grpc-port", fmt.Sprintf("%d", r.RunnerGRPCPort),
 					"--tls-secret-name", tlsSecretName,
+					"--grpc-max-message-size", fmt.Sprintf("%d", r.RunnerGRPCMaxMessageSize),
 				},
 				Image:           getRunnerPodImage(terraform.Spec.RunnerPodTemplate.Spec.Image),
 				ImagePullPolicy: corev1.PullIfNotPresent,

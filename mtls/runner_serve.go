@@ -18,7 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func RunnerServe(namespace, addr string, tlsSecretName string, sigterm chan os.Signal) error {
+func RunnerServe(namespace, addr string, tlsSecretName string, sigterm chan os.Signal, maxMessageSizeInMiB int) error {
 	scheme := runtime.NewScheme()
 
 	if err := clientgoscheme.AddToScheme(scheme); err != nil {
@@ -64,7 +64,9 @@ func RunnerServe(namespace, addr string, tlsSecretName string, sigterm chan os.S
 		return err
 	}
 
-	grpcServer := grpc.NewServer(grpc.Creds(credentials))
+	// 30 MB is the maximum allowed payload size for gRPC.
+	maxMsgSize := maxMessageSizeInMiB * 1024 * 1024
+	grpcServer := grpc.NewServer(grpc.Creds(credentials), grpc.MaxRecvMsgSize(maxMsgSize), grpc.MaxSendMsgSize(maxMsgSize))
 	runner.RegisterRunnerServer(grpcServer, runnerServer)
 
 	if err := grpcServer.Serve(listener); err != nil {
