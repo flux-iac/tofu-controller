@@ -291,17 +291,20 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 	initOpts := []tfexec.InitOption{tfexec.Upgrade(req.Upgrade), tfexec.ForceCopy(req.ForceCopy)}
 	initOpts = append(initOpts, backendConfigsOpts...)
 	if err := r.tf.Init(ctx, initOpts...); err != nil {
-		var lockID string
-
+		var st *status.Status
 		var stateErr *tfexec.ErrStateLocked
 		if errors.As(err, &stateErr) {
 			log.Info("State Lock Error", stateErr)
-			fmt.Fprintf(os.Stdout, "\n\n\n\nINIT ERROR: %#v\n\n\n\n", stateErr)
-			lockID = stateErr.ID
+			st = status.New(codes.Internal, err.Error())
+			st, err = st.WithDetails(&InitReply{Message: "not ok", StateLockIdentifier: stateErr.ID})
+
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		log.Error(err, "unable to initialize")
-		return &InitReply{Message: "not ok", StateLockIdentifier: lockID}, err
+		return nil, st.Err()
 	}
 
 	return &InitReply{Message: "ok"}, nil
@@ -455,17 +458,20 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 
 	drifted, err := r.tf.Plan(ctx, planOpt...)
 	if err != nil {
-		var lockID string
-
+		var st *status.Status
 		var stateErr *tfexec.ErrStateLocked
 		if errors.As(err, &stateErr) {
 			log.Info("State Lock Error", stateErr)
-			fmt.Fprintf(os.Stdout, "\n\n\n\nPLAN ERROR: %#v\n\n\n\n", stateErr)
-			lockID = stateErr.ID
+			st = status.New(codes.Internal, err.Error())
+			st, err = st.WithDetails(&PlanReply{Message: "not ok", StateLockIdentifier: stateErr.ID})
+
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		log.Error(err, "error creating the plan")
-		return &PlanReply{Message: "not ok", Drifted: drifted, StateLockIdentifier: lockID}, err
+		return nil, st.Err()
 	}
 
 	return &PlanReply{Message: "ok", Drifted: drifted}, nil
@@ -641,17 +647,20 @@ func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest
 	}
 
 	if err := r.tf.Destroy(ctx); err != nil {
-		var lockID string
-
+		var st *status.Status
 		var stateErr *tfexec.ErrStateLocked
 		if errors.As(err, &stateErr) {
 			log.Info("State Lock Error", stateErr)
-			fmt.Fprintf(os.Stdout, "\n\n\n\nDESTROY ERROR: %#v\n\n\n\n", stateErr)
-			lockID = stateErr.ID
+			st = status.New(codes.Internal, err.Error())
+			st, err = st.WithDetails(&DestroyReply{Message: "not ok", StateLockIdentifier: stateErr.ID})
+
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		log.Error(err, "unable to destroy")
-		return &DestroyReply{Message: "not ok", StateLockIdentifier: lockID}, err
+		return nil, st.Err()
 	}
 
 	return &DestroyReply{Message: "ok"}, nil
@@ -685,17 +694,20 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 	}
 
 	if err := r.tf.Apply(ctx, applyOpt...); err != nil {
-		var lockID string
-
+		var st *status.Status
 		var stateErr *tfexec.ErrStateLocked
 		if errors.As(err, &stateErr) {
 			log.Info("State Lock Error", stateErr)
-			fmt.Fprintf(os.Stdout, "\n\n\n\nAPPLY ERROR: %#v\n\n\n\n", stateErr)
-			lockID = stateErr.ID
+			st = status.New(codes.Internal, err.Error())
+			st, err = st.WithDetails(&ApplyReply{Message: "not ok", StateLockIdentifier: stateErr.ID})
+
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		log.Error(err, "unable to apply plan")
-		return &ApplyReply{Message: "not ok", StateLockIdentifier: lockID}, err
+		return nil, st.Err()
 	}
 
 	return &ApplyReply{Message: "ok"}, nil
