@@ -723,7 +723,7 @@ terraform {
 			return terraform, tfInstance, tmpDir, err
 		}
 
-		err = r.setForceUnlock(ctx, terraform, "")
+		err = r.setForceUnlock(ctx, objectKey, "")
 
 		if err != nil {
 			return terraform, tfInstance, tmpDir, err
@@ -873,7 +873,7 @@ terraform {
 		if st, ok := status.FromError(err); ok {
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.InitReply); ok {
-					if fuErr := r.setForceUnlock(ctx, terraform, reply.StateLockIdentifier); fuErr != nil {
+					if fuErr := r.setForceUnlock(ctx, objectKey, reply.StateLockIdentifier); fuErr != nil {
 						err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
 					}
 				}
@@ -936,7 +936,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 		if st, ok := status.FromError(err); ok {
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
-					if fuErr := r.setForceUnlock(ctx, terraform, reply.StateLockIdentifier); fuErr != nil {
+					if fuErr := r.setForceUnlock(ctx, types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.GetName()}, reply.StateLockIdentifier); fuErr != nil {
 						err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
 					}
 				}
@@ -1024,7 +1024,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		if st, ok := status.FromError(err); ok {
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
-					if fuErr := r.setForceUnlock(ctx, terraform, reply.StateLockIdentifier); fuErr != nil {
+					if fuErr := r.setForceUnlock(ctx, types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.GetName()}, reply.StateLockIdentifier); fuErr != nil {
 						err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
 					}
 				}
@@ -1139,7 +1139,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 			if st, ok := status.FromError(err); ok {
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.DestroyReply); ok {
-						if fuErr := r.setForceUnlock(ctx, terraform, reply.StateLockIdentifier); fuErr != nil {
+						if fuErr := r.setForceUnlock(ctx, types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.GetName()}, reply.StateLockIdentifier); fuErr != nil {
 							err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
 						}
 					}
@@ -1162,7 +1162,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 			if st, ok := status.FromError(err); ok {
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.ApplyReply); ok {
-						if fuErr := r.setForceUnlock(ctx, terraform, reply.StateLockIdentifier); fuErr != nil {
+						if fuErr := r.setForceUnlock(ctx, types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.GetName()}, reply.StateLockIdentifier); fuErr != nil {
 							err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
 						}
 					}
@@ -2228,9 +2228,17 @@ func (r *TerraformReconciler) outputsMayBeDrifted(ctx context.Context, terraform
 	return false, nil
 }
 
-func (r *TerraformReconciler) setForceUnlock(ctx context.Context, terraform infrav1.Terraform, lockID string) error {
+func (r *TerraformReconciler) setForceUnlock(ctx context.Context, objectKey types.NamespacedName, lockID string) error {
 	log := ctrl.LoggerFrom(ctx)
-	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
+	var terraform infrav1.Terraform
+	err := r.Get(ctx, objectKey, &terraform)
+
+	if err != nil {
+		log.Error(err, "unable to get object")
+		return err
+	}
+
+	patch := client.MergeFrom(terraform.DeepCopy())
 
 	if lockID != "" {
 		terraform = infrav1.TerraformLocked(terraform, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", lockID))
@@ -2239,6 +2247,15 @@ func (r *TerraformReconciler) setForceUnlock(ctx context.Context, terraform infr
 			log.Error(err, "unable to patch object status")
 			return err
 		}
+
+		err := r.Get(ctx, objectKey, &terraform)
+
+		if err != nil {
+			log.Error(err, "unable to get object")
+			return err
+		}
+
+		patch = client.MergeFrom(terraform.DeepCopy())
 
 		if terraform.Spec.TFState != nil {
 			terraform.Spec.TFState.LockIdentifier = lockID
@@ -2256,8 +2273,7 @@ func (r *TerraformReconciler) setForceUnlock(ctx context.Context, terraform infr
 		}
 	}
 
-	patch := client.MergeFrom(terraform.DeepCopy())
-	err := r.Patch(ctx, &terraform, patch)
+	err = r.Patch(ctx, &terraform, patch)
 
 	if err != nil {
 		log.Error(err, "unable to patch object")

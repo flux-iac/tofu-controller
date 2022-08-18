@@ -244,6 +244,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
+					"LID":     createdHelloWorldTF.Spec.TFState.LockIdentifier,
 				}
 			}
 		}
@@ -252,5 +253,6 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 		"Type":    "StateLocked",
 		"Reason":  infrav1.TFExecLockHeldReason,
 		"Message": fmt.Sprintf("Terraform Locked with Lock Identifier: %s", tfstateLeaseHolderIdentity),
+		"LID":     tfstateLeaseHolderIdentity,
 	}))
 }
