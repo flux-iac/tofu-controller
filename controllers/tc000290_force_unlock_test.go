@@ -249,7 +249,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout*2, interval).Should(Equal(map[string]interface{}{
 		"Type":    "StateLocked",
 		"Reason":  infrav1.TFExecLockHeldReason,
 		"Message": fmt.Sprintf("Terraform Locked with Lock Identifier: %s", tfstateLeaseHolderIdentity),
@@ -489,7 +489,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout*2, interval).Should(Equal(map[string]interface{}{
 		"Type":    "StateLocked",
 		"Reason":  infrav1.TFExecLockHeldReason,
 		"Message": fmt.Sprintf("Terraform Locked with Lock Identifier: %s", tfstateLeaseHolderIdentity),
@@ -520,7 +520,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout*2, interval).Should(Equal(map[string]interface{}{
 		"Type":    "ForceUnlock",
 		"Reason":  infrav1.TFExecLockHeldReason,
 		"Message": fmt.Sprintf("Terraform Force Unlock with Lock Identifier: %s", tfstateLeaseHolderIdentity),
@@ -764,7 +764,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout*2, interval).Should(Equal(map[string]interface{}{
 		"Type":           "ForceUnlock",
 		"Reason":         infrav1.TFExecLockHeldReason,
 		"Message":        fmt.Sprintf("Terraform Force Unlock with Lock Identifier: %s", tfstateLeaseHolderIdentity),
