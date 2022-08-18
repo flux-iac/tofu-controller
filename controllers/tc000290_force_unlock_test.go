@@ -25,7 +25,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 		sourceName    = "gr-force-unlock-lock-identifier"
 		terraformName = "tf-force-unlock-lock-identifier"
 	)
-	tfstateLeaseHolderIdentity := "tf-force-unlock-lock-identifier"
+	tfstateLeaseHolderIdentity := "f2ab685b-f84d-ac0b-a125-378a22877e8d"
 	g := NewWithT(t)
 	ctx := context.Background()
 
@@ -214,7 +214,16 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 		t.Error(err)
 	}
 
-	patch := client.RawPatch(types.MergePatchType, []byte(fmt.Sprintf(`{"spec":{"holderIdentity":"%s"}}`, tfstateLeaseHolderIdentity)))
+	patch := client.RawPatch(types.MergePatchType, []byte(fmt.Sprintf(`{
+	"metadata": {
+		"annotations": {
+			"app.terraform.io/lock-info": "{\"ID\": \"%s\",\"Operation\": \"OperationTypeApply\", \"Info\": \"\", \"Who\":\"%s\", \"Version\": \"1.2.7\", \"Created\": \"2022-08-17T15:44:07.0Z\", \"Path\": \"\"}"
+		}
+	},
+	"spec": {
+		"holderIdentity": "%s"
+	}
+}`, tfstateLeaseHolderIdentity, terraformName, tfstateLeaseHolderIdentity)))
 	err = k8sClient.Patch(ctx, &tfstateLease, patch)
 
 	if err != nil {
