@@ -696,40 +696,6 @@ terraform {
 		log.Info(fmt.Sprintf("write backend config: %s", writeBackendConfigReply.Message))
 	}
 
-	// This variable is going to be used to force unlock the state if it is locked
-	lockIdentifier := ""
-
-	// If we have a lock id we want to force unlock the state
-	if terraform.Spec.TFState != nil {
-		if terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumYes || terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumAuto {
-			lockIdentifier = terraform.Spec.TFState.LockIdentifier
-		}
-	}
-
-	// If we have a lock id need to force unlock it
-	if lockIdentifier != "" {
-		terraform = infrav1.TerraformForceUnlock(terraform, fmt.Sprintf("Terraform Force Unlock with Lock Identifier: %s", lockIdentifier))
-
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
-			log.Error(err, "unable to update status before Terraform force unlock")
-			return terraform, tfInstance, tmpDir, err
-		}
-
-		_, err := runnerClient.ForceUnlock(context.Background(), &runner.ForceUnlockRequest{
-			LockIdentifier: lockIdentifier,
-		})
-
-		if err != nil {
-			return terraform, tfInstance, tmpDir, err
-		}
-
-		err = r.setForceUnlock(ctx, objectKey, "")
-
-		if err != nil {
-			return terraform, tfInstance, tmpDir, err
-		}
-	}
-
 	var tfrcFilepath string
 	if terraform.Spec.CliConfigSecretRef != nil {
 		cliConfigSecretRef := *(terraform.Spec.CliConfigSecretRef.DeepCopy())
@@ -908,6 +874,41 @@ terraform {
 	log.Info(fmt.Sprintf("generate vars from tf: %s", generateVarsForTFReply.Message))
 
 	log.Info("generated var files from spec")
+
+	// This variable is going to be used to force unlock the state if it is locked
+	lockIdentifier := ""
+
+	// If we have a lock id we want to force unlock the state
+	if terraform.Spec.TFState != nil {
+		if terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumYes || terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumAuto {
+			lockIdentifier = terraform.Spec.TFState.LockIdentifier
+		}
+	}
+
+	// If we have a lock id need to force unlock it
+	if lockIdentifier != "" {
+		_, err := runnerClient.ForceUnlock(context.Background(), &runner.ForceUnlockRequest{
+			LockIdentifier: lockIdentifier,
+		})
+
+		if err != nil {
+			return terraform, tfInstance, tmpDir, err
+		}
+
+		terraform = infrav1.TerraformForceUnlock(terraform, fmt.Sprintf("Terraform Force Unlock with Lock Identifier: %s", lockIdentifier))
+
+		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			log.Error(err, "unable to update status before Terraform force unlock")
+			return terraform, tfInstance, tmpDir, err
+		}
+
+		err = r.setForceUnlock(ctx, objectKey, "")
+
+		if err != nil {
+			return terraform, tfInstance, tmpDir, err
+		}
+	}
+
 	return terraform, tfInstance, tmpDir, nil
 }
 
