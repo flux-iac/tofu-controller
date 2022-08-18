@@ -291,11 +291,10 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 	initOpts := []tfexec.InitOption{tfexec.Upgrade(req.Upgrade), tfexec.ForceCopy(req.ForceCopy)}
 	initOpts = append(initOpts, backendConfigsOpts...)
 	if err := r.tf.Init(ctx, initOpts...); err != nil {
-		var st *status.Status
+		st := status.New(codes.Internal, err.Error())
 		var stateErr *tfexec.ErrStateLocked
+
 		if errors.As(err, &stateErr) {
-			log.Info("State Lock Error", stateErr)
-			st = status.New(codes.Internal, err.Error())
 			st, err = st.WithDetails(&InitReply{Message: "not ok", StateLockIdentifier: stateErr.ID})
 
 			if err != nil {
@@ -458,11 +457,10 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 
 	drifted, err := r.tf.Plan(ctx, planOpt...)
 	if err != nil {
-		var st *status.Status
+		st := status.New(codes.Internal, err.Error())
 		var stateErr *tfexec.ErrStateLocked
+
 		if errors.As(err, &stateErr) {
-			log.Info("State Lock Error", stateErr)
-			st = status.New(codes.Internal, err.Error())
 			st, err = st.WithDetails(&PlanReply{Message: "not ok", StateLockIdentifier: stateErr.ID})
 
 			if err != nil {
@@ -647,11 +645,10 @@ func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest
 	}
 
 	if err := r.tf.Destroy(ctx); err != nil {
-		var st *status.Status
+		st := status.New(codes.Internal, err.Error())
 		var stateErr *tfexec.ErrStateLocked
+
 		if errors.As(err, &stateErr) {
-			log.Info("State Lock Error", stateErr)
-			st = status.New(codes.Internal, err.Error())
 			st, err = st.WithDetails(&DestroyReply{Message: "not ok", StateLockIdentifier: stateErr.ID})
 
 			if err != nil {
@@ -694,11 +691,10 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 	}
 
 	if err := r.tf.Apply(ctx, applyOpt...); err != nil {
-		var st *status.Status
+		st := status.New(codes.Internal, err.Error())
 		var stateErr *tfexec.ErrStateLocked
+
 		if errors.As(err, &stateErr) {
-			log.Info("State Lock Error", stateErr)
-			st = status.New(codes.Internal, err.Error())
 			st, err = st.WithDetails(&ApplyReply{Message: "not ok", StateLockIdentifier: stateErr.ID})
 
 			if err != nil {
