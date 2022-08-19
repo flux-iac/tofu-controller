@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"context"
-	"github.com/weaveworks/tf-controller/utils"
 	"testing"
 	"time"
+
+	"github.com/weaveworks/tf-controller/utils"
 
 	. "github.com/onsi/gomega"
 
