@@ -5,12 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	tfjson "github.com/hashicorp/terraform-json"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	tfjson "github.com/hashicorp/terraform-json"
+
+	"errors"
 
 	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/fluxcd/pkg/untar"
@@ -22,7 +25,6 @@ import (
 	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -289,8 +291,19 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 	initOpts := []tfexec.InitOption{tfexec.Upgrade(req.Upgrade), tfexec.ForceCopy(req.ForceCopy)}
 	initOpts = append(initOpts, backendConfigsOpts...)
 	if err := r.tf.Init(ctx, initOpts...); err != nil {
+		st := status.New(codes.Internal, err.Error())
+		var stateErr *tfexec.ErrStateLocked
+
+		if errors.As(err, &stateErr) {
+			st, err = st.WithDetails(&InitReply{Message: "not ok", StateLockIdentifier: stateErr.ID})
+
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		log.Error(err, "unable to initialize")
-		return nil, err
+		return nil, st.Err()
 	}
 
 	return &InitReply{Message: "ok"}, nil
@@ -444,13 +457,22 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 
 	drifted, err := r.tf.Plan(ctx, planOpt...)
 	if err != nil {
+		st := status.New(codes.Internal, err.Error())
+		var stateErr *tfexec.ErrStateLocked
+
+		if errors.As(err, &stateErr) {
+			st, err = st.WithDetails(&PlanReply{Message: "not ok", StateLockIdentifier: stateErr.ID})
+
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		log.Error(err, "error creating the plan")
-		return nil, err
+		return nil, st.Err()
 	}
-	return &PlanReply{
-		Drifted: drifted,
-		Message: "ok",
-	}, nil
+
+	return &PlanReply{Message: "ok", Drifted: drifted}, nil
 }
 
 func (r *TerraformRunnerServer) ShowPlanFileRaw(ctx context.Context, req *ShowPlanFileRawRequest) (*ShowPlanFileRawReply, error) {
@@ -497,7 +519,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 	var tfplanSecret corev1.Secret
 	tfplanSecretExists := true
 	if err := r.Client.Get(ctx, tfplanObjectKey, &tfplanSecret); err != nil {
-		if errors.IsNotFound(err) {
+		if apierrors.IsNotFound(err) {
 			tfplanSecretExists = false
 		} else {
 			err = fmt.Errorf("error getting tfplanSecret: %s", err)
@@ -623,8 +645,19 @@ func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest
 	}
 
 	if err := r.tf.Destroy(ctx); err != nil {
+		st := status.New(codes.Internal, err.Error())
+		var stateErr *tfexec.ErrStateLocked
+
+		if errors.As(err, &stateErr) {
+			st, err = st.WithDetails(&DestroyReply{Message: "not ok", StateLockIdentifier: stateErr.ID})
+
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		log.Error(err, "unable to destroy")
-		return nil, err
+		return nil, st.Err()
 	}
 
 	return &DestroyReply{Message: "ok"}, nil
@@ -658,8 +691,19 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 	}
 
 	if err := r.tf.Apply(ctx, applyOpt...); err != nil {
+		st := status.New(codes.Internal, err.Error())
+		var stateErr *tfexec.ErrStateLocked
+
+		if errors.As(err, &stateErr) {
+			st, err = st.WithDetails(&ApplyReply{Message: "not ok", StateLockIdentifier: stateErr.ID})
+
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		log.Error(err, "unable to apply plan")
-		return nil, err
+		return nil, st.Err()
 	}
 
 	return &ApplyReply{Message: "ok"}, nil
@@ -853,4 +897,19 @@ func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *Finali
 	}
 
 	return &FinalizeSecretsReply{Message: "ok"}, nil
+}
+
+func (r *TerraformRunnerServer) ForceUnlock(ctx context.Context, req *ForceUnlockRequest) (*ForceUnlockReply, error) {
+	reply := &ForceUnlockReply{
+		Success: true,
+		Message: fmt.Sprintf("Successfully unlocked state with lock identifier: %s", req.GetLockIdentifier()),
+	}
+	err := r.tf.ForceUnlock(ctx, req.LockIdentifier)
+
+	if err != nil {
+		reply.Success = false
+		reply.Message = fmt.Sprintf("Error unlocking the state: %s", err)
+	}
+
+	return reply, err
 }

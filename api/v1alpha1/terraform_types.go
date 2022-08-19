@@ -180,6 +180,9 @@ type TerraformSpec struct {
 	// EnableInventory enables the object to store resource entries as the inventory for external use.
 	// +optional
 	EnableInventory bool `json:"enableInventory,omitempty"`
+
+	// +optional
+	TFState *TFStateSpec `json:"tfstate,omitempty"`
 }
 
 type PlanStatus struct {
@@ -274,10 +277,10 @@ type BackendConfigSpec struct {
 	Disable bool `json:"disable"`
 
 	// +optional
-	SecretSuffix string `json:"secretSuffix"`
+	SecretSuffix string `json:"secretSuffix,omitempty"`
 
 	// +optional
-	InClusterConfig bool `json:"inClusterConfig"`
+	InClusterConfig bool `json:"inClusterConfig,omitempty"`
 
 	// +optional
 	CustomConfiguration string `json:"customConfiguration,omitempty"`
@@ -289,6 +292,47 @@ type BackendConfigSpec struct {
 	Labels map[string]string `json:"labels,omitempty"`
 }
 
+// TFStateSpec allows the user to set ForceUnlock
+type TFStateSpec struct {
+	// ForceUnlock a Terraform state if it has become locked for any reason.
+	//
+	// This is an Enum and has the expected values of:
+	//
+	// - auto
+	// - yes
+	// - no
+	//
+	// WARNING: Only use `auto` in the cases where you are absolutely certain that
+	// no other system is using this state, you could otherwise end up in a bad place
+	// See https://www.terraform.io/language/state/locking#force-unlock for more
+	// information on the terraform state lock and force unlock.
+	//
+	// +optional
+	// +kubebuilder:validation:Enum:=yes;no;auto
+	// +kubebuilder:default:string=no
+	ForceUnlock ForceUnlockEnum `json:"forceUnlock,omitempty"`
+
+	// LockIdentifier holds the Identifier required by Terraform to unlock the state
+	// if it ever gets into a locked state.
+	//
+	// You'll need to put the Lock Identifier in here while setting ForceUnlock to
+	// either `true` or `auto`.
+	//
+	// Leave this empty to do nothing, set this to the value of the `Lock Info: ID: [value]`,
+	// e.g. `f2ab685b-f84d-ac0b-a125-378a22877e8d`, to force unlock the state.
+	//
+	// +optional
+	LockIdentifier string `json:"lockIdentifier,omitempty"`
+}
+
+type ForceUnlockEnum string
+
+const (
+	ForceUnlockEnumAuto ForceUnlockEnum = "auto"
+	ForceUnlockEnumYes  ForceUnlockEnum = "yes"
+	ForceUnlockEnumNo   ForceUnlockEnum = "no"
+)
+
 const (
 	TerraformKind             = "Terraform"
 	TerraformFinalizer        = "finalizers.tf.contrib.fluxcd.io"
@@ -299,8 +343,7 @@ const (
 
 	// ArtifactFailedReason represents the fact that the
 	// source artifact download failed.
-	ArtifactFailedReason = "ArtifactFailed"
-
+	ArtifactFailedReason       = "ArtifactFailed"
 	TFExecNewFailedReason      = "TFExecNewFailed"
 	TFExecInitFailedReason     = "TFExecInitFailed"
 	VarsGenerationFailedReason = "VarsGenerationFailed"
@@ -313,6 +356,7 @@ const (
 	OutputsWritingFailedReason = "OutputsWritingFailed"
 	HealthChecksFailedReason   = "HealthChecksFailed"
 	TFExecApplySucceedReason   = "TerraformAppliedSucceed"
+	TFExecLockHeldReason       = "LockHeld"
 )
 
 // SetTerraformReadiness sets the ReadyCondition, ObservedGeneration, and LastAttemptedRevision, on the Terraform.
@@ -513,6 +557,32 @@ func TerraformHealthCheckSucceeded(terraform Terraform, message string) Terrafor
 		Type:    "HealthCheck",
 		Status:  metav1.ConditionTrue,
 		Reason:  "HealthChecksSucceed",
+		Message: trimString(message, MaxConditionMessageLength),
+	}
+	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+	return terraform
+}
+
+// TerraformForceUnlock will set a new condition on the Terraform resource indicating
+// that we are attempting to force unlock it.
+func TerraformForceUnlock(terraform Terraform, message string) Terraform {
+	newCondition := metav1.Condition{
+		Type:    "ForceUnlock",
+		Status:  metav1.ConditionUnknown,
+		Reason:  TFExecLockHeldReason,
+		Message: trimString(message, MaxConditionMessageLength),
+	}
+	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+	return terraform
+}
+
+// TerraformLocked will set a new condition on the Terraform resource indicating
+// that the resource has been locked.
+func TerraformLocked(terraform Terraform, message string) Terraform {
+	newCondition := metav1.Condition{
+		Type:    "StateLocked",
+		Status:  metav1.ConditionUnknown,
+		Reason:  TFExecLockHeldReason,
 		Message: trimString(message, MaxConditionMessageLength),
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)

@@ -1,12 +1,12 @@
 package controllers
 
 import (
-	"github.com/weaveworks/tf-controller/utils"
 	"testing"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+	"github.com/weaveworks/tf-controller/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
