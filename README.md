@@ -25,11 +25,12 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
 ### Q3 2022
   * [x] Performance
   * [x] Scalability
-  * [ ] Cloud cost estimation
   * [ ] Interop with Notification controller's Events and Alert
+  * [ ] Cloud cost estimation
   * [ ] Test coverage reaching 72.5% 
 
 ### Q4 2022
+  * [ ] `v1alpha2` API
   * [ ] ARM64 & Gravitron support
   * [ ] Containerd compatibility
   * [ ] Write back and show plan in PRs
@@ -37,3 +38,6 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
 
 ### Q1 2023
   * [ ] Test coverage reaching 77.5%
+
+### Q2 2023
+  * [ ] `v1beta1` API (stabilization)
