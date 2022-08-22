@@ -1,48 +1,51 @@
-replicaCount: 1
-concurrency: 24
-caCertValidityDuration: 168h0m
-certRotationCheckFrequency: 30m0s
-# Deprecated
-certValidityDuration: 6h0m
-logLevel: info
-image:
-  repository: ghcr.io/weaveworks/tf-controller
-  pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.12.0-rc.2"
-# extraEnv -- Additional container environment variables.
-extraEnv: {}
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
-runner:
-  image:
-    repository: ghcr.io/weaveworks/tf-runner
-    tag: "v0.12.0-rc.2"
-  grpc:
-    maxMessageSize: 4
-  creationTimeout: 5m0s
-  serviceAccount:
-    # Specifies whether a service account should be created
-    create: true
-    # Annotations to add to the service account
-    annotations: {}
-    # The name of the service account for runner pod to use.
-    name: ""
+# -- If `true`, install CRDs as part of the helm installation
 installCRDs: true
+
+# ServiceAccount
+serviceAccount:
+  # -- If `true`, create a new service account
+  create: true
+  # -- Additional Service Account annotations
+  annotations: {}
+  # -- Service account to be used
+  # @default -- tf-controller
+  name: ""
+
+# Controller
+# -- Provide a name 
+nameOverride: ""
+# -- Provide a fullname 
+fullnameOverride: ""
+# -- Additional pod annotations
 podAnnotations: {}
-# Pod-level security context
+# -- Additional pod labels
+podLabels: {}
+# -- Number of TF-Controller pods to deploy, more than one is not desirable.
+replicaCount: 1
+image:
+  # -- Controller image repository
+  repository: ghcr.io/weaveworks/tf-controller
+  # -- Controller image pull policy
+  pullPolicy: IfNotPresent
+  # -- Overrides the image tag whose default is the chart appVersion.
+  # @default -- `.Chart.AppVersion`
+  tag: ""
+# -- Controller image pull secret
+imagePullSecrets: []
+# -- Resource limits and requests
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 64Mi
+# -- Additional container environment variables.
+extraEnv: {}
+# -- Pod-level security context
 podSecurityContext:
   fsGroup: 1337
-# Container-level security context
+# -- Container-level security context
 securityContext:
   allowPrivilegeEscalation: false
   capabilities:
@@ -53,22 +56,55 @@ securityContext:
   runAsUser: 65532
   seccompProfile:
     type: RuntimeDefault
-resources:
-  limits:
-    cpu: 1000m
-    memory: 1Gi
-  requests:
-    cpu: 200m
-    memory: 64Mi
 rbac:
+  # -- If `true`, create and use RBAC resources
   create: true
+# -- Node Selector properties for the TF-Controller deployment
 nodeSelector: {}
+# -- Tolerations properties for the TF-Controller deployment
 tolerations: []
+# -- Affinity properties for the TF-Controller deployment
 affinity: {}
-# Create an AWS EKS Security Group Policy with the supplied Security Group IDs
-# https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html#deploy-securitygrouppolicy
+# -- PriorityClassName property for the TF-Controller deployment
+priorityClassName: ""
+
+# Runner
+# -- Level of logging of the controller (Controller)
+logLevel: info
+# -- Concurrency of the controller (Controller)
+concurrency: 24
+# -- Argument for `--cert-rotation-check-frequency` (Controller)
+certRotationCheckFrequency: 30m0s
+# -- Argument for `--cert-validity-duration` (Controller)
+certValidityDuration: 6h0m
+# -- Argument for `--ca-cert-validity-duration` (Controller)
+caCertValidityDuration: 168h0m
+runner:
+  image:
+    # -- Runner image repository
+    repository: ghcr.io/weaveworks/tf-runner
+    # -- Runner image tag
+    # @default -- `.Chart.AppVersion`
+    tag: ""
+  grpc:
+    # -- Maximum GRPC message size (Controller)
+    maxMessageSize: 4
+  # -- Timeout for runner-creation (Controller)
+  creationTimeout: 5m0s
+  serviceAccount:
+    # -- If `true`, create a new runner service account
+    create: true
+    # -- Additional runner service Account annotations
+    annotations: {}
+    # -- Runner service account to be used
+    name: ""
+
+# EKS 
+# -- Create an AWS EKS Security Group Policy with the supplied Security Group IDs [See](https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html#deploy-securitygrouppolicy)
 eksSecurityGroupPolicy:
+  # -- Create the EKS SecurityGroupPolicy
   create: false
+  # -- List of AWS Security Group IDs
   ids: []
   # - sg-1234567890
   # - sg-1234567891
