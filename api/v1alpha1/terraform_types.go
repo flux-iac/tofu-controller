@@ -242,6 +242,19 @@ type TerraformStatus struct {
 	// Inventory contains the list of Terraform resource object references that have been successfully applied.
 	// +optional
 	Inventory *ResourceInventory `json:"inventory,omitempty"`
+
+	// +optional
+	Lock LockStatus `json:"lock,omitempty"`
+}
+
+// LockStatus defines the observed state of a Terraform State Lock
+type LockStatus struct {
+	// +optional
+	LastApplied string `json:"lastApplied,omitempty"`
+
+	// Pending holds the identifier of the Lock Holder to be used with Force Unlock
+	// +optional
+	Pending string `json:"pending,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -573,6 +586,7 @@ func TerraformForceUnlock(terraform Terraform, message string) Terraform {
 		Message: trimString(message, MaxConditionMessageLength),
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+	SetTerraformReadiness(&terraform, metav1.ConditionTrue, newCondition.Reason, newCondition.Message, "")
 	return terraform
 }
 
@@ -586,6 +600,7 @@ func TerraformLocked(terraform Terraform, message string) Terraform {
 		Message: trimString(message, MaxConditionMessageLength),
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+	SetTerraformReadiness(&terraform, metav1.ConditionFalse, newCondition.Reason, newCondition.Message, "")
 	return terraform
 }
 
