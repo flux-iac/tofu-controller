@@ -155,7 +155,7 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 		}
 		return createdHelloWorldTF.Status
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":    "Plan",
+		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
 		"Message": "Plan generated",
 	}))
@@ -198,7 +198,7 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":            "Apply",
+		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
@@ -306,7 +306,7 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":            "Apply",
+		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 		"Pending":         "",
