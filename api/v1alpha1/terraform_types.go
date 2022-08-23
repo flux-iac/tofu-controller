@@ -377,7 +377,7 @@ const (
 // These constants are the Condition Types that the Terraform Resource works with
 const (
 	ConditionTypeApply       = "Apply"
-	ConditionTypeHealthCheck = "HealthChecK"
+	ConditionTypeHealthCheck = "HealthCheck"
 	ConditionTypeOutput      = "Output"
 	ConditionTypePlan        = "Plan"
 	ConditionTypeStateLocked = "StateLocked"
