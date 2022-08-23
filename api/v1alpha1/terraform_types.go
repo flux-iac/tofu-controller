@@ -598,12 +598,18 @@ func TerraformForceUnlock(terraform Terraform, message string) Terraform {
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
 	SetTerraformReadiness(&terraform, metav1.ConditionTrue, newCondition.Reason, newCondition.Message, "")
+
+	if terraform.Status.Lock.Pending != "" && terraform.Status.Lock.LastApplied != terraform.Status.Lock.Pending {
+		terraform.Status.Lock.LastApplied = terraform.Status.Lock.Pending
+	}
+
+	terraform.Status.Lock.Pending = ""
 	return terraform
 }
 
-// TerraformLocked will set a new condition on the Terraform resource indicating
+// TerraformStateLocked will set a new condition on the Terraform resource indicating
 // that the resource has been locked.
-func TerraformLocked(terraform Terraform, message string) Terraform {
+func TerraformStateLocked(terraform Terraform, lockID, message string) Terraform {
 	newCondition := metav1.Condition{
 		Type:    ConditionTypeStateLocked,
 		Status:  metav1.ConditionTrue,
@@ -612,6 +618,12 @@ func TerraformLocked(terraform Terraform, message string) Terraform {
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
 	SetTerraformReadiness(&terraform, metav1.ConditionFalse, newCondition.Reason, newCondition.Message, "")
+
+	if terraform.Status.Lock.Pending != "" && terraform.Status.Lock.LastApplied != terraform.Status.Lock.Pending {
+		terraform.Status.Lock.LastApplied = terraform.Status.Lock.Pending
+	}
+
+	terraform.Status.Lock.Pending = lockID
 	return terraform
 }
 
