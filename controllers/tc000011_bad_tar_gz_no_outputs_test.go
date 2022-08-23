@@ -136,7 +136,7 @@ func Test_000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 		}
 		return createdHelloWorldTF.Status
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":    infrav1.ConditionTypePlan,
+		"Type":    "Ready",
 		"Reason":  "ArtifactFailed",
 		"Message": "rpc error: code = Unknown desc = failed to untar artifact, error: requires gzip-compressed body: gzip: invalid header",
 		"Status":  metav1.ConditionFalse,
