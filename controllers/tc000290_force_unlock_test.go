@@ -41,7 +41,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 			Reference: &sourcev1.GitRepositoryRef{
 				Branch: "master",
 			},
-			Interval:          metav1.Duration{Duration: time.Second * 60},
+			Interval:          metav1.Duration{Duration: time.Second * 30},
 			GitImplementation: "go-git",
 		},
 	}
@@ -280,7 +280,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 			Reference: &sourcev1.GitRepositoryRef{
 				Branch: "master",
 			},
-			Interval:          metav1.Duration{Duration: time.Second * 60},
+			Interval:          metav1.Duration{Duration: time.Second * 30},
 			GitImplementation: "go-git",
 		},
 	}
@@ -554,7 +554,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 			Reference: &sourcev1.GitRepositoryRef{
 				Branch: "master",
 			},
-			Interval:          metav1.Duration{Duration: time.Second * 60},
+			Interval:          metav1.Duration{Duration: time.Second * 30},
 			GitImplementation: "go-git",
 		},
 	}
