@@ -880,8 +880,10 @@ terraform {
 
 	// If we have a lock id we want to force unlock the state
 	if terraform.Spec.TFState != nil {
-		if terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumYes || terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumAuto {
-			lockIdentifier = terraform.Spec.TFState.LockIdentifier
+		if terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumYes && terraform.Spec.TFState.LockIdentifier == terraform.Status.Lock.Pending {
+			lockIdentifier = terraform.Status.Lock.Pending
+		} else if terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumAuto {
+			lockIdentifier = terraform.Status.Lock.Pending
 		}
 	}
 
