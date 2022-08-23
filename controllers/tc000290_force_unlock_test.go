@@ -478,7 +478,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 					"Status":  c.Status,
 					"Reason":  c.Reason,
 					"Message": c.Message,
-					"LID":     createdHelloWorldTF.Spec.TFState.LockIdentifier,
+					"LID":     createdHelloWorldTF.Status.Lock.Pending,
 				}
 			}
 		}
@@ -751,7 +751,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 					"Status":         c.Status,
 					"Reason":         c.Reason,
 					"Message":        c.Message,
-					"LockIdentifier": createdHelloWorldTF.Spec.TFState.LockIdentifier,
+					"LockIdentifier": createdHelloWorldTF.Status.Lock.Pending,
 					"ForceUnlock":    createdHelloWorldTF.Spec.TFState.ForceUnlock,
 				}
 			}
