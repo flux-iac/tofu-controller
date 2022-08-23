@@ -3,10 +3,11 @@ package controllers
 import (
 	"context"
 	"fmt"
-	corev1 "k8s.io/api/core/v1"
 	"log"
 	"testing"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -263,7 +264,7 @@ func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":   "Apply",
+		"Type":   infrav1.ConditionTypeApply,
 		"Reason": infrav1.TFExecApplySucceedReason,
 	}))
 
@@ -284,7 +285,7 @@ func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":   "Output",
+		"Type":   infrav1.ConditionTypeOutput,
 		"Reason": "TerraformOutputsAvailable",
 	}))
 

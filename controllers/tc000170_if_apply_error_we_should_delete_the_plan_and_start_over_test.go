@@ -164,7 +164,7 @@ func Test_000170_if_apply_error_the_plan_should_be_deleted_and_start_over_test(t
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":   "Apply",
+		"Type":   infrav1.ConditionTypeApply,
 		"Reason": "TerraformAppliedFail",
 	}))
 
@@ -187,7 +187,7 @@ func Test_000170_if_apply_error_the_plan_should_be_deleted_and_start_over_test(t
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":   "Apply",
+		"Type":   infrav1.ConditionTypeApply,
 		"Reason": infrav1.TFExecApplySucceedReason,
 	}))
 
