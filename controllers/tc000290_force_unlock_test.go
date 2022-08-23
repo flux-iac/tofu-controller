@@ -247,7 +247,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 		}
 
 		return nil
-	}, timeout*4, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":           infrav1.ConditionTypeStateLocked,
 		"Status":         metav1.ConditionTrue,
 		"Reason":         infrav1.TFExecLockHeldReason,
@@ -483,7 +483,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout*2, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":           infrav1.ConditionTypeStateLocked,
 		"Status":         metav1.ConditionTrue,
 		"Reason":         infrav1.TFExecLockHeldReason,
@@ -497,7 +497,10 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 		LockIdentifier: tfstateLeaseHolderIdentity,
 	}
 	k8sClient.Patch(ctx, &createdHelloWorldTF, patch)
-	var nilTFState *infrav1.TFStateSpec
+	expectedTFState := &infrav1.TFStateSpec{
+		ForceUnlock:    infrav1.ForceUnlockEnumYes,
+		LockIdentifier: tfstateLeaseHolderIdentity,
+	}
 
 	It("should reconcile")
 	By("checking that the StateLocked condition exists with Status False")
@@ -518,12 +521,12 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout*2, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    infrav1.ConditionTypeStateLocked,
 		"Status":  metav1.ConditionFalse,
 		"Reason":  infrav1.TFExecForceUnlockReason,
 		"Message": fmt.Sprintf("Terraform Force Unlock with Lock Identifier: %s", tfstateLeaseHolderIdentity),
-		"TFState": nilTFState,
+		"TFState": expectedTFState,
 	}))
 }
 
@@ -759,7 +762,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout*2, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":           infrav1.ConditionTypeStateLocked,
 		"Status":         metav1.ConditionFalse,
 		"Reason":         infrav1.TFExecForceUnlockReason,
