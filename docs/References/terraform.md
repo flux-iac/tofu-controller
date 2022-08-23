@@ -1107,6 +1107,18 @@ TFStateSpec
 <em>(Optional)</em>
 </td>
 </tr>
+<tr>
+<td>
+<code>targets</code><br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Targets specify the resource, module or collection of resources to target.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -1459,6 +1471,18 @@ TFStateSpec
 </td>
 <td>
 <em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>targets</code><br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Targets specify the resource, module or collection of resources to target.</p>
 </td>
 </tr>
 </tbody>
