@@ -839,10 +839,7 @@ terraform {
 		if st, ok := status.FromError(err); ok {
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.InitReply); ok {
-					var fuErr error
-					if terraform, fuErr = r.setLockStatus(ctx, terraform, reply.StateLockIdentifier); fuErr != nil {
-						err = fmt.Errorf("error running setLockStatus: %s :: %s", fuErr, err)
-					}
+					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
 			}
 		}
@@ -904,12 +901,6 @@ terraform {
 			log.Error(err, "unable to update status before Terraform force unlock")
 			return terraform, tfInstance, tmpDir, err
 		}
-
-		terraform, err = r.setLockStatus(ctx, terraform, "")
-
-		if err != nil {
-			return terraform, tfInstance, tmpDir, err
-		}
 	}
 
 	return terraform, tfInstance, tmpDir, nil
@@ -940,10 +931,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 		if st, ok := status.FromError(err); ok {
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
-					var fuErr error
-					if terraform, fuErr = r.setLockStatus(ctx, terraform, reply.StateLockIdentifier); fuErr != nil {
-						err = fmt.Errorf("error running setLockStatus: %s :: %s", fuErr, err)
-					}
+					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
 			}
 		}
@@ -1029,10 +1017,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		if st, ok := status.FromError(err); ok {
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
-					var fuErr error
-					if terraform, fuErr = r.setLockStatus(ctx, terraform, reply.StateLockIdentifier); fuErr != nil {
-						err = fmt.Errorf("error running setLockStatus: %s :: %s", fuErr, err)
-					}
+					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
 			}
 		}
@@ -1145,10 +1130,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 			if st, ok := status.FromError(err); ok {
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.DestroyReply); ok {
-						var fuErr error
-						if terraform, fuErr = r.setLockStatus(ctx, terraform, reply.StateLockIdentifier); fuErr != nil {
-							err = fmt.Errorf("error running setLockStatus: %s :: %s", fuErr, err)
-						}
+						terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 					}
 				}
 			}
@@ -1169,10 +1151,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 			if st, ok := status.FromError(err); ok {
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.ApplyReply); ok {
-						var fuErr error
-						if terraform, fuErr = r.setLockStatus(ctx, terraform, reply.StateLockIdentifier); fuErr != nil {
-							err = fmt.Errorf("error running setLockStatus: %s :: %s", fuErr, err)
-						}
+						terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 					}
 				}
 			}
@@ -2234,33 +2213,4 @@ func (r *TerraformReconciler) outputsMayBeDrifted(ctx context.Context, terraform
 	}
 
 	return false, nil
-}
-
-func (r *TerraformReconciler) setLockStatus(ctx context.Context, terraform infrav1.Terraform, lockID string) (infrav1.Terraform, error) {
-	log := ctrl.LoggerFrom(ctx)
-
-	if lockID != "" {
-		terraform = infrav1.TerraformLocked(terraform, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", lockID))
-
-		if terraform.Status.Lock.Pending != "" && terraform.Status.Lock.LastApplied != terraform.Status.Lock.Pending {
-			terraform.Status.Lock.LastApplied = terraform.Status.Lock.Pending
-		}
-
-		terraform.Status.Lock.Pending = lockID
-	} else {
-		if terraform.Status.Lock.Pending != "" && terraform.Status.Lock.LastApplied != terraform.Status.Lock.Pending {
-			terraform.Status.Lock.LastApplied = terraform.Status.Lock.Pending
-		}
-
-		terraform.Status.Lock.Pending = ""
-	}
-
-	err := r.patchStatus(ctx, types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.GetName()}, terraform.Status)
-
-	if err != nil {
-		log.Error(err, "unable to patch object")
-		return terraform, err
-	}
-
-	return terraform, nil
 }
