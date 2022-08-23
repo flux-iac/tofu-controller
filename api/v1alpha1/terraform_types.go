@@ -353,9 +353,10 @@ const (
 	DisabledValue             = "disabled"
 	ApprovePlanAutoValue      = "auto"
 	ApprovePlanDisableValue   = "disable"
+)
 
-	// ArtifactFailedReason represents the fact that the
-	// source artifact download failed.
+// The potential reasons that are associated with condition types
+const (
 	ArtifactFailedReason       = "ArtifactFailed"
 	TFExecNewFailedReason      = "TFExecNewFailed"
 	TFExecInitFailedReason     = "TFExecInitFailed"
@@ -370,6 +371,16 @@ const (
 	HealthChecksFailedReason   = "HealthChecksFailed"
 	TFExecApplySucceedReason   = "TerraformAppliedSucceed"
 	TFExecLockHeldReason       = "LockHeld"
+	TFExecForceUnlockReason    = "ForceUnlock"
+)
+
+// These constants are the Condition Types that the Terraform Resource works with
+const (
+	ConditionTypeApply       = "Apply"
+	ConditionTypeHealthCheck = "HealthChecK"
+	ConditionTypeOutput      = "Output"
+	ConditionTypePlan        = "Plan"
+	ConditionTypeStateLocked = "StateLocked"
 )
 
 // SetTerraformReadiness sets the ReadyCondition, ObservedGeneration, and LastAttemptedRevision, on the Terraform.
@@ -387,7 +398,7 @@ func SetTerraformReadiness(terraform *Terraform, status metav1.ConditionStatus, 
 
 func TerraformApplying(terraform Terraform, revision string, message string) Terraform {
 	newCondition := metav1.Condition{
-		Type:    "Apply",
+		Type:    ConditionTypeApply,
 		Status:  metav1.ConditionUnknown,
 		Reason:  meta.ProgressingReason,
 		Message: trimString(message, MaxConditionMessageLength),
@@ -401,7 +412,7 @@ func TerraformApplying(terraform Terraform, revision string, message string) Ter
 
 func TerraformOutputsAvailable(terraform Terraform, availableOutputs []string, message string) Terraform {
 	newCondition := metav1.Condition{
-		Type:    "Output",
+		Type:    ConditionTypeOutput,
 		Status:  metav1.ConditionTrue,
 		Reason:  "TerraformOutputsAvailable",
 		Message: trimString(message, MaxConditionMessageLength),
@@ -413,7 +424,7 @@ func TerraformOutputsAvailable(terraform Terraform, availableOutputs []string, m
 
 func TerraformOutputsWritten(terraform Terraform, revision string, message string) Terraform {
 	newCondition := metav1.Condition{
-		Type:    "Output",
+		Type:    ConditionTypeOutput,
 		Status:  metav1.ConditionTrue,
 		Reason:  "TerraformOutputsWritten",
 		Message: trimString(message, MaxConditionMessageLength),
@@ -425,7 +436,7 @@ func TerraformOutputsWritten(terraform Terraform, revision string, message strin
 
 func TerraformApplied(terraform Terraform, revision string, message string, isDestroyApply bool, entries []ResourceRef) Terraform {
 	newCondition := metav1.Condition{
-		Type:    "Apply",
+		Type:    ConditionTypeApply,
 		Status:  metav1.ConditionTrue,
 		Reason:  TFExecApplySucceedReason,
 		Message: trimString(message, MaxConditionMessageLength),
@@ -457,7 +468,7 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, message s
 	planRev := strings.Replace(revision, "/", "-", 1)
 	planId := fmt.Sprintf("plan-%s", planRev)
 	newCondition := metav1.Condition{
-		Type:    "Plan",
+		Type:    ConditionTypePlan,
 		Status:  metav1.ConditionTrue,
 		Reason:  "TerraformPlannedWithChanges",
 		Message: trimString(message, MaxConditionMessageLength),
@@ -488,7 +499,7 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, message s
 
 func TerraformPlannedNoChanges(terraform Terraform, revision string, message string) Terraform {
 	newCondition := metav1.Condition{
-		Type:    "Plan",
+		Type:    ConditionTypePlan,
 		Status:  metav1.ConditionFalse,
 		Reason:  "TerraformPlannedNoChanges",
 		Message: trimString(message, MaxConditionMessageLength),
@@ -532,7 +543,7 @@ func TerraformNotReady(terraform Terraform, revision, reason, message string) Te
 
 func TerraformAppliedFailResetPlanAndNotReady(terraform Terraform, revision, reason, message string) Terraform {
 	newCondition := metav1.Condition{
-		Type:    "Apply",
+		Type:    ConditionTypeApply,
 		Status:  metav1.ConditionFalse,
 		Reason:  "TerraformAppliedFail",
 		Message: trimString(message, MaxConditionMessageLength),
@@ -556,7 +567,7 @@ func TerraformNoDrift(terraform Terraform, revision, reason, message string) Ter
 
 func TerraformHealthCheckFailed(terraform Terraform, message string) Terraform {
 	newCondition := metav1.Condition{
-		Type:    "HealthCheck",
+		Type:    ConditionTypeHealthCheck,
 		Status:  metav1.ConditionFalse,
 		Reason:  HealthChecksFailedReason,
 		Message: trimString(message, MaxConditionMessageLength),
@@ -567,7 +578,7 @@ func TerraformHealthCheckFailed(terraform Terraform, message string) Terraform {
 
 func TerraformHealthCheckSucceeded(terraform Terraform, message string) Terraform {
 	newCondition := metav1.Condition{
-		Type:    "HealthCheck",
+		Type:    ConditionTypeHealthCheck,
 		Status:  metav1.ConditionTrue,
 		Reason:  "HealthChecksSucceed",
 		Message: trimString(message, MaxConditionMessageLength),
@@ -580,9 +591,9 @@ func TerraformHealthCheckSucceeded(terraform Terraform, message string) Terrafor
 // that we are attempting to force unlock it.
 func TerraformForceUnlock(terraform Terraform, message string) Terraform {
 	newCondition := metav1.Condition{
-		Type:    "ForceUnlock",
-		Status:  metav1.ConditionUnknown,
-		Reason:  TFExecLockHeldReason,
+		Type:    ConditionTypeStateLocked,
+		Status:  metav1.ConditionFalse,
+		Reason:  TFExecForceUnlockReason,
 		Message: trimString(message, MaxConditionMessageLength),
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
@@ -594,8 +605,8 @@ func TerraformForceUnlock(terraform Terraform, message string) Terraform {
 // that the resource has been locked.
 func TerraformLocked(terraform Terraform, message string) Terraform {
 	newCondition := metav1.Condition{
-		Type:    "StateLocked",
-		Status:  metav1.ConditionUnknown,
+		Type:    ConditionTypeStateLocked,
+		Status:  metav1.ConditionTrue,
 		Reason:  TFExecLockHeldReason,
 		Message: trimString(message, MaxConditionMessageLength),
 	}
@@ -607,7 +618,7 @@ func TerraformLocked(terraform Terraform, message string) Terraform {
 // HasDrift returns true if drift has been detected since the last successful apply
 func (in Terraform) HasDrift() bool {
 	for _, condition := range in.Status.Conditions {
-		if condition.Type == "Apply" &&
+		if condition.Type == ConditionTypeApply &&
 			condition.Status == metav1.ConditionTrue &&
 			in.Status.LastDriftDetectedAt != nil &&
 			(*in.Status.LastDriftDetectedAt).After(condition.LastTransitionTime.Time) {
