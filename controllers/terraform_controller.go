@@ -389,9 +389,9 @@ func (r *TerraformReconciler) shouldDoHealthChecks(terraform infrav1.Terraform) 
 	var applyCondition metav1.Condition
 	var hcCondition metav1.Condition
 	for _, c := range terraform.Status.Conditions {
-		if c.Type == "Apply" {
+		if c.Type == infrav1.ConditionTypeApply {
 			applyCondition = c
-		} else if c.Type == "HealthCheck" {
+		} else if c.Type == infrav1.ConditionTypeHealthCheck {
 			hcCondition = c
 		}
 	}
@@ -2239,42 +2239,23 @@ func (r *TerraformReconciler) setForceUnlock(ctx context.Context, objectKey type
 		return err
 	}
 
-	patch := client.MergeFrom(terraform.DeepCopy())
-
 	if lockID != "" {
 		terraform = infrav1.TerraformLocked(terraform, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", lockID))
 
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
-			log.Error(err, "unable to patch object status")
-			return err
+		if terraform.Status.Lock.Pending != "" && terraform.Status.Lock.LastApplied != terraform.Status.Lock.Pending {
+			terraform.Status.Lock.LastApplied = terraform.Status.Lock.Pending
 		}
 
-		err := r.Get(ctx, objectKey, &terraform)
-
-		if err != nil {
-			log.Error(err, "unable to get object")
-			return err
-		}
-
-		patch = client.MergeFrom(terraform.DeepCopy())
-
-		if terraform.Spec.TFState != nil {
-			terraform.Spec.TFState.LockIdentifier = lockID
-		} else {
-			terraform.Spec.TFState = &infrav1.TFStateSpec{
-				ForceUnlock:    infrav1.ForceUnlockEnumNo,
-				LockIdentifier: lockID,
-			}
-		}
+		terraform.Status.Lock.Pending = lockID
 	} else {
-		if terraform.Spec.TFState.ForceUnlock != infrav1.ForceUnlockEnumAuto {
-			terraform.Spec.TFState = nil
-		} else {
-			terraform.Spec.TFState.LockIdentifier = ""
+		if terraform.Status.Lock.Pending != "" && terraform.Status.Lock.LastApplied != terraform.Status.Lock.Pending {
+			terraform.Status.Lock.LastApplied = terraform.Status.Lock.Pending
 		}
+
+		terraform.Status.Lock.Pending = ""
 	}
 
-	err = r.Patch(ctx, &terraform, patch)
+	err = r.patchStatus(ctx, objectKey, terraform.Status)
 
 	if err != nil {
 		log.Error(err, "unable to patch object")
