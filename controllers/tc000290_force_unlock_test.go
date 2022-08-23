@@ -147,7 +147,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Plan" {
+			if c.Type == infrav1.ConditionTypePlan {
 				return map[string]interface{}{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
@@ -189,7 +189,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Apply" {
+			if c.Type == infrav1.ConditionTypeApply {
 				return map[string]interface{}{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
@@ -226,7 +226,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 	}
 
 	It("should fail to reconcile")
-	By("checking that the LockedState condition exists with Status True")
+	By("checking that the StateLocked condition exists with Status True")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 
@@ -235,24 +235,24 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 		}
 
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "StateLocked" {
+			if c.Type == infrav1.ConditionTypeStateLocked {
 				return map[string]interface{}{
-					"Type":    c.Type,
-					"Status":  c.Status,
-					"Reason":  c.Reason,
-					"Message": c.Message,
-					"LID":     createdHelloWorldTF.Status.Lock.Pending,
+					"Type":           c.Type,
+					"Status":         c.Status,
+					"Reason":         c.Reason,
+					"Message":        c.Message,
+					"LockIdentifier": createdHelloWorldTF.Status.Lock.Pending,
 				}
 			}
 		}
 
 		return nil
 	}, timeout*4, interval).Should(Equal(map[string]interface{}{
-		"Type":    infrav1.ConditionTypeStateLocked,
-		"Status":  metav1.ConditionTrue,
-		"Reason":  infrav1.TFExecLockHeldReason,
-		"Message": fmt.Sprintf("Terraform Locked with Lock Identifier: %s", tfstateLeaseHolderIdentity),
-		"LID":     tfstateLeaseHolderIdentity,
+		"Type":           infrav1.ConditionTypeStateLocked,
+		"Status":         metav1.ConditionTrue,
+		"Reason":         infrav1.TFExecLockHeldReason,
+		"Message":        fmt.Sprintf("Terraform Locked with Lock Identifier: %s", tfstateLeaseHolderIdentity),
+		"LockIdentifier": tfstateLeaseHolderIdentity,
 	}))
 }
 
@@ -386,7 +386,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Plan" {
+			if c.Type == infrav1.ConditionTypePlan {
 				return map[string]interface{}{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
@@ -428,7 +428,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Apply" {
+			if c.Type == infrav1.ConditionTypeApply {
 				return map[string]interface{}{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
@@ -465,30 +465,30 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 	}
 
 	It("should fail to reconcile")
-	By("checking that the LockedState condition exists with Status True")
+	By("checking that the StateLocked condition exists with Status True")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "StateLocked" {
+			if c.Type == infrav1.ConditionTypeStateLocked {
 				return map[string]interface{}{
-					"Type":    c.Type,
-					"Status":  c.Status,
-					"Reason":  c.Reason,
-					"Message": c.Message,
-					"LID":     createdHelloWorldTF.Status.Lock.Pending,
+					"Type":           c.Type,
+					"Status":         c.Status,
+					"Reason":         c.Reason,
+					"Message":        c.Message,
+					"LockIdentifier": createdHelloWorldTF.Status.Lock.Pending,
 				}
 			}
 		}
 		return nil
 	}, timeout*2, interval).Should(Equal(map[string]interface{}{
-		"Type":    infrav1.ConditionTypeStateLocked,
-		"Status":  metav1.ConditionTrue,
-		"Reason":  infrav1.TFExecLockHeldReason,
-		"Message": fmt.Sprintf("Terraform Locked with Lock Identifier: %s", tfstateLeaseHolderIdentity),
-		"LID":     tfstateLeaseHolderIdentity,
+		"Type":           infrav1.ConditionTypeStateLocked,
+		"Status":         metav1.ConditionTrue,
+		"Reason":         infrav1.TFExecLockHeldReason,
+		"Message":        fmt.Sprintf("Terraform Locked with Lock Identifier: %s", tfstateLeaseHolderIdentity),
+		"LockIdentifier": tfstateLeaseHolderIdentity,
 	}))
 
 	patch = client.MergeFrom(createdHelloWorldTF.DeepCopy())
@@ -498,14 +498,14 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 	var nilTFState *infrav1.TFStateSpec
 
 	It("should reconcile")
-	By("checking that the LockedState condition exists with Status False")
+	By("checking that the StateLocked condition exists with Status False")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "ForceUnlock" {
+			if c.Type == infrav1.ConditionTypeStateLocked {
 				return map[string]interface{}{
 					"Type":    c.Type,
 					"Status":  c.Status,
@@ -658,7 +658,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Plan" {
+			if c.Type == infrav1.ConditionTypePlan {
 				return map[string]interface{}{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
@@ -700,7 +700,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Apply" {
+			if c.Type == infrav1.ConditionTypeApply {
 				return map[string]interface{}{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
@@ -737,7 +737,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 	}
 
 	It("should reconcile")
-	By("checking that the LockedState condition exists with Status False")
+	By("checking that the StateLocked condition exists with Status False")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -745,7 +745,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			//t.Logf("====\n\n%#v\n\n====", c)
-			if c.Type == "ForceUnlock" {
+			if c.Type == infrav1.ConditionTypeStateLocked {
 				return map[string]interface{}{
 					"Type":           c.Type,
 					"Status":         c.Status,
