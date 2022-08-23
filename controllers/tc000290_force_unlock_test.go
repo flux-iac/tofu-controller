@@ -492,8 +492,10 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 	}))
 
 	patch = client.MergeFrom(createdHelloWorldTF.DeepCopy())
-	createdHelloWorldTF.Spec.TFState.ForceUnlock = infrav1.ForceUnlockEnumYes
-	createdHelloWorldTF.Spec.TFState.LockIdentifier = tfstateLeaseHolderIdentity
+	createdHelloWorldTF.Spec.TFState = &infrav1.TFStateSpec{
+		ForceUnlock:    infrav1.ForceUnlockEnumYes,
+		LockIdentifier: tfstateLeaseHolderIdentity,
+	}
 	k8sClient.Patch(ctx, &createdHelloWorldTF, patch)
 	var nilTFState *infrav1.TFStateSpec
 
