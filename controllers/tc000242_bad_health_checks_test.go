@@ -136,7 +136,7 @@ func Test_000242_bad_healt_checks_test(t *testing.T) {
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":   "HealthCheck",
+		"Type":   infrav1.ConditionTypeHealthCheck,
 		"Reason": "HealthChecksFailed",
 	}))
 
@@ -201,7 +201,7 @@ func Test_000242_bad_healt_checks_test(t *testing.T) {
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":   "HealthCheck",
+		"Type":   infrav1.ConditionTypeHealthCheck,
 		"Reason": "HealthChecksFailed",
 	}))
 }

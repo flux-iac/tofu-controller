@@ -499,7 +499,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":   "Apply",
+		"Type":   infrav1.ConditionTypeApply,
 		"Reason": infrav1.TFExecApplySucceedReason,
 	}))
 
