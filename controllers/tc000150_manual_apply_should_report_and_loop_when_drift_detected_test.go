@@ -156,7 +156,7 @@ func Test_000150_manual_apply_should_report_and_loop_when_drift_detected_test(t 
 		}
 		return createdHelloWorldTF.Status
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":    "Plan",
+		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
 		"Message": "Plan generated",
 	}))
@@ -202,7 +202,7 @@ func Test_000150_manual_apply_should_report_and_loop_when_drift_detected_test(t 
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":            "Apply",
+		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",

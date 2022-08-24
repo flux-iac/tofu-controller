@@ -147,7 +147,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Plan" {
+			if c.Type == infrav1.ConditionTypePlan {
 				return map[string]interface{}{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
@@ -157,7 +157,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 		}
 		return createdHelloWorldTF.Status
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":    "Plan",
+		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
 		"Message": "Plan generated",
 	}))
@@ -189,7 +189,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Apply" {
+			if c.Type == infrav1.ConditionTypeApply {
 				return map[string]interface{}{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
@@ -200,7 +200,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":            "Apply",
+		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
@@ -214,16 +214,11 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 		t.Error(err)
 	}
 
-	patch := client.RawPatch(types.MergePatchType, []byte(fmt.Sprintf(`{
-	"metadata": {
-		"annotations": {
-			"app.terraform.io/lock-info": "{\"ID\": \"%s\",\"Operation\": \"OperationTypeApply\", \"Info\": \"\", \"Who\":\"%s\", \"Version\": \"1.2.7\", \"Created\": \"2022-08-17T15:44:07.0Z\", \"Path\": \"\"}"
-		}
-	},
-	"spec": {
-		"holderIdentity": "%s"
+	patch := client.MergeFrom(tfstateLease.DeepCopy())
+	tfstateLease.Annotations = map[string]string{
+		"app.terraform.io/lock-info": fmt.Sprintf("{\"ID\": \"%s\",\"Operation\": \"OperationTypeApply\", \"Info\": \"\", \"Who\":\"%s\", \"Version\": \"1.2.7\", \"Created\": \"2022-08-17T15:44:07.0Z\", \"Path\": \"\"}", tfstateLeaseHolderIdentity, terraformName),
 	}
-}`, tfstateLeaseHolderIdentity, terraformName, tfstateLeaseHolderIdentity)))
+	tfstateLease.Spec.HolderIdentity = &tfstateLeaseHolderIdentity
 	err = k8sClient.Patch(ctx, &tfstateLease, patch)
 
 	if err != nil {
@@ -231,29 +226,33 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 	}
 
 	It("should fail to reconcile")
-	By("checking that the LockedState condition exists")
+	By("checking that the StateLocked condition exists with Status True")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+
 		if err != nil {
 			return nil
 		}
+
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			//t.Logf("====\n\n%#v\n\n====", c)
-			if c.Type == "StateLocked" {
+			if c.Type == infrav1.ConditionTypeStateLocked {
 				return map[string]interface{}{
-					"Type":    c.Type,
-					"Reason":  c.Reason,
-					"Message": c.Message,
-					"LID":     createdHelloWorldTF.Spec.TFState.LockIdentifier,
+					"Type":           c.Type,
+					"Status":         c.Status,
+					"Reason":         c.Reason,
+					"Message":        c.Message,
+					"LockIdentifier": createdHelloWorldTF.Status.Lock.Pending,
 				}
 			}
 		}
+
 		return nil
-	}, timeout*2, interval).Should(Equal(map[string]interface{}{
-		"Type":    "StateLocked",
-		"Reason":  infrav1.TFExecLockHeldReason,
-		"Message": fmt.Sprintf("Terraform Locked with Lock Identifier: %s", tfstateLeaseHolderIdentity),
-		"LID":     tfstateLeaseHolderIdentity,
+	}, timeout, interval).Should(Equal(map[string]interface{}{
+		"Type":           infrav1.ConditionTypeStateLocked,
+		"Status":         metav1.ConditionTrue,
+		"Reason":         infrav1.TFExecLockHeldReason,
+		"Message":        fmt.Sprintf("Terraform Locked with Lock Identifier: %s", tfstateLeaseHolderIdentity),
+		"LockIdentifier": tfstateLeaseHolderIdentity,
 	}))
 }
 
@@ -387,7 +386,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Plan" {
+			if c.Type == infrav1.ConditionTypePlan {
 				return map[string]interface{}{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
@@ -397,7 +396,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 		}
 		return createdHelloWorldTF.Status
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":    "Plan",
+		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
 		"Message": "Plan generated",
 	}))
@@ -429,7 +428,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Apply" {
+			if c.Type == infrav1.ConditionTypeApply {
 				return map[string]interface{}{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
@@ -440,7 +439,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":            "Apply",
+		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
@@ -454,16 +453,11 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 		t.Error(err)
 	}
 
-	patch := client.RawPatch(types.MergePatchType, []byte(fmt.Sprintf(`{
-	"metadata": {
-		"annotations": {
-			"app.terraform.io/lock-info": "{\"ID\": \"%s\",\"Operation\": \"OperationTypeApply\", \"Info\": \"\", \"Who\":\"%s\", \"Version\": \"1.2.7\", \"Created\": \"2022-08-17T15:44:07.0Z\", \"Path\": \"\"}"
-		}
-	},
-	"spec": {
-		"holderIdentity": "%s"
+	patch := client.MergeFrom(tfstateLease.DeepCopy())
+	tfstateLease.Annotations = map[string]string{
+		"app.terraform.io/lock-info": fmt.Sprintf("{\"ID\": \"%s\",\"Operation\": \"OperationTypeApply\", \"Info\": \"\", \"Who\":\"%s\", \"Version\": \"1.2.7\", \"Created\": \"2022-08-17T15:44:07.0Z\", \"Path\": \"\"}", tfstateLeaseHolderIdentity, terraformName),
 	}
-}`, tfstateLeaseHolderIdentity, terraformName, tfstateLeaseHolderIdentity)))
+	tfstateLease.Spec.HolderIdentity = &tfstateLeaseHolderIdentity
 	err = k8sClient.Patch(ctx, &tfstateLease, patch)
 
 	if err != nil {
@@ -471,48 +465,55 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 	}
 
 	It("should fail to reconcile")
-	By("checking that the LockedState condition exists")
+	By("checking that the StateLocked condition exists with Status True")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			//t.Logf("====\n\n%#v\n\n====", c)
-			if c.Type == "StateLocked" {
+			if c.Type == infrav1.ConditionTypeStateLocked {
 				return map[string]interface{}{
-					"Type":    c.Type,
-					"Reason":  c.Reason,
-					"Message": c.Message,
-					"LID":     createdHelloWorldTF.Spec.TFState.LockIdentifier,
+					"Type":           c.Type,
+					"Status":         c.Status,
+					"Reason":         c.Reason,
+					"Message":        c.Message,
+					"LockIdentifier": createdHelloWorldTF.Status.Lock.Pending,
 				}
 			}
 		}
 		return nil
-	}, timeout*2, interval).Should(Equal(map[string]interface{}{
-		"Type":    "StateLocked",
-		"Reason":  infrav1.TFExecLockHeldReason,
-		"Message": fmt.Sprintf("Terraform Locked with Lock Identifier: %s", tfstateLeaseHolderIdentity),
-		"LID":     tfstateLeaseHolderIdentity,
+	}, timeout, interval).Should(Equal(map[string]interface{}{
+		"Type":           infrav1.ConditionTypeStateLocked,
+		"Status":         metav1.ConditionTrue,
+		"Reason":         infrav1.TFExecLockHeldReason,
+		"Message":        fmt.Sprintf("Terraform Locked with Lock Identifier: %s", tfstateLeaseHolderIdentity),
+		"LockIdentifier": tfstateLeaseHolderIdentity,
 	}))
 
 	patch = client.MergeFrom(createdHelloWorldTF.DeepCopy())
-	createdHelloWorldTF.Spec.TFState.ForceUnlock = infrav1.ForceUnlockEnumYes
+	createdHelloWorldTF.Spec.TFState = &infrav1.TFStateSpec{
+		ForceUnlock:    infrav1.ForceUnlockEnumYes,
+		LockIdentifier: tfstateLeaseHolderIdentity,
+	}
 	k8sClient.Patch(ctx, &createdHelloWorldTF, patch)
-	var nilTFState *infrav1.TFStateSpec
+	expectedTFState := &infrav1.TFStateSpec{
+		ForceUnlock:    infrav1.ForceUnlockEnumYes,
+		LockIdentifier: tfstateLeaseHolderIdentity,
+	}
 
 	It("should reconcile")
-	By("checking that the ForceUnlock condition exists")
+	By("checking that the StateLocked condition exists with Status False")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			//t.Logf("====\n\n%#v\n\n====", c)
-			if c.Type == "ForceUnlock" {
+			if c.Type == infrav1.ConditionTypeStateLocked {
 				return map[string]interface{}{
 					"Type":    c.Type,
+					"Status":  c.Status,
 					"Reason":  c.Reason,
 					"Message": c.Message,
 					"TFState": createdHelloWorldTF.Spec.TFState,
@@ -520,11 +521,12 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout*2, interval).Should(Equal(map[string]interface{}{
-		"Type":    "ForceUnlock",
-		"Reason":  infrav1.TFExecLockHeldReason,
+	}, timeout, interval).Should(Equal(map[string]interface{}{
+		"Type":    infrav1.ConditionTypeStateLocked,
+		"Status":  metav1.ConditionFalse,
+		"Reason":  infrav1.TFExecForceUnlockReason,
 		"Message": fmt.Sprintf("Terraform Force Unlock with Lock Identifier: %s", tfstateLeaseHolderIdentity),
-		"TFState": nilTFState,
+		"TFState": expectedTFState,
 	}))
 }
 
@@ -661,7 +663,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Plan" {
+			if c.Type == infrav1.ConditionTypePlan {
 				return map[string]interface{}{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
@@ -671,7 +673,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 		}
 		return createdHelloWorldTF.Status
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":    "Plan",
+		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
 		"Message": "Plan generated",
 	}))
@@ -703,7 +705,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Apply" {
+			if c.Type == infrav1.ConditionTypeApply {
 				return map[string]interface{}{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
@@ -714,7 +716,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":            "Apply",
+		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
@@ -728,16 +730,11 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 		t.Error(err)
 	}
 
-	patch := client.RawPatch(types.MergePatchType, []byte(fmt.Sprintf(`{
-	"metadata": {
-		"annotations": {
-			"app.terraform.io/lock-info": "{\"ID\": \"%s\",\"Operation\": \"OperationTypeApply\", \"Info\": \"\", \"Who\":\"%s\", \"Version\": \"1.2.7\", \"Created\": \"2022-08-17T15:44:07.0Z\", \"Path\": \"\"}"
-		}
-	},
-	"spec": {
-		"holderIdentity": "%s"
+	patch := client.MergeFrom(tfstateLease.DeepCopy())
+	tfstateLease.Annotations = map[string]string{
+		"app.terraform.io/lock-info": fmt.Sprintf("{\"ID\": \"%s\",\"Operation\": \"OperationTypeApply\", \"Info\": \"\", \"Who\":\"%s\", \"Version\": \"1.2.7\", \"Created\": \"2022-08-17T15:44:07.0Z\", \"Path\": \"\"}", tfstateLeaseHolderIdentity, terraformName),
 	}
-}`, tfstateLeaseHolderIdentity, terraformName, tfstateLeaseHolderIdentity)))
+	tfstateLease.Spec.HolderIdentity = &tfstateLeaseHolderIdentity
 	err = k8sClient.Patch(ctx, &tfstateLease, patch)
 
 	if err != nil {
@@ -745,7 +742,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 	}
 
 	It("should reconcile")
-	By("checking that the ForceUnlock condition exists")
+	By("checking that the StateLocked condition exists with Status False")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -753,20 +750,22 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			//t.Logf("====\n\n%#v\n\n====", c)
-			if c.Type == "ForceUnlock" {
+			if c.Type == infrav1.ConditionTypeStateLocked {
 				return map[string]interface{}{
 					"Type":           c.Type,
+					"Status":         c.Status,
 					"Reason":         c.Reason,
 					"Message":        c.Message,
-					"LockIdentifier": createdHelloWorldTF.Spec.TFState.LockIdentifier,
+					"LockIdentifier": createdHelloWorldTF.Status.Lock.Pending,
 					"ForceUnlock":    createdHelloWorldTF.Spec.TFState.ForceUnlock,
 				}
 			}
 		}
 		return nil
-	}, timeout*2, interval).Should(Equal(map[string]interface{}{
-		"Type":           "ForceUnlock",
-		"Reason":         infrav1.TFExecLockHeldReason,
+	}, timeout, interval).Should(Equal(map[string]interface{}{
+		"Type":           infrav1.ConditionTypeStateLocked,
+		"Status":         metav1.ConditionFalse,
+		"Reason":         infrav1.TFExecForceUnlockReason,
 		"Message":        fmt.Sprintf("Terraform Force Unlock with Lock Identifier: %s", tfstateLeaseHolderIdentity),
 		"LockIdentifier": "",
 		"ForceUnlock":    infrav1.ForceUnlockEnumAuto,

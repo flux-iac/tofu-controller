@@ -149,7 +149,7 @@ func Test_000020_with_backend_no_outputs_test(t *testing.T) {
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":   "Apply",
+		"Type":   infrav1.ConditionTypeApply,
 		"Reason": infrav1.TFExecApplySucceedReason,
 	}))
 
@@ -170,7 +170,7 @@ func Test_000020_with_backend_no_outputs_test(t *testing.T) {
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":   "Output",
+		"Type":   infrav1.ConditionTypeOutput,
 		"Reason": "TerraformOutputsAvailable",
 	}))
 

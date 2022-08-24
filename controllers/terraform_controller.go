@@ -389,9 +389,9 @@ func (r *TerraformReconciler) shouldDoHealthChecks(terraform infrav1.Terraform) 
 	var applyCondition metav1.Condition
 	var hcCondition metav1.Condition
 	for _, c := range terraform.Status.Conditions {
-		if c.Type == "Apply" {
+		if c.Type == infrav1.ConditionTypeApply {
 			applyCondition = c
-		} else if c.Type == "HealthCheck" {
+		} else if c.Type == infrav1.ConditionTypeHealthCheck {
 			hcCondition = c
 		}
 	}
@@ -839,9 +839,7 @@ terraform {
 		if st, ok := status.FromError(err); ok {
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.InitReply); ok {
-					if fuErr := r.setForceUnlock(ctx, objectKey, reply.StateLockIdentifier); fuErr != nil {
-						err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
-					}
+					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
 			}
 		}
@@ -880,8 +878,10 @@ terraform {
 
 	// If we have a lock id we want to force unlock the state
 	if terraform.Spec.TFState != nil {
-		if terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumYes || terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumAuto {
-			lockIdentifier = terraform.Spec.TFState.LockIdentifier
+		if terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumYes && terraform.Spec.TFState.LockIdentifier == terraform.Status.Lock.Pending {
+			lockIdentifier = terraform.Status.Lock.Pending
+		} else if terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumAuto {
+			lockIdentifier = terraform.Status.Lock.Pending
 		}
 	}
 
@@ -899,12 +899,6 @@ terraform {
 
 		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
 			log.Error(err, "unable to update status before Terraform force unlock")
-			return terraform, tfInstance, tmpDir, err
-		}
-
-		err = r.setForceUnlock(ctx, objectKey, "")
-
-		if err != nil {
 			return terraform, tfInstance, tmpDir, err
 		}
 	}
@@ -937,9 +931,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 		if st, ok := status.FromError(err); ok {
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
-					if fuErr := r.setForceUnlock(ctx, types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.GetName()}, reply.StateLockIdentifier); fuErr != nil {
-						err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
-					}
+					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
 			}
 		}
@@ -1025,9 +1017,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		if st, ok := status.FromError(err); ok {
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
-					if fuErr := r.setForceUnlock(ctx, types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.GetName()}, reply.StateLockIdentifier); fuErr != nil {
-						err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
-					}
+					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
 			}
 		}
@@ -1140,9 +1130,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 			if st, ok := status.FromError(err); ok {
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.DestroyReply); ok {
-						if fuErr := r.setForceUnlock(ctx, types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.GetName()}, reply.StateLockIdentifier); fuErr != nil {
-							err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
-						}
+						terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 					}
 				}
 			}
@@ -1163,9 +1151,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 			if st, ok := status.FromError(err); ok {
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.ApplyReply); ok {
-						if fuErr := r.setForceUnlock(ctx, types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.GetName()}, reply.StateLockIdentifier); fuErr != nil {
-							err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
-						}
+						terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 					}
 				}
 			}
@@ -2227,59 +2213,4 @@ func (r *TerraformReconciler) outputsMayBeDrifted(ctx context.Context, terraform
 	}
 
 	return false, nil
-}
-
-func (r *TerraformReconciler) setForceUnlock(ctx context.Context, objectKey types.NamespacedName, lockID string) error {
-	log := ctrl.LoggerFrom(ctx)
-	var terraform infrav1.Terraform
-	err := r.Get(ctx, objectKey, &terraform)
-
-	if err != nil {
-		log.Error(err, "unable to get object")
-		return err
-	}
-
-	patch := client.MergeFrom(terraform.DeepCopy())
-
-	if lockID != "" {
-		terraform = infrav1.TerraformLocked(terraform, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", lockID))
-
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
-			log.Error(err, "unable to patch object status")
-			return err
-		}
-
-		err := r.Get(ctx, objectKey, &terraform)
-
-		if err != nil {
-			log.Error(err, "unable to get object")
-			return err
-		}
-
-		patch = client.MergeFrom(terraform.DeepCopy())
-
-		if terraform.Spec.TFState != nil {
-			terraform.Spec.TFState.LockIdentifier = lockID
-		} else {
-			terraform.Spec.TFState = &infrav1.TFStateSpec{
-				ForceUnlock:    infrav1.ForceUnlockEnumNo,
-				LockIdentifier: lockID,
-			}
-		}
-	} else {
-		if terraform.Spec.TFState.ForceUnlock != infrav1.ForceUnlockEnumAuto {
-			terraform.Spec.TFState = nil
-		} else {
-			terraform.Spec.TFState.LockIdentifier = ""
-		}
-	}
-
-	err = r.Patch(ctx, &terraform, patch)
-
-	if err != nil {
-		log.Error(err, "unable to patch object")
-		return err
-	}
-
-	return nil
 }
