@@ -141,7 +141,7 @@ func Test_000030_plan_only_no_outputs_test(t *testing.T) {
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":    "Plan",
+		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
 		"Pending": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 	}))

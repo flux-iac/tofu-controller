@@ -74,7 +74,9 @@ import (
 // TerraformReconciler reconciles a Terraform object
 type TerraformReconciler struct {
 	client.Client
-	httpClient               *retryablehttp.Client
+	httpClient    *retryablehttp.Client
+	statusManager string
+
 	EventRecorder            kuberecorder.EventRecorder
 	MetricsRecorder          *metrics.Recorder
 	StatusPoller             *polling.StatusPoller
@@ -103,18 +105,16 @@ type TerraformReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
 func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (retResult ctrl.Result, retErr error) {
+	log := ctrl.LoggerFrom(ctx)
+	reconcileStart := time.Now()
 
 	<-r.CertRotator.Ready
 
-	isCAValid, err := r.CertRotator.IsCAValid()
-	if isCAValid == false && r.CertRotator.TriggerCARotation != nil {
+	if isCAValid, _ := r.CertRotator.IsCAValid(); isCAValid == false && r.CertRotator.TriggerCARotation != nil {
 		readyCh := make(chan *mtls.TriggerResult)
 		r.CertRotator.TriggerCARotation <- mtls.Trigger{Namespace: "", Ready: readyCh}
 		<-readyCh
 	}
-
-	log := ctrl.LoggerFrom(ctx)
-	reconcileStart := time.Now()
 
 	var terraform infrav1.Terraform
 	if err := r.Get(ctx, req.NamespacedName, &terraform); err != nil {
@@ -133,8 +133,56 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 	}
 
-	// TODO create Runner Pod
-	// TODO wait for the Runner Pod to start
+	// Return early if the Terraform is suspended.
+	if terraform.Spec.Suspend {
+		log.Info("Reconciliation is suspended for this object")
+		return ctrl.Result{}, nil
+	}
+
+	// resolve source reference
+	log.Info("getting source")
+	sourceObj, err := r.getSource(ctx, terraform)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			msg := fmt.Sprintf("Source '%s' not found", terraform.Spec.SourceRef.String())
+			terraform = infrav1.TerraformNotReady(terraform, "", infrav1.ArtifactFailedReason, msg)
+			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+				log.Error(err, "unable to update status for source not found")
+				return ctrl.Result{Requeue: true}, err
+			}
+			r.recordReadinessMetric(ctx, terraform)
+			log.Info(msg)
+			// do not requeue immediately, when the source is created the watcher should trigger a reconciliation
+			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
+		} else {
+			// retry on transient errors
+			log.Error(err, "retry")
+			return ctrl.Result{Requeue: true}, err
+		}
+	}
+
+	if sourceObj.GetArtifact() == nil {
+		msg := "Source is not ready, artifact not found"
+		terraform = infrav1.TerraformNotReady(terraform, "", infrav1.ArtifactFailedReason, msg)
+		if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+			log.Error(err, "unable to update status for artifact not found")
+			return ctrl.Result{Requeue: true}, err
+		}
+		r.recordReadinessMetric(ctx, terraform)
+		log.Info(msg)
+		// do not requeue immediately, when the artifact is created the watcher should trigger a reconciliation
+		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
+	}
+
+	terraform = infrav1.TerraformProgressing(terraform, "reconciliation in progress")
+	if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+		log.Error(err, "unable to update status before Terraform initialization")
+		return ctrl.Result{Requeue: true}, err
+	}
+	r.recordReadinessMetric(ctx, terraform)
+
+	// Create Runner Pod.
+	// Wait for the Runner Pod to start.
 	runnerClient, closeConn, err := r.LookupOrCreateRunner(ctx, terraform)
 	if err != nil {
 		log.Error(err, "unable to lookup or create runner")
@@ -193,51 +241,9 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 	}(ctx, r.Client, terraform)
 
-	// resolve source reference
-	log.Info("getting source")
-	sourceObj, err := r.getSource(ctx, terraform)
-
 	// Examine if the object is under deletion
 	if !terraform.ObjectMeta.DeletionTimestamp.IsZero() {
 		return r.finalize(ctx, terraform, runnerClient, sourceObj)
-	}
-
-	// Return early if the Terraform is suspended.
-	if terraform.Spec.Suspend {
-		log.Info("Reconciliation is suspended for this object")
-		return ctrl.Result{}, nil
-	}
-
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			msg := fmt.Sprintf("Source '%s' not found", terraform.Spec.SourceRef.String())
-			terraform = infrav1.TerraformNotReady(terraform, "", infrav1.ArtifactFailedReason, msg)
-			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
-				log.Error(err, "unable to update status for source not found")
-				return ctrl.Result{Requeue: true}, err
-			}
-			r.recordReadinessMetric(ctx, terraform)
-			log.Info(msg)
-			// do not requeue immediately, when the source is created the watcher should trigger a reconciliation
-			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
-		} else {
-			// retry on transient errors
-			log.Error(err, "retry")
-			return ctrl.Result{Requeue: true}, err
-		}
-	}
-
-	if sourceObj.GetArtifact() == nil {
-		msg := "Source is not ready, artifact not found"
-		terraform = infrav1.TerraformNotReady(terraform, "", infrav1.ArtifactFailedReason, msg)
-		if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
-			log.Error(err, "unable to update status for artifact not found")
-			return ctrl.Result{Requeue: true}, err
-		}
-		r.recordReadinessMetric(ctx, terraform)
-		log.Info(msg)
-		// do not requeue immediately, when the artifact is created the watcher should trigger a reconciliation
-		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	}
 
 	// If revision is changed, and there's no intend to apply,
@@ -389,9 +395,9 @@ func (r *TerraformReconciler) shouldDoHealthChecks(terraform infrav1.Terraform) 
 	var applyCondition metav1.Condition
 	var hcCondition metav1.Condition
 	for _, c := range terraform.Status.Conditions {
-		if c.Type == "Apply" {
+		if c.Type == infrav1.ConditionTypeApply {
 			applyCondition = c
-		} else if c.Type == "HealthCheck" {
+		} else if c.Type == infrav1.ConditionTypeHealthCheck {
 			hcCondition = c
 		}
 	}
@@ -839,9 +845,7 @@ terraform {
 		if st, ok := status.FromError(err); ok {
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.InitReply); ok {
-					if fuErr := r.setForceUnlock(ctx, objectKey, reply.StateLockIdentifier); fuErr != nil {
-						err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
-					}
+					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
 			}
 		}
@@ -880,8 +884,10 @@ terraform {
 
 	// If we have a lock id we want to force unlock the state
 	if terraform.Spec.TFState != nil {
-		if terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumYes || terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumAuto {
-			lockIdentifier = terraform.Spec.TFState.LockIdentifier
+		if terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumYes && terraform.Spec.TFState.LockIdentifier == terraform.Status.Lock.Pending {
+			lockIdentifier = terraform.Status.Lock.Pending
+		} else if terraform.Spec.TFState.ForceUnlock == infrav1.ForceUnlockEnumAuto {
+			lockIdentifier = terraform.Status.Lock.Pending
 		}
 	}
 
@@ -899,12 +905,6 @@ terraform {
 
 		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
 			log.Error(err, "unable to update status before Terraform force unlock")
-			return terraform, tfInstance, tmpDir, err
-		}
-
-		err = r.setForceUnlock(ctx, objectKey, "")
-
-		if err != nil {
 			return terraform, tfInstance, tmpDir, err
 		}
 	}
@@ -938,9 +938,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 		if st, ok := status.FromError(err); ok {
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
-					if fuErr := r.setForceUnlock(ctx, types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.GetName()}, reply.StateLockIdentifier); fuErr != nil {
-						err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
-					}
+					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
 			}
 		}
@@ -1027,9 +1025,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		if st, ok := status.FromError(err); ok {
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
-					if fuErr := r.setForceUnlock(ctx, types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.GetName()}, reply.StateLockIdentifier); fuErr != nil {
-						err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
-					}
+					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
 			}
 		}
@@ -1144,9 +1140,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 			if st, ok := status.FromError(err); ok {
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.DestroyReply); ok {
-						if fuErr := r.setForceUnlock(ctx, types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.GetName()}, reply.StateLockIdentifier); fuErr != nil {
-							err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
-						}
+						terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 					}
 				}
 			}
@@ -1167,9 +1161,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 			if st, ok := status.FromError(err); ok {
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.ApplyReply); ok {
-						if fuErr := r.setForceUnlock(ctx, types.NamespacedName{Namespace: terraform.GetNamespace(), Name: terraform.GetName()}, reply.StateLockIdentifier); fuErr != nil {
-							err = fmt.Errorf("error running setForceUnlock: %s :: %s", fuErr, err)
-						}
+						terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 					}
 				}
 			}
@@ -1360,6 +1352,7 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 	httpClient.RetryMax = httpRetry
 	httpClient.Logger = nil
 	r.httpClient = httpClient
+	r.statusManager = "tf-controller"
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&infrav1.Terraform{}, builder.WithPredicates(
@@ -1554,7 +1547,7 @@ func (r *TerraformReconciler) patchStatus(ctx context.Context, objectKey types.N
 	patch := client.MergeFrom(terraform.DeepCopy())
 	terraform.Status = newStatus
 
-	return r.Status().Patch(ctx, &terraform, patch)
+	return r.Status().Patch(ctx, &terraform, patch, client.FieldOwner(r.statusManager))
 }
 
 func (r *TerraformReconciler) verifyArtifact(artifact *sourcev1.Artifact, buf *bytes.Buffer, reader io.Reader) error {
@@ -2231,59 +2224,4 @@ func (r *TerraformReconciler) outputsMayBeDrifted(ctx context.Context, terraform
 	}
 
 	return false, nil
-}
-
-func (r *TerraformReconciler) setForceUnlock(ctx context.Context, objectKey types.NamespacedName, lockID string) error {
-	log := ctrl.LoggerFrom(ctx)
-	var terraform infrav1.Terraform
-	err := r.Get(ctx, objectKey, &terraform)
-
-	if err != nil {
-		log.Error(err, "unable to get object")
-		return err
-	}
-
-	patch := client.MergeFrom(terraform.DeepCopy())
-
-	if lockID != "" {
-		terraform = infrav1.TerraformLocked(terraform, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", lockID))
-
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
-			log.Error(err, "unable to patch object status")
-			return err
-		}
-
-		err := r.Get(ctx, objectKey, &terraform)
-
-		if err != nil {
-			log.Error(err, "unable to get object")
-			return err
-		}
-
-		patch = client.MergeFrom(terraform.DeepCopy())
-
-		if terraform.Spec.TFState != nil {
-			terraform.Spec.TFState.LockIdentifier = lockID
-		} else {
-			terraform.Spec.TFState = &infrav1.TFStateSpec{
-				ForceUnlock:    infrav1.ForceUnlockEnumNo,
-				LockIdentifier: lockID,
-			}
-		}
-	} else {
-		if terraform.Spec.TFState.ForceUnlock != infrav1.ForceUnlockEnumAuto {
-			terraform.Spec.TFState = nil
-		} else {
-			terraform.Spec.TFState.LockIdentifier = ""
-		}
-	}
-
-	err = r.Patch(ctx, &terraform, patch)
-
-	if err != nil {
-		log.Error(err, "unable to patch object")
-		return err
-	}
-
-	return nil
 }

@@ -430,6 +430,33 @@ spec:
                   TF executions, it does not apply to already started executions.
                   Defaults to false.
                 type: boolean
+              tfstate:
+                description: TFStateSpec allows the user to set ForceUnlock
+                properties:
+                  forceUnlock:
+                    default: "no"
+                    description: "ForceUnlock a Terraform state if it has become locked
+                      for any reason. \n This is an Enum and has the expected values
+                      of: \n - auto - yes - no \n WARNING: Only use `auto` in the
+                      cases where you are absolutely certain that no other system
+                      is using this state, you could otherwise end up in a bad place
+                      See https://www.terraform.io/language/state/locking#force-unlock
+                      for more information on the terraform state lock and force unlock."
+                    enum:
+                    - "yes"
+                    - "no"
+                    - auto
+                    type: string
+                  lockIdentifier:
+                    description: "LockIdentifier holds the Identifier required by
+                      Terraform to unlock the state if it ever gets into a locked
+                      state. \n You'll need to put the Lock Identifier in here while
+                      setting ForceUnlock to either `true` or `auto`. \n Leave this
+                      empty to do nothing, set this to the value of the `Lock Info:
+                      ID: [value]`, e.g. `f2ab685b-f84d-ac0b-a125-378a22877e8d`, to
+                      force unlock the state."
+                    type: string
+                type: object
               vars:
                 description: List of input variables to set for the Terraform program.
                 items:
@@ -718,6 +745,17 @@ spec:
                   planning process. The result could be either no plan change or a
                   new plan generated.
                 type: string
+              lock:
+                description: LockStatus defines the observed state of a Terraform
+                  State Lock
+                properties:
+                  lastApplied:
+                    type: string
+                  pending:
+                    description: Pending holds the identifier of the Lock Holder to
+                      be used with Force Unlock
+                    type: string
+                type: object
               observedGeneration:
                 description: ObservedGeneration is the last reconciled generation.
                 format: int64
