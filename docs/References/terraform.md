@@ -329,6 +329,50 @@ When not specified, default 20s timeout is used.</p>
 </table>
 </div>
 </div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.LockStatus">LockStatus
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformStatus">TerraformStatus</a>)
+</p>
+<p>LockStatus defines the observed state of a Terraform State Lock</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>lastApplied</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>pending</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Pending holds the identifier of the Lock Holder to be used with Force Unlock</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="infra.contrib.fluxcd.io/v1alpha1.PlanStatus">PlanStatus
 </h3>
 <p>
@@ -1649,6 +1693,19 @@ ResourceInventory
 <td>
 <em>(Optional)</em>
 <p>Inventory contains the list of Terraform resource object references that have been successfully applied.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>lock</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.LockStatus">
+LockStatus
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
 </td>
 </tr>
 </tbody>

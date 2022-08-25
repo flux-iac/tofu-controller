@@ -748,6 +748,17 @@ spec:
                   planning process. The result could be either no plan change or a
                   new plan generated.
                 type: string
+              lock:
+                description: LockStatus defines the observed state of a Terraform
+                  State Lock
+                properties:
+                  lastApplied:
+                    type: string
+                  pending:
+                    description: Pending holds the identifier of the Lock Holder to
+                      be used with Force Unlock
+                    type: string
+                type: object
               observedGeneration:
                 description: ObservedGeneration is the last reconciled generation.
                 format: int64

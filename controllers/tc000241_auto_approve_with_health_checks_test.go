@@ -148,7 +148,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":            "Apply",
+		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
 		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
@@ -223,7 +223,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 		}
 		return nil
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":    "HealthCheck",
+		"Type":    infrav1.ConditionTypeHealthCheck,
 		"Reason":  "HealthChecksSucceed",
 		"Message": "Health checks succeeded",
 	}))
