@@ -478,7 +478,7 @@ func GetPlanIdAndApproveMessage(revision string, message string) (string, string
 	return planId, approveMessage
 }
 
-func TerraformPlannedWithChanges(terraform Terraform, revision string, message string) Terraform {
+func TerraformPlannedWithChanges(terraform Terraform, revision string, forceOrAutoApply bool, message string) Terraform {
 	planId, approveMessage := GetPlanIdAndApproveMessage(revision, message)
 	newCondition := metav1.Condition{
 		Type:    ConditionTypePlan,
@@ -498,7 +498,12 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, message s
 		(&terraform).Status.LastPlannedRevision = revision
 	}
 
-	SetTerraformReadiness(&terraform, metav1.ConditionUnknown, "TerraformPlannedWithChanges", approveMessage, revision)
+	if forceOrAutoApply {
+		SetTerraformReadiness(&terraform, metav1.ConditionUnknown, "TerraformPlannedWithChanges", message, revision)
+	} else {
+		// this is the manual mode, where we don't want to apply the plan
+		SetTerraformReadiness(&terraform, metav1.ConditionUnknown, "TerraformPlannedWithChanges", approveMessage, revision)
+	}
 	return terraform
 }
 
