@@ -73,3 +73,6 @@ eksSecurityGroupPolicy:
   # - sg-1234567890
   # - sg-1234567891
   # - sg-1234567892
+
+# The event address, default to the address of the Notification Controller
+eventsAddress: http://notification-controller.flux-system.svc.cluster.local./
