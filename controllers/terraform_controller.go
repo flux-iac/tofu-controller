@@ -161,6 +161,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 	}
 
+	// sourceObj does not exist, return early
 	if sourceObj.GetArtifact() == nil {
 		msg := "Source is not ready, artifact not found"
 		terraform = infrav1.TerraformNotReady(terraform, "", infrav1.ArtifactFailedReason, msg)
@@ -940,7 +941,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 		if st, ok := status.FromError(err); ok {
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
-					msg := fmt.Sprintf("Terraform drift detection error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
+					msg := fmt.Sprintf("Drift detection error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
 					r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
 					eventSent = true
 					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
@@ -949,7 +950,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 		}
 
 		if eventSent == false {
-			msg := fmt.Sprintf("Terraform drift detection error: %s", err.Error())
+			msg := fmt.Sprintf("Drift detection error: %s", err.Error())
 			r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
 		}
 
@@ -985,7 +986,11 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 			log.Info(fmt.Sprintf("show plan: %s", showPlanFileRawReply.RawOutput))
 		}
 
-		r.event(ctx, terraform, revision, events.EventSeverityError, fmt.Sprintf("Terraform drift detected.\n%s", rawOutput), nil)
+		// Clean up the message for Terraform v1.1.9.
+		rawOutput = strings.Replace(rawOutput, "You can apply this plan to save these new output values to the Terraform\nstate, without changing any real infrastructure.", "", 1)
+
+		msg := fmt.Sprintf("Drift detected.\n%s", rawOutput)
+		r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
 
 		// If drift detected & we use the auto mode, then we continue
 		terraform = infrav1.TerraformDriftDetected(terraform, revision, infrav1.DriftDetectedReason, rawOutput)
@@ -1023,9 +1028,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 
 	// check if destroy is set to true or
 	// the object is being deleted and DestroyResourcesOnDeletion is set to true
-	if terraform.Spec.Destroy ||
-		!terraform.ObjectMeta.DeletionTimestamp.IsZero() &&
-			terraform.Spec.DestroyResourcesOnDeletion {
+	if terraform.Spec.Destroy || (!terraform.ObjectMeta.DeletionTimestamp.IsZero() && terraform.Spec.DestroyResourcesOnDeletion) {
 		log.Info("plan to destroy")
 		planRequest.Destroy = true
 	}
@@ -1037,7 +1040,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		if st, ok := status.FromError(err); ok {
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
-					msg := fmt.Sprintf("Terraform plan error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
+					msg := fmt.Sprintf("Plan error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
 					r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
 					eventSent = true
 					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
@@ -1046,7 +1049,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		}
 
 		if eventSent == false {
-			msg := fmt.Sprintf("Terraform plan error: %s", err.Error())
+			msg := fmt.Sprintf("Plan error: %s", err.Error())
 			r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
 		}
 		err = fmt.Errorf("error running Plan: %s", err)
@@ -1081,10 +1084,15 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	log.Info(fmt.Sprintf("save tfplan: %s", saveTFPlanReply.Message))
 
 	if drifted {
-		_, approveMessage := infrav1.GetPlanIdAndApproveMessage(revision, "Plan generated")
-		msg := fmt.Sprintf("Terraform planned.\n%s", approveMessage)
-		r.event(ctx, terraform, revision, events.EventSeverityInfo, msg, nil)
-		terraform = infrav1.TerraformPlannedWithChanges(terraform, revision, "Plan generated")
+		forceOrAutoApply := r.forceOrAutoApply(terraform)
+
+		// this is the manual mode, we fire the event to show how to apply the plan
+		if forceOrAutoApply == false {
+			_, approveMessage := infrav1.GetPlanIdAndApproveMessage(revision, "Plan generated")
+			msg := fmt.Sprintf("Planned.\n%s", approveMessage)
+			r.event(ctx, terraform, revision, events.EventSeverityInfo, msg, nil)
+		}
+		terraform = infrav1.TerraformPlannedWithChanges(terraform, revision, forceOrAutoApply, "Plan generated")
 	} else {
 		terraform = infrav1.TerraformPlannedNoChanges(terraform, revision, "Plan no changes")
 	}
@@ -1162,7 +1170,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 			if st, ok := status.FromError(err); ok {
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.DestroyReply); ok {
-						msg := fmt.Sprintf("Terraform destroy error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
+						msg := fmt.Sprintf("Destroy error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
 						r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
 						eventSent = true
 						terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
@@ -1171,7 +1179,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 			}
 
 			if eventSent == false {
-				msg := fmt.Sprintf("Terraform destroy error: %s", err.Error())
+				msg := fmt.Sprintf("Destroy error: %s", err.Error())
 				r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
 			}
 
@@ -1191,7 +1199,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 			if st, ok := status.FromError(err); ok {
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.ApplyReply); ok {
-						msg := fmt.Sprintf("Terraform apply error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
+						msg := fmt.Sprintf("Apply error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
 						r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
 						eventSent = true
 						terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
@@ -1200,7 +1208,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 			}
 
 			if eventSent == false {
-				msg := fmt.Sprintf("Terraform apply error: %s", err.Error())
+				msg := fmt.Sprintf("Apply error: %s", err.Error())
 				r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
 			}
 
@@ -1243,11 +1251,11 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	}
 
 	if isDestroyApplied {
-		msg := fmt.Sprintf("Terraform destroy applied successfully")
+		msg := fmt.Sprintf("Destroy applied successfully")
 		r.event(ctx, terraform, revision, events.EventSeverityInfo, msg, nil)
 		terraform = infrav1.TerraformApplied(terraform, revision, "Destroy applied successfully", isDestroyApplied, inventoryEntries)
 	} else {
-		msg := fmt.Sprintf("Terraform applied successfully")
+		msg := fmt.Sprintf("Applied successfully")
 		r.event(ctx, terraform, revision, events.EventSeverityInfo, msg, nil)
 		terraform = infrav1.TerraformApplied(terraform, revision, "Applied successfully", isDestroyApplied, inventoryEntries)
 	}
@@ -1372,7 +1380,7 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 		for k, _ := range data {
 			keysWritten = append(keysWritten, k)
 		}
-		msg := fmt.Sprintf("Terraform %d output(s) written.\nOutputs: %s", len(keysWritten), strings.Join(keysWritten, ", "))
+		msg := fmt.Sprintf("Outputs written.\n%d output(s): %s", len(keysWritten), strings.Join(keysWritten, ", "))
 		r.event(ctx, terraform, revision, events.EventSeverityInfo, msg, nil)
 	}
 
@@ -1671,7 +1679,9 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 	log := ctrl.LoggerFrom(ctx)
 	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
 
+	// TODO how to completely delete without planning?
 	if terraform.Spec.DestroyResourcesOnDeletion {
+		// TODO There's a case of sourceObj got deleted before finalize is called.
 		revision := sourceObj.GetArtifact().Revision
 		terraform, tfInstance, tmpDir, err := r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey)
 
@@ -1689,6 +1699,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 			return ctrl.Result{Requeue: true}, err
 		}
 
+		// This will create the "destroy" plan because deletion timestamp is set.
 		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision)
 		if err != nil {
 			return ctrl.Result{Requeue: true}, err
@@ -1855,7 +1866,7 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 			}
 
 			if err := r.doTCPHealthCheck(ctx, hc.Name, parsed, hc.GetTimeout()); err != nil {
-				msg := fmt.Sprintf("Terraform TCP health check error: %s, url: %s", hc.Name, hc.Address)
+				msg := fmt.Sprintf("TCP health check error: %s, url: %s", hc.Name, hc.Address)
 				r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
@@ -1873,7 +1884,7 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 			}
 
 			if err := r.doHTTPHealthCheck(ctx, hc.Name, parsed, hc.GetTimeout()); err != nil {
-				msg := fmt.Sprintf("Terraform HTTP health check error: %s, url: %s", hc.Name, hc.URL)
+				msg := fmt.Sprintf("HTTP health check error: %s, url: %s", hc.Name, hc.URL)
 				r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
