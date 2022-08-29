@@ -1,6 +1,6 @@
 # Weave GitOps Terraform Controller
 
-![Version: 0.5.2](https://img.shields.io/badge/Version-0.5.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.12.0-rc.2](https://img.shields.io/badge/AppVersion-v0.12.0--rc.2-informational?style=flat-square)
+![Version: 0.5.3](https://img.shields.io/badge/Version-0.5.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.12.0-rc.2](https://img.shields.io/badge/AppVersion-v0.12.0--rc.2-informational?style=flat-square)
 
 The Helm chart for Weave GitOps Terraform Controller
 
@@ -34,6 +34,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | eksSecurityGroupPolicy | object | `{"create":false,"ids":[]}` | Create an AWS EKS Security Group Policy with the supplied Security Group IDs [See](https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html#deploy-securitygrouppolicy) |
 | eksSecurityGroupPolicy.create | bool | `false` | Create the EKS SecurityGroupPolicy |
 | eksSecurityGroupPolicy.ids | list | `[]` | List of AWS Security Group IDs |
+| eventsAddress | string | `"http://notification-controller.flux-system.svc.cluster.local./"` | The event address, default to the address of the Notification Controller |
 | extraEnv | object | `{}` | Additional container environment variables. |
 | fullnameOverride | string | `""` | Provide a fullname  |
 | image.pullPolicy | string | `"IfNotPresent"` | Controller image pull policy |

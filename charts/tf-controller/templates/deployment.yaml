@@ -39,6 +39,7 @@ spec:
         - --cert-validity-duration={{ .Values.certValidityDuration }}
         - --runner-creation-timeout={{ .Values.runner.creationTimeout }}
         - --runner-grpc-max-message-size={{ .Values.runner.grpc.maxMessageSize }}
+        - --events-addr={{ .Values.eventsAddress }}
         command:
         - /sbin/tini
         - --
