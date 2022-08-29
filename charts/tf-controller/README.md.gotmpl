@@ -1,0 +1,30 @@
+# Weave GitOps Terraform Controller
+
+{{ template "chart.badgesSection" . }}
+
+The Helm chart for Weave GitOps Terraform Controller
+
+## Installation
+
+Before using TF-controller, you have to install Flux by using either `flux install` or `flux bootstrap` command.
+After that you can install TF-controller manually with Helm by:
+
+```shell
+# Add tf-controller helm repository
+helm repo add tf-controller https://weaveworks.github.io/tf-controller/
+
+# Install tf-controller
+helm upgrade -i tf-controller tf-controller/tf-controller \
+    --namespace flux-system
+```
+
+## Configuration
+
+The following table lists the configurable parameters of the TF-controller chart and their default values.
+
+__Note__: If you need to use the `imagePullSecrets` it would be best to set `serviceAccount.create: true` and `runner.serviceAccount.create: true`
+
+{{ template "chart.valuesTable" . }}
+
+
+{{ template "helm-docs.versionFooter" . }}
