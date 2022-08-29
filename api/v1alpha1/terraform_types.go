@@ -183,6 +183,10 @@ type TerraformSpec struct {
 
 	// +optional
 	TFState *TFStateSpec `json:"tfstate,omitempty"`
+
+	// Targets specify the resource, module or collection of resources to target.
+	// +optional
+	Targets []string `json:"targets,omitempty"`
 }
 
 type PlanStatus struct {
