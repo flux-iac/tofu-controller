@@ -16,6 +16,9 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
+        {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
         {{- include "tf-controller.selectorLabels" . | nindent 10 }}
     spec:
       {{- if not .Values.serviceAccount.create }}
@@ -47,12 +50,12 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         - name: RUNNER_POD_IMAGE
-          value: "{{ .Values.runner.image.repository }}:{{ .Values.runner.image.tag}}"
+          value: "{{ .Values.runner.image.repository }}:{{ default .Chart.AppVersion .Values.runner.image.tag }}"
         {{- range $key, $value := .Values.extraEnv }}
         - name: {{ $key }}
           value: {{ $value }}
         {{- end }}
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag}}"
+        image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         livenessProbe:
           httpGet:
@@ -94,4 +97,7 @@ spec:
       {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
       {{- end }}
