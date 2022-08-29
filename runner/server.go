@@ -4,21 +4,20 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strings"
-
-	tfjson "github.com/hashicorp/terraform-json"
-
-	"errors"
 
 	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/fluxcd/pkg/untar"
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/terraform-exec/tfexec"
+	tfjson "github.com/hashicorp/terraform-json"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/utils"
 	"google.golang.org/grpc/codes"
@@ -796,42 +795,52 @@ func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutp
 	objectKey := types.NamespacedName{Namespace: req.Namespace, Name: req.SecretName}
 	var outputSecret corev1.Secret
 
+	drift := true
 	if err := r.Client.Get(ctx, objectKey, &outputSecret); err == nil {
-		if err := r.Client.Delete(ctx, &outputSecret); err != nil {
-			log.Error(err, "unable to delete secret")
-			return nil, err
+		// if everything is there, we don't write anything
+		if reflect.DeepEqual(outputSecret.Data, req.Data) {
+			drift = false
+		} else {
+			if err := r.Client.Delete(ctx, &outputSecret); err != nil {
+				log.Error(err, "unable to delete secret")
+				return nil, err
+			}
 		}
 	} else if apierrors.IsNotFound(err) == false {
 		log.Error(err, "unable to get output secret")
 		return nil, err
 	}
 
-	block := true
-	outputSecret = corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      req.SecretName,
-			Namespace: req.Namespace,
-			OwnerReferences: []metav1.OwnerReference{
-				{
-					APIVersion:         infrav1.GroupVersion.Version + "/" + infrav1.GroupVersion.Version,
-					Kind:               infrav1.TerraformKind,
-					Name:               req.Name,
-					UID:                types.UID(req.Uuid),
-					BlockOwnerDeletion: &block,
+	if drift {
+		block := true
+		outputSecret = corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      req.SecretName,
+				Namespace: req.Namespace,
+				OwnerReferences: []metav1.OwnerReference{
+					{
+						APIVersion:         infrav1.GroupVersion.Version + "/" + infrav1.GroupVersion.Version,
+						Kind:               infrav1.TerraformKind,
+						Name:               req.Name,
+						UID:                types.UID(req.Uuid),
+						BlockOwnerDeletion: &block,
+					},
 				},
 			},
-		},
-		Type: corev1.SecretTypeOpaque,
-		Data: req.Data,
+			Type: corev1.SecretTypeOpaque,
+			Data: req.Data,
+		}
+
+		err := r.Client.Create(ctx, &outputSecret)
+		if err != nil {
+			log.Error(err, "unable to create secret")
+			return nil, err
+		}
+
+		return &WriteOutputsReply{Message: "ok", Changed: true}, nil
 	}
 
-	err := r.Client.Create(ctx, &outputSecret)
-	if err != nil {
-		log.Error(err, "unable to create secret")
-		return nil, err
-	}
-
-	return &WriteOutputsReply{Message: "ok"}, nil
+	return &WriteOutputsReply{Message: "ok", Changed: false}, nil
 }
 
 func (r *TerraformRunnerServer) GetOutputs(ctx context.Context, req *GetOutputsRequest) (*GetOutputsReply, error) {

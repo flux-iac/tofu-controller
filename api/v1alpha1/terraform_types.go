@@ -464,9 +464,22 @@ func TerraformApplied(terraform Terraform, revision string, message string, isDe
 	return terraform
 }
 
-func TerraformPlannedWithChanges(terraform Terraform, revision string, message string) Terraform {
+func GetPlanIdAndApproveMessage(revision string, message string) (string, string) {
 	planRev := strings.Replace(revision, "/", "-", 1)
 	planId := fmt.Sprintf("plan-%s", planRev)
+	shortPlanId := planId
+	parts := strings.SplitN(revision, "/", 2)
+	if len(parts) == 2 {
+		if len(parts[1]) >= 10 {
+			shortPlanId = fmt.Sprintf("plan-%s-%s", parts[0], parts[1][0:10])
+		}
+	}
+	approveMessage := fmt.Sprintf("%s: set approvePlan: \"%s\" to approve this plan.", message, shortPlanId)
+	return planId, approveMessage
+}
+
+func TerraformPlannedWithChanges(terraform Terraform, revision string, forceOrAutoApply bool, message string) Terraform {
+	planId, approveMessage := GetPlanIdAndApproveMessage(revision, message)
 	newCondition := metav1.Condition{
 		Type:    ConditionTypePlan,
 		Status:  metav1.ConditionTrue,
@@ -485,15 +498,12 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, message s
 		(&terraform).Status.LastPlannedRevision = revision
 	}
 
-	shortPlanId := planId
-	parts := strings.SplitN(revision, "/", 2)
-	if len(parts) == 2 {
-		if len(parts[1]) >= 10 {
-			shortPlanId = fmt.Sprintf("plan-%s-%s", parts[0], parts[1][0:10])
-		}
+	if forceOrAutoApply {
+		SetTerraformReadiness(&terraform, metav1.ConditionUnknown, "TerraformPlannedWithChanges", message, revision)
+	} else {
+		// this is the manual mode, where we don't want to apply the plan
+		SetTerraformReadiness(&terraform, metav1.ConditionUnknown, "TerraformPlannedWithChanges", approveMessage, revision)
 	}
-	approveMessage := fmt.Sprintf("%s: set approvePlan: \"%s\" to approve this plan.", message, shortPlanId)
-	SetTerraformReadiness(&terraform, metav1.ConditionUnknown, "TerraformPlannedWithChanges", approveMessage, revision)
 	return terraform
 }
 

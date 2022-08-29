@@ -211,6 +211,7 @@ message WriteOutputsRequest {
 
 message WriteOutputsReply {
   string message = 1;
+  bool   changed = 2;
 }
 
 message GetOutputsRequest {
