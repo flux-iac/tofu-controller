@@ -454,6 +454,10 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 		planOpt = append(planOpt, tfexec.Destroy(req.Destroy))
 	}
 
+	for _, target := range req.Targets {
+		planOpt = append(planOpt, tfexec.Target(target))
+	}
+
 	drifted, err := r.tf.Plan(ctx, planOpt...)
 	if err != nil {
 		st := status.New(codes.Internal, err.Error())
@@ -643,7 +647,12 @@ func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest
 		return nil, err
 	}
 
-	if err := r.tf.Destroy(ctx); err != nil {
+	var destroyOpt []tfexec.DestroyOption
+	for _, target := range req.Targets {
+		destroyOpt = append(destroyOpt, tfexec.Target(target))
+	}
+
+	if err := r.tf.Destroy(ctx, destroyOpt...); err != nil {
 		st := status.New(codes.Internal, err.Error())
 		var stateErr *tfexec.ErrStateLocked
 
@@ -687,6 +696,10 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 
 	if req.RefreshBeforeApply {
 		applyOpt = []tfexec.ApplyOption{tfexec.Refresh(true)}
+	}
+
+	for _, target := range req.Targets {
+		applyOpt = append(applyOpt, tfexec.Target(target))
 	}
 
 	if err := r.tf.Apply(ctx, applyOpt...); err != nil {

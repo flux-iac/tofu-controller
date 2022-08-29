@@ -929,6 +929,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 		TfInstance: tfInstance,
 		Out:        driftFilename,
 		Refresh:    true,
+		Targets:    terraform.Spec.Targets,
 	}
 	if r.backendCompletelyDisable(terraform) {
 		planRequest.Out = ""
@@ -1020,6 +1021,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		TfInstance: tfInstance,
 		Out:        tfplanFilename,
 		Refresh:    true, // be careful, refresh requires to be true by default
+		Targets:    terraform.Spec.Targets,
 	}
 
 	if r.backendCompletelyDisable(terraform) {
@@ -1146,6 +1148,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	applyRequest := &runner.ApplyRequest{
 		TfInstance:         tfInstance,
 		RefreshBeforeApply: terraform.Spec.RefreshBeforeApply,
+		Targets:            terraform.Spec.Targets,
 	}
 	if r.backendCompletelyDisable(terraform) {
 		// do nothing
@@ -1162,6 +1165,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	if r.backendCompletelyDisable(terraform) && terraform.Spec.Destroy == true {
 		destroyReply, err := runnerClient.Destroy(ctx, &runner.DestroyRequest{
 			TfInstance: tfInstance,
+			Targets:    terraform.Spec.Targets,
 		})
 		log.Info(fmt.Sprintf("destroy: %s", destroyReply.Message))
 
