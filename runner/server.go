@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/weaveworks/tf-controller/controllers"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -33,8 +34,11 @@ import (
 )
 
 const (
-	TFPlanName                = "tfplan"
-	SavedPlanSecretAnnotation = "savedPlan"
+	TFPlanName                         = "tfplan"
+	SavedPlanSecretAnnotation          = "savedPlan"
+	runnerFileMappingLocationHome      = "home"
+	runnerFileMappingLocationWorkspace = "workspace"
+	runnerFileMappingSecretKey         = "content"
 )
 
 type LocalPrintfer struct {
@@ -214,6 +218,51 @@ func (r *TerraformRunnerServer) SetEnv(ctx context.Context, req *SetEnvRequest) 
 	}
 
 	return &SetEnvReply{Message: "ok"}, nil
+}
+
+func (r *TerraformRunnerServer) CreateFileMappings(ctx context.Context, req *CreateFileMappingsRequest) (*CreateFileMappingsReply, error) {
+	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log.Info("creating file mappings")
+
+	for _, fileMapping := range req.FileMappings {
+		var fileFullPath string
+		switch fileMapping.Location {
+		case runnerFileMappingLocationHome:
+			fileFullPath = filepath.Join(controllers.RunnerHomePath, fileMapping.Path)
+		case runnerFileMappingLocationWorkspace:
+			// workingDir
+			fileFullPath = filepath.Join("", fileMapping.Path)
+		}
+
+		// Get the secret output
+		var content string
+		secret := &corev1.Secret{}
+		objectKey := types.NamespacedName{
+			Namespace: r.terraform.Namespace,
+			Name:      fileMapping.SecretRefName,
+		}
+		if err := r.Get(ctx, objectKey, secret); err != nil {
+			log.Error(err, "Unable to retrieve secret of mapping", "file", fileFullPath, "secret", fileMapping.SecretRefName)
+			return nil, err
+		}
+		content = secret.StringData[runnerFileMappingSecretKey]
+
+		// Create file
+		f, err := os.Create(fileFullPath)
+		if err != nil {
+			log.Error(err, "Unable to create file from mapping", "file", fileFullPath)
+			return nil, err
+		}
+		defer f.Close()
+
+		// Upload content
+		if _, err = f.WriteString(content); err != nil {
+			log.Error(err, "Unable to write content to file from secret", "file", fileFullPath, "secret")
+			return nil, err
+		}
+	}
+
+	return &CreateFileMappingsReply{Message: "ok"}, nil
 }
 
 func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*InitReply, error) {

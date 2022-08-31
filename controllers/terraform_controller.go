@@ -87,6 +87,8 @@ type TerraformReconciler struct {
 	RunnerGRPCMaxMessageSize int
 }
 
+const RunnerHomePath = "/home/runner"
+
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms/finalizers,verbs=get;create;update;patch;delete
@@ -820,6 +822,31 @@ terraform {
 			infrav1.TFExecInitFailedReason,
 			err.Error(),
 		), tfInstance, tmpDir, err
+	}
+
+	if len(terraform.Spec.RunnerPodTemplate.Spec.FileMappings) > 0 {
+		log.Info("Creating mapping files")
+		var runnerMapping []*runner.FileMapping
+
+		for _, fm := range terraform.Spec.RunnerPodTemplate.Spec.FileMappings {
+			var rfm runner.FileMapping
+			rfm.SecretRefName = fm.SecretRef.Name
+			rfm.Location = fm.Location
+			rfm.Path = fm.Path
+			runnerMapping = append(runnerMapping, &rfm)
+		}
+
+		if _, err := runnerClient.CreateFileMappings(ctx, &runner.CreateFileMappingsRequest{
+			FileMappings: runnerMapping,
+		}); err != nil {
+			err = fmt.Errorf("error creating file mappings for Terraform: %s", err)
+			return infrav1.TerraformNotReady(
+				terraform,
+				revision,
+				infrav1.TFExecInitFailedReason,
+				err.Error(),
+			), tfInstance, tmpDir, err
+		}
 	}
 
 	log.Info("new terraform", "workingDir", workingDir)
@@ -2261,7 +2288,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 					},
 					{
 						Name:      "home",
-						MountPath: "/home/runner",
+						MountPath: RunnerHomePath,
 					},
 				},
 			},
