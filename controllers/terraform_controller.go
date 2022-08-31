@@ -87,8 +87,6 @@ type TerraformReconciler struct {
 	RunnerGRPCMaxMessageSize int
 }
 
-const RunnerHomePath = "/home/runner"
-
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms/finalizers,verbs=get;create;update;patch;delete
@@ -2288,7 +2286,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 					},
 					{
 						Name:      "home",
-						MountPath: RunnerHomePath,
+						MountPath: runner.RunnerHomePath,
 					},
 				},
 			},

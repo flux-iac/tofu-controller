@@ -52,7 +52,7 @@ type FileMapping struct {
 	// +required
 	Location string `json:"location"`
 	// Path of the file - relative to the "location"
-	// +kubebuilder:validation:Pattern=`^(?!\.\.\/)[a-zA-Z\/\.]*$`
+	// +kubebuilder:validation:Pattern=`^(.?[/a-zA-Z0-9]{1,})*$`
 	// +required
 	Path string `json:"path"`
 }

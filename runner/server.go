@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/weaveworks/tf-controller/controllers"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -39,6 +38,7 @@ const (
 	runnerFileMappingLocationHome      = "home"
 	runnerFileMappingLocationWorkspace = "workspace"
 	runnerFileMappingSecretKey         = "content"
+	RunnerHomePath                     = "/home/runner"
 )
 
 type LocalPrintfer struct {
@@ -228,7 +228,7 @@ func (r *TerraformRunnerServer) CreateFileMappings(ctx context.Context, req *Cre
 		var fileFullPath string
 		switch fileMapping.Location {
 		case runnerFileMappingLocationHome:
-			fileFullPath = filepath.Join(controllers.RunnerHomePath, fileMapping.Path)
+			fileFullPath = filepath.Join(RunnerHomePath, fileMapping.Path)
 		case runnerFileMappingLocationWorkspace:
 			// workingDir
 			fileFullPath = filepath.Join("", fileMapping.Path)
