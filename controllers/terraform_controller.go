@@ -822,6 +822,23 @@ terraform {
 		), tfInstance, tmpDir, err
 	}
 
+	if len(terraform.Spec.RunnerPodTemplate.Spec.Commands) > 0 {
+		log.Info("running pre init commands")
+		if _, err := runnerClient.PreInit(
+			ctx,
+			&runner.PreInitRequest{
+				Commands: terraform.Spec.RunnerPodTemplate.Spec.Commands,
+			}); err != nil {
+			err = fmt.Errorf("error running pre-init commands: %s", err)
+			return infrav1.TerraformNotReady(
+				terraform,
+				revision,
+				infrav1.TFExecInitFailedReason,
+				err.Error(),
+			), tfInstance, tmpDir, err
+		}
+	}
+
 	log.Info("new terraform", "workingDir", workingDir)
 
 	// TODO we currently use a fork version of TFExec to workaround the forceCopy bug

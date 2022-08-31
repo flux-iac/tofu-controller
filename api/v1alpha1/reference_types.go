@@ -163,6 +163,11 @@ type RunnerPodSpec struct {
 	// +patchMergeKey=name
 	// +patchStrategy=merge
 	Env []corev1.EnvVar `json:"env,omitempty" patchStrategy:"merge" patchMergeKey:"name"`
+
+	// List of commands (one command per line) to execute in the container.
+	// Cannot be updated.
+	// +optional
+	Commands []string `json:"commands,omitempty"`
 }
 
 func (in HealthCheck) GetTimeout() time.Duration {

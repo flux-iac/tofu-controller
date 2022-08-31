@@ -7,6 +7,7 @@ service Runner {
   rpc LookPath(LookPathRequest) returns (LookPathReply) {}
   rpc NewTerraform(NewTerraformRequest) returns (NewTerraformReply) {}
   rpc SetEnv(SetEnvRequest) returns (SetEnvReply) {}
+  rpc PreInit(PreInitRequest) returns (PreInitReply) {}
 
   rpc UploadAndExtract(UploadAndExtractRequest) returns (UploadAndExtractReply) {}
   rpc CleanupDir(CleanupDirRequest) returns (CleanupDirReply) {}
@@ -56,6 +57,14 @@ message SetEnvRequest {
 }
 
 message SetEnvReply {
+  string message = 1;
+}
+
+message PreInitRequest {
+  repeated string commands = 1;
+}
+
+message PreInitReply {
   string message = 1;
 }
 

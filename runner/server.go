@@ -216,6 +216,23 @@ func (r *TerraformRunnerServer) SetEnv(ctx context.Context, req *SetEnvRequest) 
 	return &SetEnvReply{Message: "ok"}, nil
 }
 
+func (r *TerraformRunnerServer) PreInit(ctx context.Context, req *PreInitRequest) (*PreInitReply, error) {
+	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log.Info("running pre init commands")
+	var output bytes.Buffer
+	for _, command := range req.Commands {
+		cmd := exec.Command("/bin/sh", "-c", command)
+		result, err := cmd.CombinedOutput()
+		if err != nil {
+			log.Error(err, "unable to run command", "command", command)
+			return nil, err
+		}
+		output.Write(result)
+		output.WriteByte('\n')
+	}
+	return &PreInitReply{Message: output.String()}, nil
+}
+
 func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*InitReply, error) {
 	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
 	log.Info("initializing")
