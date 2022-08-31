@@ -36,6 +36,27 @@ func (s *CrossNamespaceSourceReference) String() string {
 	return fmt.Sprintf("%s/%s", s.Kind, s.Name)
 }
 
+// LocalObjectNameRef is an object that serves a name reference to a local
+// Kubernetes resource object at the namespace level.
+type LocalObjectNameRef struct {
+	// Name of the resource
+	// +required
+	Name string `json:"name"`
+}
+
+type FileMapping struct {
+	// Reference to a Secret that contains the file content
+	SecretRef LocalObjectNameRef `json:"secretRef"`
+	// Location can be either user's home directory or the Terraform workspace
+	// +kubebuilder:validation:Enum=home;workspace
+	// +required
+	Location string `json:"location"`
+	// Path of the file - relative to the "location"
+	// +kubebuilder:validation:Pattern=`^(?!\.\.\/)[a-zA-Z\/\.]*$`
+	// +required
+	Path string `json:"path"`
+}
+
 type BackendConfigsReference struct {
 	// Kind of the values referent, valid values are ('Secret', 'ConfigMap').
 	// +kubebuilder:validation:Enum=Secret;ConfigMap
@@ -163,6 +184,10 @@ type RunnerPodSpec struct {
 	// +patchMergeKey=name
 	// +patchStrategy=merge
 	Env []corev1.EnvVar `json:"env,omitempty" patchStrategy:"merge" patchMergeKey:"name"`
+
+	// List of all configuration files to be created in initialization.
+	// +optional
+	FileMappings []FileMapping `json:"fileMappings,omitempty"`
 }
 
 func (in HealthCheck) GetTimeout() time.Duration {

@@ -7,6 +7,7 @@ service Runner {
   rpc LookPath(LookPathRequest) returns (LookPathReply) {}
   rpc NewTerraform(NewTerraformRequest) returns (NewTerraformReply) {}
   rpc SetEnv(SetEnvRequest) returns (SetEnvReply) {}
+  rpc CreateFileMappings(CreateFileMappingsRequest) returns (CreateFileMappingsReply) {}
 
   rpc UploadAndExtract(UploadAndExtractRequest) returns (UploadAndExtractReply) {}
   rpc CleanupDir(CleanupDirRequest) returns (CleanupDirReply) {}
@@ -56,6 +57,20 @@ message SetEnvRequest {
 }
 
 message SetEnvReply {
+  string message = 1;
+}
+
+message fileMapping {
+  string secretRefName = 1;
+  string location = 2;
+  string path = 3;
+}
+
+message CreateFileMappingsRequest {
+  repeated fileMapping fileMappings = 1;
+}
+
+message CreateFileMappingsReply {
   string message = 1;
 }
 
