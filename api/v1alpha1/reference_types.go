@@ -163,6 +163,18 @@ type RunnerPodSpec struct {
 	// +patchMergeKey=name
 	// +patchStrategy=merge
 	Env []corev1.EnvVar `json:"env,omitempty" patchStrategy:"merge" patchMergeKey:"name"`
+
+	// Set the NodeSelector for the Runner Pod
+	// +optional
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+
+	// Set the Affinity for the Runner Pod
+	// +optional
+	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+
+	// Set the Tolerations for the Runner Pod
+	// +optional
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 }
 
 func (in HealthCheck) GetTimeout() time.Duration {
