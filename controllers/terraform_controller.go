@@ -71,6 +71,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
+const runnerFileMappingSecretKey = "content"
+
 // TerraformReconciler reconciles a Terraform object
 type TerraformReconciler struct {
 	client.Client
@@ -823,19 +825,22 @@ terraform {
 	}
 
 	if len(terraform.Spec.RunnerPodTemplate.Spec.FileMappings) > 0 {
-		log.Info("Creating mapping files")
-		var runnerMapping []*runner.FileMapping
-
-		for _, fm := range terraform.Spec.RunnerPodTemplate.Spec.FileMappings {
-			var rfm runner.FileMapping
-			rfm.SecretRefName = fm.SecretRef.Name
-			rfm.Location = fm.Location
-			rfm.Path = fm.Path
-			runnerMapping = append(runnerMapping, &rfm)
+		log.Info("generate runner mapping files")
+		runnerFileMappingList, err := r.createRunnerFileMapping(ctx, terraform)
+		if err != nil {
+			err = fmt.Errorf("error creating runner file mappings: %s", err)
+			return infrav1.TerraformNotReady(
+				terraform,
+				revision,
+				infrav1.TFExecInitFailedReason,
+				err.Error(),
+			), tfInstance, tmpDir, err
 		}
 
+		log.Info("create mapping files")
 		if _, err := runnerClient.CreateFileMappings(ctx, &runner.CreateFileMappingsRequest{
-			FileMappings: runnerMapping,
+			WorkingDir:   workingDir,
+			FileMappings: runnerFileMappingList,
 		}); err != nil {
 			err = fmt.Errorf("error creating file mappings for Terraform: %s", err)
 			return infrav1.TerraformNotReady(
@@ -938,6 +943,30 @@ terraform {
 	}
 
 	return terraform, tfInstance, tmpDir, nil
+}
+
+func (r *TerraformReconciler) createRunnerFileMapping(ctx context.Context, terraform infrav1.Terraform) ([]*runner.FileMapping, error) {
+	var runnerFileMappingList []*runner.FileMapping
+
+	for _, fileMapping := range terraform.Spec.RunnerPodTemplate.Spec.FileMappings {
+		var runnerFileMapping runner.FileMapping
+
+		secret := &corev1.Secret{}
+		secretLookupKey := types.NamespacedName{
+			Namespace: terraform.Namespace,
+			Name:      fileMapping.SecretRef.Name,
+		}
+		if err := r.Get(ctx, secretLookupKey, secret); err != nil {
+			return runnerFileMappingList, err
+		}
+
+		runnerFileMapping.Content = string(secret.Data[runnerFileMappingSecretKey])
+		runnerFileMapping.Location = fileMapping.Location
+		runnerFileMapping.Path = fileMapping.Path
+		runnerFileMappingList = append(runnerFileMappingList, &runnerFileMapping)
+	}
+
+	return runnerFileMappingList, nil
 }
 
 func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string) (infrav1.Terraform, error) {
@@ -2286,7 +2315,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 					},
 					{
 						Name:      "home",
-						MountPath: runner.RunnerHomePath,
+						MountPath: runner.HomePath,
 					},
 				},
 			},

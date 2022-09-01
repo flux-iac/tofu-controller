@@ -394,7 +394,7 @@ spec:
                               type: string
                             path:
                               description: Path of the file - relative to the "location"
-                              pattern: ^(.?[/a-zA-Z0-9]{1,})*$
+                              pattern: ^(.?[/_a-zA-Z0-9]{1,})*$
                               type: string
                             secretRef:
                               description: Reference to a Secret that contains the

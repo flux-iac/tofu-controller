@@ -37,8 +37,7 @@ const (
 	SavedPlanSecretAnnotation          = "savedPlan"
 	runnerFileMappingLocationHome      = "home"
 	runnerFileMappingLocationWorkspace = "workspace"
-	runnerFileMappingSecretKey         = "content"
-	RunnerHomePath                     = "/home/runner"
+	HomePath                           = "/home/runner"
 )
 
 type LocalPrintfer struct {
@@ -225,29 +224,18 @@ func (r *TerraformRunnerServer) CreateFileMappings(ctx context.Context, req *Cre
 	log.Info("creating file mappings")
 
 	for _, fileMapping := range req.FileMappings {
+		logMessage := fmt.Sprintf("fileMapping: content: %s, location: %s, path: %s", fileMapping.Content, fileMapping.Location, fileMapping.Path)
+		log.Info(logMessage)
 		var fileFullPath string
 		switch fileMapping.Location {
 		case runnerFileMappingLocationHome:
-			fileFullPath = filepath.Join(RunnerHomePath, fileMapping.Path)
+			fileFullPath = filepath.Join(HomePath, fileMapping.Path)
 		case runnerFileMappingLocationWorkspace:
-			// workingDir
-			fileFullPath = filepath.Join("", fileMapping.Path)
+			fileFullPath = filepath.Join(req.WorkingDir, fileMapping.Path)
 		}
+		logMessage = fmt.Sprintf("fullPath: %s", fileFullPath)
+		log.Info(logMessage)
 
-		// Get the secret output
-		var content string
-		secret := &corev1.Secret{}
-		objectKey := types.NamespacedName{
-			Namespace: r.terraform.Namespace,
-			Name:      fileMapping.SecretRefName,
-		}
-		if err := r.Get(ctx, objectKey, secret); err != nil {
-			log.Error(err, "Unable to retrieve secret of mapping", "file", fileFullPath, "secret", fileMapping.SecretRefName)
-			return nil, err
-		}
-		content = secret.StringData[runnerFileMappingSecretKey]
-
-		// Create file
 		f, err := os.Create(fileFullPath)
 		if err != nil {
 			log.Error(err, "Unable to create file from mapping", "file", fileFullPath)
@@ -256,8 +244,8 @@ func (r *TerraformRunnerServer) CreateFileMappings(ctx context.Context, req *Cre
 		defer f.Close()
 
 		// Upload content
-		if _, err = f.WriteString(content); err != nil {
-			log.Error(err, "Unable to write content to file from secret", "file", fileFullPath, "secret")
+		if _, err = f.WriteString(fileMapping.Content); err != nil {
+			log.Error(err, "Unable to write content to file", "file", fileFullPath, "content", fileMapping.Content)
 			return nil, err
 		}
 	}

@@ -61,13 +61,14 @@ message SetEnvReply {
 }
 
 message fileMapping {
-  string secretRefName = 1;
+  string content = 1;
   string location = 2;
   string path = 3;
 }
 
 message CreateFileMappingsRequest {
-  repeated fileMapping fileMappings = 1;
+  string workingDir = 1;
+  repeated fileMapping fileMappings = 2;
 }
 
 message CreateFileMappingsReply {
