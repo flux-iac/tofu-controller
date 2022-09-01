@@ -25,19 +25,25 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
 ### Q3 2022
   * [x] Performance
   * [x] Scalability
-  * [ ] Interop with Notification controller's Events and Alert
-  * [ ] Cloud cost estimation
-  * [ ] Test coverage reaching 72.5% 
+  * [x] Interop with Notification controller's Events and Alert
+  * [ ] Validation webhooks for the planning stage
 
 ### Q4 2022
-  * [ ] `v1alpha2` API
-  * [ ] ARM64 & Gravitron support
-  * [ ] Containerd compatibility
-  * [ ] Write back and show plan in PRs
-  * [ ] Test coverage reaching 75%
+  * [ ] Cloud cost estimation
+  * [ ] Selectable Terraform versions
+  * [ ] CLI to GitOpsify existing Terraform workflows
+  * [ ] CRD wrappers for Terraform modules
 
 ### Q1 2023
-  * [ ] Test coverage reaching 77.5%
+  * [ ] Enhanced security (the lockdown mode)
+  * [ ] External drift detector
+  * [ ] Typesafety for custom backends
+  * [ ] `v1alpha2` API
 
 ### Q2 2023
+  * [ ] Write back and show plan in PRs
+  * [ ] ARM64 & Gravitron support
+  * [ ] Containerd compatibility
+
+### Q3 2023
   * [ ] `v1beta1` API (stabilization)
