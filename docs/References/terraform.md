@@ -631,6 +631,46 @@ Cannot be updated.</p>
 Cannot be updated.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>nodeSelector</code><br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set the NodeSelector for the Runner Pod</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>affinity</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#affinity-v1-core">
+Kubernetes core/v1.Affinity
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set the Affinity for the Runner Pod</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tolerations</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core">
+[]Kubernetes core/v1.Toleration
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set the Tolerations for the Runner Pod</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -722,6 +762,46 @@ Cannot be updated.</p>
 <em>(Optional)</em>
 <p>List of environment variables to set in the container.
 Cannot be updated.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>nodeSelector</code><br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set the NodeSelector for the Runner Pod</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>affinity</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#affinity-v1-core">
+Kubernetes core/v1.Affinity
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set the Affinity for the Runner Pod</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tolerations</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core">
+[]Kubernetes core/v1.Toleration
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set the Tolerations for the Runner Pod</p>
 </td>
 </tr>
 </table>
