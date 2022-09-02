@@ -126,7 +126,7 @@ func Test_000320_vols_test(t *testing.T) {
 	}, timeout, interval).Should(BeTrue())
 
 	It("should run the pod")
-	By("checking that there is a node selector defined")
+	By("checking that there is a vol is defined")
 	runnerPod := corev1.Pod{}
 	g.Eventually(func() int {
 		err := k8sClient.Get(ctx, types.NamespacedName{Namespace: "flux-system", Name: fmt.Sprintf("%s-tf-runner", terraformName)}, &createdHelloWorldTF)
@@ -134,7 +134,7 @@ func Test_000320_vols_test(t *testing.T) {
 			return -1
 		}
 		return len(runnerPod.Spec.Volumes)
-	}, timeout*3, interval).ShouldNot(BeZero())
+	}, timeout*3, interval).Should(Equal(3))
 }
 
 func Test_000320_vol_mount_test(t *testing.T) {
@@ -244,7 +244,7 @@ func Test_000320_vol_mount_test(t *testing.T) {
 	}, timeout, interval).Should(BeTrue())
 
 	It("should run the pod")
-	By("checking that there is a node selector defined")
+	By("checking that there is a vol mount defined")
 	runnerPod := corev1.Pod{}
 	g.Eventually(func() int {
 		err := k8sClient.Get(ctx, types.NamespacedName{Namespace: "flux-system", Name: fmt.Sprintf("%s-tf-runner", terraformName)}, &createdHelloWorldTF)
@@ -252,5 +252,5 @@ func Test_000320_vol_mount_test(t *testing.T) {
 			return -1
 		}
 		return len(runnerPod.Spec.Containers[0].VolumeMounts)
-	}, timeout*3, interval).ShouldNot(BeZero())
+	}, timeout*3, interval).Should(Equal(3))
 }
