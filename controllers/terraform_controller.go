@@ -2220,7 +2220,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 	vTrue := true
 	vUser := int64(65532)
 
-	defaultVolumes := []corev1.Volume{
+	podVolumes := []corev1.Volume{
 		{
 			Name: "temp",
 			VolumeSource: corev1.VolumeSource{
@@ -2234,11 +2234,10 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 			},
 		},
 	}
-	podVolumes := defaultVolumes
 	if len(terraform.Spec.RunnerPodTemplate.Spec.Volumes) != 0 {
-		podVolumes = append(defaultVolumes, terraform.Spec.RunnerPodTemplate.Spec.Volumes...)
+		podVolumes = append(podVolumes, terraform.Spec.RunnerPodTemplate.Spec.Volumes...)
 	}
-	defaultVolumeMounts := []corev1.VolumeMount{
+	podVolumeMounts := []corev1.VolumeMount{
 		{
 			Name:      "temp",
 			MountPath: "/tmp",
@@ -2248,9 +2247,8 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 			MountPath: "/home/runner",
 		},
 	}
-	podVolumeMounts := defaultVolumeMounts
 	if len(terraform.Spec.RunnerPodTemplate.Spec.VolumeMounts) != 0 {
-		podVolumeMounts = append(defaultVolumeMounts, terraform.Spec.RunnerPodTemplate.Spec.VolumeMounts...)
+		podVolumeMounts = append(podVolumeMounts, terraform.Spec.RunnerPodTemplate.Spec.VolumeMounts...)
 	}
 
 	return corev1.PodSpec{
