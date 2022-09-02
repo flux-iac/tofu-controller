@@ -175,6 +175,14 @@ type RunnerPodSpec struct {
 	// Set the Tolerations for the Runner Pod
 	// +optional
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+
+	// Set Volume Mounts for the Runner Pod
+	// +optional
+	VolumeMounts []corev1.VolumeMount `json:"volumeMounts,omitempty"`
+
+	// Set Volumes for the Runner Pod
+	// +optional
+	Volumes []corev1.Volume `json:"volumes,omitempty"`
 }
 
 func (in HealthCheck) GetTimeout() time.Duration {
