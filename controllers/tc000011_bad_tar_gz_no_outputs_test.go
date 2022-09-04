@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -76,22 +77,24 @@ func Test_000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 
 	Given("a Terraform object with auto approve, and attaching it to the bad GitRepository resource.")
 	By("creating a new TF resource and attaching to the bad repo via `sourceRef`.")
-	helloWorldTF := infrav1.Terraform{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      terraformName,
-			Namespace: "flux-system",
-		},
-		Spec: infrav1.TerraformSpec{
-			ApprovePlan: "auto",
-			Path:        "./terraform-hello-world-example",
-			SourceRef: infrav1.CrossNamespaceSourceReference{
-				Kind:      "GitRepository",
-				Name:      sourceName,
-				Namespace: "flux-system",
-			},
-			Interval: metav1.Duration{Duration: time.Second * 10},
-		},
-	}
+	var helloWorldTF infrav1.Terraform
+	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: %s
+  namespace: flux-system
+spec:
+  approvePlan: auto
+  path: ./terraform-hello-world-example
+  sourceRef:
+    kind: GitRepository
+    name: %s
+    namespace: flux-system
+  interval: 10s
+`, terraformName, sourceName)), runnerServer.Scheme)
+	g.Expect(err).ToNot(HaveOccurred())
+
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
