@@ -400,8 +400,12 @@ spec:
                               description: Reference to a Secret that contains the
                                 file content
                               properties:
+                                key:
+                                  description: Key in the Secret, when not specified
+                                    an implementation-specific default key is used.
+                                  type: string
                                 name:
-                                  description: Name of the resource
+                                  description: Name of the Secret.
                                   type: string
                               required:
                               - name

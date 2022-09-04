@@ -960,7 +960,7 @@ func (r *TerraformReconciler) createRunnerFileMapping(ctx context.Context, terra
 			return runnerFileMappingList, err
 		}
 
-		runnerFileMapping.Content = string(secret.Data[runnerFileMappingSecretKey])
+		runnerFileMapping.Content = string(secret.Data[fileMapping.SecretRef.Key])
 		runnerFileMapping.Location = fileMapping.Location
 		runnerFileMapping.Path = fileMapping.Path
 		runnerFileMappingList = append(runnerFileMappingList, &runnerFileMapping)

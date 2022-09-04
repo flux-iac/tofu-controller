@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	"fmt"
+	"github.com/fluxcd/pkg/apis/meta"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -36,17 +37,9 @@ func (s *CrossNamespaceSourceReference) String() string {
 	return fmt.Sprintf("%s/%s", s.Kind, s.Name)
 }
 
-// LocalObjectNameRef is an object that serves a name reference to a local
-// Kubernetes resource object at the namespace level.
-type LocalObjectNameRef struct {
-	// Name of the resource
-	// +required
-	Name string `json:"name"`
-}
-
 type FileMapping struct {
 	// Reference to a Secret that contains the file content
-	SecretRef LocalObjectNameRef `json:"secretRef"`
+	SecretRef meta.SecretKeyReference `json:"secretRef"`
 	// Location can be either user's home directory or the Terraform workspace
 	// +kubebuilder:validation:Enum=home;workspace
 	// +required
