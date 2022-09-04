@@ -2,8 +2,9 @@ package v1alpha1
 
 import (
 	"fmt"
-	"github.com/fluxcd/pkg/apis/meta"
 	"time"
+
+	"github.com/fluxcd/pkg/apis/meta"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -181,6 +182,18 @@ type RunnerPodSpec struct {
 	// List of all configuration files to be created in initialization.
 	// +optional
 	FileMappings []FileMapping `json:"fileMappings,omitempty"`
+
+	// Set the NodeSelector for the Runner Pod
+	// +optional
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+
+	// Set the Affinity for the Runner Pod
+	// +optional
+	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+
+	// Set the Tolerations for the Runner Pod
+	// +optional
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 }
 
 func (in HealthCheck) GetTimeout() time.Duration {
