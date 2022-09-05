@@ -232,11 +232,6 @@ func (in *RunnerPodSpec) DeepCopyInto(out *RunnerPodSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	if in.FileMappings != nil {
-		in, out := &in.FileMappings, &out.FileMappings
-		*out = make([]FileMapping, len(*in))
-		copy(*out, *in)
-	}
 	if in.NodeSelector != nil {
 		in, out := &in.NodeSelector, &out.NodeSelector
 		*out = make(map[string]string, len(*in))
@@ -387,6 +382,11 @@ func (in *TerraformSpec) DeepCopyInto(out *TerraformSpec) {
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
+	}
+	if in.FileMappings != nil {
+		in, out := &in.FileMappings, &out.FileMappings
+		*out = make([]FileMapping, len(*in))
+		copy(*out, *in)
 	}
 	out.Interval = in.Interval
 	if in.RetryInterval != nil {

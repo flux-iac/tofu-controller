@@ -141,6 +141,40 @@ spec:
                 description: EnableInventory enables the object to store resource
                   entries as the inventory for external use.
                 type: boolean
+              fileMappings:
+                description: List of all configuration files to be created in initialization.
+                items:
+                  properties:
+                    location:
+                      description: Location can be either user's home directory or
+                        the Terraform workspace
+                      enum:
+                      - home
+                      - workspace
+                      type: string
+                    path:
+                      description: Path of the file - relative to the "location"
+                      pattern: ^(.?[/_a-zA-Z0-9]{1,})*$
+                      type: string
+                    secretRef:
+                      description: Reference to a Secret that contains the file content
+                      properties:
+                        key:
+                          description: Key in the Secret, when not specified an implementation-specific
+                            default key is used.
+                          type: string
+                        name:
+                          description: Name of the Secret.
+                          type: string
+                      required:
+                      - name
+                      type: object
+                  required:
+                  - location
+                  - path
+                  - secretRef
+                  type: object
+                type: array
               force:
                 default: false
                 description: Force instructs the controller to unconditionally re-plan
@@ -1269,42 +1303,6 @@ spec:
                                     defined
                                   type: boolean
                               type: object
-                          type: object
-                        type: array
-                      fileMappings:
-                        description: List of all configuration files to be created
-                          in initialization.
-                        items:
-                          properties:
-                            location:
-                              description: Location can be either user's home directory
-                                or the Terraform workspace
-                              enum:
-                              - home
-                              - workspace
-                              type: string
-                            path:
-                              description: Path of the file - relative to the "location"
-                              pattern: ^(.?[/_a-zA-Z0-9]{1,})*$
-                              type: string
-                            secretRef:
-                              description: Reference to a Secret that contains the
-                                file content
-                              properties:
-                                key:
-                                  description: Key in the Secret, when not specified
-                                    an implementation-specific default key is used.
-                                  type: string
-                                name:
-                                  description: Name of the Secret.
-                                  type: string
-                              required:
-                              - name
-                              type: object
-                          required:
-                          - location
-                          - path
-                          - secretRef
                           type: object
                         type: array
                       image:

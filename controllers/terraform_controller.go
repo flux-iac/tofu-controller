@@ -71,8 +71,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-const runnerFileMappingSecretKey = "content"
-
 // TerraformReconciler reconciles a Terraform object
 type TerraformReconciler struct {
 	client.Client
@@ -824,7 +822,7 @@ terraform {
 		), tfInstance, tmpDir, err
 	}
 
-	if len(terraform.Spec.RunnerPodTemplate.Spec.FileMappings) > 0 {
+	if len(terraform.Spec.FileMappings) > 0 {
 		log.Info("generate runner mapping files")
 		runnerFileMappingList, err := r.createRunnerFileMapping(ctx, terraform)
 		if err != nil {
@@ -948,7 +946,7 @@ terraform {
 func (r *TerraformReconciler) createRunnerFileMapping(ctx context.Context, terraform infrav1.Terraform) ([]*runner.FileMapping, error) {
 	var runnerFileMappingList []*runner.FileMapping
 
-	for _, fileMapping := range terraform.Spec.RunnerPodTemplate.Spec.FileMappings {
+	for _, fileMapping := range terraform.Spec.FileMappings {
 		secret := &corev1.Secret{}
 		secretLookupKey := types.NamespacedName{
 			Namespace: terraform.Namespace,

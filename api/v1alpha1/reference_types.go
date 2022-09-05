@@ -179,10 +179,6 @@ type RunnerPodSpec struct {
 	// +patchStrategy=merge
 	Env []corev1.EnvVar `json:"env,omitempty" patchStrategy:"merge" patchMergeKey:"name"`
 
-	// List of all configuration files to be created in initialization.
-	// +optional
-	FileMappings []FileMapping `json:"fileMappings,omitempty"`
-
 	// Set the NodeSelector for the Runner Pod
 	// +optional
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`

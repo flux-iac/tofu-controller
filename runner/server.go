@@ -225,23 +225,39 @@ func (r *TerraformRunnerServer) CreateFileMappings(ctx context.Context, req *Cre
 
 	for _, fileMapping := range req.FileMappings {
 		var fileFullPath string
+		var err error
 		switch fileMapping.Location {
 		case runnerFileMappingLocationHome:
-			fileFullPath = filepath.Join(HomePath, fileMapping.Path)
+			fileFullPath, err = securejoin.SecureJoin(HomePath, fileMapping.Path)
+			if err != nil {
+				log.Error(err, "insecure file path", "path", fileMapping.Path)
+				return nil, err
+			}
 		case runnerFileMappingLocationWorkspace:
-			fileFullPath = filepath.Join(req.WorkingDir, fileMapping.Path)
-		}
-
-		f, err := os.Create(fileFullPath)
-		if err != nil {
-			log.Error(err, "Unable to create file from mapping", "file", fileFullPath)
+			fileFullPath, err = securejoin.SecureJoin(req.WorkingDir, fileMapping.Path)
+			if err != nil {
+				log.Error(err, "insecure file path", "path", fileMapping.Path)
+				return nil, err
+			}
+		default:
+			err := fmt.Errorf("unknown file mapping location")
+			log.Error(err, "unknown file mapping location", "location", fileMapping.Location)
 			return nil, err
 		}
-		defer f.Close()
 
-		// Upload content
-		if _, err = f.Write(fileMapping.Content); err != nil {
-			log.Error(err, "Unable to write content to file", "file", fileFullPath, "content", fileMapping.Content)
+		log.Info("prepare to write file", "fileFullPath", fileFullPath)
+		dir := filepath.Dir(fileFullPath)
+		if _, err := os.Stat(dir); os.IsNotExist(err) {
+			// create dir
+			err := os.MkdirAll(dir, 0700)
+			if err != nil {
+				log.Error(err, "unable to create dir", "dir", dir)
+				return nil, err
+			}
+		}
+
+		if err := os.WriteFile(fileFullPath, fileMapping.Content, 0600); err != nil {
+			log.Error(err, "Unable to create file from file mapping", "file", fileFullPath)
 			return nil, err
 		}
 	}
