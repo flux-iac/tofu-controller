@@ -33,11 +33,13 @@ import (
 )
 
 const (
-	TFPlanName                         = "tfplan"
-	SavedPlanSecretAnnotation          = "savedPlan"
-	runnerFileMappingLocationHome      = "home"
-	runnerFileMappingLocationWorkspace = "workspace"
-	HomePath                           = "/home/runner"
+	TFPlanName                            = "tfplan"
+	SavedPlanSecretAnnotation             = "savedPlan"
+	runnerFileMappingLocationHome         = "home"
+	runnerFileMappingLocationWorkspace    = "workspace"
+	runnerFileMappingDirectoryPermissions = 0700
+	runnerFileMappingFilePermissions      = 0600
+	HomePath                              = "/home/runner"
 )
 
 type LocalPrintfer struct {
@@ -249,14 +251,14 @@ func (r *TerraformRunnerServer) CreateFileMappings(ctx context.Context, req *Cre
 		dir := filepath.Dir(fileFullPath)
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
 			// create dir
-			err := os.MkdirAll(dir, 0700)
+			err := os.MkdirAll(dir, runnerFileMappingDirectoryPermissions)
 			if err != nil {
 				log.Error(err, "unable to create dir", "dir", dir)
 				return nil, err
 			}
 		}
 
-		if err := os.WriteFile(fileFullPath, fileMapping.Content, 0600); err != nil {
+		if err := os.WriteFile(fileFullPath, fileMapping.Content, runnerFileMappingFilePermissions); err != nil {
 			log.Error(err, "Unable to create file from file mapping", "file", fileFullPath)
 			return nil, err
 		}
