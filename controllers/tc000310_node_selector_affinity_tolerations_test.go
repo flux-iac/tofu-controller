@@ -83,28 +83,25 @@ func Test_000310_node_selector_test(t *testing.T) {
 
 	Given("a Terraform resource with manual approve, attached to the given GitRepository")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`, with no .spec.approvePlan specified.")
-	helloWorldTF := infrav1.Terraform{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      terraformName,
-			Namespace: "flux-system",
-		},
-		Spec: infrav1.TerraformSpec{
-			Path:     "./terraform-hello-world-example",
-			Interval: metav1.Duration{Duration: 3 * time.Second},
-			SourceRef: infrav1.CrossNamespaceSourceReference{
-				Kind:      "GitRepository",
-				Name:      sourceName,
-				Namespace: "flux-system",
-			},
-			RunnerPodTemplate: infrav1.RunnerPodTemplate{
-				Spec: infrav1.RunnerPodSpec{
-					NodeSelector: map[string]string{
-						"node.io/selector": "testing",
-					},
-				},
-			},
-		},
-	}
+	helloWorldTF := infrav1.Terraform{}
+	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+metadata:
+  name: %s
+  namespace: flux-system
+spec:
+  path: ./terraform-hello-world-example
+  interval: 10s
+  sourceRef:
+    kind: GitRepository
+    name: %s
+    namespace: flux-system
+  runnerPodTemplate:
+    spec:
+      nodeSelector:
+        node.io/selector: testing
+`, terraformName, sourceName)), runnerServer.Scheme)
+	g.Expect(err).ToNot(HaveOccurred())
+
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
@@ -122,14 +119,13 @@ func Test_000310_node_selector_test(t *testing.T) {
 
 	It("should run the pod")
 	By("checking that there is a node selector defined")
-	runnerPod := corev1.Pod{}
-	g.Eventually(func() int {
-		err := k8sClient.Get(ctx, types.NamespacedName{Namespace: "flux-system", Name: fmt.Sprintf("%s-tf-runner", terraformName)}, &createdHelloWorldTF)
-		if err != nil {
-			return -1
-		}
-		return len(runnerPod.Spec.NodeSelector)
-	}, timeout*3, interval).ShouldNot(BeZero())
+	runnerPod := corev1.PodSpec{}
+	g.Eventually(func() map[string]string {
+		runnerPod = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		return runnerPod.NodeSelector
+	}, timeout, interval).Should(Equal(map[string]string{
+		"node.io/selector": "testing",
+	}))
 }
 
 func Test_000310_affinity_test(t *testing.T) {
@@ -198,42 +194,32 @@ func Test_000310_affinity_test(t *testing.T) {
 
 	Given("a Terraform resource with manual approve, attached to the given GitRepository")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`, with no .spec.approvePlan specified.")
-	helloWorldTF := infrav1.Terraform{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      terraformName,
-			Namespace: "flux-system",
-		},
-		Spec: infrav1.TerraformSpec{
-			Path:     "./terraform-hello-world-example",
-			Interval: metav1.Duration{Duration: 3 * time.Second},
-			SourceRef: infrav1.CrossNamespaceSourceReference{
-				Kind:      "GitRepository",
-				Name:      sourceName,
-				Namespace: "flux-system",
-			},
-			RunnerPodTemplate: infrav1.RunnerPodTemplate{
-				Spec: infrav1.RunnerPodSpec{
-					Affinity: &corev1.Affinity{
-						NodeAffinity: &corev1.NodeAffinity{
-							RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
-								NodeSelectorTerms: []corev1.NodeSelectorTerm{
-									{
-										MatchFields: []corev1.NodeSelectorRequirement{
-											{
-												Key:      "node.io/selector",
-												Operator: corev1.NodeSelectorOpIn,
-												Values:   []string{"testing"},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
+	helloWorldTF := infrav1.Terraform{}
+	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+metadata:
+  name: %s
+  namespace: flux-system
+spec:
+  path: ./terraform-hello-world-example
+  interval: 10s
+  sourceRef:
+    kind: GitRepository
+    name: %s
+    namespace: flux-system
+  runnerPodTemplate:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchFields:
+              - key: node.io/selector
+                operator: In
+                values:
+                - testing
+`, terraformName, sourceName)), runnerServer.Scheme)
+	g.Expect(err).ToNot(HaveOccurred())
+
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
@@ -251,14 +237,29 @@ func Test_000310_affinity_test(t *testing.T) {
 
 	It("should run the pod")
 	By("checking that there is a node selector term defined")
-	runnerPod := corev1.Pod{}
-	g.Eventually(func() int {
-		err := k8sClient.Get(ctx, types.NamespacedName{Namespace: "flux-system", Name: fmt.Sprintf("%s-tf-runner", terraformName)}, &createdHelloWorldTF)
-		if err != nil {
-			return -1
-		}
-		return len(runnerPod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchFields)
-	}, timeout*3, interval).ShouldNot(BeZero())
+	runnerPod := corev1.PodSpec{}
+	g.Eventually(func() *corev1.Affinity {
+		runnerPod = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		return runnerPod.Affinity
+	}, timeout*3, interval).Should(Equal(&corev1.Affinity{
+		NodeAffinity: &corev1.NodeAffinity{
+			RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+				NodeSelectorTerms: []corev1.NodeSelectorTerm{
+					corev1.NodeSelectorTerm{
+						MatchFields: []corev1.NodeSelectorRequirement{
+							corev1.NodeSelectorRequirement{
+								Key:      "node.io/selector",
+								Operator: corev1.NodeSelectorOpIn,
+								Values: []string{
+									"testing",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}))
 }
 
 func Test_000310_tolerations_test(t *testing.T) {
@@ -327,32 +328,27 @@ func Test_000310_tolerations_test(t *testing.T) {
 
 	Given("a Terraform resource with manual approve, attached to the given GitRepository")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`, with no .spec.approvePlan specified.")
-	helloWorldTF := infrav1.Terraform{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      terraformName,
-			Namespace: "flux-system",
-		},
-		Spec: infrav1.TerraformSpec{
-			Path:     "./terraform-hello-world-example",
-			Interval: metav1.Duration{Duration: 3 * time.Second},
-			SourceRef: infrav1.CrossNamespaceSourceReference{
-				Kind:      "GitRepository",
-				Name:      sourceName,
-				Namespace: "flux-system",
-			},
-			RunnerPodTemplate: infrav1.RunnerPodTemplate{
-				Spec: infrav1.RunnerPodSpec{
-					Tolerations: []corev1.Toleration{
-						{
-							Key:      "node.io/selector",
-							Operator: corev1.TolerationOpEqual,
-							Value:    "testing",
-						},
-					},
-				},
-			},
-		},
-	}
+	helloWorldTF := infrav1.Terraform{}
+	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+metadata:
+  name: %s
+  namespace: flux-system
+spec:
+  path: ./terraform-hello-world-example
+  interval: 10s
+  sourceRef:
+    kind: GitRepository
+    name: %s
+    namespace: flux-system
+  runnerPodTemplate:
+    spec:
+      tolerations:
+      - key: node.io/selector
+        operator: Equal
+        value: testing
+`, terraformName, sourceName)), runnerServer.Scheme)
+	g.Expect(err).ToNot(HaveOccurred())
+
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
@@ -370,12 +366,15 @@ func Test_000310_tolerations_test(t *testing.T) {
 
 	It("should run the pod")
 	By("checking that there is a node selector term defined")
-	runnerPod := corev1.Pod{}
-	g.Eventually(func() int {
-		err := k8sClient.Get(ctx, types.NamespacedName{Namespace: "flux-system", Name: fmt.Sprintf("%s-tf-runner", terraformName)}, &createdHelloWorldTF)
-		if err != nil {
-			return -1
-		}
-		return len(runnerPod.Spec.Tolerations)
-	}, timeout*3, interval).ShouldNot(BeZero())
+	runnerPod := corev1.PodSpec{}
+	g.Eventually(func() []corev1.Toleration {
+		runnerPod = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		return runnerPod.Tolerations
+	}, timeout*3, interval).Should(Equal([]corev1.Toleration{
+		corev1.Toleration{
+			Key:      "node.io/selector",
+			Operator: corev1.TolerationOpEqual,
+			Value:    "testing",
+		},
+	}))
 }
