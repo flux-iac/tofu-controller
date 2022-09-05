@@ -85,6 +85,8 @@ func Test_000310_node_selector_test(t *testing.T) {
 	By("creating a new TF resource and attaching to the repo via `sourceRef`, with no .spec.approvePlan specified.")
 	helloWorldTF := infrav1.Terraform{}
 	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
 metadata:
   name: %s
   namespace: flux-system
@@ -196,6 +198,8 @@ func Test_000310_affinity_test(t *testing.T) {
 	By("creating a new TF resource and attaching to the repo via `sourceRef`, with no .spec.approvePlan specified.")
 	helloWorldTF := infrav1.Terraform{}
 	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
 metadata:
   name: %s
   namespace: flux-system
@@ -330,6 +334,8 @@ func Test_000310_tolerations_test(t *testing.T) {
 	By("creating a new TF resource and attaching to the repo via `sourceRef`, with no .spec.approvePlan specified.")
 	helloWorldTF := infrav1.Terraform{}
 	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
 metadata:
   name: %s
   namespace: flux-system
