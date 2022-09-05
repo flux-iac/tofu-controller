@@ -61,7 +61,7 @@ message SetEnvReply {
 }
 
 message fileMapping {
-  string content = 1;
+  bytes content = 1;
   string location = 2;
   string path = 3;
 }

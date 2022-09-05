@@ -828,7 +828,7 @@ terraform {
 		log.Info("generate runner mapping files")
 		runnerFileMappingList, err := r.createRunnerFileMapping(ctx, terraform)
 		if err != nil {
-			err = fmt.Errorf("error creating runner file mappings: %s", err)
+			err = fmt.Errorf("error creating runner file mappings: %w", err)
 			return infrav1.TerraformNotReady(
 				terraform,
 				revision,
@@ -842,7 +842,7 @@ terraform {
 			WorkingDir:   workingDir,
 			FileMappings: runnerFileMappingList,
 		}); err != nil {
-			err = fmt.Errorf("error creating file mappings for Terraform: %s", err)
+			err = fmt.Errorf("error creating file mappings for Terraform: %w", err)
 			return infrav1.TerraformNotReady(
 				terraform,
 				revision,
@@ -949,8 +949,6 @@ func (r *TerraformReconciler) createRunnerFileMapping(ctx context.Context, terra
 	var runnerFileMappingList []*runner.FileMapping
 
 	for _, fileMapping := range terraform.Spec.RunnerPodTemplate.Spec.FileMappings {
-		var runnerFileMapping runner.FileMapping
-
 		secret := &corev1.Secret{}
 		secretLookupKey := types.NamespacedName{
 			Namespace: terraform.Namespace,
@@ -960,10 +958,11 @@ func (r *TerraformReconciler) createRunnerFileMapping(ctx context.Context, terra
 			return runnerFileMappingList, err
 		}
 
-		runnerFileMapping.Content = string(secret.Data[fileMapping.SecretRef.Key])
-		runnerFileMapping.Location = fileMapping.Location
-		runnerFileMapping.Path = fileMapping.Path
-		runnerFileMappingList = append(runnerFileMappingList, &runnerFileMapping)
+		runnerFileMappingList = append(runnerFileMappingList, &runner.FileMapping{
+			Content:  secret.Data[fileMapping.SecretRef.Key],
+			Location: fileMapping.Location,
+			Path:     fileMapping.Path,
+		})
 	}
 
 	return runnerFileMappingList, nil
