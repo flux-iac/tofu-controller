@@ -4,7 +4,7 @@
 
 ## Installation
 
-You can download the `tfctl` binary via the GitHub releases page: [https://github.com/weaveworks/tf-controller/releases]()
+You can download the `tfctl` binary via the GitHub releases page: [https://github.com/weaveworks/tf-controller/releases](https://github.com/weaveworks/tf-controller/releases)
 
 ```
 Usage:
