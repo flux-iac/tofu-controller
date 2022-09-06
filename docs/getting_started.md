@@ -9,6 +9,12 @@ After that you can install TF-controller with Flux HelmRelease by:
 kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml
 ```
 
+For the most recent release candidate of TF-controller, please use [rc.yaml](https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/rc.yaml).
+
+```shell
+kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/rc.yaml
+```
+
 or manually with Helm by:
 
 ```shell
