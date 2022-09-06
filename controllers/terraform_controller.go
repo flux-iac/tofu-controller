@@ -175,12 +175,17 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	}
 
-	terraform = infrav1.TerraformProgressing(terraform, "Reconciliation in progress")
-	if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
-		log.Error(err, "unable to update status before Terraform initialization")
-		return ctrl.Result{Requeue: true}, err
+	// Skip update the status if the ready condition is still unknown
+	// so that the Plan prompt is still shown.
+	ready := apimeta.FindStatusCondition(terraform.Status.Conditions, meta.ReadyCondition)
+	if ready == nil || ready.Status != metav1.ConditionUnknown {
+		terraform = infrav1.TerraformProgressing(terraform, "Reconciliation in progress")
+		if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+			log.Error(err, "unable to update status before Terraform initialization")
+			return ctrl.Result{Requeue: true}, err
+		}
+		r.recordReadinessMetric(ctx, terraform)
 	}
-	r.recordReadinessMetric(ctx, terraform)
 
 	// Create Runner Pod.
 	// Wait for the Runner Pod to start.
