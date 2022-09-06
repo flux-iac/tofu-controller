@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/fluxcd/pkg/apis/meta"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -34,6 +36,19 @@ func (s *CrossNamespaceSourceReference) String() string {
 		return fmt.Sprintf("%s/%s/%s", s.Kind, s.Namespace, s.Name)
 	}
 	return fmt.Sprintf("%s/%s", s.Kind, s.Name)
+}
+
+type FileMapping struct {
+	// Reference to a Secret that contains the file content
+	SecretRef meta.SecretKeyReference `json:"secretRef"`
+	// Location can be either user's home directory or the Terraform workspace
+	// +kubebuilder:validation:Enum=home;workspace
+	// +required
+	Location string `json:"location"`
+	// Path of the file - relative to the "location"
+	// +kubebuilder:validation:Pattern=`^(.?[/_a-zA-Z0-9]{1,})*$`
+	// +required
+	Path string `json:"path"`
 }
 
 type BackendConfigsReference struct {
