@@ -2244,6 +2244,37 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 	vTrue := true
 	vUser := int64(65532)
 
+	podVolumes := []corev1.Volume{
+		{
+			Name: "temp",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
+		},
+		{
+			Name: "home",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
+		},
+	}
+	if len(terraform.Spec.RunnerPodTemplate.Spec.Volumes) != 0 {
+		podVolumes = append(podVolumes, terraform.Spec.RunnerPodTemplate.Spec.Volumes...)
+	}
+	podVolumeMounts := []corev1.VolumeMount{
+		{
+			Name:      "temp",
+			MountPath: "/tmp",
+		},
+		{
+			Name:      "home",
+			MountPath: "/home/runner",
+		},
+	}
+	if len(terraform.Spec.RunnerPodTemplate.Spec.VolumeMounts) != 0 {
+		podVolumeMounts = append(podVolumeMounts, terraform.Spec.RunnerPodTemplate.Spec.VolumeMounts...)
+	}
+
 	return corev1.PodSpec{
 		TerminationGracePeriodSeconds: gracefulTermPeriod,
 		Containers: []corev1.Container{
@@ -2278,32 +2309,10 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 					},
 					ReadOnlyRootFilesystem: &vTrue,
 				},
-				VolumeMounts: []corev1.VolumeMount{
-					{
-						Name:      "temp",
-						MountPath: "/tmp",
-					},
-					{
-						Name:      "home",
-						MountPath: "/home/runner",
-					},
-				},
+				VolumeMounts: podVolumeMounts,
 			},
 		},
-		Volumes: []corev1.Volume{
-			{
-				Name: "temp",
-				VolumeSource: corev1.VolumeSource{
-					EmptyDir: &corev1.EmptyDirVolumeSource{},
-				},
-			},
-			{
-				Name: "home",
-				VolumeSource: corev1.VolumeSource{
-					EmptyDir: &corev1.EmptyDirVolumeSource{},
-				},
-			},
-		},
+		Volumes:            podVolumes,
 		ServiceAccountName: serviceAccountName,
 		NodeSelector:       terraform.Spec.RunnerPodTemplate.Spec.NodeSelector,
 		Affinity:           terraform.Spec.RunnerPodTemplate.Spec.Affinity,

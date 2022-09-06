@@ -671,6 +671,34 @@ Kubernetes core/v1.Affinity
 <p>Set the Tolerations for the Runner Pod</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>volumeMounts</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#volumemount-v1-core">
+[]Kubernetes core/v1.VolumeMount
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set Volume Mounts for the Runner Pod</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>volumes</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#volume-v1-core">
+[]Kubernetes core/v1.Volume
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set Volumes for the Runner Pod</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -802,6 +830,34 @@ Kubernetes core/v1.Affinity
 <td>
 <em>(Optional)</em>
 <p>Set the Tolerations for the Runner Pod</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>volumeMounts</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#volumemount-v1-core">
+[]Kubernetes core/v1.VolumeMount
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set Volume Mounts for the Runner Pod</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>volumes</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#volume-v1-core">
+[]Kubernetes core/v1.Volume
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set Volumes for the Runner Pod</p>
 </td>
 </tr>
 </table>
