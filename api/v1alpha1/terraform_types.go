@@ -399,6 +399,7 @@ func SetTerraformReadiness(terraform *Terraform, status metav1.ConditionStatus, 
 		Reason:  reason,
 		Message: trimString(message, MaxConditionMessageLength),
 	}
+
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
 	terraform.Status.ObservedGeneration = terraform.Generation
 	terraform.Status.LastAttemptedRevision = revision
@@ -438,6 +439,7 @@ func TerraformOutputsWritten(terraform Terraform, revision string, message strin
 		Message: trimString(message, MaxConditionMessageLength),
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+
 	SetTerraformReadiness(&terraform, metav1.ConditionTrue, "TerraformOutputsWritten", message+": "+revision, revision)
 	return terraform
 }
@@ -468,7 +470,7 @@ func TerraformApplied(terraform Terraform, revision string, message string, isDe
 		(&terraform).Status.Inventory = &ResourceInventory{Entries: entries}
 	}
 
-	SetTerraformReadiness(&terraform, metav1.ConditionTrue, TFExecApplySucceedReason, message+": "+revision, revision)
+	SetTerraformReadiness(&terraform, metav1.ConditionUnknown, TFExecApplySucceedReason, message+": "+revision, revision)
 	return terraform
 }
 
@@ -574,6 +576,7 @@ func TerraformAppliedFailResetPlanAndNotReady(terraform Terraform, revision, rea
 
 func TerraformDriftDetected(terraform Terraform, revision, reason, message string) Terraform {
 	(&terraform).Status.LastDriftDetectedAt = &metav1.Time{Time: time.Now()}
+
 	SetTerraformReadiness(&terraform, metav1.ConditionFalse, reason, trimString(message, MaxConditionMessageLength), revision)
 	return terraform
 }
@@ -615,7 +618,6 @@ func TerraformForceUnlock(terraform Terraform, message string) Terraform {
 		Message: trimString(message, MaxConditionMessageLength),
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
-	SetTerraformReadiness(&terraform, metav1.ConditionTrue, newCondition.Reason, newCondition.Message, "")
 
 	if terraform.Status.Lock.Pending != "" && terraform.Status.Lock.LastApplied != terraform.Status.Lock.Pending {
 		terraform.Status.Lock.LastApplied = terraform.Status.Lock.Pending

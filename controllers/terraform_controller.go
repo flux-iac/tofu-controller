@@ -175,7 +175,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	}
 
-	terraform = infrav1.TerraformProgressing(terraform, "reconciliation in progress")
+	terraform = infrav1.TerraformProgressing(terraform, "Reconciliation in progress")
 	if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
 		log.Error(err, "unable to update status before Terraform initialization")
 		return ctrl.Result{Requeue: true}, err
@@ -427,9 +427,13 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		tfInstance string
 		tmpDir     string
 		err        error
+
+		lastKnownAction string
 	)
 	log.Info("setting up terraform")
 	terraform, tfInstance, tmpDir, err = r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey)
+
+	lastKnownAction = "Setup"
 
 	defer func() {
 		cleanupDirReply, err := runnerClient.CleanupDir(ctx, &runner.CleanupDirRequest{TmpDir: tmpDir})
@@ -487,6 +491,8 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 			log.Error(err, "unable to update status after drift detection")
 			return terraform, err
 		}
+
+		lastKnownAction = "Drift Detection"
 	}
 
 	// return early if we're in drift-detection-only mode
@@ -495,6 +501,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		return terraform, nil
 	}
 
+	// if we should plan this Terraform CR, do so
 	if r.shouldPlan(terraform) {
 		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision)
 		if err != nil {
@@ -506,8 +513,11 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 			log.Error(err, "unable to update status after planing")
 			return terraform, err
 		}
+
+		lastKnownAction = "Planned"
 	}
 
+	// if we should apply the generated plan, do so
 	if r.shouldApply(terraform) {
 		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision)
 		if err != nil {
@@ -520,6 +530,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 			return terraform, err
 		}
 
+		lastKnownAction = "Applied"
 	} else {
 		log.Info("should apply == false")
 	}
@@ -529,8 +540,10 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		log.Error(err, "error process outputs")
 		return terraform, err
 	}
+	lastKnownAction = "Outputs Processed"
 
 	if r.shouldDoHealthChecks(terraform) {
+
 		terraform, err = r.doHealthChecks(ctx, terraform, revision, runnerClient)
 		if err != nil {
 			log.Error(err, "error with health check")
@@ -542,6 +555,17 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 			return terraform, err
 		}
 
+		lastKnownAction = "Health Checked"
+	}
+
+	var readyCondition *metav1.Condition
+	for _, condition := range terraform.Status.Conditions {
+		if condition.Type == meta.ReadyCondition {
+			readyCondition = &condition
+		}
+	}
+	if readyCondition == nil || readyCondition.Status != metav1.ConditionTrue {
+		infrav1.SetTerraformReadiness(&terraform, metav1.ConditionTrue, "Complete", lastKnownAction+": "+revision, revision)
 	}
 
 	return terraform, nil
@@ -2271,6 +2295,37 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 	vTrue := true
 	vUser := int64(65532)
 
+	podVolumes := []corev1.Volume{
+		{
+			Name: "temp",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
+		},
+		{
+			Name: "home",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
+		},
+	}
+	if len(terraform.Spec.RunnerPodTemplate.Spec.Volumes) != 0 {
+		podVolumes = append(podVolumes, terraform.Spec.RunnerPodTemplate.Spec.Volumes...)
+	}
+	podVolumeMounts := []corev1.VolumeMount{
+		{
+			Name:      "temp",
+			MountPath: "/tmp",
+		},
+		{
+			Name:      "home",
+			MountPath: "/home/runner",
+		},
+	}
+	if len(terraform.Spec.RunnerPodTemplate.Spec.VolumeMounts) != 0 {
+		podVolumeMounts = append(podVolumeMounts, terraform.Spec.RunnerPodTemplate.Spec.VolumeMounts...)
+	}
+
 	return corev1.PodSpec{
 		TerminationGracePeriodSeconds: gracefulTermPeriod,
 		Containers: []corev1.Container{
@@ -2305,32 +2360,10 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 					},
 					ReadOnlyRootFilesystem: &vTrue,
 				},
-				VolumeMounts: []corev1.VolumeMount{
-					{
-						Name:      "temp",
-						MountPath: "/tmp",
-					},
-					{
-						Name:      "home",
-						MountPath: runner.HomePath,
-					},
-				},
+				VolumeMounts: podVolumeMounts,
 			},
 		},
-		Volumes: []corev1.Volume{
-			{
-				Name: "temp",
-				VolumeSource: corev1.VolumeSource{
-					EmptyDir: &corev1.EmptyDirVolumeSource{},
-				},
-			},
-			{
-				Name: "home",
-				VolumeSource: corev1.VolumeSource{
-					EmptyDir: &corev1.EmptyDirVolumeSource{},
-				},
-			},
-		},
+		Volumes:            podVolumes,
 		ServiceAccountName: serviceAccountName,
 		NodeSelector:       terraform.Spec.RunnerPodTemplate.Spec.NodeSelector,
 		Affinity:           terraform.Spec.RunnerPodTemplate.Spec.Affinity,
