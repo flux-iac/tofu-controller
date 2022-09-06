@@ -1,6 +1,5 @@
 # -- If `true`, install CRDs as part of the helm installation
 installCRDs: true
-
 # ServiceAccount
 serviceAccount:
   # -- If `true`, create a new service account
@@ -10,7 +9,6 @@ serviceAccount:
   # -- Service account to be used
   # @default -- tf-controller
   name: ""
-
 # Controller
 # -- Provide a name 
 nameOverride: ""
@@ -29,7 +27,7 @@ image:
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
   # @default -- `.Chart.AppVersion`
-  tag: ""
+  tag: "v0.12.0-rc.3"
 # -- Controller image pull secret
 imagePullSecrets: []
 # -- Resource limits and requests
@@ -67,7 +65,6 @@ tolerations: []
 affinity: {}
 # -- PriorityClassName property for the TF-Controller deployment
 priorityClassName: ""
-
 # Runner
 # -- Level of logging of the controller (Controller)
 logLevel: info
@@ -85,7 +82,7 @@ runner:
     repository: ghcr.io/weaveworks/tf-runner
     # -- Runner image tag
     # @default -- `.Chart.AppVersion`
-    tag: ""
+    tag: "v0.12.0-rc.3"
   grpc:
     # -- Maximum GRPC message size (Controller)
     maxMessageSize: 4
@@ -98,7 +95,6 @@ runner:
     annotations: {}
     # -- Runner service account to be used
     name: ""
-
 # EKS 
 # -- Create an AWS EKS Security Group Policy with the supplied Security Group IDs [See](https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html#deploy-securitygrouppolicy)
 eksSecurityGroupPolicy:
@@ -109,6 +105,5 @@ eksSecurityGroupPolicy:
   # - sg-1234567890
   # - sg-1234567891
   # - sg-1234567892
-
 # -- The event address, default to the address of the Notification Controller
 eventsAddress: http://notification-controller.flux-system.svc.cluster.local./
