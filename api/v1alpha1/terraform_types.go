@@ -95,6 +95,10 @@ type TerraformSpec struct {
 	// +optional
 	VarsFrom []VarsReference `json:"varsFrom,omitempty"`
 
+	// List of all configuration files to be created in initialization.
+	// +optional
+	FileMappings []FileMapping `json:"fileMappings,omitempty"`
+
 	// The interval at which to reconcile the Terraform.
 	// +required
 	Interval metav1.Duration `json:"interval"`

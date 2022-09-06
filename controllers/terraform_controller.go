@@ -846,6 +846,34 @@ terraform {
 		), tfInstance, tmpDir, err
 	}
 
+	if len(terraform.Spec.FileMappings) > 0 {
+		log.Info("generate runner mapping files")
+		runnerFileMappingList, err := r.createRunnerFileMapping(ctx, terraform)
+		if err != nil {
+			err = fmt.Errorf("error creating runner file mappings: %w", err)
+			return infrav1.TerraformNotReady(
+				terraform,
+				revision,
+				infrav1.TFExecInitFailedReason,
+				err.Error(),
+			), tfInstance, tmpDir, err
+		}
+
+		log.Info("create mapping files")
+		if _, err := runnerClient.CreateFileMappings(ctx, &runner.CreateFileMappingsRequest{
+			WorkingDir:   workingDir,
+			FileMappings: runnerFileMappingList,
+		}); err != nil {
+			err = fmt.Errorf("error creating file mappings for Terraform: %w", err)
+			return infrav1.TerraformNotReady(
+				terraform,
+				revision,
+				infrav1.TFExecInitFailedReason,
+				err.Error(),
+			), tfInstance, tmpDir, err
+		}
+	}
+
 	log.Info("new terraform", "workingDir", workingDir)
 
 	// TODO we currently use a fork version of TFExec to workaround the forceCopy bug
@@ -937,6 +965,29 @@ terraform {
 	}
 
 	return terraform, tfInstance, tmpDir, nil
+}
+
+func (r *TerraformReconciler) createRunnerFileMapping(ctx context.Context, terraform infrav1.Terraform) ([]*runner.FileMapping, error) {
+	var runnerFileMappingList []*runner.FileMapping
+
+	for _, fileMapping := range terraform.Spec.FileMappings {
+		secret := &corev1.Secret{}
+		secretLookupKey := types.NamespacedName{
+			Namespace: terraform.Namespace,
+			Name:      fileMapping.SecretRef.Name,
+		}
+		if err := r.Get(ctx, secretLookupKey, secret); err != nil {
+			return runnerFileMappingList, err
+		}
+
+		runnerFileMappingList = append(runnerFileMappingList, &runner.FileMapping{
+			Content:  secret.Data[fileMapping.SecretRef.Key],
+			Location: fileMapping.Location,
+			Path:     fileMapping.Path,
+		})
+	}
+
+	return runnerFileMappingList, nil
 }
 
 func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string) (infrav1.Terraform, error) {
