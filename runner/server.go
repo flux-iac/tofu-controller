@@ -547,6 +547,30 @@ func (r *TerraformRunnerServer) ShowPlanFileRaw(ctx context.Context, req *ShowPl
 	return &ShowPlanFileRawReply{RawOutput: rawOutput}, nil
 }
 
+func (r *TerraformRunnerServer) ShowPlanFile(ctx context.Context, req *ShowPlanFileRequest) (*ShowPlanFileReply, error) {
+	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log.Info("show the raw plan file")
+	if req.TfInstance != "1" {
+		err := fmt.Errorf("no TF instance found")
+		log.Error(err, "no terraform")
+		return nil, err
+	}
+
+	plan, err := r.tf.ShowPlanFile(ctx, req.Filename)
+	if err != nil {
+		log.Error(err, "unable to get the raw plan output")
+		return nil, err
+	}
+
+	jsonBytes, err := json.Marshal(plan)
+	if err != nil {
+		log.Error(err, "unable to marshal the plan to json")
+		return nil, err
+	}
+
+	return &ShowPlanFileReply{JsonOutput: jsonBytes}, nil
+}
+
 func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanRequest) (*SaveTFPlanReply, error) {
 	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
 	log.Info("save the plan")
@@ -569,34 +593,70 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 		}
 	}
 
-	tfplanObjectKey := types.NamespacedName{Name: "tfplan-default-" + req.Name, Namespace: req.Namespace}
+	planRev := strings.Replace(req.Revision, "/", "-", 1)
+	planName := "plan-" + planRev
+	if err := writePlanAsSecret(ctx, r.Client, req.Name, req.Namespace, log, planName, tfplan, "", req.Uuid); err != nil {
+		return nil, err
+	}
+
+	if r.terraform.Spec.StoreReadablePlan == "json" {
+		planObj, err := r.tf.ShowPlanFile(ctx, TFPlanName)
+		if err != nil {
+			log.Error(err, "unable to get the plan output for json")
+			return nil, err
+		}
+		jsonBytes, err := json.Marshal(planObj)
+		if err != nil {
+			log.Error(err, "unable to marshal the plan to json")
+			return nil, err
+		}
+
+		if err := writePlanAsSecret(ctx, r.Client, req.Name, req.Namespace, log, planName, jsonBytes, ".json", req.Uuid); err != nil {
+			return nil, err
+		}
+	} else if r.terraform.Spec.StoreReadablePlan == "human" {
+		rawOutput, err := r.tf.ShowPlanFileRaw(ctx, TFPlanName)
+		if err != nil {
+			log.Error(err, "unable to get the plan output for human")
+			return nil, err
+		}
+
+		if err := writePlanAsConfigMap(ctx, r.Client, req.Name, req.Namespace, log, planName, rawOutput, "", req.Uuid); err != nil {
+			return nil, err
+		}
+	}
+
+	return &SaveTFPlanReply{Message: "ok"}, nil
+}
+
+func writePlanAsSecret(ctx context.Context, cli client.Client, name string, namespace string, log logr.Logger, planName string, tfplan []byte, suffix string, uuid string) error {
+	secretName := "tfplan-default-" + name + suffix
+	tfplanObjectKey := types.NamespacedName{Name: secretName, Namespace: namespace}
 	var tfplanSecret corev1.Secret
 	tfplanSecretExists := true
-	if err := r.Client.Get(ctx, tfplanObjectKey, &tfplanSecret); err != nil {
+
+	if err := cli.Get(ctx, tfplanObjectKey, &tfplanSecret); err != nil {
 		if apierrors.IsNotFound(err) {
 			tfplanSecretExists = false
 		} else {
 			err = fmt.Errorf("error getting tfplanSecret: %s", err)
 			log.Error(err, "unable to get the plan secret")
-			return nil, err
+			return err
 		}
 	}
 
 	if tfplanSecretExists {
-		if err := r.Client.Delete(ctx, &tfplanSecret); err != nil {
+		if err := cli.Delete(ctx, &tfplanSecret); err != nil {
 			err = fmt.Errorf("error deleting tfplanSecret: %s", err)
 			log.Error(err, "unable to delete the plan secret")
-			return nil, err
+			return err
 		}
 	}
 
-	planRev := strings.Replace(req.Revision, "/", "-", 1)
-	planName := "plan-" + planRev
-
 	tfplan, err := utils.GzipEncode(tfplan)
 	if err != nil {
-		log.Error(err, "unable to encode the plan revision", "planName", planName, "planRev", planRev)
-		return nil, err
+		log.Error(err, "unable to encode the plan revision", "planName", planName)
+		return err
 	}
 
 	tfplanData := map[string][]byte{TFPlanName: tfplan}
@@ -606,8 +666,8 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "tfplan-default-" + req.Name,
-			Namespace: req.Namespace,
+			Name:      secretName,
+			Namespace: namespace,
 			Annotations: map[string]string{
 				"encoding":                "gzip",
 				SavedPlanSecretAnnotation: planName,
@@ -616,8 +676,8 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 				{
 					APIVersion: infrav1.GroupVersion.Group + "/" + infrav1.GroupVersion.Version,
 					Kind:       infrav1.TerraformKind,
-					Name:       req.Name,
-					UID:        types.UID(req.Uuid),
+					Name:       name,
+					UID:        types.UID(uuid),
 				},
 			},
 		},
@@ -625,13 +685,70 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 		Data: tfplanData,
 	}
 
-	if err := r.Client.Create(ctx, &tfplanSecret); err != nil {
+	if err := cli.Create(ctx, &tfplanSecret); err != nil {
 		err = fmt.Errorf("error recording plan status: %s", err)
 		log.Error(err, "unable to create plan secret")
-		return nil, err
+		return err
 	}
 
-	return &SaveTFPlanReply{Message: "ok"}, nil
+	return nil
+}
+
+func writePlanAsConfigMap(ctx context.Context, cli client.Client, name string, namespace string, log logr.Logger, planName string, tfplan string, suffix string, uuid string) error {
+	configMapName := "tfplan-default-" + name + suffix
+	tfplanObjectKey := types.NamespacedName{Name: configMapName, Namespace: namespace}
+	var tfplanCM corev1.ConfigMap
+	tfplanCMExists := true
+
+	if err := cli.Get(ctx, tfplanObjectKey, &tfplanCM); err != nil {
+		if apierrors.IsNotFound(err) {
+			tfplanCMExists = false
+		} else {
+			err = fmt.Errorf("error getting tfplanSecret: %s", err)
+			log.Error(err, "unable to get the plan configmap")
+			return err
+		}
+	}
+
+	if tfplanCMExists {
+		if err := cli.Delete(ctx, &tfplanCM); err != nil {
+			err = fmt.Errorf("error deleting tfplanSecret: %s", err)
+			log.Error(err, "unable to delete the plan configmap")
+			return err
+		}
+	}
+
+	tfplanData := map[string]string{TFPlanName: tfplan}
+	tfplanCM = corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ConfigMap",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      configMapName,
+			Namespace: namespace,
+			Annotations: map[string]string{
+				SavedPlanSecretAnnotation: planName,
+			},
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					APIVersion: infrav1.GroupVersion.Group + "/" + infrav1.GroupVersion.Version,
+					Kind:       infrav1.TerraformKind,
+					Name:       name,
+					UID:        types.UID(uuid),
+				},
+			},
+		},
+		Data: tfplanData,
+	}
+
+	if err := cli.Create(ctx, &tfplanCM); err != nil {
+		err = fmt.Errorf("error recording plan status: %s", err)
+		log.Error(err, "unable to create plan configmap")
+		return err
+	}
+
+	return nil
 }
 
 func (r *TerraformRunnerServer) LoadTFPlan(ctx context.Context, req *LoadTFPlanRequest) (*LoadTFPlanReply, error) {

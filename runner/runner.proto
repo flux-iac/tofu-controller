@@ -16,8 +16,11 @@ service Runner {
   rpc ProcessCliConfig(ProcessCliConfigRequest) returns (ProcessCliConfigReply) {}
 
   rpc GenerateVarsForTF(GenerateVarsForTFRequest) returns (GenerateVarsForTFReply) {}
+
   rpc Plan(PlanRequest) returns (PlanReply) {}
   rpc ShowPlanFileRaw(ShowPlanFileRawRequest) returns (ShowPlanFileRawReply) {}
+  rpc ShowPlanFile(ShowPlanFileRequest) returns (ShowPlanFileReply) {}
+
   rpc SaveTFPlan(SaveTFPlanRequest) returns (SaveTFPlanReply) {}
   rpc LoadTFPlan(LoadTFPlanRequest) returns (LoadTFPlanReply) {}
   rpc Apply(ApplyRequest) returns (ApplyReply) {}
@@ -134,6 +137,15 @@ message PlanReply {
   bool drifted = 1;
   string message = 2;
   string stateLockIdentifier = 3;
+}
+
+message ShowPlanFileRequest {
+  string tfInstance = 1;
+  string filename = 2;
+}
+
+message ShowPlanFileReply {
+  bytes jsonOutput = 1;
 }
 
 message ShowPlanFileRawRequest {

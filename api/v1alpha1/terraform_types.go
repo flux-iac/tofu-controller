@@ -191,6 +191,12 @@ type TerraformSpec struct {
 	// Targets specify the resource, module or collection of resources to target.
 	// +optional
 	Targets []string `json:"targets,omitempty"`
+
+	// StoreReadablePlan enables storing the plan in a readable format.
+	// +kubebuilder:validation:Enum=none;json;human
+	// +kubebuilder:default:=none
+	// +optional
+	StoreReadablePlan string `json:"storeReadablePlan,omitempty"`
 }
 
 type PlanStatus struct {
