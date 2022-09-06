@@ -175,12 +175,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	}
 
-	// Return early if it's manually mode and pending
-	if terraform.Status.Plan.Pending != "" && !r.forceOrAutoApply(terraform) && !r.shouldApply(terraform) {
-		log.Info("reconciliation is stopped to wait for a manual approve")
-		return ctrl.Result{}, nil
-	}
-
 	terraform = infrav1.TerraformProgressing(terraform, "Reconciliation in progress")
 	if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
 		log.Error(err, "unable to update status before Terraform initialization")
@@ -261,6 +255,12 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			log.Error(err, "unable to update status to clear pending plan (revision != last attempted)")
 			return ctrl.Result{Requeue: true}, err
 		}
+	}
+
+	// Return early if it's manually mode and pending
+	if terraform.Status.Plan.Pending != "" && !r.forceOrAutoApply(terraform) && !r.shouldApply(terraform) {
+		log.Info("reconciliation is stopped to wait for a manual approve")
+		return ctrl.Result{}, nil
 	}
 
 	// reconcile Terraform by applying the latest revision
