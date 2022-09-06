@@ -618,6 +618,61 @@ string
 </table>
 </div>
 </div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.FileMapping">FileMapping
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>secretRef</code><br>
+<em>
+<a href="https://godoc.org/github.com/fluxcd/pkg/apis/meta#SecretKeyReference">
+github.com/fluxcd/pkg/apis/meta.SecretKeyReference
+</a>
+</em>
+</td>
+<td>
+<p>Reference to a Secret that contains the file content</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>location</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Location can be either user&rsquo;s home directory or the Terraform workspace</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>path</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Path of the file - relative to the &ldquo;location&rdquo;</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="infra.contrib.fluxcd.io/v1alpha1.ForceUnlockEnum">ForceUnlockEnum
 (<code>string</code> alias)</h3>
 <p>
@@ -1437,6 +1492,20 @@ Secret / ConfigMap with the same keys will override those of the former.</p>
 </tr>
 <tr>
 <td>
+<code>fileMappings</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.FileMapping">
+[]FileMapping
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>List of all configuration files to be created in initialization.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>interval</code><br>
 <em>
 <a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
@@ -1682,6 +1751,18 @@ TFStateSpec
 <td>
 <em>(Optional)</em>
 <p>Targets specify the resource, module or collection of resources to target.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>storeReadablePlan</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>StoreReadablePlan enables storing the plan in a readable format.</p>
 </td>
 </tr>
 </table>
@@ -1803,6 +1884,20 @@ Secret / ConfigMap with the same keys will override those of the former.</p>
 </tr>
 <tr>
 <td>
+<code>fileMappings</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.FileMapping">
+[]FileMapping
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>List of all configuration files to be created in initialization.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>interval</code><br>
 <em>
 <a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
@@ -2048,6 +2143,18 @@ TFStateSpec
 <td>
 <em>(Optional)</em>
 <p>Targets specify the resource, module or collection of resources to target.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>storeReadablePlan</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>StoreReadablePlan enables storing the plan in a readable format.</p>
 </td>
 </tr>
 </tbody>
