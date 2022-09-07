@@ -2,6 +2,26 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.12.0
+
+**Release date:** 2022-09-07
+
+This release contains a number of new features and bug fixes.
+
+New Features and Bug Fixing:
+  * Enable custom backends for Terraform (@fsequeira1)
+  * Support `backendConfigsFrom` for specifying backend configuration from Secrets (@chanwit)
+  * Add a parameter for specifying max gRPC message size, default to 4MB (@chanwit)
+  * Implement force-unlock for tfstate management (@Nalum)
+  * Fix the initialization status (@chanwit)
+  * Recording events to support Flux notification controller (@chanwit)
+  * Support specifying targets for plan and apply (@akselleirv)
+  * Add node selector, affinity and tolerations for the runner pod (@Nalum)
+  * Add volume and volumeMounts for the runner pod (@steve-fraser)
+  * Add file mapping to map files from Secrets to home or workspace directory (@itamar-marom)
+  * Fix Plan prompt being overridden by the progressing message (@chanwit)
+  * Support storing human-readable plan output in a ConfigMap (@chanwit)
+
 # v0.11.0
 
 **Release date:** 2022-08-12
