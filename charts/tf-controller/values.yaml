@@ -127,3 +127,35 @@ eksSecurityGroupPolicy:
   # - sg-1234567890
   # - sg-1234567891
   # - sg-1234567892
+
+# Metrics
+metrics:
+
+  # -- Enable Metrics Service
+  enabled: false
+
+  # ServiceMonitor
+  serviceMonitor:
+    # -- Enable ServiceMonitor
+    enabled: false
+    # -- Install the ServiceMonitor into a different Namespace, as the monitoring stack one
+    # @default -- `.Release.Namespace`
+    namespace: ''
+    # -- Assign additional labels according to Prometheus' serviceMonitorSelector matching labels
+    labels: {}
+    # -- Assign additional Annotations
+    annotations: {}
+    # -- Change matching labels
+    matchLabels: {}
+    # -- Set targetLabels for the serviceMonitor
+    targetLabels: []
+    endpoint:
+      # -- Set the scrape interval for the endpoint of the serviceMonitor
+      interval: "15s"
+      # -- Set the scrape timeout for the endpoint of the serviceMonitor
+      scrapeTimeout: ""
+      # -- Set metricRelabelings for the endpoint of the serviceMonitor
+      metricRelabelings: []
+      # -- Set relabelings for the endpoint of the serviceMonitor
+      relabelings: []
+  
