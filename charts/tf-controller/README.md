@@ -46,6 +46,17 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | imagePullSecrets | list | `[]` | Controller image pull secret |
 | installCRDs | bool | `true` | If `true`, install CRDs as part of the helm installation |
 | logLevel | string | `"info"` | Level of logging of the controller (Controller) |
+| metrics.enabled | bool | `false` | Enable Metrics Service |
+| metrics.serviceMonitor.annotations | object | `{}` | Assign additional Annotations |
+| metrics.serviceMonitor.enabled | bool | `false` | Enable ServiceMonitor |
+| metrics.serviceMonitor.endpoint.interval | string | `"15s"` | Set the scrape interval for the endpoint of the serviceMonitor |
+| metrics.serviceMonitor.endpoint.metricRelabelings | list | `[]` | Set metricRelabelings for the endpoint of the serviceMonitor |
+| metrics.serviceMonitor.endpoint.relabelings | list | `[]` | Set relabelings for the endpoint of the serviceMonitor |
+| metrics.serviceMonitor.endpoint.scrapeTimeout | string | `""` | Set the scrape timeout for the endpoint of the serviceMonitor |
+| metrics.serviceMonitor.labels | object | `{}` | Assign additional labels according to Prometheus' serviceMonitorSelector matching labels |
+| metrics.serviceMonitor.matchLabels | object | `{}` | Change matching labels |
+| metrics.serviceMonitor.namespace | string | `.Release.Namespace` | Install the ServiceMonitor into a different Namespace, as the monitoring stack one |
+| metrics.serviceMonitor.targetLabels | list | `[]` | Set targetLabels for the serviceMonitor |
 | nameOverride | string | `""` | Provide a name |
 | nodeSelector | object | `{}` | Node Selector properties for the TF-Controller deployment |
 | podAnnotations | object | `{}` | Additional pod annotations |
