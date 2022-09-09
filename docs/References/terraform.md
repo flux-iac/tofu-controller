@@ -1077,6 +1077,17 @@ BackendConfigSpec
 </tr>
 <tr>
 <td>
+<code>workspace</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
 <code>vars</code><br>
 <em>
 <a href="#infra.contrib.fluxcd.io/v1alpha1.Variable">
@@ -1474,6 +1485,17 @@ BackendConfigSpec
 <a href="#infra.contrib.fluxcd.io/v1alpha1.BackendConfigsReference">
 []BackendConfigsReference
 </a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>workspace</code><br>
+<em>
+string
 </em>
 </td>
 <td>

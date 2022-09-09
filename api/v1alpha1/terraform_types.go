@@ -85,6 +85,9 @@ type TerraformSpec struct {
 	// +optional
 	BackendConfigsFrom []BackendConfigsReference `json:"backendConfigsFrom,omitempty"`
 
+	// +optional
+	Workspace string `json:"workspace,omitempty"`
+
 	// List of input variables to set for the Terraform program.
 	// +optional
 	Vars []Variable `json:"vars,omitempty"`
@@ -399,6 +402,7 @@ const (
 	DisabledValue             = "disabled"
 	ApprovePlanAutoValue      = "auto"
 	ApprovePlanDisableValue   = "disable"
+	DefaultWorkspaceName      = "default"
 )
 
 // The potential reasons that are associated with condition types
@@ -736,6 +740,13 @@ func (in Terraform) GetRetryInterval() time.Duration {
 // GetStatusConditions returns a pointer to the Status.Conditions slice.
 func (in *Terraform) GetStatusConditions() *[]metav1.Condition {
 	return &in.Status.Conditions
+}
+
+func (in *Terraform) WorkspaceName() string {
+	if in.Spec.Workspace != "" {
+		return in.Spec.Workspace
+	}
+	return DefaultWorkspaceName
 }
 
 func (in Terraform) ToBytes(scheme *runtime.Scheme) ([]byte, error) {

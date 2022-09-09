@@ -32,7 +32,7 @@ func (c *CLI) ShowPlan(out io.Writer, resource string) error {
 	}
 
 	planKey := types.NamespacedName{
-		Name:      fmt.Sprintf("tfplan-default-%s", resource),
+		Name:      fmt.Sprintf("tfplan-%s-%s", terraform.WorkspaceName(), resource),
 		Namespace: c.namespace,
 	}
 
