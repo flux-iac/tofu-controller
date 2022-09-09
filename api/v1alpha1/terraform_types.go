@@ -321,7 +321,7 @@ type BackendConfigSpec struct {
 
 // TFStateSpec allows the user to set ForceUnlock
 type TFStateSpec struct {
-	// ForceUnlock a Terraform state if it has become locked for any reason.
+	// ForceUnlock a Terraform state if it has become locked for any reason. Defaults to `no`.
 	//
 	// This is an Enum and has the expected values of:
 	//
@@ -343,7 +343,7 @@ type TFStateSpec struct {
 	// if it ever gets into a locked state.
 	//
 	// You'll need to put the Lock Identifier in here while setting ForceUnlock to
-	// either `true` or `auto`.
+	// either `yes` or `auto`.
 	//
 	// Leave this empty to do nothing, set this to the value of the `Lock Info: ID: [value]`,
 	// e.g. `f2ab685b-f84d-ac0b-a125-378a22877e8d`, to force unlock the state.

@@ -464,7 +464,7 @@ spec:
         company.com/abc: xyz
 ```
 
-### Customize runner pod image
+### Customize runner pod spec
 
 By default, the Terraform controller uses `RUNNER_POD_IMAGE` environment variable to identify the runner pod image to use.
 You can customize the image to use on the global level by updating the value of the environment variable or you
@@ -490,6 +490,11 @@ spec:
 ```
 
 You can use [`runner.Dockerfile`](https://github.com/weaveworks/tf-controller/blob/main/runner.Dockerfile) as a basis of customizing runner pod image.
+
+You can also customize various pod spec fields to control and configure how the runner pod runs. 
+For example, you can configure pod spec affinity and tolerations if you need to run in on a specific set of nodes. 
+Please see [RunnerPodSpec](https://weaveworks.github.io/tf-controller/References/terraform/#infra.contrib.fluxcd.io/v1alpha1.RunnerPodSpec) 
+for a list configurable pod spec fields.
 
 ## Using OCI Artifact as Source
 
@@ -536,4 +541,30 @@ spec:
     name: helloworld-oci
   writeOutputsToSecret:
     name: helloworld-outputs
+```
+
+## Force unlock Terraform state
+
+In some situations, you may need to perform Terraform [force-unlock](https://www.terraform.io/language/state/locking#force-unlock) on the state file.
+You may also need to specify a lock identifier to unlock a specific locked state.
+Using `auto` mode will automatically use the lock identifier produced by the associated state file instead of specified lock identifier.
+By default, this is not enabled. To enable it, see the following example.
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: "auto"
+  interval: 1m
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  tfstate:
+    forceUnlock: 'yes'
+    lockIdentifier: 'f2ab685b-f84d-ac0b-a125-378a22877e8d'
 ```
