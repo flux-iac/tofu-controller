@@ -1766,6 +1766,19 @@ string
 <p>StoreReadablePlan enables storing the plan in a readable format.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>webhooks</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.Webhook">
+[]Webhook
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -2158,6 +2171,19 @@ string
 <p>StoreReadablePlan enables storing the plan in a readable format.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>webhooks</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.Webhook">
+[]Webhook
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -2463,6 +2489,89 @@ bool
 <p>Optional marks this VarsReference as optional. When set, a not found error
 for the values reference is ignored, but any VarsKey or
 transient error will still result in a reconciliation failure.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.Webhook">Webhook
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>stage</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>enabled</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>url</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>payloadType</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>errorMessageTemplate</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>testExpression</code><br>
+<em>
+string
+</em>
+</td>
+<td>
 </td>
 </tr>
 </tbody>
