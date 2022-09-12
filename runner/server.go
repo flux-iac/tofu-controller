@@ -558,7 +558,7 @@ func (r *TerraformRunnerServer) ShowPlanFile(ctx context.Context, req *ShowPlanF
 
 	plan, err := r.tf.ShowPlanFile(ctx, req.Filename)
 	if err != nil {
-		log.Error(err, "unable to get the raw plan output")
+		log.Error(err, "unable to get the json plan output")
 		return nil, err
 	}
 

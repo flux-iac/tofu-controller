@@ -197,6 +197,38 @@ type TerraformSpec struct {
 	// +kubebuilder:default:=none
 	// +optional
 	StoreReadablePlan string `json:"storeReadablePlan,omitempty"`
+
+	// +optional
+	Webhooks []Webhook `json:"webhooks,omitempty"`
+}
+
+type Webhook struct {
+	// +kubebuilder:validation:Enum=post-planning
+	// +kubebuilder:default:=post-planning
+	// +required
+	Stage string `json:"stage"`
+
+	// +kubebuilder:default:=true
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
+
+	// +required
+	URL string `json:"url"`
+
+	// +kubebuilder:value:Enum=SpecAndPlan,SpecOnly,PlanOnly
+	// +kubebuilder:default:=SpecAndPlan
+	// +optional
+	PayloadType string `json:"payloadType,omitempty"`
+
+	// +optional
+	ErrorMessageTemplate string `json:"errorMessageTemplate,omitempty"`
+
+	// +required
+	TestExpression string `json:"testExpression,omitempty"`
+}
+
+func (w Webhook) IsEnabled() bool {
+	return w.Enabled == nil || *w.Enabled
 }
 
 type PlanStatus struct {
@@ -371,21 +403,22 @@ const (
 
 // The potential reasons that are associated with condition types
 const (
-	ArtifactFailedReason       = "ArtifactFailed"
-	TFExecNewFailedReason      = "TFExecNewFailed"
-	TFExecInitFailedReason     = "TFExecInitFailed"
-	VarsGenerationFailedReason = "VarsGenerationFailed"
-	DriftDetectionFailedReason = "DriftDetectionFailed"
-	DriftDetectedReason        = "DriftDetected"
-	NoDriftReason              = "NoDrift"
-	TFExecPlanFailedReason     = "TFExecPlanFailed"
-	TFExecApplyFailedReason    = "TFExecApplyFailed"
-	TFExecOutputFailedReason   = "TFExecOutputFailed"
-	OutputsWritingFailedReason = "OutputsWritingFailed"
-	HealthChecksFailedReason   = "HealthChecksFailed"
-	TFExecApplySucceedReason   = "TerraformAppliedSucceed"
-	TFExecLockHeldReason       = "LockHeld"
-	TFExecForceUnlockReason    = "ForceUnlock"
+	ArtifactFailedReason            = "ArtifactFailed"
+	TFExecNewFailedReason           = "TFExecNewFailed"
+	TFExecInitFailedReason          = "TFExecInitFailed"
+	VarsGenerationFailedReason      = "VarsGenerationFailed"
+	DriftDetectionFailedReason      = "DriftDetectionFailed"
+	DriftDetectedReason             = "DriftDetected"
+	NoDriftReason                   = "NoDrift"
+	TFExecPlanFailedReason          = "TFExecPlanFailed"
+	PostPlanningWebhookFailedReason = "PostPlanningWebhookFailed"
+	TFExecApplyFailedReason         = "TFExecApplyFailed"
+	TFExecOutputFailedReason        = "TFExecOutputFailed"
+	OutputsWritingFailedReason      = "OutputsWritingFailed"
+	HealthChecksFailedReason        = "HealthChecksFailed"
+	TFExecApplySucceedReason        = "TerraformAppliedSucceed"
+	TFExecLockHeldReason            = "LockHeld"
+	TFExecForceUnlockReason         = "ForceUnlock"
 )
 
 // These constants are the Condition Types that the Terraform Resource works with
@@ -395,6 +428,11 @@ const (
 	ConditionTypeOutput      = "Output"
 	ConditionTypePlan        = "Plan"
 	ConditionTypeStateLocked = "StateLocked"
+)
+
+// Webhook stages
+const (
+	PostPlanningWebhook = "post-planning"
 )
 
 // SetTerraformReadiness sets the ReadyCondition, ObservedGeneration, and LastAttemptedRevision, on the Terraform.
@@ -492,6 +530,27 @@ func GetPlanIdAndApproveMessage(revision string, message string) (string, string
 	}
 	approveMessage := fmt.Sprintf("%s: set approvePlan: \"%s\" to approve this plan.", message, shortPlanId)
 	return planId, approveMessage
+}
+
+func TerraformPostPlanningWebhookFailed(terraform Terraform, revision string, message string) Terraform {
+	newCondition := metav1.Condition{
+		Type:    ConditionTypePlan,
+		Status:  metav1.ConditionFalse,
+		Reason:  PostPlanningWebhookFailedReason,
+		Message: trimString(message, MaxConditionMessageLength),
+	}
+	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+	(&terraform).Status.Plan = PlanStatus{
+		LastApplied:   terraform.Status.Plan.LastApplied,
+		Pending:       "",
+		IsDestroyPlan: terraform.Spec.Destroy,
+	}
+	if revision != "" {
+		(&terraform).Status.LastAttemptedRevision = revision
+		(&terraform).Status.LastPlannedRevision = revision
+	}
+
+	return terraform
 }
 
 func TerraformPlannedWithChanges(terraform Terraform, revision string, forceOrAutoApply bool, message string) Terraform {

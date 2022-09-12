@@ -3248,6 +3248,31 @@ spec:
                   - name
                   type: object
                 type: array
+              webhooks:
+                items:
+                  properties:
+                    enabled:
+                      default: true
+                      type: boolean
+                    errorMessageTemplate:
+                      type: string
+                    payloadType:
+                      default: SpecAndPlan
+                      type: string
+                    stage:
+                      default: post-planning
+                      enum:
+                      - post-planning
+                      type: string
+                    testExpression:
+                      type: string
+                    url:
+                      type: string
+                  required:
+                  - stage
+                  - url
+                  type: object
+                type: array
               writeOutputsToSecret:
                 description: A list of target secrets for the outputs to be written
                   as.
