@@ -27,7 +27,7 @@ image:
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
   # @default -- `.Chart.AppVersion`
-  tag: "v0.12.0"
+  tag: "v0.13.0-rc.1"
 # -- Controller image pull secret
 imagePullSecrets: []
 # -- Resource limits and requests
@@ -90,7 +90,6 @@ certValidityDuration: 6h0m
 caCertValidityDuration: 168h0m
 # -- Argument for `--events-addr` (Controller). The event address, default to the address of the Notification Controller
 eventsAddress: http://notification-controller.flux-system.svc.cluster.local./
-
 # -- Runner-specific configurations
 runner:
   image:
@@ -98,7 +97,7 @@ runner:
     repository: ghcr.io/weaveworks/tf-runner
     # -- Runner image tag
     # @default -- `.Chart.AppVersion`
-    tag: "v0.12.0"
+    tag: "v0.13.0-rc.1"
   grpc:
     # -- Maximum GRPC message size (Controller)
     maxMessageSize: 4
@@ -111,7 +110,6 @@ runner:
     annotations: {}
     # -- Runner service account to be used
     name: ""
-
 # EKS-specific configurations
 # -- Create an AWS EKS Security Group Policy with the supplied Security Group IDs [See](https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html#deploy-securitygrouppolicy)
 eksSecurityGroupPolicy:
