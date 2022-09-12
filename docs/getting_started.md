@@ -44,7 +44,7 @@ Here's a simple example of how to GitOps your Terraform resources with TF-contro
 
 ### Define source
 
-First, we need to define a Source controller's source (`GitRepostory`, `Bucket`, `OCIRepository`), for example:
+First, we need to define a Source controller's source (`GitRepository`, `Bucket`, `OCIRepository`), for example:
 
 ```yaml
 apiVersion: source.toolkit.fluxcd.io/v1beta1
