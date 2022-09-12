@@ -3239,14 +3239,39 @@ spec:
                         reconciliation failure.
                       type: boolean
                     varsKeys:
-                      description: VarsKeys is the data key where the values.yaml
-                        or a specific value can be found at. Defaults to all keys.
+                      description: VarsKeys is the data key at which a specific value
+                        can be found. Defaults to all keys.
                       items:
                         type: string
                       type: array
                   required:
                   - kind
                   - name
+                  type: object
+                type: array
+              webhooks:
+                items:
+                  properties:
+                    enabled:
+                      default: true
+                      type: boolean
+                    errorMessageTemplate:
+                      type: string
+                    payloadType:
+                      default: SpecAndPlan
+                      type: string
+                    stage:
+                      default: post-planning
+                      enum:
+                      - post-planning
+                      type: string
+                    testExpression:
+                      type: string
+                    url:
+                      type: string
+                  required:
+                  - stage
+                  - url
                   type: object
                 type: array
               writeOutputsToSecret:
