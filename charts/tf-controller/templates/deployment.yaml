@@ -76,16 +76,18 @@ spec:
           {{- toYaml .Values.resources | nindent 10 }}
         securityContext:
           {{- toYaml .Values.securityContext | nindent 10 }}
+        {{- with .Values.volumeMounts }}
         volumeMounts:
-        - mountPath: /tmp
-          name: temp
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "tf-controller.serviceAccountName" . }}
       terminationGracePeriodSeconds: 10
+      {{- with .Values.volumes }}
       volumes:
-      - emptyDir: {}
-        name: temp
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
