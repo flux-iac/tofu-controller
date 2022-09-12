@@ -3,6 +3,7 @@
 ## Installation
 
 Before using TF-controller, you have to install Flux by using either `flux install` or `flux bootstrap` command.
+Please note that TF-controller now requires **Flux v0.32.0** or later, so please make sure you have the latest version of Flux.
 After that you can install TF-controller with Flux HelmRelease by:
 
 ```shell
