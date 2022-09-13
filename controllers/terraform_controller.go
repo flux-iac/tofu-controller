@@ -1152,6 +1152,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	log.Info(fmt.Sprintf("plan: %s, found drift: %v", planReply.Message, drifted))
 
 	if r.shouldProcessPostPlanningWebhooks(terraform) {
+		log.Info("calling post planning webhooks ...")
 		terraform, err = r.processPostPlanningWebhooks(ctx, terraform, runnerClient, revision)
 		if err != nil {
 			log.Error(err, "failed during the process of post planning webhooks")
@@ -2426,7 +2427,6 @@ func (r *TerraformReconciler) shouldProcessPostPlanningWebhooks(terraform infrav
 }
 
 func (r *TerraformReconciler) prepareWebhookPayload(terraform infrav1.Terraform, runnerClient runner.RunnerClient, payloadType string) ([]byte, error) {
-
 	toBytes, err := terraform.ToBytes(r.Scheme)
 	if err != nil {
 		err = fmt.Errorf("failed to marshal Terraform resource: %w", err)
@@ -2488,6 +2488,8 @@ func (r *TerraformReconciler) prepareWebhookPayload(terraform infrav1.Terraform,
 }
 
 func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient, revision string) (infrav1.Terraform, error) {
+	log := ctrl.LoggerFrom(ctx)
+
 	hooks := []infrav1.Webhook{}
 	for _, webhook := range terraform.Spec.Webhooks {
 		if webhook.Stage == infrav1.PostPlanningWebhook {
@@ -2502,10 +2504,14 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, t
 	disableWebhookTLSVerification := os.Getenv("DISABLE_WEBHOOK_TLS_VERIFY") == "1"
 
 	for _, webhook := range hooks {
+		log.Info("processing post-planning webhook", "webhook", webhook.URL)
+
 		// We skip webhook if it's not enabled
 		if webhook.IsEnabled() == false {
 			continue
 		}
+
+		log.Info("webhook is enabled, processing")
 
 		payloadBytes, err := r.prepareWebhookPayload(terraform, runnerClient, webhook.PayloadType)
 		if err != nil {
@@ -2513,21 +2519,31 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, t
 			return terraform, err
 		}
 
+		log.Info("webhook payload prepared")
+
 		cli := cleanhttp.DefaultClient()
 
 		if disableWebhookTLSVerification == false {
+
+			log.Info("webhook TLS verification is enabled")
+
 			// parse webhook.URL and get the server name
 			u, err := url.Parse(webhook.URL)
 			if err != nil {
 				err = fmt.Errorf("failed to parse webhook URL: %w", err)
 				return terraform, err
 			}
+
+			log.Info("webhook URL parsed", "host", u.Host)
+
 			caCertPath := "/etc/certs/" + u.Hostname() + "/ca.crt"
 			caCertPool := x509.NewCertPool()
 			caCert, err := ioutil.ReadFile(caCertPath)
 			if err == nil {
 				caCertPool.AppendCertsFromPEM(caCert)
 			}
+
+			log.Info("webhook CA cert loaded", "path", caCertPath)
 
 			tlsCertPath := "/etc/certs/" + u.Hostname() + "/tls.crt"
 			tlsKeyPath := "/etc/certs/" + u.Hostname() + "/tls.key"
@@ -2537,10 +2553,14 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, t
 				return terraform, err
 			}
 
+			log.Info("webhook TLS cert loaded", "path", tlsCertPath, "keypath", tlsKeyPath)
+
 			cli.Transport.(*http.Transport).TLSClientConfig = &tls.Config{
 				RootCAs:      caCertPool,
 				Certificates: []tls.Certificate{certificate},
 			}
+
+			log.Info("webhook TLS config set")
 		}
 
 		post, err := cli.Post(webhook.URL, "application/json", bytes.NewReader(payloadBytes))
@@ -2549,9 +2569,13 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, t
 			return terraform, err
 		}
 
+		log.Info("webhook sent")
+
 		if post.StatusCode != 200 {
 			return terraform, fmt.Errorf("webhook %s returned %d: %s", webhook.URL, post.StatusCode, post.Status)
 		}
+
+		log.Info(fmt.Sprintf("webhook returned %d: %s", post.StatusCode, post.Status))
 
 		// read json from post.Body, unmarshall to map[string]interface{}
 		jsonReply := map[string]interface{}{}
@@ -2561,6 +2585,8 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, t
 			return terraform, err
 		}
 
+		log.Info("webhook reply decoded")
+
 		// Test if the reply contains a good result
 		testExprTpl, err := template.New("testexpr").Parse(webhook.TestExpression)
 		if err != nil {
@@ -2568,20 +2594,28 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, t
 			return terraform, err
 		}
 
+		log.Info("webhook test expression parsed")
+
 		var testExprBuf bytes.Buffer
 		err = testExprTpl.Execute(&testExprBuf, jsonReply)
 		if err != nil {
 			err = fmt.Errorf("failed to execute webhook test expression: %w", err)
 			return terraform, err
 		}
+
+		log.Info("webhook test expression executed")
+
 		testResult := strings.TrimSpace(testExprBuf.String())
 		if testResult == "true" || testResult == "yes" {
+			log.Info("webhook test expression returned true, webhook is successful")
 			continue
 		} else if testResult == "false" || testResult == "no" {
 			// do nothing
 		} else {
 			return terraform, fmt.Errorf("webhook test expression %q returned unexpected result: %s", webhook.TestExpression, testResult)
 		}
+
+		log.Info("webhook test expression returned false, webhook is not successful - prepare error message")
 
 		// Extract the error message from the webhook response
 		errMsgTpl, err := template.New("errmsg").Parse(webhook.ErrorMessageTemplate)
@@ -2590,12 +2624,16 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, t
 			return terraform, err
 		}
 
+		log.Info("webhook error message template parsed")
+
 		var errorMessage bytes.Buffer
 		err = errMsgTpl.Execute(&errorMessage, jsonReply)
 		if err != nil {
 			err = fmt.Errorf("failed to execute webhook error message template: %w", err)
 			return terraform, err
 		}
+
+		log.Info("webhook error message template executed")
 
 		terraform = infrav1.TerraformPostPlanningWebhookFailed(terraform, revision, errorMessage.String())
 		webhookErr := fmt.Errorf(errorMessage.String())
