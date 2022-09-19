@@ -3212,7 +3212,7 @@ spec:
               varsFrom:
                 description: List of references to a Secret or a ConfigMap to generate
                   variables for Terraform resources based on its data, selectively
-                  by varsKey. Values of the later Secret / ConfigMap with the samek
+                  by varsKey. Values of the later Secret / ConfigMap with the same
                   keys will override those of the former.
                 items:
                   description: VarsReference contain a reference of a Secret or a
@@ -3274,6 +3274,9 @@ spec:
                   - url
                   type: object
                 type: array
+              workspace:
+                default: default
+                type: string
               writeOutputsToSecret:
                 description: A list of target secrets for the outputs to be written
                   as.
