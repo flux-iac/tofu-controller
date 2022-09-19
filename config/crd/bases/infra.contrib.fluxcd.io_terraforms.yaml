@@ -3274,6 +3274,7 @@ spec:
                   type: object
                 type: array
               workspace:
+                default: default
                 type: string
               writeOutputsToSecret:
                 description: A list of target secrets for the outputs to be written
