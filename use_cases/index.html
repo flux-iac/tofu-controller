@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.4.4">
+      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.5.2">
     
     
       
@@ -17,13 +17,14 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.6b80c2a2.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.9f9400aa.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.cbb835fc.min.css">
         
       
       
+
     
     
     
@@ -40,6 +41,7 @@
     
       
 
+    
     
     
   </head>
@@ -142,7 +144,7 @@
       </label>
       <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
         </button>
       </nav>
@@ -455,8 +457,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#customize-runner-pod-image" class="md-nav__link">
-    Customize runner pod image
+  <a href="#customize-runner-pod-spec" class="md-nav__link">
+    Customize runner pod spec
   </a>
   
 </li>
@@ -469,6 +471,13 @@
         <li class="md-nav__item">
   <a href="#using-oci-artifact-as-source" class="md-nav__link">
     Using OCI Artifact as Source
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#force-unlock-terraform-state" class="md-nav__link">
+    Force unlock Terraform state
   </a>
   
 </li>
@@ -688,8 +697,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#customize-runner-pod-image" class="md-nav__link">
-    Customize runner pod image
+  <a href="#customize-runner-pod-spec" class="md-nav__link">
+    Customize runner pod spec
   </a>
   
 </li>
@@ -706,6 +715,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#force-unlock-terraform-state" class="md-nav__link">
+    Force unlock Terraform state
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -714,10 +730,11 @@
               </div>
             
           
-          <div class="md-content" data-md-component="content">
-            <article class="md-content__inner md-typeset">
-              
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
                 
+                  
 
   <a href="https://github.com/weaveworks/tf-controller/edit/master/docs/use_cases.md" title="Edit this page" class="md-content__button md-icon">
     
@@ -1102,7 +1119,7 @@ spec:
       annotations:
         company.com/abc: xyz
 </code></pre>
-<h3 id="customize-runner-pod-image">Customize runner pod image</h3>
+<h3 id="customize-runner-pod-spec">Customize runner pod spec</h3>
 <p>By default, the Terraform controller uses <code>RUNNER_POD_IMAGE</code> environment variable to identify the runner pod image to use.
 You can customize the image to use on the global level by updating the value of the environment variable or you
 can specify an image to use per Terraform object for its reconciliation.</p>
@@ -1124,6 +1141,10 @@ spec:
       image: registry.io/tf-runner:xyz
 </code></pre>
 <p>You can use <a href="https://github.com/weaveworks/tf-controller/blob/main/runner.Dockerfile"><code>runner.Dockerfile</code></a> as a basis of customizing runner pod image.</p>
+<p>You can also customize various pod spec fields to control and configure how the runner pod runs. 
+For example, you can configure pod spec affinity and tolerations if you need to run in on a specific set of nodes. 
+Please see <a href="https://weaveworks.github.io/tf-controller/References/terraform/#infra.contrib.fluxcd.io/v1alpha1.RunnerPodSpec">RunnerPodSpec</a> 
+for a list configurable pod spec fields.</p>
 <h2 id="using-oci-artifact-as-source">Using OCI Artifact as Source</h2>
 <p>To use OCI artifacts as the source of TF-controller, you need Flux2 version v0.32.0 or higher.</p>
 <p>Assuming that you have Terraform files (your root module may contain sub-modules) under ./modules,
@@ -1163,15 +1184,38 @@ spec:
   writeOutputsToSecret:
     name: helloworld-outputs
 </code></pre>
+<h2 id="force-unlock-terraform-state">Force unlock Terraform state</h2>
+<p>In some situations, you may need to perform Terraform <a href="https://www.terraform.io/language/state/locking#force-unlock">force-unlock</a> on the state file.
+You may also need to specify a lock identifier to unlock a specific locked state.
+Using <code>auto</code> mode will automatically use the lock identifier produced by the associated state file instead of specified lock identifier.
+By default, this is not enabled. To enable it, see the following example.</p>
+<pre><code class="language-yaml">apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: &quot;auto&quot;
+  interval: 1m
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  tfstate:
+    forceUnlock: 'yes'
+    lockIdentifier: 'f2ab685b-f84d-ac0b-a125-378a22877e8d'
+</code></pre>
 
 
 
 
 
-              
-            </article>
-            
-          </div>
+                
+              </article>
+            </div>
+          
+          
         </div>
         
       </main>
@@ -1238,7 +1282,7 @@ spec:
     <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.ecf98df9.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.2ab50757.min.js"></script>
+      <script src="../assets/javascripts/bundle.39f04ddb.min.js"></script>
       
     
   </body>
