@@ -928,6 +928,14 @@ terraform {
 
 	log.Info("tfexec initialized terraform")
 
+	workspaceRequest := &runner.WorkspaceRequest{
+		TfInstance: tfInstance,
+		Terraform:  terraformBytes,
+	}
+	workspaceReply, _ := runnerClient.SelectWorkspace(ctx, workspaceRequest)
+
+	log.Info(fmt.Sprintf("workspace select reply: %s", workspaceReply.Message))
+
 	generateVarsForTFReply, err := runnerClient.GenerateVarsForTF(ctx, &runner.GenerateVarsForTFRequest{
 		WorkingDir: workingDir,
 	})

@@ -31,6 +31,7 @@ service Runner {
   rpc GetOutputs(GetOutputsRequest) returns (GetOutputsReply) {}
 
   rpc Init(InitRequest) returns (InitReply) {}
+  rpc SelectWorkspace(WorkspaceRequest) returns (WorkspaceReply) {}
   rpc Upload(UploadRequest) returns (UploadReply) {}
 
   rpc FinalizeSecrets(FinalizeSecretsRequest) returns (FinalizeSecretsReply) {}
@@ -264,6 +265,15 @@ message InitRequest {
 message InitReply {
   string message = 1;
   string stateLockIdentifier = 2;
+}
+
+message WorkspaceRequest {
+  string tfInstance = 1;
+  bytes terraform = 2;
+}
+
+message WorkspaceReply {
+  string message = 1;
 }
 
 message UploadRequest {
