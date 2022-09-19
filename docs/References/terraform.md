@@ -950,7 +950,7 @@ ForceUnlockEnum
 </td>
 <td>
 <em>(Optional)</em>
-<p>ForceUnlock a Terraform state if it has become locked for any reason.</p>
+<p>ForceUnlock a Terraform state if it has become locked for any reason. Defaults to <code>no</code>.</p>
 <p>This is an Enum and has the expected values of:</p>
 <ul>
 <li>auto</li>
@@ -975,7 +975,7 @@ string
 <p>LockIdentifier holds the Identifier required by Terraform to unlock the state
 if it ever gets into a locked state.</p>
 <p>You&rsquo;ll need to put the Lock Identifier in here while setting ForceUnlock to
-either <code>true</code> or <code>auto</code>.</p>
+either <code>yes</code> or <code>auto</code>.</p>
 <p>Leave this empty to do nothing, set this to the value of the <code>Lock Info: ID: [value]</code>,
 e.g. <code>f2ab685b-f84d-ac0b-a125-378a22877e8d</code>, to force unlock the state.</p>
 </td>
