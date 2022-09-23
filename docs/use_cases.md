@@ -12,7 +12,7 @@ metadata:
   namespace: flux-system
 spec:
 + approvePlan: "" # or you can omit this field
-- approvePlan: "auto"
+- approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -31,7 +31,7 @@ metadata:
   name: hello-world
   namespace: flux-system
 spec:
-+ approvePlan: "plan-main-b8e362c206" # first 8 digits of a commit hash is enough
++ approvePlan: plan-main-b8e362c206 # first 8 digits of a commit hash is enough
 - approvePlan: ""
   interval: 1m
   path: ./
@@ -52,7 +52,7 @@ metadata:
   name: hello-world
   namespace: flux-system
 spec:
-  approvePlan: "disable"
+  approvePlan: disable
   interval: 1m
   path: ./
   sourceRef:
@@ -72,7 +72,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: "auto"
+  approvePlan: auto
   disableDriftDetection: true
   interval: 1m
   path: ./
@@ -147,7 +147,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: "auto"
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -191,7 +191,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: "auto"
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -226,7 +226,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: "auto"
+  approvePlan: auto
   backendConfig:
     customConfiguration: |
       backend "s3" {
@@ -314,7 +314,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: "auto"
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -346,7 +346,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: "auto"
+  approvePlan: auto
   destroyResourcesOnDeletion: true
   interval: 1m
   path: ./
@@ -371,7 +371,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: "auto"
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -393,7 +393,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: "auto"
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -421,7 +421,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: "auto"
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -449,7 +449,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: "auto"
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -477,7 +477,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: "auto"
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -534,7 +534,7 @@ metadata:
   name: helloworld-tf-oci
 spec:
   path: ./
-  approvePlan: "auto"
+  approvePlan: auto
   interval: 1m
   sourceRef:
     kind: OCIRepository
@@ -557,7 +557,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: "auto"
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -565,6 +565,6 @@ spec:
     name: helloworld
     namespace: flux-system
   tfstate:
-    forceUnlock: 'yes'
-    lockIdentifier: 'f2ab685b-f84d-ac0b-a125-378a22877e8d'
+    forceUnlock: yes
+    lockIdentifier: f2ab685b-f84d-ac0b-a125-378a22877e8d
 ```
