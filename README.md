@@ -26,12 +26,12 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
   * [x] Performance
   * [x] Scalability
   * [x] Interop with Notification controller's Events and Alert
-  * [ ] Validation webhooks for the planning stage
+  * [x] Validation webhooks for the planning stage
 
 ### Q4 2022
-  * [ ] Cloud cost estimation
   * [ ] Selectable Terraform versions
   * [ ] CLI to GitOpsify existing Terraform workflows
+  * [ ] Cloud cost estimation
   * [ ] CRD wrappers for Terraform modules
 
 ### Q1 2023
