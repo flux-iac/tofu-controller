@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.5.2">
+      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.5.3">
     
     
       
@@ -17,7 +17,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.9f9400aa.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.7a952b86.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.cbb835fc.min.css">
@@ -752,7 +752,7 @@ metadata:
   namespace: flux-system
 spec:
 + approvePlan: &quot;&quot; # or you can omit this field
-- approvePlan: &quot;auto&quot;
+- approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -768,7 +768,7 @@ metadata:
   name: hello-world
   namespace: flux-system
 spec:
-+ approvePlan: &quot;plan-main-b8e362c206&quot; # first 8 digits of a commit hash is enough
++ approvePlan: plan-main-b8e362c206 # first 8 digits of a commit hash is enough
 - approvePlan: &quot;&quot;
   interval: 1m
   path: ./
@@ -785,7 +785,7 @@ metadata:
   name: hello-world
   namespace: flux-system
 spec:
-  approvePlan: &quot;disable&quot;
+  approvePlan: disable
   interval: 1m
   path: ./
   sourceRef:
@@ -801,7 +801,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: &quot;auto&quot;
+  approvePlan: auto
   disableDriftDetection: true
   interval: 1m
   path: ./
@@ -856,7 +856,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: &quot;auto&quot;
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -895,7 +895,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: &quot;auto&quot;
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -922,7 +922,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: &quot;auto&quot;
+  approvePlan: auto
   backendConfig:
     customConfiguration: |
       backend &quot;s3&quot; {
@@ -993,7 +993,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: &quot;auto&quot;
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -1021,7 +1021,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: &quot;auto&quot;
+  approvePlan: auto
   destroyResourcesOnDeletion: true
   interval: 1m
   path: ./
@@ -1040,7 +1040,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: &quot;auto&quot;
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -1058,7 +1058,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: &quot;auto&quot;
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -1082,7 +1082,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: &quot;auto&quot;
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -1105,7 +1105,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: &quot;auto&quot;
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -1129,7 +1129,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: &quot;auto&quot;
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -1176,7 +1176,7 @@ metadata:
   name: helloworld-tf-oci
 spec:
   path: ./
-  approvePlan: &quot;auto&quot;
+  approvePlan: auto
   interval: 1m
   sourceRef:
     kind: OCIRepository
@@ -1195,7 +1195,7 @@ metadata:
   name: helloworld
   namespace: flux-system
 spec:
-  approvePlan: &quot;auto&quot;
+  approvePlan: auto
   interval: 1m
   path: ./
   sourceRef:
@@ -1203,8 +1203,8 @@ spec:
     name: helloworld
     namespace: flux-system
   tfstate:
-    forceUnlock: 'yes'
-    lockIdentifier: 'f2ab685b-f84d-ac0b-a125-378a22877e8d'
+    forceUnlock: yes
+    lockIdentifier: f2ab685b-f84d-ac0b-a125-378a22877e8d
 </code></pre>
 
 
@@ -1279,10 +1279,10 @@ spec:
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.ecf98df9.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.5bf1dace.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.39f04ddb.min.js"></script>
+      <script src="../assets/javascripts/bundle.37e9125f.min.js"></script>
       
     
   </body>
