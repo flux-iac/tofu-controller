@@ -1277,7 +1277,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 
 	// this a special case, when backend is completely disabled.
 	// we need to use "destroy" command instead of apply
-	if r.backendCompletelyDisable(terraform) && terraform.Spec.Destroy == true {
+	if r.backendCompletelyDisable(terraform) || terraform.Spec.Destroy == true {
 		destroyReply, err := runnerClient.Destroy(ctx, &runner.DestroyRequest{
 			TfInstance: tfInstance,
 			Targets:    terraform.Spec.Targets,
