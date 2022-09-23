@@ -932,7 +932,15 @@ terraform {
 		TfInstance: tfInstance,
 		Terraform:  terraformBytes,
 	}
-	workspaceReply, _ := runnerClient.SelectWorkspace(ctx, workspaceRequest)
+	workspaceReply, err := runnerClient.SelectWorkspace(ctx, workspaceRequest)
+	if err != nil {
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.WorkspaceSelectFailedReason,
+			err.Error(),
+		), tfInstance, tmpDir, err
+	}
 
 	log.Info(fmt.Sprintf("workspace select reply: %s", workspaceReply.Message))
 
