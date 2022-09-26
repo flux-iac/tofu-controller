@@ -55,6 +55,10 @@ spec:
         - name: {{ $key }}
           value: {{ $value }}
         {{- end }}
+        {{- if .Values.extraEnvFrom }}
+        envFrom:
+        {{- toYaml .Values.extraEnvFrom | nindent 8 }}
+        {{- end }}
         image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         livenessProbe:
