@@ -3094,11 +3094,11 @@ spec:
                   forceUnlock:
                     default: "no"
                     description: "ForceUnlock a Terraform state if it has become locked
-                      for any reason. \n This is an Enum and has the expected values
-                      of: \n - auto - yes - no \n WARNING: Only use `auto` in the
-                      cases where you are absolutely certain that no other system
-                      is using this state, you could otherwise end up in a bad place
-                      See https://www.terraform.io/language/state/locking#force-unlock
+                      for any reason. Defaults to `no`. \n This is an Enum and has
+                      the expected values of: \n - auto - yes - no \n WARNING: Only
+                      use `auto` in the cases where you are absolutely certain that
+                      no other system is using this state, you could otherwise end
+                      up in a bad place See https://www.terraform.io/language/state/locking#force-unlock
                       for more information on the terraform state lock and force unlock."
                     enum:
                     - "yes"
@@ -3115,6 +3115,13 @@ spec:
                       force unlock the state."
                     type: string
                 type: object
+              values:
+                description: Values map to the Terraform variable "values", which
+                  is an object of arbitrary values. It is a convenient way to pass
+                  values to Terraform resources without having to define a variable
+                  for each value. To use this feature, your Terraform file must define
+                  the variable "values".
+                x-kubernetes-preserve-unknown-fields: true
               vars:
                 description: List of input variables to set for the Terraform program.
                 items:
