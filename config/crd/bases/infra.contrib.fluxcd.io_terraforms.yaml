@@ -3114,6 +3114,13 @@ spec:
                       force unlock the state."
                     type: string
                 type: object
+              values:
+                description: Values map to the Terraform variable "values", which
+                  is an object of arbitrary values. It is a convenient way to pass
+                  values to Terraform resources without having to define a variable
+                  for each value. To use this feature, your Terraform file must define
+                  the variable "values".
+                x-kubernetes-preserve-unknown-fields: true
               vars:
                 description: List of input variables to set for the Terraform program.
                 items:
