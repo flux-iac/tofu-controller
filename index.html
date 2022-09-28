@@ -460,12 +460,14 @@ in the GitOps way.
 With the power of Flux together with Terraform, TF-controller allows you to GitOps-ify infrastructure,
 and application resources, in the Kubernetes and Terraform universe, at your own pace.</p>
 <p>"At your own pace" means you don't need to GitOps-ify everything at once.</p>
-<p>TF-controller offers many GitOps models:
-  1. <strong>GitOps Automation Model:</strong> GitOps your Terraform resources from the provision steps to the enforcement steps, like a whole EKS cluster.
-  2. <strong>Hybrid GitOps Automation Model:</strong> GitOps parts of your existing infrastructure resources. For example, you have an existing EKS cluster.
-     You can choose to GitOps only its nodegroup, or its security group.
-  3. <strong>State Enforcement Model:</strong> You have a TFSTATE file, and you'd like to use GitOps enforce it, without changing anything else.
-  4. <strong>Drift Detection Model:</strong> You have a TFSTATE file, and you'd like to use GitOps just for drift detection, so you can decide to do things later when a drift occurs.</p>
+<p>TF-controller offers many GitOps models:</p>
+<ol>
+<li><strong>GitOps Automation Model:</strong> GitOps your Terraform resources from the provision steps to the enforcement steps, like a whole EKS cluster.</li>
+<li><strong>Hybrid GitOps Automation Model:</strong> GitOps parts of your existing infrastructure resources. For example, you have an existing EKS cluster.
+     You can choose to GitOps only its nodegroup, or its security group.</li>
+<li><strong>State Enforcement Model:</strong> You have a TFSTATE file, and you'd like to use GitOps enforce it, without changing anything else.</li>
+<li><strong>Drift Detection Model:</strong> You have a TFSTATE file, and you'd like to use GitOps just for drift detection, so you can decide to do things later when a drift occurs.</li>
+</ol>
 <p>To get started, follow the <a href="/tf-controller/getting_started">getting started</a> guide.</p>
 <h2 id="features">Features</h2>
 <ul>
