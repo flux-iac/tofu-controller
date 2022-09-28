@@ -2,12 +2,13 @@
 
 ## Preflight Checks
 
-Before you begin, make sure you have the following installed:
+Here are the requirements you need to set up before you start:
+
   1. Flux v0.32.0 or later (not only the CLI, but also the controllers on the cluster). If you are not sure about the Flux version on your cluster, please re-bootstrap your cluster.
   2. TF-controller uses **the Controller/Runner architecture**. The Controller acts as a client, and talks to each Runner's Pod via gRPC. Please make sure 
-     1. Each Runner's Pod in each Namespace is allowed to open, and serve at port *30000* (the gRPC port of a Runner), and the Controller can connect to it.
-     2. The Controller needs to download tar.gz BLOBs from the Flux's Source controller via port *80*.
-     3. The Controller needs to post the events to the Flux's Notification controller via port *80*.
+     1. **Each Runner's Pod in each Namespace** is allowed to open, and serve at **port 30000** (the gRPC port of a Runner), and the Controller can connect to it.
+     2. **The Controller** needs to download tar.gz BLOBs from the **Source controller** via **port 80**.
+     3. **The Controller** needs to post the events to the **Notification controller** via **port 80**.
 
 ## Installation
 
