@@ -223,3 +223,7 @@ docker:
 		echo "You need docker" &&\
 		exit 1;\
 	}
+
+.PHONY: serve-docs
+serve-docs: ## Run a local server to serve the docs
+	@docker run --rm -it -p 8000:8000 -v $(shell pwd):/docs squidfunk/mkdocs-material
