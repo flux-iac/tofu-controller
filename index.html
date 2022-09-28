@@ -494,6 +494,12 @@ and application resources, in the Kubernetes and Terraform universe, at your own
     You make change to the field <code>.spec.approvePlan</code>, commit and push to tell the TF-controller to apply the plan for you.
     With this GitOps workflow, you can optionally create and push this change to a new branch for your team member to
     review and approve too. <em>This feature is available since v0.6.0.</em></li>
+<li><strong>First-class YAML-based Terraform</strong>: The <code>Terraform</code> object in v0.13.0+ allows you to better configure your 
+    Terraform resources via YAMLs, but without introducing any extra CRDs to your cluster. Together with a new generator
+    called <strong>Tofu-Jet</strong>, we'll now be able to ship pre-generated primitive Terraform modules for all major cloud providers.
+    A primitive Terraform module is a module that only contains a single primitive resource, like <code>aws_iam_role</code>, or <code>aws_iam_policy</code>.
+    With this concept, we would be able to use Terraform without writing Terraform codes, and make it more GitOps-friendly at the same time. 
+    <em>This feature is available since v0.13.0.</em></li>
 </ul>
 <h2 id="dependencies">Dependencies</h2>
 <table>
@@ -507,16 +513,16 @@ and application resources, in the Kubernetes and Terraform universe, at your own
 </thead>
 <tbody>
 <tr>
-<td align="center"><strong>v0.9.5</strong></td>
-<td align="center">v1.1.9</td>
-<td align="center">v0.21.2</td>
-<td align="center">v0.27.x</td>
+<td align="center">v0.13.0-rc</td>
+<td align="center">v1.3.1</td>
+<td align="center">v0.26.1</td>
+<td align="center">v0.34.x</td>
 </tr>
 <tr>
-<td align="center">v0.8.0</td>
-<td align="center">v1.1.4</td>
-<td align="center">v0.20.1</td>
-<td align="center">v0.25.x</td>
+<td align="center"><strong>v0.12.0</strong></td>
+<td align="center">v1.1.9</td>
+<td align="center">v0.26.1</td>
+<td align="center">v0.32.x</td>
 </tr>
 </tbody>
 </table>
