@@ -99,6 +99,12 @@ type TerraformSpec struct {
 	// +optional
 	VarsFrom []VarsReference `json:"varsFrom,omitempty"`
 
+	// Values map to the Terraform variable "values", which is an object of arbitrary values.
+	// It is a convenient way to pass values to Terraform resources without having to define
+	// a variable for each value. To use this feature, your Terraform file must define the variable "values".
+	// +optional
+	Values *apiextensionsv1.JSON `json:"values,omitempty"`
+
 	// List of all configuration files to be created in initialization.
 	// +optional
 	FileMappings []FileMapping `json:"fileMappings,omitempty"`

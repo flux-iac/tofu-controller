@@ -401,8 +401,14 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 	// use from the cached object
 	terraform := *r.terraform
 
-	log.Info("mapping the Spec.Vars")
 	vars := map[string]*apiextensionsv1.JSON{}
+
+	log.Info("mapping the Spec.Values")
+	if terraform.Spec.Values != nil {
+		vars["values"] = terraform.Spec.Values
+	}
+
+	log.Info("mapping the Spec.Vars")
 	if len(terraform.Spec.Vars) > 0 {
 		for _, v := range terraform.Spec.Vars {
 			vars[v.Name] = v.Value
