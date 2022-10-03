@@ -37,6 +37,7 @@ import (
 
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/fluxcd/pkg/runtime/events"
+	"github.com/fluxcd/pkg/runtime/logger"
 	"github.com/fluxcd/pkg/runtime/metrics"
 	"github.com/fluxcd/pkg/runtime/predicates"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -107,26 +108,37 @@ type TerraformReconciler struct {
 func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (retResult ctrl.Result, retErr error) {
 	log := ctrl.LoggerFrom(ctx)
 	reconcileStart := time.Now()
+	traceLog := log.V(logger.TraceLevel).WithValues("start-time", reconcileStart)
+	traceLog.Info("Reconcile Start")
 
 	<-r.CertRotator.Ready
 
+	traceLog.Info("Validate TLS Cert")
 	if isCAValid, _ := r.CertRotator.IsCAValid(); isCAValid == false && r.CertRotator.TriggerCARotation != nil {
+		traceLog.Info("TLS Cert invalid")
 		readyCh := make(chan *mtls.TriggerResult)
+		traceLog.Info("Trigger Cert Rotation")
 		r.CertRotator.TriggerCARotation <- mtls.Trigger{Namespace: "", Ready: readyCh}
+		traceLog.Info("Waiting for Cert Ready Signal")
 		<-readyCh
 	}
 
+	traceLog.Info("Fetch Terrafom Resource", req.NamespacedName)
 	var terraform infrav1.Terraform
 	if err := r.Get(ctx, req.NamespacedName, &terraform); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	// Record suspended status metric
+	traceLog.Info("Defer metrics for suspended records")
 	defer r.recordSuspensionMetric(ctx, terraform)
 
 	// Add our finalizer if it does not exist
+	traceLog.Info("Check Terraform resource for a finalizer")
 	if !controllerutil.ContainsFinalizer(&terraform, infrav1.TerraformFinalizer) {
+		traceLog.Info("No finalizer set, setting now")
 		controllerutil.AddFinalizer(&terraform, infrav1.TerraformFinalizer)
+		traceLog.Info("Update the Terraform resource with the new finalizer")
 		if err := r.Update(ctx, &terraform); err != nil {
 			log.Error(err, "unable to register finalizer")
 			return ctrl.Result{}, err
@@ -134,6 +146,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	// Return early if the Terraform is suspended.
+	traceLog.Info("Check if the Terraform resource is suspened")
 	if terraform.Spec.Suspend {
 		log.Info("Reconciliation is suspended for this object")
 		return ctrl.Result{}, nil
@@ -142,10 +155,14 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	// resolve source reference
 	log.Info("getting source")
 	sourceObj, err := r.getSource(ctx, terraform)
+	traceLog.Info("Did we get an error trying to get the source")
 	if err != nil {
+		traceLog.Info("Is the error a NotFound error")
 		if apierrors.IsNotFound(err) {
+			traceLog.Info("The Source was not found")
 			msg := fmt.Sprintf("Source '%s' not found", terraform.Spec.SourceRef.String())
 			terraform = infrav1.TerraformNotReady(terraform, "", infrav1.ArtifactFailedReason, msg)
+			traceLog.Info("Patch the Terraform resource Status with NotReady")
 			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
 				log.Error(err, "unable to update status for source not found")
 				return ctrl.Result{Requeue: true}, err
@@ -162,9 +179,11 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	// sourceObj does not exist, return early
+	traceLog.Info("Check we have a source object")
 	if sourceObj.GetArtifact() == nil {
 		msg := "Source is not ready, artifact not found"
 		terraform = infrav1.TerraformNotReady(terraform, "", infrav1.ArtifactFailedReason, msg)
+		traceLog.Info("Patch the Terraform resource Status with NotReady")
 		if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
 			log.Error(err, "unable to update status for artifact not found")
 			return ctrl.Result{Requeue: true}, err
@@ -177,18 +196,22 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// Skip update the status if the ready condition is still unknown
 	// so that the Plan prompt is still shown.
+	traceLog.Info("If the status condition is still unknown skip to keep the plan prompt")
 	ready := apimeta.FindStatusCondition(terraform.Status.Conditions, meta.ReadyCondition)
 	if ready == nil || ready.Status != metav1.ConditionUnknown {
+		traceLog.Info("Patch Terraform resource status with Progressing")
 		terraform = infrav1.TerraformProgressing(terraform, "Reconciliation in progress")
 		if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
 			log.Error(err, "unable to update status before Terraform initialization")
 			return ctrl.Result{Requeue: true}, err
 		}
+		traceLog.Info("Patch Terraform resource status with Progressing")
 		r.recordReadinessMetric(ctx, terraform)
 	}
 
 	// Create Runner Pod.
 	// Wait for the Runner Pod to start.
+	traceLog.Info("Fetch/Create Runner pod for this Terraform resource")
 	runnerClient, closeConn, err := r.LookupOrCreateRunner(ctx, terraform)
 	if err != nil {
 		log.Error(err, "unable to lookup or create runner")
@@ -201,34 +224,44 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 	log.Info("runner is running")
 
+	traceLog.Info("Defer function to handle clean up")
 	defer func(ctx context.Context, cli client.Client, terraform infrav1.Terraform) {
+		traceLog.Info("Check for closeConn function")
 		if closeConn != nil {
+			traceLog.Info("Call closeConn function")
 			if err := closeConn(); err != nil {
 				log.Error(err, "unable to close connection")
 				retErr = err
 			}
 		}
 
+		traceLog.Info("Check if we're running an insecure local runner")
 		if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
 			// nothing to delete
 			log.Info("insecure local runner")
 			return
 		}
 
+		traceLog.Info("Check if we need to clean up the Runner pod")
 		if terraform.Spec.GetAlwaysCleanupRunnerPod() == true {
 			// wait for runner pod complete termination
 			var (
 				interval = time.Second * 3
 				timeout  = time.Second * 120
 			)
+			traceLog.Info("Poll function that will clean up the Runner pod")
 			err := wait.PollImmediate(interval, timeout, func() (bool, error) {
+				traceLog.Info("Get the Runner pod")
 				var runnerPod corev1.Pod
 				err := r.Get(ctx, getRunnerPodObjectKey(terraform), &runnerPod)
 
+				traceLog.Info("If not found nothing to do")
 				if err != nil && apierrors.IsNotFound(err) {
+					traceLog.Info("Runner pod not running, work complete")
 					return true, nil
 				}
 
+				traceLog.Info("Attempt to delete the Runner pod")
 				if err := cli.Delete(ctx, &runnerPod,
 					client.GracePeriodSeconds(1), // force kill = 1 second
 					client.PropagationPolicy(metav1.DeletePropagationForeground),
@@ -237,9 +270,11 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 					return false, nil
 				}
 
+				traceLog.Info("Unable to delete the Runner pod, return false and err to try again")
 				return false, err
 			})
 
+			traceLog.Info("If err != nil we hit an error deleting the Runner pod")
 			if err != nil {
 				retErr = fmt.Errorf("failed waiting for the terminating runner pod: %v", err)
 				log.Error(retErr, "error in polling")
@@ -248,13 +283,17 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}(ctx, r.Client, terraform)
 
 	// Examine if the object is under deletion
+	traceLog.Info("Check for deletion timestamp to finalize")
 	if !terraform.ObjectMeta.DeletionTimestamp.IsZero() {
+		traceLog.Info("Calling finalize function")
 		return r.finalize(ctx, terraform, runnerClient, sourceObj)
 	}
 
 	// If revision is changed, and there's no intend to apply,
 	// we should clear the Pending Plan to trigger re-plan
+	traceLog.Info("Check artifact revision and if we shouldApply")
 	if sourceObj.GetArtifact().Revision != terraform.Status.LastAttemptedRevision && !r.shouldApply(terraform) {
+		traceLog.Info("Update the status of the Terraform resource")
 		terraform.Status.Plan.Pending = ""
 		if err := r.Status().Update(ctx, &terraform); err != nil {
 			log.Error(err, "unable to update status to clear pending plan (revision != last attempted)")
@@ -263,19 +302,24 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	// Return early if it's manually mode and pending
+	traceLog.Info("Check for pending plan, forceOrAutoApply and shouldApply")
 	if terraform.Status.Plan.Pending != "" && !r.forceOrAutoApply(terraform) && !r.shouldApply(terraform) {
 		log.Info("reconciliation is stopped to wait for a manual approve")
 		return ctrl.Result{}, nil
 	}
 
 	// reconcile Terraform by applying the latest revision
+	traceLog.Info("Run reconcile for the Terraform resource")
 	reconciledTerraform, reconcileErr := r.reconcile(ctx, runnerClient, *terraform.DeepCopy(), sourceObj)
+	traceLog.Info("Patch the status of the Terraform resource")
 	if err := r.patchStatus(ctx, req.NamespacedName, reconciledTerraform.Status); err != nil {
 		log.Error(err, "unable to update status after reconciliation")
 		return ctrl.Result{Requeue: true}, err
 	}
+	traceLog.Info("Record the readiness metrics")
 	r.recordReadinessMetric(ctx, reconciledTerraform)
 
+	traceLog.Info("Check for reconciliation errors")
 	if reconcileErr != nil && reconcileErr.Error() == infrav1.DriftDetectedReason {
 		log.Error(reconcileErr, fmt.Sprintf("Drift detected after %s, next try in %s",
 			time.Since(reconcileStart).String(),
@@ -290,10 +334,12 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			terraform.GetRetryInterval().String()),
 			"revision",
 			sourceObj.GetArtifact().Revision)
+		traceLog.Info("Record an event for the failure")
 		r.event(ctx, reconciledTerraform, sourceObj.GetArtifact().Revision, events.EventSeverityError, reconcileErr.Error(), nil)
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	}
 
+	traceLog.Info("Check for pending plan and forceOrAutoApply")
 	if reconciledTerraform.Status.Plan.Pending != "" && !r.forceOrAutoApply(reconciledTerraform) {
 		log.Info("Reconciliation is stopped to wait for a manual approve")
 		return ctrl.Result{}, nil
@@ -1671,26 +1717,35 @@ func (r *TerraformReconciler) recordSuspensionMetric(ctx context.Context, terraf
 		return
 	}
 	log := ctrl.LoggerFrom(ctx)
+	traceLog := log.V(logger.TraceLevel)
 
+	traceLog.Info("Get reference info for Terraform resource")
 	objRef, err := reference.GetReference(r.Scheme, &terraform)
 	if err != nil {
 		log.Error(err, "unable to record suspended metric")
 		return
 	}
 
+	traceLog.Info("Check if resource is due for deletion")
 	if !terraform.DeletionTimestamp.IsZero() {
+		traceLog.Info("Due for deletion, set to false")
 		r.MetricsRecorder.RecordSuspend(*objRef, false)
 	} else {
+		traceLog.Info("Not due for deletion use Suspend data from the resouce")
 		r.MetricsRecorder.RecordSuspend(*objRef, terraform.Spec.Suspend)
 	}
 }
 
 func (r *TerraformReconciler) patchStatus(ctx context.Context, objectKey types.NamespacedName, newStatus infrav1.TerraformStatus) error {
+	log := ctrl.LoggerFrom(ctx)
+	traceLog := log.V(logger.TraceLevel)
+	traceLog.Info("Get Terraform resource")
 	var terraform infrav1.Terraform
 	if err := r.Get(ctx, objectKey, &terraform); err != nil {
 		return err
 	}
 
+	traceLog.Info("Update data and send Patch request")
 	patch := client.MergeFrom(terraform.DeepCopy())
 	terraform.Status = newStatus
 
@@ -1739,118 +1794,165 @@ func (r *TerraformReconciler) IndexBy(kind string) func(o client.Object) []strin
 }
 
 func (r *TerraformReconciler) event(ctx context.Context, terraform infrav1.Terraform, revision, severity, msg string, metadata map[string]string) {
+	log := ctrl.LoggerFrom(ctx)
+	traceLog := log.V(logger.TraceLevel)
+	traceLog.Info("If metadata is nil set to an empty map")
 	if metadata == nil {
+		traceLog.Info("Is nil, set to an empty map")
 		metadata = map[string]string{}
 	}
+
+	traceLog.Info("Check if the revision is empty")
 	if revision != "" {
+		traceLog.Info("Not empty set the metadata revision key")
 		metadata[infrav1.GroupVersion.Group+"/revision"] = revision
 	}
 
+	traceLog.Info("Set reason to severity")
 	reason := severity
+	traceLog.Info("Check if we have a status condition")
 	if c := apimeta.FindStatusCondition(terraform.Status.Conditions, meta.ReadyCondition); c != nil {
+		traceLog.Info("Set the reason to the status condition reason")
 		reason = c.Reason
 	}
 
+	traceLog.Info("Set the event type to Normal")
 	eventType := "Normal"
+	traceLog.Info("Check if severity is EventSeverityError")
 	if severity == events.EventSeverityError {
+		traceLog.Info("Set event type to Warning")
 		eventType = "Warning"
 	}
 
+	traceLog.Info("Add new annotated event")
 	r.EventRecorder.AnnotatedEventf(&terraform, metadata, eventType, reason, msg)
 }
 
 func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient, sourceObj sourcev1.Source) (ctrl.Result, error) {
 	log := ctrl.LoggerFrom(ctx)
+	traceLog := log.V(logger.TraceLevel)
 	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
 
 	// TODO how to completely delete without planning?
+	traceLog.Info("Check if we need to Destroy on Delete")
 	if terraform.Spec.DestroyResourcesOnDeletion {
 		// TODO There's a case of sourceObj got deleted before finalize is called.
 		revision := sourceObj.GetArtifact().Revision
+		traceLog.Info("Setup the terraform instance")
 		terraform, tfInstance, tmpDir, err := r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey)
 
+		traceLog.Info("Defer function for cleanup")
 		defer func() {
+			traceLog.Info("Run CleanupDir")
 			cleanupDirReply, err := runnerClient.CleanupDir(ctx, &runner.CleanupDirRequest{TmpDir: tmpDir})
+			traceLog.Info("Check for error")
 			if err != nil {
 				log.Error(err, "clean up error")
 			}
+			traceLog.Info("Check for cleanupDirReply")
 			if cleanupDirReply != nil {
 				log.Info(fmt.Sprintf("clean up dir: %s", cleanupDirReply.Message))
 			}
 		}()
 
+		traceLog.Info("Check for error")
 		if err != nil {
+			traceLog.Error(err, "Error, requeue job")
 			return ctrl.Result{Requeue: true}, err
 		}
 
 		// This will create the "destroy" plan because deletion timestamp is set.
+		traceLog.Info("Create a new plan to destroy")
 		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision)
+		traceLog.Info("Check for error")
 		if err != nil {
+			traceLog.Error(err, "Error, requeue job")
 			return ctrl.Result{Requeue: true}, err
 		}
 
+		traceLog.Info("Patch status of the Terraform resource")
 		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
 			log.Error(err, "unable to update status after planing")
 			return ctrl.Result{Requeue: true}, err
 		}
 
+		traceLog.Info("Apply the destroy plan")
 		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision)
+		traceLog.Info("Check for error")
 		if err != nil {
+			traceLog.Error(err, "Error, requeue job")
 			return ctrl.Result{Requeue: true}, err
 		}
 
+		traceLog.Info("Patch status of the Terraform resource")
 		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
 			log.Error(err, "unable to update status after applying")
 			return ctrl.Result{Requeue: true}, err
 		}
 
+		traceLog.Info("Check for a nil error")
 		if err == nil {
 			log.Info("finalizing destroyResourcesOnDeletion: ok")
 		}
 	}
 
+	traceLog.Info("Check if we are writing output to secrets")
 	outputSecretName := ""
 	hasSpecifiedOutputSecret := terraform.Spec.WriteOutputsToSecret != nil && terraform.Spec.WriteOutputsToSecret.Name != ""
 	if hasSpecifiedOutputSecret {
+		traceLog.Info("Get the name of the output secret")
 		outputSecretName = terraform.Spec.WriteOutputsToSecret.Name
 	}
 
+	traceLog.Info("Finalize the secrets")
 	finalizeSecretsReply, err := runnerClient.FinalizeSecrets(ctx, &runner.FinalizeSecretsRequest{
 		Namespace:                terraform.Namespace,
 		Name:                     terraform.Name,
 		HasSpecifiedOutputSecret: hasSpecifiedOutputSecret,
 		OutputSecretName:         outputSecretName,
 	})
+	traceLog.Info("Check for an error")
 	if err != nil {
+		traceLog.Info("Try getting a status from the error")
 		if e, ok := status.FromError(err); ok {
 			switch e.Code() {
 			case codes.Internal:
 				// transient error
+				traceLog.Info("Internal error, transient, requeue")
 				return ctrl.Result{Requeue: true}, err
 			case codes.NotFound:
 				// do nothing, fall through
+				traceLog.Info("Not found, do nothing, fall through")
 			}
 		}
 	}
 
+	traceLog.Info("Check for an error")
 	if err == nil {
 		log.Info(fmt.Sprintf("finalizing secrets: %s", finalizeSecretsReply.Message))
 	}
 
 	// Record deleted status
+	traceLog.Info("Record the deleted status")
 	r.recordReadinessMetric(ctx, terraform)
 
+	traceLog.Info("Get the Terraform resource")
 	if err := r.Get(ctx, objectKey, &terraform); err != nil {
+		traceLog.Error(err, "Hit an error, return")
 		return ctrl.Result{}, err
 	}
 
 	// Remove our finalizer from the list and update it
+	traceLog.Info("Remove the finalizer")
 	controllerutil.RemoveFinalizer(&terraform, infrav1.TerraformFinalizer)
+	traceLog.Info("Check for an error")
 	if err := r.Update(ctx, &terraform); err != nil {
+		traceLog.Error(err, "Hit an error, return")
 		return ctrl.Result{}, err
 	}
 
 	// Stop reconciliation as the object is being deleted
+	traceLog.Info("Return success")
 	return ctrl.Result{}, nil
 }
 
@@ -1860,38 +1962,65 @@ func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terrafor
 
 // lookupOrCreateRunner_000
 func (r *TerraformReconciler) lookupOrCreateRunner_000(ctx context.Context, terraform infrav1.Terraform) (runner.RunnerClient, func() error, error) {
+	log := ctrl.LoggerFrom(ctx)
+	traceLog := log.V(logger.TraceLevel)
 	// we have to make sure that the secret is valid before we can create the runner.
+	traceLog.Info("Validate the secret used for the Terraform resource")
 	secret, err := r.reconcileRunnerSecret(ctx, &terraform)
+	traceLog.Info("Check for an error")
 	if err != nil {
+		traceLog.Error(err, "Hit an error")
 		return nil, nil, err
 	}
 
 	var hostname string
+	traceLog.Info("Check if we're running a local Runner")
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
+		traceLog.Info("Local Runner, set hostname")
 		hostname = "localhost"
 	} else {
+		traceLog.Info("Get Runner pod IP")
 		podIP, err := r.reconcileRunnerPod(ctx, terraform, secret)
+		traceLog.Info("Check for an error")
 		if err != nil {
+			traceLog.Error(err, "Hit an error")
 			return nil, nil, err
 		}
+		traceLog.Info("Get pod hostname", "pod-ip", podIP)
 		hostname = terraform.GetRunnerHostname(podIP)
 	}
 
+	traceLog.Info("Pod hostname set", "hostname", hostname)
+
+	traceLog.Info("Create a new context for the runner connection")
 	dialCtx, dialCancel := context.WithTimeout(ctx, 30*time.Second)
+	traceLog.Info("Defer dialCancel")
 	defer dialCancel()
+	traceLog.Info("Get the Runner connection")
 	conn, err := r.getRunnerConnection(dialCtx, secret, hostname, r.RunnerGRPCPort)
+	traceLog.Info("Check for an error")
 	if err != nil {
+		traceLog.Error(err, "Hit an error")
 		return nil, nil, err
 	}
+	traceLog.Info("Create a close connection function")
 	connClose := func() error { return conn.Close() }
+	traceLog.Info("Create a new Runner client")
 	runnerClient := runner.NewRunnerClient(conn)
+	traceLog.Info("Return the client and close connection function")
 	return runnerClient, connClose, nil
 }
 
 func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret *corev1.Secret, hostname string, port int) (*grpc.ClientConn, error) {
+	log := ctrl.LoggerFrom(ctx)
+	traceLog := log.V(logger.TraceLevel)
 	addr := fmt.Sprintf("%s:%d", hostname, port)
+	traceLog.Info("Set address for target", "addr", addr)
+	traceLog.Info("Get GRPC Credentials")
 	credentials, err := mtls.GetGRPCClientCredentials(tlsSecret)
+	traceLog.Info("Check for an error")
 	if err != nil {
+		traceLog.Error(err, "Hit an error")
 		return nil, err
 	}
 
@@ -1908,6 +2037,7 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret
   }
 }]}`
 
+	traceLog.Info("Return dial context")
 	return grpc.DialContext(ctx, addr,
 		grpc.WithTransportCredentials(credentials),
 		grpc.WithBlock(),
@@ -1917,59 +2047,84 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret
 
 func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infrav1.Terraform, revision string, runnerClient runner.RunnerClient) (infrav1.Terraform, error) {
 	log := ctrl.LoggerFrom(ctx)
+	traceLog := log.V(logger.TraceLevel)
 	log.Info("calling doHealthChecks ...")
 
 	// get terraform output data for health check urls
+	traceLog.Info("Create a map for outputs")
 	outputs := make(map[string]string)
+	traceLog.Info("Check for a name for our outputs secret")
 	if terraform.Spec.WriteOutputsToSecret != nil && terraform.Spec.WriteOutputsToSecret.Name != "" {
+		traceLog.Info("Get outputs from the runner")
 		getOutputsReply, err := runnerClient.GetOutputs(ctx, &runner.GetOutputsRequest{
 			Namespace:  terraform.Namespace,
 			SecretName: terraform.Spec.WriteOutputsToSecret.Name,
 		})
+		traceLog.Info("Check for an error")
 		if err != nil {
 			err = fmt.Errorf("error getting terraform output for health checks: %s", err)
+			traceLog.Error(err, "Hit an error")
 			return infrav1.TerraformHealthCheckFailed(
 				terraform,
 				err.Error(),
 			), err
 		}
+		traceLog.Info("Set outputs")
 		outputs = getOutputsReply.Outputs
 	}
 
+	traceLog.Info("Loop over the health checks")
 	for _, hc := range terraform.Spec.HealthChecks {
 		// perform health check based on type
+		traceLog.Info("Check the health check type")
 		switch hc.Type {
 		case infrav1.HealthCheckTypeTCP:
+			traceLog = traceLog.WithValues("health-check-type", infrav1.HealthCheckTypeTCP)
+			traceLog.Info("Parse Address and outputs into a template")
 			parsed, err := r.templateParse(outputs, hc.Address)
+			traceLog.Info("Check for an error")
 			if err != nil {
 				err = fmt.Errorf("error getting terraform output for health checks: %s", err)
+				traceLog.Error(err, "Hit an error")
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
 					err.Error(),
 				), err
 			}
 
+			traceLog.Info("Run TCP health check and check for an error")
 			if err := r.doTCPHealthCheck(ctx, hc.Name, parsed, hc.GetTimeout()); err != nil {
+				traceLog.Error(err, "Hit an error")
 				msg := fmt.Sprintf("TCP health check error: %s, url: %s", hc.Name, hc.Address)
+				traceLog.Info("Record an event")
 				r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+				traceLog.Info("Return failed health check")
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
 					err.Error(),
 				), err
 			}
 		case infrav1.HealthCheckTypeHttpGet:
+			traceLog = traceLog.WithValues("health-check-type", infrav1.HealthCheckTypeHttpGet)
+			traceLog.Info("Parse Address and outputs into a template")
 			parsed, err := r.templateParse(outputs, hc.URL)
+			traceLog.Info("Check for an error")
 			if err != nil {
 				err = fmt.Errorf("error getting terraform output for health checks: %s", err)
+				traceLog.Error(err, "Hit an error")
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
 					err.Error(),
 				), err
 			}
 
+			traceLog.Info("Run HTTP health check and check for an error")
 			if err := r.doHTTPHealthCheck(ctx, hc.Name, parsed, hc.GetTimeout()); err != nil {
+				traceLog.Error(err, "Hit an error")
 				msg := fmt.Sprintf("HTTP health check error: %s, url: %s", hc.Name, hc.URL)
+				traceLog.Info("Record an event")
 				r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+				traceLog.Info("Return failed health check")
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
 					err.Error(),
@@ -1978,6 +2133,7 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 		}
 	}
 
+	traceLog.Info("Health Check successful")
 	terraform = infrav1.TerraformHealthCheckSucceeded(terraform, "Health checks succeeded")
 	return terraform, nil
 }
@@ -2091,6 +2247,8 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 
 func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform, tlsSecret *corev1.Secret) (string, error) {
 	log := ctrl.LoggerFrom(ctx)
+	traceLog := log.V(logger.TraceLevel)
+	traceLog.Info("Begin reconcile of the runner pod")
 	type state string
 	const (
 		stateUnknown       state = "unknown"
@@ -2101,9 +2259,13 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	)
 
 	const interval = time.Second * 5
+	traceLog.Info("Set inteval", "interval", interval)
 	timeout := r.RunnerCreationTimeout // default is 120 seconds
+	traceLog.Info("Set timeout", "timeout", timeout)
 	tlsSecretName := tlsSecret.Name
+	traceLog.Info("Set tlsSecretName", "tlsSecretName", tlsSecretName)
 
+	traceLog.Info("Setup create new pod function")
 	createNewPod := func() error {
 		runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
 		newRunnerPod := *runnerPodTemplate.DeepCopy()
@@ -2114,6 +2276,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		return nil
 	}
 
+	traceLog.Info("Setup wait for pod to be terminated function")
 	waitForPodToBeTerminated := func() error {
 		runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
 		runnerPod := *runnerPodTemplate.DeepCopy()
@@ -2132,6 +2295,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	}
 
 	podState := stateUnknown
+	traceLog.Info("Set pod state", "pod-state", podState)
 
 	runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
 	runnerPod := *runnerPodTemplate.DeepCopy()
