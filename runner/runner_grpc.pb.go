@@ -31,6 +31,7 @@ type RunnerClient interface {
 	WriteBackendConfig(ctx context.Context, in *WriteBackendConfigRequest, opts ...grpc.CallOption) (*WriteBackendConfigReply, error)
 	ProcessCliConfig(ctx context.Context, in *ProcessCliConfigRequest, opts ...grpc.CallOption) (*ProcessCliConfigReply, error)
 	GenerateVarsForTF(ctx context.Context, in *GenerateVarsForTFRequest, opts ...grpc.CallOption) (*GenerateVarsForTFReply, error)
+	GenerateTemplate(ctx context.Context, in *GenerateTemplateRequest, opts ...grpc.CallOption) (*GenerateTemplateReply, error)
 	Plan(ctx context.Context, in *PlanRequest, opts ...grpc.CallOption) (*PlanReply, error)
 	ShowPlanFileRaw(ctx context.Context, in *ShowPlanFileRawRequest, opts ...grpc.CallOption) (*ShowPlanFileRawReply, error)
 	ShowPlanFile(ctx context.Context, in *ShowPlanFileRequest, opts ...grpc.CallOption) (*ShowPlanFileReply, error)
@@ -132,6 +133,15 @@ func (c *runnerClient) ProcessCliConfig(ctx context.Context, in *ProcessCliConfi
 func (c *runnerClient) GenerateVarsForTF(ctx context.Context, in *GenerateVarsForTFRequest, opts ...grpc.CallOption) (*GenerateVarsForTFReply, error) {
 	out := new(GenerateVarsForTFReply)
 	err := c.cc.Invoke(ctx, "/runner.Runner/GenerateVarsForTF", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *runnerClient) GenerateTemplate(ctx context.Context, in *GenerateTemplateRequest, opts ...grpc.CallOption) (*GenerateTemplateReply, error) {
+	out := new(GenerateTemplateReply)
+	err := c.cc.Invoke(ctx, "/runner.Runner/GenerateTemplate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -295,6 +305,7 @@ type RunnerServer interface {
 	WriteBackendConfig(context.Context, *WriteBackendConfigRequest) (*WriteBackendConfigReply, error)
 	ProcessCliConfig(context.Context, *ProcessCliConfigRequest) (*ProcessCliConfigReply, error)
 	GenerateVarsForTF(context.Context, *GenerateVarsForTFRequest) (*GenerateVarsForTFReply, error)
+	GenerateTemplate(context.Context, *GenerateTemplateRequest) (*GenerateTemplateReply, error)
 	Plan(context.Context, *PlanRequest) (*PlanReply, error)
 	ShowPlanFileRaw(context.Context, *ShowPlanFileRawRequest) (*ShowPlanFileRawReply, error)
 	ShowPlanFile(context.Context, *ShowPlanFileRequest) (*ShowPlanFileReply, error)
@@ -344,6 +355,9 @@ func (UnimplementedRunnerServer) ProcessCliConfig(context.Context, *ProcessCliCo
 }
 func (UnimplementedRunnerServer) GenerateVarsForTF(context.Context, *GenerateVarsForTFRequest) (*GenerateVarsForTFReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GenerateVarsForTF not implemented")
+}
+func (UnimplementedRunnerServer) GenerateTemplate(context.Context, *GenerateTemplateRequest) (*GenerateTemplateReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateTemplate not implemented")
 }
 func (UnimplementedRunnerServer) Plan(context.Context, *PlanRequest) (*PlanReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Plan not implemented")
@@ -564,6 +578,24 @@ func _Runner_GenerateVarsForTF_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RunnerServer).GenerateVarsForTF(ctx, req.(*GenerateVarsForTFRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Runner_GenerateTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenerateTemplateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RunnerServer).GenerateTemplate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/runner.Runner/GenerateTemplate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RunnerServer).GenerateTemplate(ctx, req.(*GenerateTemplateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -898,6 +930,10 @@ var Runner_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GenerateVarsForTF",
 			Handler:    _Runner_GenerateVarsForTF_Handler,
+		},
+		{
+			MethodName: "GenerateTemplate",
+			Handler:    _Runner_GenerateTemplate_Handler,
 		},
 		{
 			MethodName: "Plan",

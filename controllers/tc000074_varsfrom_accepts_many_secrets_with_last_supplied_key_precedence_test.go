@@ -68,13 +68,6 @@ func Test_000074_varsfrom_accepts_many_secrets_with_last_supplied_key_precedence
 	execPath, err := exec.LookPath("terraform")
 	g.Expect(err).Should(BeNil())
 
-	By("creating a new TF exec instance")
-	_, err = runnerServer.NewTerraform(ctx, &runner.NewTerraformRequest{
-		WorkingDir: workDir,
-		ExecPath:   execPath,
-	})
-	g.Expect(err).Should(BeNil())
-
 	By("creating a new TF resource with slice of ConfigMaps")
 	var varsRef []infrav1.VarsReference
 	for _, secretData := range secretDatas {
@@ -83,6 +76,7 @@ func Test_000074_varsfrom_accepts_many_secrets_with_last_supplied_key_precedence
 			Name: secretData.name,
 		})
 	}
+
 	terraform := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
@@ -96,11 +90,18 @@ func Test_000074_varsfrom_accepts_many_secrets_with_last_supplied_key_precedence
 	terraformBytes, err := terraform.ToBytes(reconciler.Scheme)
 	g.Expect(err).To(BeNil())
 
+	By("creating a new TF exec instance")
+	_, err = runnerServer.NewTerraform(ctx, &runner.NewTerraformRequest{
+		WorkingDir: workDir,
+		ExecPath:   execPath,
+		Terraform:  terraformBytes,
+	})
+	g.Expect(err).Should(BeNil())
+
 	_, err = runnerServer.Init(ctx, &runner.InitRequest{
 		TfInstance: "1",
 		Upgrade:    false,
 		ForceCopy:  false,
-		Terraform:  terraformBytes,
 	})
 	g.Expect(err).Should(BeNil())
 

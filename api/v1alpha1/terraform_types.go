@@ -418,6 +418,7 @@ const (
 	TFExecNewFailedReason           = "TFExecNewFailed"
 	TFExecInitFailedReason          = "TFExecInitFailed"
 	VarsGenerationFailedReason      = "VarsGenerationFailed"
+	TemplateGenerationFailedReason  = "TemplateGenerationFailed"
 	WorkspaceSelectFailedReason     = "SelectWorspaceFailed"
 	DriftDetectionFailedReason      = "DriftDetectionFailed"
 	DriftDetectedReason             = "DriftDetected"
