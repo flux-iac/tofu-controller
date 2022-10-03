@@ -268,6 +268,9 @@ func setupRouteHandlers() {
 	server.RouteToHandler("GET", "/tf-hcl-values-advanced-example.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/tf-hcl-values-advanced-example.tar.gz")
 	})
+	server.RouteToHandler("GET", "/tf-hcl-vars-template.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-hcl-vars-template.tar.gz")
+	})
 	server.RouteToHandler("GET", "/tf-data-archive.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/tf-data-archive.tar.gz")
 	})

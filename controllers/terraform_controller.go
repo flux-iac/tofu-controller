@@ -778,11 +778,19 @@ terraform {
 	}
 	execPath := lookPathReply.ExecPath
 
+	log.Info("new terraform", "workingDir", workingDir)
+
+	terraformBytes, err := terraform.ToBytes(r.Scheme)
+	if err != nil {
+		// transient error?
+		return terraform, tfInstance, tmpDir, err
+	}
+
 	newTerraformReply, err := runnerClient.NewTerraform(ctx,
 		&runner.NewTerraformRequest{
-			// TarGz:      tarGzBytes,
 			WorkingDir: workingDir,
 			ExecPath:   execPath,
+			Terraform:  terraformBytes,
 		})
 	if err != nil {
 		err = fmt.Errorf("error running NewTerraform: %s", err)
@@ -884,22 +892,45 @@ terraform {
 		}
 	}
 
-	log.Info("new terraform", "workingDir", workingDir)
+	generateVarsForTFReply, err := runnerClient.GenerateVarsForTF(ctx, &runner.GenerateVarsForTFRequest{
+		WorkingDir: workingDir,
+	})
+	if err != nil {
+		// transient error?
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.VarsGenerationFailedReason,
+			err.Error(),
+		), tfInstance, tmpDir, err
+	}
+	log.Info(fmt.Sprintf("generate vars from tf: %s", generateVarsForTFReply.Message))
+
+	log.Info("generated var files from spec")
+
+	generateTemplateReply, err := runnerClient.GenerateTemplate(ctx, &runner.GenerateTemplateRequest{
+		WorkingDir: workingDir,
+	})
+	if err != nil {
+		return infrav1.TerraformNotReady(
+			terraform,
+			revision,
+			infrav1.TemplateGenerationFailedReason,
+			err.Error(),
+		), tfInstance, tmpDir, err
+	}
+	log.Info(fmt.Sprintf("generate template: %s", generateTemplateReply.Message))
+
+	log.Info("generated template")
 
 	// TODO we currently use a fork version of TFExec to workaround the forceCopy bug
 	// https://github.com/hashicorp/terraform-exec/issues/262
-
-	terraformBytes, err := terraform.ToBytes(r.Scheme)
-	if err != nil {
-		// transient error?
-		return terraform, tfInstance, tmpDir, err
-	}
 
 	initRequest := &runner.InitRequest{
 		TfInstance: tfInstance,
 		Upgrade:    true,
 		ForceCopy:  true,
-		Terraform:  terraformBytes,
+		// Terraform:  terraformBytes,
 	}
 	if r.backendCompletelyDisable(terraform) {
 		initRequest.ForceCopy = false
@@ -930,7 +961,7 @@ terraform {
 
 	workspaceRequest := &runner.WorkspaceRequest{
 		TfInstance: tfInstance,
-		Terraform:  terraformBytes,
+		// Terraform:  terraformBytes,
 	}
 	workspaceReply, err := runnerClient.SelectWorkspace(ctx, workspaceRequest)
 	if err != nil {
@@ -943,22 +974,6 @@ terraform {
 	}
 
 	log.Info(fmt.Sprintf("workspace select reply: %s", workspaceReply.Message))
-
-	generateVarsForTFReply, err := runnerClient.GenerateVarsForTF(ctx, &runner.GenerateVarsForTFRequest{
-		WorkingDir: workingDir,
-	})
-	if err != nil {
-		// transient error?
-		return infrav1.TerraformNotReady(
-			terraform,
-			revision,
-			infrav1.VarsGenerationFailedReason,
-			err.Error(),
-		), tfInstance, tmpDir, err
-	}
-	log.Info(fmt.Sprintf("generate vars from tf: %s", generateVarsForTFReply.Message))
-
-	log.Info("generated var files from spec")
 
 	// This variable is going to be used to force unlock the state if it is locked
 	lockIdentifier := ""
@@ -1447,7 +1462,12 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 				continue
 			}
 
-			v := outputs[output]
+			v, exist := outputs[output]
+			if !exist {
+				log.Error(fmt.Errorf("output not found"), output)
+				continue
+			}
+
 			ct, err := ctyjson.UnmarshalType(v.Type)
 			if err != nil {
 				return terraform, err
