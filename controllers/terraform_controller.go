@@ -2327,7 +2327,6 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		traceLog.Info("Create a new pod")
 		err := createNewPod()
 		traceLog.Info("Check for an error")
-		err := createNewPod()
 		if err != nil {
 			traceLog.Error(err, "Hit an error")
 			return "", err
