@@ -33,6 +33,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
 	"github.com/fluxcd/pkg/apis/meta"
@@ -106,9 +107,10 @@ type TerraformReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
 func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (retResult ctrl.Result, retErr error) {
-	log := ctrl.LoggerFrom(ctx)
 	reconcileStart := time.Now()
-	traceLog := log.V(logger.TraceLevel).WithValues("start-time", reconcileStart, "function", "TerraformReconciler.Reconcile")
+	log := ctrl.LoggerFrom(ctx, "reconciliation-loop-id", uuid.New().String(), "start-time", reconcileStart)
+	ctx = ctrl.LoggerInto(ctx, log)
+	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.Reconcile")
 	traceLog.Info("Reconcile Start")
 
 	<-r.CertRotator.Ready
@@ -121,11 +123,13 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		r.CertRotator.TriggerCARotation <- mtls.Trigger{Namespace: "", Ready: readyCh}
 		traceLog.Info("Waiting for Cert Ready Signal")
 		<-readyCh
+		traceLog.Info("Ready Signal Received")
 	}
 
 	traceLog.Info("Fetch Terrafom Resource", "namespacedName", req.NamespacedName)
 	var terraform infrav1.Terraform
 	if err := r.Get(ctx, req.NamespacedName, &terraform); err != nil {
+		traceLog.Error(err, "Hit an error", "namespacedName", req.NamespacedName)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 

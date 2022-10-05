@@ -62,7 +62,7 @@ type TerraformRunnerServer struct {
 const loggerName = "runner.terraform"
 
 func (r *TerraformRunnerServer) LookPath(ctx context.Context, req *LookPathRequest) (*LookPathReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
 	log.Info("looking for path", "file", req.File)
 	execPath, err := exec.LookPath(req.File)
 	if err != nil {
