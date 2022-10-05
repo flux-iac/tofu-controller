@@ -2,6 +2,7 @@
 # Image URL to use all building/pushing image targets
 MANAGER_IMG ?= ghcr.io/weaveworks/tf-controller
 RUNNER_IMG  ?= ghcr.io/weaveworks/tf-runner
+RUNNER_AZURE_IMAGE ?= ghcr.io/weaveworks/tf-runner-azure
 TAG ?= latest
 BUILD_SHA ?= $(shell git rev-parse --short HEAD)
 BUILD_VERSION ?= $(shell git describe --tags $$(git rev-list --tags --max-count=1))
@@ -114,16 +115,19 @@ run: manifests generate fmt vet ## Run a controller from your host.
 docker-build: ## Build docker
 	docker build -t ${MANAGER_IMG}:${TAG} ${BUILD_ARGS} .
 	docker build -t ${RUNNER_IMG}:${TAG} -f runner.Dockerfile ${BUILD_ARGS} .
+	docker build -t ${RUNNER_AZURE_IMAGE}:${TAG} -f runner-azure.Dockerfile ${BUILD_ARGS} .
 
 .PHONY: docker-buildx
 docker-buildx: ## Build docker
 	docker buildx build --load -t ${MANAGER_IMG}:${TAG} ${BUILD_ARGS} .
 	docker buildx build --load -t ${RUNNER_IMG}:${TAG} -f runner.Dockerfile ${BUILD_ARGS} .
+	docker buildx build --load -t ${RUNNER_AZURE_IMAGE}:${TAG} -f runner-azure.Dockerfile ${BUILD_ARGS} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
 	docker push ${MANAGER_IMG}:${TAG}
 	docker push ${RUNNER_IMG}:${TAG}
+	docker push ${RUNNER_AZURE_IMAGE}:${TAG}
 
 ##@ Deployment
 
