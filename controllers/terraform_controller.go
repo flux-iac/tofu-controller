@@ -108,7 +108,8 @@ type TerraformReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
 func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (retResult ctrl.Result, retErr error) {
 	reconcileStart := time.Now()
-	log := ctrl.LoggerFrom(ctx, "reconciliation-loop-id", uuid.New().String(), "start-time", reconcileStart)
+	reconciliationLoopID := uuid.New().String()
+	log := ctrl.LoggerFrom(ctx, "reconciliation-loop-id", reconciliationLoopID, "start-time", reconcileStart)
 	ctx = ctrl.LoggerInto(ctx, log)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.Reconcile")
 	traceLog.Info("Reconcile Start")
@@ -290,7 +291,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	traceLog.Info("Check for deletion timestamp to finalize")
 	if !terraform.ObjectMeta.DeletionTimestamp.IsZero() {
 		traceLog.Info("Calling finalize function")
-		return r.finalize(ctx, terraform, runnerClient, sourceObj)
+		return r.finalize(ctx, terraform, runnerClient, sourceObj, reconciliationLoopID)
 	}
 
 	// If revision is changed, and there's no intend to apply,
@@ -314,7 +315,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// reconcile Terraform by applying the latest revision
 	traceLog.Info("Run reconcile for the Terraform resource")
-	reconciledTerraform, reconcileErr := r.reconcile(ctx, runnerClient, *terraform.DeepCopy(), sourceObj)
+	reconciledTerraform, reconcileErr := r.reconcile(ctx, runnerClient, *terraform.DeepCopy(), sourceObj, reconciliationLoopID)
 	traceLog.Info("Patch the status of the Terraform resource")
 	if err := r.patchStatus(ctx, req.NamespacedName, reconciledTerraform.Status); err != nil {
 		log.Error(err, "unable to update status after reconciliation")
@@ -473,7 +474,7 @@ func (r *TerraformReconciler) shouldDoHealthChecks(terraform infrav1.Terraform) 
 	return false
 }
 
-func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source) (retTerraform infrav1.Terraform, retErr error) {
+func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source, reconciliationLoopID string) (retTerraform infrav1.Terraform, retErr error) {
 	log := ctrl.LoggerFrom(ctx)
 	revision := sourceObj.GetArtifact().Revision
 	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
@@ -486,7 +487,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		lastKnownAction string
 	)
 	log.Info("setting up terraform")
-	terraform, tfInstance, tmpDir, err = r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey)
+	terraform, tfInstance, tmpDir, err = r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey, reconciliationLoopID)
 
 	lastKnownAction = "Setup"
 
@@ -683,7 +684,7 @@ func (r *TerraformReconciler) obtainOutputs(ctx context.Context, terraform infra
 	return terraform, nil
 }
 
-func (r *TerraformReconciler) setupTerraform(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source, revision string, objectKey types.NamespacedName) (infrav1.Terraform, string, string, error) {
+func (r *TerraformReconciler) setupTerraform(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source, revision string, objectKey types.NamespacedName, reconciliationLoopID string) (infrav1.Terraform, string, string, error) {
 	log := ctrl.LoggerFrom(ctx)
 
 	tfInstance := "0"
@@ -828,6 +829,7 @@ terraform {
 			// TarGz:      tarGzBytes,
 			WorkingDir: workingDir,
 			ExecPath:   execPath,
+			InstanceID: reconciliationLoopID,
 		})
 	if err != nil {
 		err = fmt.Errorf("error running NewTerraform: %s", err)
@@ -1832,7 +1834,7 @@ func (r *TerraformReconciler) event(ctx context.Context, terraform infrav1.Terra
 	r.EventRecorder.AnnotatedEventf(&terraform, metadata, eventType, reason, msg)
 }
 
-func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient, sourceObj sourcev1.Source) (ctrl.Result, error) {
+func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient, sourceObj sourcev1.Source, reconciliationLoopID string) (ctrl.Result, error) {
 	log := ctrl.LoggerFrom(ctx)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.finalize")
 	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
@@ -1843,7 +1845,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 		// TODO There's a case of sourceObj got deleted before finalize is called.
 		revision := sourceObj.GetArtifact().Revision
 		traceLog.Info("Setup the terraform instance")
-		terraform, tfInstance, tmpDir, err := r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey)
+		terraform, tfInstance, tmpDir, err := r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey, reconciliationLoopID)
 
 		traceLog.Info("Defer function for cleanup")
 		defer func() {

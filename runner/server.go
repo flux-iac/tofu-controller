@@ -54,15 +54,16 @@ type TerraformRunnerServer struct {
 	UnimplementedRunnerServer
 	tf *tfexec.Terraform
 	client.Client
-	Scheme    *runtime.Scheme
-	Done      chan os.Signal
-	terraform *infrav1.Terraform
+	Scheme     *runtime.Scheme
+	Done       chan os.Signal
+	terraform  *infrav1.Terraform
+	InstanceID string
 }
 
 const loggerName = "runner.terraform"
 
 func (r *TerraformRunnerServer) LookPath(ctx context.Context, req *LookPathRequest) (*LookPathReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("looking for path", "file", req.File)
 	execPath, err := exec.LookPath(req.File)
 	if err != nil {
@@ -73,7 +74,7 @@ func (r *TerraformRunnerServer) LookPath(ctx context.Context, req *LookPathReque
 }
 
 func (r *TerraformRunnerServer) UploadAndExtract(ctx context.Context, req *UploadAndExtractRequest) (*UploadAndExtractReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("preparing for Upload and Extraction")
 	tmpDir, err := securejoin.SecureJoin(os.TempDir(), fmt.Sprintf("%s-%s", req.Namespace, req.Name))
 	if err != nil {
@@ -103,7 +104,7 @@ func (r *TerraformRunnerServer) UploadAndExtract(ctx context.Context, req *Uploa
 }
 
 func (r *TerraformRunnerServer) CleanupDir(ctx context.Context, req *CleanupDirRequest) (*CleanupDirReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("cleanup TmpDir", "tmpDir", req.TmpDir)
 	err := os.RemoveAll(req.TmpDir)
 	if err != nil {
@@ -115,7 +116,7 @@ func (r *TerraformRunnerServer) CleanupDir(ctx context.Context, req *CleanupDirR
 }
 
 func (r *TerraformRunnerServer) WriteBackendConfig(ctx context.Context, req *WriteBackendConfigRequest) (*WriteBackendConfigReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	const backendConfigPath = "generated_backend_config.tf"
 	log.Info("write backend config", "path", req.DirPath, "config", backendConfigPath)
 	filePath, err := securejoin.SecureJoin(req.DirPath, backendConfigPath)
@@ -135,7 +136,7 @@ func (r *TerraformRunnerServer) WriteBackendConfig(ctx context.Context, req *Wri
 }
 
 func (r *TerraformRunnerServer) ProcessCliConfig(ctx context.Context, req *ProcessCliConfigRequest) (*ProcessCliConfigReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("processing configuration", "namespace", req.Namespace, "name", req.Name)
 	cliConfigKey := types.NamespacedName{Namespace: req.Namespace, Name: req.Name}
 	var cliConfig corev1.Secret
@@ -174,7 +175,8 @@ func (r *TerraformRunnerServer) ProcessCliConfig(ctx context.Context, req *Proce
 }
 
 func (r *TerraformRunnerServer) NewTerraform(ctx context.Context, req *NewTerraformRequest) (*NewTerraformReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	r.InstanceID = req.GetInstanceID()
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("creating new terraform", "workingDir", req.WorkingDir, "execPath", req.ExecPath)
 	tf, err := tfexec.NewTerraform(req.WorkingDir, req.ExecPath)
 	if err != nil {
@@ -194,14 +196,14 @@ func (r *TerraformRunnerServer) NewTerraform(ctx context.Context, req *NewTerraf
 		}
 	}
 
-	return &NewTerraformReply{Id: "1"}, nil
+	return &NewTerraformReply{Id: r.InstanceID}, nil
 }
 
 func (r *TerraformRunnerServer) SetEnv(ctx context.Context, req *SetEnvRequest) (*SetEnvReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("setting envvars")
 
-	if req.TfInstance != "1" {
+	if req.TfInstance != r.InstanceID {
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "no terraform")
 		return nil, err
@@ -222,7 +224,7 @@ func (r *TerraformRunnerServer) SetEnv(ctx context.Context, req *SetEnvRequest) 
 }
 
 func (r *TerraformRunnerServer) CreateFileMappings(ctx context.Context, req *CreateFileMappingsRequest) (*CreateFileMappingsReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("creating file mappings")
 
 	for _, fileMapping := range req.FileMappings {
@@ -268,9 +270,9 @@ func (r *TerraformRunnerServer) CreateFileMappings(ctx context.Context, req *Cre
 }
 
 func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*InitReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("initializing")
-	if req.TfInstance != "1" {
+	if req.TfInstance != r.InstanceID {
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "no terraform")
 		return nil, err
@@ -362,7 +364,7 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 // GenerateVarsForTF renders the Terraform variables as a json file for the given inputs
 // variables supplied in the varsFrom field will override those specified in the spec
 func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *GenerateVarsForTFRequest) (*GenerateVarsForTFReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("setting up the input variables")
 
 	// use from the cached object
@@ -475,7 +477,7 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 }
 
 func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*PlanReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("creating a plan")
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
@@ -486,7 +488,7 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 		}
 	}()
 
-	if req.TfInstance != "1" {
+	if req.TfInstance != r.InstanceID {
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "no terraform")
 		return nil, err
@@ -530,9 +532,9 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 }
 
 func (r *TerraformRunnerServer) ShowPlanFileRaw(ctx context.Context, req *ShowPlanFileRawRequest) (*ShowPlanFileRawReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("show the raw plan file")
-	if req.TfInstance != "1" {
+	if req.TfInstance != r.InstanceID {
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "no terraform")
 		return nil, err
@@ -548,9 +550,9 @@ func (r *TerraformRunnerServer) ShowPlanFileRaw(ctx context.Context, req *ShowPl
 }
 
 func (r *TerraformRunnerServer) ShowPlanFile(ctx context.Context, req *ShowPlanFileRequest) (*ShowPlanFileReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("show the raw plan file")
-	if req.TfInstance != "1" {
+	if req.TfInstance != r.InstanceID {
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "no terraform")
 		return nil, err
@@ -572,9 +574,9 @@ func (r *TerraformRunnerServer) ShowPlanFile(ctx context.Context, req *ShowPlanF
 }
 
 func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanRequest) (*SaveTFPlanReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("save the plan")
-	if req.TfInstance != "1" {
+	if req.TfInstance != r.InstanceID {
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "no terraform")
 		return nil, err
@@ -752,9 +754,9 @@ func writePlanAsConfigMap(ctx context.Context, cli client.Client, name string, n
 }
 
 func (r *TerraformRunnerServer) LoadTFPlan(ctx context.Context, req *LoadTFPlanRequest) (*LoadTFPlanReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("loading plan from secret")
-	if req.TfInstance != "1" {
+	if req.TfInstance != r.InstanceID {
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "no terraform")
 		return nil, err
@@ -798,7 +800,7 @@ func (r *TerraformRunnerServer) LoadTFPlan(ctx context.Context, req *LoadTFPlanR
 }
 
 func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest) (*DestroyReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("running destroy")
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
@@ -809,7 +811,7 @@ func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest
 		}
 	}()
 
-	if req.TfInstance != "1" {
+	if req.TfInstance != r.InstanceID {
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "no terraform")
 		return nil, err
@@ -840,7 +842,7 @@ func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest
 }
 
 func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*ApplyReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("running apply")
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
@@ -851,7 +853,7 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 		}
 	}()
 
-	if req.TfInstance != "1" {
+	if req.TfInstance != r.InstanceID {
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "no terraform")
 		return nil, err
@@ -916,9 +918,9 @@ func getInventoryFromTerraformModule(m *tfjson.StateModule) []*Inventory {
 }
 
 func (r *TerraformRunnerServer) GetInventory(ctx context.Context, req *GetInventoryRequest) (*GetInventoryReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("get inventory")
-	if req.TfInstance != "1" {
+	if req.TfInstance != r.InstanceID {
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "get inventory: no terraform")
 		return nil, err
@@ -944,9 +946,9 @@ func (r *TerraformRunnerServer) GetInventory(ctx context.Context, req *GetInvent
 }
 
 func (r *TerraformRunnerServer) Output(ctx context.Context, req *OutputRequest) (*OutputReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("creating outputs")
-	if req.TfInstance != "1" {
+	if req.TfInstance != r.InstanceID {
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "no terraform")
 		return nil, err
@@ -970,7 +972,7 @@ func (r *TerraformRunnerServer) Output(ctx context.Context, req *OutputRequest) 
 }
 
 func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutputsRequest) (*WriteOutputsReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("write outputs to secret")
 
 	objectKey := types.NamespacedName{Namespace: req.Namespace, Name: req.SecretName}
@@ -1025,7 +1027,7 @@ func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutp
 }
 
 func (r *TerraformRunnerServer) GetOutputs(ctx context.Context, req *GetOutputsRequest) (*GetOutputsReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("get outputs")
 	outputKey := types.NamespacedName{Namespace: req.Namespace, Name: req.SecretName}
 	outputSecret := corev1.Secret{}
@@ -1048,7 +1050,7 @@ func (r *TerraformRunnerServer) GetOutputs(ctx context.Context, req *GetOutputsR
 }
 
 func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *FinalizeSecretsRequest) (*FinalizeSecretsReply, error) {
-	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("finalize the output secrets")
 	planObjectKey := types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-default-" + req.Name}
 	var planSecret corev1.Secret

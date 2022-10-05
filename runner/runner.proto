@@ -48,6 +48,7 @@ message LookPathReply {
 message NewTerraformRequest {
   string workingDir = 1;
   string execPath = 2;
+  string instanceID = 3;
 }
 
 message NewTerraformReply {
