@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/runner"
 	"os"
 	"os/exec"
@@ -11,7 +12,6 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -69,13 +69,6 @@ func Test_000082_varsfrom_accepts_many_configmaps_with_last_supplied_precedence(
 	execPath, err := exec.LookPath("terraform")
 	g.Expect(err).Should(BeNil())
 
-	By("creating a new TF exec instance")
-	_, err = runnerServer.NewTerraform(ctx, &runner.NewTerraformRequest{
-		WorkingDir: workDir,
-		ExecPath:   execPath,
-	})
-	g.Expect(err).Should(BeNil())
-
 	By("creating a new TF resource with slice of ConfigMaps")
 	var varsRef []infrav1.VarsReference
 	for _, configMapData := range configMapDatas {
@@ -107,11 +100,18 @@ func Test_000082_varsfrom_accepts_many_configmaps_with_last_supplied_precedence(
 	terraformBytes, err := terraform.ToBytes(reconciler.Scheme)
 	g.Expect(err).To(BeNil())
 
+	By("creating a new TF exec instance")
+	_, err = runnerServer.NewTerraform(ctx, &runner.NewTerraformRequest{
+		WorkingDir: workDir,
+		ExecPath:   execPath,
+		Terraform:  terraformBytes,
+	})
+	g.Expect(err).Should(BeNil())
+
 	_, err = runnerServer.Init(ctx, &runner.InitRequest{
 		TfInstance: "1",
 		Upgrade:    false,
 		ForceCopy:  false,
-		Terraform:  terraformBytes,
 	})
 	g.Expect(err).Should(BeNil())
 

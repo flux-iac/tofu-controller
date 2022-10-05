@@ -16,6 +16,7 @@ service Runner {
   rpc ProcessCliConfig(ProcessCliConfigRequest) returns (ProcessCliConfigReply) {}
 
   rpc GenerateVarsForTF(GenerateVarsForTFRequest) returns (GenerateVarsForTFReply) {}
+  rpc GenerateTemplate(GenerateTemplateRequest) returns (GenerateTemplateReply) {}
 
   rpc Plan(PlanRequest) returns (PlanReply) {}
   rpc ShowPlanFileRaw(ShowPlanFileRawRequest) returns (ShowPlanFileRawReply) {}
@@ -49,6 +50,7 @@ message LookPathReply {
 message NewTerraformRequest {
   string workingDir = 1;
   string execPath = 2;
+  bytes  terraform = 3;
 }
 
 message NewTerraformReply {
@@ -123,6 +125,14 @@ message GenerateVarsForTFRequest {
 }
 
 message GenerateVarsForTFReply {
+  string message = 1;
+}
+
+message GenerateTemplateRequest {
+  string workingDir = 1;
+}
+
+message GenerateTemplateReply {
   string message = 1;
 }
 
@@ -259,7 +269,6 @@ message InitRequest {
   string tfInstance = 1;
   bool upgrade = 2;
   bool forceCopy = 3;
-  bytes terraform = 4;
 }
 
 message InitReply {
@@ -269,7 +278,6 @@ message InitReply {
 
 message WorkspaceRequest {
   string tfInstance = 1;
-  bytes terraform = 2;
 }
 
 message WorkspaceReply {
