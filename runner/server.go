@@ -12,7 +12,9 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"text/template"
 
+	"github.com/Masterminds/sprig/v3"
 	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/fluxcd/pkg/untar"
 	"github.com/go-logr/logr"
@@ -185,6 +187,14 @@ func (r *TerraformRunnerServer) NewTerraform(ctx context.Context, req *NewTerraf
 	// hold only 1 instance
 	r.tf = tf
 
+	var terraform infrav1.Terraform
+	if err := terraform.FromBytes(req.Terraform, r.Scheme); err != nil {
+		log.Error(err, "there was a problem getting the terraform resource")
+		return nil, err
+	}
+	// cache the Terraform resource when initializing
+	r.terraform = &terraform
+
 	disableTestLogging := os.Getenv("DISABLE_TF_LOGS") == "1"
 	if !disableTestLogging {
 		r.tf.SetStdout(os.Stdout)
@@ -276,14 +286,7 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 		return nil, err
 	}
 
-	var terraform infrav1.Terraform
-	err := terraform.FromBytes(req.Terraform, r.Scheme)
-	if err != nil {
-		log.Error(err, "there was a problem getting the terraform resource")
-		return nil, err
-	}
-	// cache the Terraform resource when initializing
-	r.terraform = &terraform
+	terraform := r.terraform
 
 	log.Info("mapping the Spec.BackendConfigsFrom")
 	backendConfigsOpts := []tfexec.InitOption{}
@@ -368,14 +371,7 @@ func (r *TerraformRunnerServer) SelectWorkspace(ctx context.Context, req *Worksp
 		return nil, err
 	}
 
-	var terraform infrav1.Terraform
-	err := terraform.FromBytes(req.Terraform, r.Scheme)
-	if err != nil {
-		log.Error(err, "there was a problem getting the terraform resource")
-		return nil, err
-	}
-	// cache the Terraform resource when initializing
-	r.terraform = &terraform
+	terraform := r.terraform
 
 	if terraform.WorkspaceName() != infrav1.DefaultWorkspaceName {
 		wsOpts := []tfexec.WorkspaceNewCmdOption{}
@@ -389,6 +385,7 @@ func (r *TerraformRunnerServer) SelectWorkspace(ctx context.Context, req *Worksp
 			return nil, err
 		}
 	}
+
 	return &WorkspaceReply{Message: "ok"}, nil
 }
 
@@ -511,6 +508,63 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 	}
 
 	return &GenerateVarsForTFReply{Message: "ok"}, nil
+}
+
+func (r *TerraformRunnerServer) GenerateTemplate(ctx context.Context, req *GenerateTemplateRequest) (*GenerateTemplateReply, error) {
+	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log.Info("generating the template founds")
+
+	workDir := req.WorkingDir
+
+	// find main.tf.tpl file
+	mainTfTplPath := filepath.Join(workDir, "main.tf.tpl")
+	if _, err := os.Stat(mainTfTplPath); os.IsNotExist(err) {
+		log.Info("main.tf.tpl not found, skipping")
+		return &GenerateTemplateReply{Message: "ok"}, nil
+	}
+
+	// marshal the vars
+	vars := make(map[string]interface{})
+
+	varFilePath := filepath.Join(req.WorkingDir, "generated.auto.tfvars.json")
+	jsonBytes, err := ioutil.ReadFile(varFilePath)
+	if err != nil {
+		log.Error(err, "unable to read the file", "filePath", varFilePath)
+		return nil, err
+	}
+
+	if err := json.Unmarshal(jsonBytes, &vars); err != nil {
+		log.Error(err, "unable to unmarshal the data")
+		return nil, err
+	}
+
+	// render the template
+	tmpl, parseErr := template.New("main.tf.tpl").Funcs(sprig.TxtFuncMap()).ParseFiles(mainTfTplPath)
+	if parseErr != nil {
+		log.Error(parseErr, "unable to parse the template", "filePath", mainTfTplPath)
+		return nil, parseErr
+	}
+
+	mainTfPath := filepath.Join(workDir, "main.tf")
+	f, fileErr := os.Create(mainTfPath)
+	if fileErr != nil {
+		log.Error(fileErr, "unable to create the file", "filePath", mainTfPath)
+		return nil, fileErr
+	}
+
+	// make it Helm compatible
+	vars["Values"] = vars["values"]
+
+	if err := tmpl.Execute(f, vars); err != nil {
+		log.Error(err, "unable to execute the template")
+		return nil, err
+	}
+
+	if err := f.Close(); err != nil {
+		return nil, err
+	}
+
+	return &GenerateTemplateReply{Message: "ok"}, nil
 }
 
 func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*PlanReply, error) {
