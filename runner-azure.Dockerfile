@@ -37,10 +37,11 @@ RUN apk add --no-cache ca-certificates tini git openssh-client gnupg && \
     apk add --no-cache busybox
 
 # Install az cli
+ARG AZCLI_VERSION=2.40.0
 RUN apk add --no-cache py3-pip && \
     apk add --no-cache gcc musl-dev python3-dev libffi-dev openssl-dev cargo make
 RUN pip install --upgrade pip && \
-    pip install azure-cli
+    pip install azure-cli==${AZCLI_VERSION}
 
 COPY --from=builder /workspace/tf-runner /usr/local/bin/
 COPY --from=builder /workspace/terraform /usr/local/bin/
