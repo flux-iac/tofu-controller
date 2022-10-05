@@ -38,8 +38,6 @@ jobs:
           unzip -q terraform_${TF_VERSION}_linux_amd64.zip
           mv terraform $(which terraform)
           terraform --version
-      - name: Run tests
-        run: make test
       - name: Set up yq
         if: "!github.event.pull_request.head.repo.fork"
         uses: frenck/action-setup-yq@v1
@@ -117,3 +115,5 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.version=${{ steps.prep.outputs.VERSION }}
             org.opencontainers.image.created=${{ steps.prep.outputs.BUILD_DATE }}
+      - name: Run tests
+        run: make test
