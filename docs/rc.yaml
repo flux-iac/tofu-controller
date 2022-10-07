@@ -20,7 +20,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: tf-controller
-      version: '>=0.8.0'
+      version: '>=0.8.1'
   interval: 1h0s
   releaseName: tf-controller
   targetNamespace: flux-system
