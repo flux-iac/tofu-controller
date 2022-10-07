@@ -1,10 +1,9 @@
-
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.8.0
   creationTimestamp: null
   name: ocirepositories.source.toolkit.fluxcd.io
 spec:
@@ -53,11 +52,11 @@ spec:
             properties:
               certSecretRef:
                 description: "CertSecretRef can be given the name of a secret containing
-                  either or both of \n  - a PEM-encoded client certificate (`certFile`)
-                  and private  key (`keyFile`);  - a PEM-encoded CA certificate (`caFile`)
-                  \n  and whichever are supplied, will be used for connecting to the
-                  \ registry. The client cert and key are useful if you are  authenticating
-                  with a certificate; the CA cert is useful if  you are using a self-signed
+                  either or both of \n - a PEM-encoded client certificate (`certFile`)
+                  and private key (`keyFile`); - a PEM-encoded CA certificate (`caFile`)
+                  \n and whichever are supplied, will be used for connecting to the
+                  registry. The client cert and key are useful if you are authenticating
+                  with a certificate; the CA cert is useful if you are using a self-signed
                   server certificate."
                 properties:
                   name:
@@ -72,9 +71,34 @@ spec:
                   a default will be used, consult the documentation for your version
                   to find out what those are.
                 type: string
+              insecure:
+                description: Insecure allows connecting to a non-TLS HTTP container
+                  registry.
+                type: boolean
               interval:
                 description: The interval at which to check for image updates.
+                pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
                 type: string
+              layerSelector:
+                description: LayerSelector specifies which layer should be extracted
+                  from the OCI artifact. When not specified, the first layer found
+                  in the artifact is selected.
+                properties:
+                  mediaType:
+                    description: MediaType specifies the OCI media type of the layer
+                      which should be extracted from the OCI Artifact. The first layer
+                      matching this type is selected.
+                    type: string
+                  operation:
+                    description: Operation specifies how the selected layer should
+                      be processed. By default, the layer compressed content is extracted
+                      to storage. When the operation is set to 'copy', the layer compressed
+                      content is persisted to storage as it is.
+                    enum:
+                    - extract
+                    - copy
+                    type: string
+                type: object
               provider:
                 default: generic
                 description: The provider used for authentication, can be 'aws', 'azure',
@@ -125,12 +149,38 @@ spec:
                 default: 60s
                 description: The timeout for remote OCI Repository operations like
                   pulling, defaults to 60s.
+                pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m))+$
                 type: string
               url:
                 description: URL is a reference to an OCI artifact repository hosted
                   on a remote container registry.
                 pattern: ^oci://.*$
                 type: string
+              verify:
+                description: Verify contains the secret name containing the trusted
+                  public keys used to verify the signature and specifies which provider
+                  to use to check whether OCI image is authentic.
+                properties:
+                  provider:
+                    default: cosign
+                    description: Provider specifies the technology used to sign the
+                      OCI Artifact.
+                    enum:
+                    - cosign
+                    type: string
+                  secretRef:
+                    description: SecretRef specifies the Kubernetes Secret containing
+                      the trusted public keys.
+                    properties:
+                      name:
+                        description: Name of the referent.
+                        type: string
+                    required:
+                    - name
+                    type: object
+                required:
+                - provider
+                type: object
             required:
             - interval
             - url
@@ -187,13 +237,12 @@ spec:
                   description: "Condition contains details for one aspect of the current
                     state of this API Resource. --- This struct is intended for direct
                     use as an array at the field path .status.conditions.  For example,
-                    type FooStatus struct{     // Represents the observations of a
-                    foo's current state.     // Known .status.conditions.type are:
-                    \"Available\", \"Progressing\", and \"Degraded\"     // +patchMergeKey=type
-                    \    // +patchStrategy=merge     // +listType=map     // +listMapKey=type
-                    \    Conditions []metav1.Condition `json:\"conditions,omitempty\"
-                    patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"`
-                    \n     // other fields }"
+                    \n type FooStatus struct{ // Represents the observations of a
+                    foo's current state. // Known .status.conditions.type are: \"Available\",
+                    \"Progressing\", and \"Degraded\" // +patchMergeKey=type // +patchStrategy=merge
+                    // +listType=map // +listMapKey=type Conditions []metav1.Condition
+                    `json:\"conditions,omitempty\" patchStrategy:\"merge\" patchMergeKey:\"type\"
+                    protobuf:\"bytes,1,rep,name=conditions\"` \n // other fields }"
                   properties:
                     lastTransitionTime:
                       description: lastTransitionTime is the last time the condition
@@ -251,6 +300,14 @@ spec:
                   - type
                   type: object
                 type: array
+              contentConfigChecksum:
+                description: 'ContentConfigChecksum is a checksum of all the configurations
+                  related to the content of the source artifact: - .spec.ignore -
+                  .spec.layerSelector observed in .status.observedGeneration version
+                  of the object. This can be used to determine if the content configuration
+                  has changed and the artifact needs to be rebuilt. It has the format
+                  of `<algo>:<checksum>`, for example: `sha256:<checksum>`.'
+                type: string
               lastHandledReconcileAt:
                 description: LastHandledReconcileAt holds the value of the most recent
                   reconcile request value, so a change of the annotation value can

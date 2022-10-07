@@ -223,6 +223,8 @@ func Test_000052_plan_and_manual_approve_with_files_test(t *testing.T) {
 	time.Sleep(10 * time.Second)
 
 	By("setting the .spec.approvePlan to be plan-main- and a part of commit id (b8e362c206) to approve the plan.")
+	err = k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+	g.Expect(err).ShouldNot(HaveOccurred())
 	createdHelloWorldTF.Spec.ApprovePlan = "plan-master-b8e362c206"
 	g.Expect(k8sClient.Update(ctx, &createdHelloWorldTF)).Should(Succeed())
 
