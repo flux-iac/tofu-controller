@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.17 as builder
+FROM golang:1.19 as builder
 
 RUN apt-get update && apt-get install -y unzip
 
@@ -22,7 +22,7 @@ COPY runner/ runner/
 COPY utils/ utils/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o tf-runner cmd/runner/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -gcflags=all="-N -l" -a -o tf-runner cmd/runner/main.go
 
 ARG TF_VERSION=1.3.1
 ADD https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip /terraform_${TF_VERSION}_linux_amd64.zip
