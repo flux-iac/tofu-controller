@@ -118,7 +118,7 @@ func (r *TerraformRunnerServer) CleanupDir(ctx context.Context, req *CleanupDirR
 
 func (r *TerraformRunnerServer) WriteBackendConfig(ctx context.Context, req *WriteBackendConfigRequest) (*WriteBackendConfigReply, error) {
 	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
-	const backendConfigPath = "generated_backend_config.tf"
+	const backendConfigPath = "backend_override.tf"
 	log.Info("write backend config", "path", req.DirPath, "config", backendConfigPath)
 	filePath, err := securejoin.SecureJoin(req.DirPath, backendConfigPath)
 	if err != nil {
