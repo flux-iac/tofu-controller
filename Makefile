@@ -6,17 +6,11 @@ TAG ?= latest
 BUILD_SHA ?= $(shell git rev-parse --short HEAD)
 BUILD_VERSION ?= $(shell git describe --tags $$(git rev-list --tags --max-count=1))
 
-# ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.22
 # source controller version
-SOURCE_VER ?= v0.26.1
+SOURCE_VER ?= v0.30.0
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
-ifeq (,$(shell go env GOBIN))
-GOBIN=$(shell go env GOPATH)/bin
-else
-GOBIN=$(shell go env GOBIN)
-endif
+GOBIN=$(shell pwd)/bin
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # This is a requirement for 'setup-envtest.sh' in the test target.
@@ -77,7 +71,7 @@ download-crd-deps:
 	curl -s https://raw.githubusercontent.com/fluxcd/source-controller/${SOURCE_VER}/config/crd/bases/source.toolkit.fluxcd.io_buckets.yaml > config/crd/bases/buckets.yaml
 	curl -s https://raw.githubusercontent.com/fluxcd/source-controller/${SOURCE_VER}/config/crd/bases/source.toolkit.fluxcd.io_ocirepositories.yaml > config/crd/bases/ocirepositories.yaml
 
-TEST_SETTINGS=INSECURE_LOCAL_RUNNER=1 DISABLE_K8S_LOGS=1 DISABLE_TF_LOGS=1 DISABLE_TF_K8S_BACKEND=1 DISABLE_WEBHOOK_TLS_VERIFY=1 KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)"
+TEST_SETTINGS=INSECURE_LOCAL_RUNNER=1 DISABLE_K8S_LOGS=1 DISABLE_TF_LOGS=1 DISABLE_TF_K8S_BACKEND=1 DISABLE_WEBHOOK_TLS_VERIFY=1 KUBEBUILDER_ASSETS="$(shell $(ENVTEST) --arch=$(ENVTEST_ARCH) use -i $(ENVTEST_KUBERNETES_VERSION) --bin-dir=$(ENVTEST_ASSETS_DIR) -p path)"
 
 .PHONY: test
 test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests.
@@ -88,8 +82,10 @@ test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests
 target-test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests. e.g make TARGET=250 target-test
 	$(TEST_SETTINGS) go test ./controllers -coverprofile cover.out -v -run $(TARGET)
 
+.PHONY: gen-grpc
 gen-grpc:
-	./tools/bin/protoc --go_out=. --go_opt=Mrunner/runner.proto=runner/ --go-grpc_out=. --go-grpc_opt=Mrunner/runner.proto=runner/ runner/runner.proto
+	env PATH=$(shell pwd)/bin:$$PATH $(PROJECT_DIR)/bin/protoc --go_out=. --go_opt=Mrunner/runner.proto=runner/ --go-grpc_out=. --go-grpc_opt=Mrunner/runner.proto=runner/ runner/runner.proto
+
 ##@ Build
 
 .PHONY: build
@@ -164,37 +160,67 @@ dev-cleanup: manifests kustomize
 	$(KUSTOMIZE) build config/dev | kubectl delete -f -
 	rm -rf config/dev
 
-CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
-.PHONY: controller-gen
-controller-gen: ## Download controller-gen locally if necessary.
-	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0)
-
 KUSTOMIZE = $(shell pwd)/bin/kustomize
 .PHONY: kustomize
 kustomize: ## Download kustomize locally if necessary.
-	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
+	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.7)
 
-ENVTEST = $(shell pwd)/bin/setup-envtest
-.PHONY: envtest
-envtest: ## Download envtest-setup locally if necessary.
-	$(call go-get-tool,$(ENVTEST),sigs.k8s.io/controller-runtime/tools/setup-envtest@latest)
+PROTOC = $(PROJECT_DIR)/protoc
+.PHONY: protoc
+protoc:
+	# download and unzip protoc
+	mkdir -p $(PROJECT_DIR)
+	curl -qLO https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
+	unzip -q -o protoc-3.19.4-linux-x86_64.zip -d $(PROJECT_DIR)
+	rm protoc-3.19.4-linux-x86_64.zip
+
+# Find or download controller-gen
+PROTOC_GEN_GO = $(GOBIN)/protoc-gen-go
+.PHONY: protoc-gen-go
+protoc-gen-go: ## Download controller-gen locally if necessary.
+	$(call go-install-tool,$(PROTOC_GEN_GO),google.golang.org/protobuf/cmd/protoc-gen-go@v1.27.1)
+
+PROTOC_GEN_GO_GRPC = $(GOBIN)/protoc-gen-go-grpc
+.PHONY: protoc-gen-go-grpc
+protoc-gen-go-grpc: ## Download controller-gen locally if necessary.
+	$(call go-install-tool,$(PROTOC_GEN_GO_GRPC),google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2)
+
+# Find or download controller-gen
+CONTROLLER_GEN = $(GOBIN)/controller-gen
+.PHONY: controller-gen
+controller-gen: ## Download controller-gen locally if necessary.
+	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.9.2)
 
 # Find or download gen-crd-api-reference-docs
-GEN_CRD_API_REFERENCE_DOCS = $(shell pwd)/bin/gen-crd-api-reference-docs
+GEN_CRD_API_REFERENCE_DOCS = $(GOBIN)/gen-crd-api-reference-docs
 .PHONY: gen-crd-api-reference-docs
 gen-crd-api-reference-docs:
-	$(call go-get-tool,$(GEN_CRD_API_REFERENCE_DOCS),github.com/ahmetb/gen-crd-api-reference-docs@v0.3.0)
+	$(call go-install-tool,$(GEN_CRD_API_REFERENCE_DOCS),github.com/ahmetb/gen-crd-api-reference-docs@v0.3.0)
 
-# go-get-tool will 'go get' any package $2 and install it to $1.
+ENVTEST_ARCH ?= amd64
+
+ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
+ENVTEST_KUBERNETES_VERSION?=latest
+install-envtest: setup-envtest
+	mkdir -p ${ENVTEST_ASSETS_DIR}
+	$(ENVTEST) use $(ENVTEST_KUBERNETES_VERSION) --arch=$(ENVTEST_ARCH) --bin-dir=$(ENVTEST_ASSETS_DIR)
+
+# ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
+ENVTEST = $(shell pwd)/bin/setup-envtest
+.PHONY: envtest
+setup-envtest: ## Download envtest-setup locally if necessary.
+	$(call go-install-tool,$(ENVTEST),sigs.k8s.io/controller-runtime/tools/setup-envtest@latest)
+
+# go-install-tool will 'go install' any package $2 and install it to $1.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
-define go-get-tool
+define go-install-tool
 @[ -f $(1) ] || { \
 set -e ;\
 TMP_DIR=$$(mktemp -d) ;\
 cd $$TMP_DIR ;\
 go mod init tmp ;\
 echo "Downloading $(2)" ;\
-GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
+GOBIN=$(PROJECT_DIR)/bin go install $(2) ;\
 rm -rf $$TMP_DIR ;\
 }
 endef
