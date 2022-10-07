@@ -1143,6 +1143,7 @@ func (r *TerraformRunnerServer) GetOutputs(ctx context.Context, req *GetOutputsR
 func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *FinalizeSecretsRequest) (*FinalizeSecretsReply, error) {
 	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
 	log.Info("finalize the output secrets")
+	// nil dereference bug here
 	planObjectKey := types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-" + r.terraform.WorkspaceName() + "-" + req.Name}
 	var planSecret corev1.Secret
 	if err := r.Client.Get(ctx, planObjectKey, &planSecret); err == nil {

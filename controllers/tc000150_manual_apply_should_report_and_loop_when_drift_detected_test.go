@@ -90,7 +90,7 @@ func Test_000150_manual_apply_should_report_and_loop_when_drift_detected_test(t 
 				ConfigPath:      testEnvKubeConfigPath,
 			},
 			ApprovePlan: "",
-			Interval:    metav1.Duration{Duration: 5 * time.Second},
+			Interval:    metav1.Duration{Duration: 10 * time.Second},
 			Path:        "./tf-k8s-configmap",
 			SourceRef: infrav1.CrossNamespaceSourceReference{
 				Kind:      "GitRepository",
@@ -251,39 +251,34 @@ func Test_000150_manual_apply_should_report_and_loop_when_drift_detected_test(t 
 	g.Expect(k8sClient.Delete(ctx, &cmPayload)).Should(Succeed())
 
 	By("checking that the drift got detected, setting LastDriftDetectedAt time")
-	g.Eventually(func() bool {
-		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
-		if err != nil {
-			return false
-		}
-		return !createdHelloWorldTF.Status.LastDriftDetectedAt.IsZero()
-	}, timeout, interval).Should(BeTrue())
-
-	By("checking that the drift got detected, applying is progressing")
 	g.Eventually(func() map[string]string {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
-			return nil
+			return map[string]string{}
 		}
-		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Ready" && c.Status == metav1.ConditionFalse {
-				lines := strings.Split(c.Message, "\n")
-				if len(lines) > 2 {
+		if !createdHelloWorldTF.Status.LastDriftDetectedAt.IsZero() {
+			for _, c := range createdHelloWorldTF.Status.Conditions {
+				if c.Type == "Ready" && c.Status == metav1.ConditionFalse {
+					lines := strings.Split(c.Message, "\n")
+					line1 := c.Message
+					if len(lines) > 2 {
+						line1 = lines[1]
+					}
 					return map[string]string{
 						"Type":    c.Type,
-						"Status":  string(metav1.ConditionFalse),
-						"Reason":  infrav1.DriftDetectedReason,
-						"Line[1]": lines[1],
+						"Status":  string(c.Status),
+						"Reason":  c.Reason,
+						"Line[1]": line1,
 					}
 				}
 			}
 		}
-		return nil
+		return map[string]string{}
 	}, timeout, interval).Should(Equal(map[string]string{
 		"Type":    "Ready",
 		"Status":  string(metav1.ConditionFalse),
 		"Reason":  infrav1.DriftDetectedReason,
-		"Line[1]": "Note: Objects have changed outside of Terraform",
+		"Line[1]": "Terraform used the selected providers to generate the following execution",
 	}))
 
 }

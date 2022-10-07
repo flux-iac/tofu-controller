@@ -23,9 +23,9 @@ TF-controller requires a specific version of Protobuf compiler and its Go plugin
 ## How to run the test suite
 
 Prerequisites:
-* go = 1.17.x
+* go = 1.19.x
 * kubebuilder = 3.5.x
-* controller-gen = 0.7.x
+* controller-gen = 0.8.x
 * kustomize = 4.x
 * kubectl >= 1.21
 
@@ -109,3 +109,7 @@ make deploy
 ```
 
 Running the above will also deploy `source-controller` and its CRDs to the cluster.
+
+### Debug
+
+`sudo dlv --listen=:2345 --headless=true --api-version=2 attach $(pgrep tf-controller)`
