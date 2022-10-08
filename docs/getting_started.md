@@ -91,7 +91,7 @@ spec:
     namespace: flux-system
 ```
 
-For a full list of features and how to use them, follow the [use cases](/tf-controller/use_cases) guide.
+For a full list of features and how to use them, please follow the [Use TF-controller](use_tf_controller/index.md) guide.
 
 ## Other Examples
   * A Terraform GitOps with Flux to automatically reconcile your [AWS IAM Policies](https://github.com/tf-controller/aws-iam-policies).

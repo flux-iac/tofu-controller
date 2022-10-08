@@ -1,16 +1,34 @@
-site_name: TF-controller
+site_name: Weave GitOps Terraform Controller
 theme:
   name: material
   icon:
-    repo: fontawesome/brands/github 
-  palette: 
+    repo: fontawesome/brands/github
+  palette:
     - scheme: default
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
-    - scheme: slate 
+    - scheme: slate
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
+  features:
+    - content.code.annotate
+
 repo_url: https://github.com/weaveworks/tf-controller
 repo_name: weaveworks/tf-controller
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+nav:
+  - Overview: 'index.md'
+  - Getting Started: 'getting_started.md'
+  - Use TF-controller: 'use_tf_controller/index.md'
+  - How to: 'how_to/index.md'
+  - API References: 'References/terraform.md'
+  - CLI References: 'tfctl.md'
