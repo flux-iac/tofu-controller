@@ -29,21 +29,26 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
   * [x] Validation webhooks for the planning stage
 
 ### Q4 2022
-  * [ ] Selectable Terraform versions
-  * [ ] CLI to GitOpsify existing Terraform workflows
-  * [ ] Cloud cost estimation
-  * [ ] CRD wrappers for Terraform modules
+  * [x]  ~~CRD wrappers~~ A new component model for Terraform modules
+  * [ ] AWS package for TF-controller (e.g. EKS, RDS, etc.)
+  * [ ] Dependency management for TF-controller objects
+  * [ ] CLI for Weave GitOps Enterprise
 
 ### Q1 2023
-  * [ ] Enhanced security (the lockdown mode)
-  * [ ] External drift detector
-  * [ ] Typesafety for custom backends
-  * [ ] `v1alpha2` API
+  * [ ] CLI to GitOpsify existing Terraform workflows
+  * [ ] Selectable Terraform versions
+  * [ ] Cloud cost estimation
+  * [ ] Write back and show plan in PRs (Atlantis-like experience)
 
 ### Q2 2023
-  * [ ] Write back and show plan in PRs
+  * [ ] Enhanced security (the lockdown mode)
+  * [ ] External drift detector
+  * [ ] Type safety for custom backends
+  * [ ] `v1alpha2` API
+
+### Q3 2023
   * [ ] ARM64 & Gravitron support
   * [ ] Containerd compatibility
 
-### Q3 2023
+### Q4 2023
   * [ ] `v1beta1` API (stabilization)
