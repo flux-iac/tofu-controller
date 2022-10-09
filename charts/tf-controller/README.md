@@ -1,6 +1,6 @@
 # Weave GitOps Terraform Controller
 
-![Version: 0.8.2](https://img.shields.io/badge/Version-0.8.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.13.0-rc.5](https://img.shields.io/badge/AppVersion-v0.13.0--rc.5-informational?style=flat-square)
+![Version: 0.8.3](https://img.shields.io/badge/Version-0.8.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.13.0-rc.5](https://img.shields.io/badge/AppVersion-v0.13.0--rc.5-informational?style=flat-square)
 
 The Helm chart for Weave GitOps Terraform Controller
 
