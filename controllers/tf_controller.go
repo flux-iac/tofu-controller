@@ -22,6 +22,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"fmt"
+	"github.com/fluxcd/pkg/runtime/dependency"
 	"io"
 	"net/http"
 	"net/url"
@@ -61,8 +62,9 @@ import (
 // TerraformReconciler reconciles a Terraform object
 type TerraformReconciler struct {
 	client.Client
-	httpClient    *retryablehttp.Client
-	statusManager string
+	httpClient        *retryablehttp.Client
+	statusManager     string
+	requeueDependency time.Duration
 
 	EventRecorder            kuberecorder.EventRecorder
 	MetricsRecorder          *metrics.Recorder
@@ -162,6 +164,28 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		log.Info(msg)
 		// do not requeue immediately, when the artifact is created the watcher should trigger a reconciliation
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
+	}
+
+	// check dependencies
+	if len(terraform.Spec.DependsOn) > 0 {
+		if err := r.checkDependencies(sourceObj, terraform); err != nil {
+			terraform = infrav1.TerraformNotReady(
+				terraform, sourceObj.GetArtifact().Revision, infrav1.DependencyNotReadyReason, err.Error())
+
+			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+				log.Error(err, "unable to update status for dependency not ready")
+				return ctrl.Result{Requeue: true}, err
+			}
+			// we can't rely on exponential backoff because it will prolong the execution too much,
+			// instead we requeue on a fix interval.
+			msg := fmt.Sprintf("Dependencies do not meet ready condition, retrying in %s", r.requeueDependency.String())
+			log.Info(msg)
+			r.event(ctx, terraform, sourceObj.GetArtifact().Revision, events.EventSeverityInfo, msg, nil)
+			r.recordReadinessMetric(ctx, terraform)
+
+			return ctrl.Result{RequeueAfter: r.requeueDependency}, nil
+		}
+		log.Info("All dependencies are ready, proceeding with reconciliation")
 	}
 
 	// Skip update the status if the ready condition is still unknown
@@ -339,6 +363,7 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 	httpClient.Logger = nil
 	r.httpClient = httpClient
 	r.statusManager = "tf-controller"
+	r.requeueDependency = 30 * time.Second
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&infrav1.Terraform{}, builder.WithPredicates(
@@ -359,11 +384,50 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(infrav1.OCIRepositoryIndexKey)),
 			builder.WithPredicates(SourceRevisionChangePredicate{}),
 		).
+		Watches(
+			&source.Kind{Type: &corev1.Secret{}},
+			&handler.EnqueueRequestForOwner{
+				OwnerType:    &infrav1.Terraform{},
+				IsController: true,
+			},
+			builder.WithPredicates(SecretDeletePredicate{}),
+		).
 		WithOptions(controller.Options{
 			MaxConcurrentReconciles: maxConcurrentReconciles,
 			RecoverPanic:            true,
 		}).
 		Complete(r)
+}
+
+func (r *TerraformReconciler) checkDependencies(source sourcev1.Source, terraform infrav1.Terraform) error {
+	for _, d := range terraform.Spec.DependsOn {
+		if d.Namespace == "" {
+			d.Namespace = terraform.GetNamespace()
+		}
+		dName := types.NamespacedName{
+			Namespace: d.Namespace,
+			Name:      d.Name,
+		}
+		var tf infrav1.Terraform
+		err := r.Get(context.Background(), dName, &tf)
+		if err != nil {
+			return fmt.Errorf("unable to get '%s' dependency: %w", dName, err)
+		}
+
+		if len(tf.Status.Conditions) == 0 || tf.Generation != tf.Status.ObservedGeneration {
+			return fmt.Errorf("dependency '%s' is not ready", dName)
+		}
+
+		if !apimeta.IsStatusConditionTrue(tf.Status.Conditions, meta.ReadyCondition) {
+			return fmt.Errorf("dependency '%s' is not ready", dName)
+		}
+
+		if tf.Spec.SourceRef.Name == terraform.Spec.SourceRef.Name && tf.Spec.SourceRef.Namespace == terraform.Spec.SourceRef.Namespace && tf.Spec.SourceRef.Kind == terraform.Spec.SourceRef.Kind && source.GetArtifact().Revision != tf.Status.LastAppliedRevision {
+			return fmt.Errorf("dependency '%s' is not updated yet", dName)
+		}
+	}
+
+	return nil
 }
 
 func (r *TerraformReconciler) requestsForRevisionChangeOf(indexKey string) func(obj client.Object) []reconcile.Request {
@@ -386,13 +450,21 @@ func (r *TerraformReconciler) requestsForRevisionChangeOf(indexKey string) func(
 		}); err != nil {
 			return nil
 		}
-		reqs := make([]reconcile.Request, len(list.Items))
-		for i, t := range list.Items {
+		var dd []dependency.Dependent
+		for _, d := range list.Items {
 			// If the revision of the artifact equals to the last attempted revision,
 			// we should not make a request for this Terraform
-			if repo.GetArtifact().Revision == t.Status.LastAttemptedRevision {
+			if repo.GetArtifact().Revision == d.Status.LastAttemptedRevision {
 				continue
 			}
+			dd = append(dd, d.DeepCopy())
+		}
+		sorted, err := dependency.Sort(dd)
+		if err != nil {
+			return nil
+		}
+		reqs := make([]reconcile.Request, len(sorted))
+		for i, t := range sorted {
 			reqs[i].NamespacedName.Name = t.Name
 			reqs[i].NamespacedName.Namespace = t.Namespace
 		}
