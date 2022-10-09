@@ -123,6 +123,22 @@ spec:
                     type: string
                 type: object
                 x-kubernetes-map-type: atomic
+              dependsOn:
+                items:
+                  description: NamespacedObjectReference contains enough information
+                    to locate the referenced Kubernetes resource object in any namespace.
+                  properties:
+                    name:
+                      description: Name of the referent.
+                      type: string
+                    namespace:
+                      description: Namespace of the referent, when not specified it
+                        acts as LocalObjectReference.
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
               destroy:
                 description: Destroy produces a destroy plan. Applying the plan will
                   destroy all resources.
@@ -229,6 +245,18 @@ spec:
                 description: Path to the directory containing Terraform (.tf) files.
                   Defaults to 'None', which translates to the root path of the SourceRef.
                 type: string
+              readInputsFromSecrets:
+                items:
+                  properties:
+                    as:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - as
+                  - name
+                  type: object
+                type: array
               refreshBeforeApply:
                 default: false
                 description: RefreshBeforeApply forces refreshing of the state before

@@ -405,6 +405,44 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 		vars["values"] = terraform.Spec.Values
 	}
 
+	if len(terraform.Spec.ReadInputsFromSecrets) > 0 {
+		inputs := map[string]interface{}{}
+		for _, readSpec := range terraform.Spec.ReadInputsFromSecrets {
+			secret := corev1.Secret{}
+			err := r.Get(ctx, types.NamespacedName{Namespace: terraform.Namespace, Name: readSpec.Name}, &secret)
+			if err != nil {
+				log.Error(err, "unable to get secret", "secret", readSpec.Name)
+				return nil, err
+			}
+
+			for key, value := range secret.Data {
+				var jsonValue interface{}
+				err := json.Unmarshal(value, &jsonValue)
+				if err != nil {
+					log.Error(err, "unable to unmarshal secret data", "secret", readSpec.Name, "key", key)
+					return nil, err
+				}
+				inputs[key] = jsonValue
+			}
+		}
+
+		if b, err := json.Marshal(inputs); err != nil {
+			log.Error(err, "unable to marshal inputs")
+			return nil, err
+		} else {
+			vars["inputs"] = &apiextensionsv1.JSON{Raw: b}
+		}
+
+		if err := os.WriteFile("generated_var_inputs.tf", []byte(`
+variable "inputs" {
+	type = map(any)
+}
+`), 0644); err != nil {
+			log.Error(err, "unable to write inputs variable file")
+			return nil, err
+		}
+	}
+
 	log.Info("mapping the Spec.Vars")
 	if len(terraform.Spec.Vars) > 0 {
 		for _, v := range terraform.Spec.Vars {
@@ -1086,18 +1124,18 @@ func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutp
 	}
 
 	if drift {
-		block := true
+		vTrue := true
 		outputSecret = corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      req.SecretName,
 				Namespace: req.Namespace,
 				OwnerReferences: []metav1.OwnerReference{
 					{
-						APIVersion:         infrav1.GroupVersion.Version + "/" + infrav1.GroupVersion.Version,
-						Kind:               infrav1.TerraformKind,
-						Name:               req.Name,
-						UID:                types.UID(req.Uuid),
-						BlockOwnerDeletion: &block,
+						APIVersion: infrav1.GroupVersion.Version + "/" + infrav1.GroupVersion.Version,
+						Kind:       infrav1.TerraformKind,
+						Name:       req.Name,
+						UID:        types.UID(req.Uuid),
+						Controller: &vTrue,
 					},
 				},
 			},

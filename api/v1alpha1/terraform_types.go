@@ -43,6 +43,14 @@ const (
 	OCIRepositoryIndexKey = ".metadata.ociRepository"
 )
 
+type ReadInputsFromSecretSpec struct {
+	// +required
+	Name string `json:"name"`
+
+	// +required
+	As string `json:"as"`
+}
+
 // WriteOutputsToSecretSpec defines where to store outputs, and which outputs to be stored.
 type WriteOutputsToSecretSpec struct {
 	// Name is the name of the Secret to be written
@@ -139,6 +147,9 @@ type TerraformSpec struct {
 	// +optional
 	Force bool `json:"force,omitempty"`
 
+	// +optional
+	ReadInputsFromSecrets []ReadInputsFromSecretSpec `json:"readInputsFromSecrets,omitempty"`
+
 	// A list of target secrets for the outputs to be written as.
 	// +optional
 	WriteOutputsToSecret *WriteOutputsToSecretSpec `json:"writeOutputsToSecret,omitempty"`
@@ -210,6 +221,9 @@ type TerraformSpec struct {
 
 	// +optional
 	Webhooks []Webhook `json:"webhooks,omitempty"`
+
+	// +optional
+	DependsOn []meta.NamespacedObjectReference `json:"dependsOn,omitempty"`
 }
 
 type Webhook struct {
@@ -415,6 +429,7 @@ const (
 // The potential reasons that are associated with condition types
 const (
 	ArtifactFailedReason            = "ArtifactFailed"
+	DependencyNotReadyReason        = "DependencyNotReady"
 	TFExecNewFailedReason           = "TFExecNewFailed"
 	TFExecInitFailedReason          = "TFExecInitFailed"
 	VarsGenerationFailedReason      = "VarsGenerationFailed"
@@ -736,6 +751,11 @@ func (in Terraform) HasDrift() bool {
 		}
 	}
 	return false
+}
+
+// GetDependsOn returns the list of dependencies, namespace scoped.
+func (in Terraform) GetDependsOn() []meta.NamespacedObjectReference {
+	return in.Spec.DependsOn
 }
 
 // GetRetryInterval returns the retry interval
