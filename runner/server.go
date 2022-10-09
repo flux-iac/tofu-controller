@@ -433,7 +433,8 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 			vars["inputs"] = &apiextensionsv1.JSON{Raw: b}
 		}
 
-		if err := os.WriteFile("generated_var_inputs.tf", []byte(`
+		varInputsTF := filepath.Join(req.WorkingDir, "generated_var_inputs.tf")
+		if err := os.WriteFile(varInputsTF, []byte(`
 variable "inputs" {
 	type = map(any)
 }
@@ -539,7 +540,7 @@ variable "inputs" {
 	}
 
 	varFilePath := filepath.Join(req.WorkingDir, "generated.auto.tfvars.json")
-	if err := ioutil.WriteFile(varFilePath, jsonBytes, 0644); err != nil {
+	if err := os.WriteFile(varFilePath, jsonBytes, 0644); err != nil {
 		err = fmt.Errorf("error generating var file: %s", err)
 		log.Error(err, "unable to write the data to file", "filePath", varFilePath)
 		return nil, err
