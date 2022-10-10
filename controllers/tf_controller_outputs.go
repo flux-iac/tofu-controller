@@ -40,6 +40,22 @@ func (r *TerraformReconciler) outputsMayBeDrifted(ctx context.Context, terraform
 			return true, nil
 		}
 
+		keysInSecret := []string{}
+		for k, _ := range outputsSecret.Data {
+			keysInSecret = append(keysInSecret, k)
+		}
+		sort.Strings(keysInSecret)
+
+		keysInSpec := terraform.Spec.WriteOutputsToSecret.Outputs
+		if len(keysInSpec) == 0 {
+			keysInSpec = terraform.Status.AvailableOutputs
+		}
+		sort.Strings(keysInSpec)
+
+		if strings.Join(keysInSecret, ",") != strings.Join(keysInSpec, ",") {
+			return true, nil
+		}
+
 		return false, err
 	}
 
