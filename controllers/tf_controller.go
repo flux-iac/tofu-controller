@@ -22,7 +22,6 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"fmt"
-	"github.com/fluxcd/pkg/runtime/dependency"
 	"io"
 	"net/http"
 	"net/url"
@@ -31,6 +30,7 @@ import (
 	"time"
 
 	"github.com/fluxcd/pkg/apis/meta"
+	"github.com/fluxcd/pkg/runtime/dependency"
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/fluxcd/pkg/runtime/metrics"
 	"github.com/fluxcd/pkg/runtime/predicates"
@@ -422,9 +422,26 @@ func (r *TerraformReconciler) checkDependencies(source sourcev1.Source, terrafor
 			return fmt.Errorf("dependency '%s' is not ready", dName)
 		}
 
-		if tf.Spec.SourceRef.Name == terraform.Spec.SourceRef.Name && tf.Spec.SourceRef.Namespace == terraform.Spec.SourceRef.Namespace && tf.Spec.SourceRef.Kind == terraform.Spec.SourceRef.Kind && source.GetArtifact().Revision != tf.Status.LastAppliedRevision {
+		revision := source.GetArtifact().Revision
+		if tf.Spec.SourceRef.Name == terraform.Spec.SourceRef.Name &&
+			tf.Spec.SourceRef.Namespace == terraform.Spec.SourceRef.Namespace &&
+			tf.Spec.SourceRef.Kind == terraform.Spec.SourceRef.Kind &&
+			revision != tf.Status.LastAppliedRevision &&
+			revision != tf.Status.LastPlannedRevision {
 			return fmt.Errorf("dependency '%s' is not updated yet", dName)
 		}
+
+		if tf.Spec.WriteOutputsToSecret != nil {
+			outputSecret := tf.Spec.WriteOutputsToSecret.Name
+			outputSecretName := types.NamespacedName{
+				Namespace: tf.GetNamespace(),
+				Name:      outputSecret,
+			}
+			if err := r.Get(context.Background(), outputSecretName, &corev1.Secret{}); err != nil {
+				return fmt.Errorf("dependency output secret: '%s' of '%s' is not ready yet", outputSecret, dName)
+			}
+		}
+
 	}
 
 	return nil
