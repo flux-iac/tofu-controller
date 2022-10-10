@@ -377,7 +377,7 @@ func (r *TerraformRunnerServer) SelectWorkspace(ctx context.Context, req *Worksp
 		wsOpts := []tfexec.WorkspaceNewCmdOption{}
 		ws := terraform.Spec.Workspace
 		if err := r.tf.WorkspaceNew(ctx, ws, wsOpts...); err != nil {
-			log.Info("workspace new err, %s", err.Error())
+			log.Info(fmt.Sprintf("workspace new:, %s", err.Error()))
 		}
 		if err := r.tf.WorkspaceSelect(ctx, ws); err != nil {
 			err := fmt.Errorf("failed to select workspace %s", ws)
