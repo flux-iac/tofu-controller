@@ -400,13 +400,8 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 
 	vars := map[string]*apiextensionsv1.JSON{}
 
-	log.Info("mapping the Spec.Values")
-	if terraform.Spec.Values != nil {
-		vars["values"] = terraform.Spec.Values
-	}
-
+	inputs := map[string]interface{}{}
 	if len(terraform.Spec.ReadInputsFromSecrets) > 0 {
-		inputs := map[string]interface{}{}
 		for _, readSpec := range terraform.Spec.ReadInputsFromSecrets {
 			secret := corev1.Secret{}
 			err := r.Get(ctx, types.NamespacedName{Namespace: terraform.Namespace, Name: readSpec.Name}, &secret)
@@ -415,32 +410,31 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 				return nil, err
 			}
 
-			for key, value := range secret.Data {
-				var jsonValue interface{}
-				err := json.Unmarshal(value, &jsonValue)
-				if err != nil {
-					log.Error(err, "unable to unmarshal secret data", "secret", readSpec.Name, "key", key)
-					return nil, err
-				}
-				inputs[key] = jsonValue
+			// outputs are always strings
+			data := map[string]interface{}{}
+			for k, v := range secret.Data {
+				data[k] = string(v)
 			}
-		}
 
-		if b, err := json.Marshal(inputs); err != nil {
-			log.Error(err, "unable to marshal inputs")
-			return nil, err
-		} else {
-			vars["inputs"] = &apiextensionsv1.JSON{Raw: b}
+			inputs[readSpec.As] = data
 		}
+	}
 
-		if err := os.WriteFile("generated_var_inputs.tf", []byte(`
-variable "inputs" {
-	type = map(any)
-}
-`), 0644); err != nil {
-			log.Error(err, "unable to write inputs variable file")
+	log.Info("mapping the Spec.Values")
+	if terraform.Spec.Values != nil {
+		tmpl, err := template.New("values").Parse(string(terraform.Spec.Values.Raw))
+		if err != nil {
+			log.Error(err, "unable to parse values as template")
 			return nil, err
 		}
+
+		var buf bytes.Buffer
+		if err := tmpl.Execute(&buf, inputs); err != nil {
+			log.Error(err, "unable to execute values template")
+			return nil, err
+		}
+
+		vars["values"] = &apiextensionsv1.JSON{Raw: buf.Bytes()}
 	}
 
 	log.Info("mapping the Spec.Vars")
@@ -539,7 +533,7 @@ variable "inputs" {
 	}
 
 	varFilePath := filepath.Join(req.WorkingDir, "generated.auto.tfvars.json")
-	if err := ioutil.WriteFile(varFilePath, jsonBytes, 0644); err != nil {
+	if err := os.WriteFile(varFilePath, jsonBytes, 0644); err != nil {
 		err = fmt.Errorf("error generating var file: %s", err)
 		log.Error(err, "unable to write the data to file", "filePath", varFilePath)
 		return nil, err
@@ -1108,15 +1102,14 @@ func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutp
 	var outputSecret corev1.Secret
 
 	drift := true
+	create := true
 	if err := r.Client.Get(ctx, objectKey, &outputSecret); err == nil {
 		// if everything is there, we don't write anything
 		if reflect.DeepEqual(outputSecret.Data, req.Data) {
 			drift = false
 		} else {
-			if err := r.Client.Delete(ctx, &outputSecret); err != nil {
-				log.Error(err, "unable to delete secret")
-				return nil, err
-			}
+			// found, but need update
+			create = false
 		}
 	} else if apierrors.IsNotFound(err) == false {
 		log.Error(err, "unable to get output secret")
@@ -1124,29 +1117,38 @@ func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutp
 	}
 
 	if drift {
-		vTrue := true
-		outputSecret = corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      req.SecretName,
-				Namespace: req.Namespace,
-				OwnerReferences: []metav1.OwnerReference{
-					{
-						APIVersion: infrav1.GroupVersion.Version + "/" + infrav1.GroupVersion.Version,
-						Kind:       infrav1.TerraformKind,
-						Name:       req.Name,
-						UID:        types.UID(req.Uuid),
-						Controller: &vTrue,
+		if create {
+			vTrue := true
+			outputSecret = corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      req.SecretName,
+					Namespace: req.Namespace,
+					OwnerReferences: []metav1.OwnerReference{
+						{
+							APIVersion: infrav1.GroupVersion.Group + "/" + infrav1.GroupVersion.Version,
+							Kind:       infrav1.TerraformKind,
+							Name:       req.Name,
+							UID:        types.UID(req.Uuid),
+							Controller: &vTrue,
+						},
 					},
 				},
-			},
-			Type: corev1.SecretTypeOpaque,
-			Data: req.Data,
-		}
+				Type: corev1.SecretTypeOpaque,
+				Data: req.Data,
+			}
 
-		err := r.Client.Create(ctx, &outputSecret)
-		if err != nil {
-			log.Error(err, "unable to create secret")
-			return nil, err
+			err := r.Client.Create(ctx, &outputSecret)
+			if err != nil {
+				log.Error(err, "unable to create secret")
+				return nil, err
+			}
+		} else {
+			outputSecret.Data = req.Data
+			err := r.Client.Update(ctx, &outputSecret)
+			if err != nil {
+				log.Error(err, "unable to update secret")
+				return nil, err
+			}
 		}
 
 		return &WriteOutputsReply{Message: "ok", Changed: true}, nil
