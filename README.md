@@ -30,11 +30,12 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
 
 ### Q4 2022
   * [x]  ~~CRD wrappers~~ A new component model for Terraform modules
+  * [x] Dependency management for TF-controller objects
   * [ ] AWS package for TF-controller (e.g. EKS, RDS, etc.)
-  * [ ] Dependency management for TF-controller objects
   * [ ] CLI for Weave GitOps Enterprise
 
 ### Q1 2023
+  * [ ] Observability - logging from the different stages of the runner
   * [ ] CLI to GitOpsify existing Terraform workflows
   * [ ] Selectable Terraform versions
   * [ ] Cloud cost estimation
@@ -47,6 +48,8 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
   * [ ] `v1alpha2` API
 
 ### Q3 2023
+  * [ ] Azure package for TF-controller (e.g. AKS, CosmosDB, etc.)
+  * [ ] GCP package for TF-controller (e.g. GKE, CloudSQL, etc.) 
   * [ ] ARM64 & Gravitron support
   * [ ] Containerd compatibility
 
