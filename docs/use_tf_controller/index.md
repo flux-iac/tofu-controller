@@ -1,5 +1,6 @@
 # Use TF-controller
 
+  - [Use TF-controller to provision resources and **auto approve**](to_provision_resources_and_auto_approve.md)
   - [Use TF-controller to **plan and manually apply** Terraform resources](to_plan_and_manually_apply_Terraform_resources.md)
   - [Use TF-controller to provision resources and **obtain outputs**](to_provision_resources_and_obtain_outputs.md)
   - [Use TF-controller to **detect drifts only** without plan or apply](to_detect_drifts_only_without_plan_or_apply.md)
@@ -13,5 +14,5 @@
   - [Use TF-controller to **force unlock** Terraform states](to_force_unlock_Terraform_states.md)
   - [Use TF-controller to provision resources with **customized Runner Pods**](to_provision_resources_with_customized_Runner_Pods.md)
   - [Use TF-controller with **Terraform Enterprise**](with_Terraform_Enterprise.md)
-  
-
+  - [Use TF-controller with **primitive modules**](with_primitive_modules.md)
+  - [Use TF-controller with **GitOps dependency management**](with_GitOps_dependency_management.md)
