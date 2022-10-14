@@ -198,6 +198,10 @@ type RunnerPodSpec struct {
 	// Set Volumes for the Runner Pod
 	// +optional
 	Volumes []corev1.Volume `json:"volumes,omitempty"`
+
+	// Set up Init Containers for the Runner
+	// +optional
+	InitContainers []corev1.Container `json:"initContainers,omitempty"`
 }
 
 func (in HealthCheck) GetTimeout() time.Duration {

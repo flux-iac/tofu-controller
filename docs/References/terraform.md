@@ -492,6 +492,46 @@ bool
 </table>
 </div>
 </div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.ReadInputsFromSecretSpec">ReadInputsFromSecretSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>as</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="infra.contrib.fluxcd.io/v1alpha1.ResourceInventory">ResourceInventory
 </h3>
 <p>
@@ -754,6 +794,20 @@ Kubernetes core/v1.Affinity
 <p>Set Volumes for the Runner Pod</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>initContainers</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#container-v1-core">
+[]Kubernetes core/v1.Container
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set up Init Containers for the Runner</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -913,6 +967,20 @@ Kubernetes core/v1.Affinity
 <td>
 <em>(Optional)</em>
 <p>Set Volumes for the Runner Pod</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>initContainers</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#container-v1-core">
+[]Kubernetes core/v1.Container
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set up Init Containers for the Runner</p>
 </td>
 </tr>
 </table>
@@ -1229,6 +1297,19 @@ re-plan and re-apply TF resources. Defaults to false.</p>
 </tr>
 <tr>
 <td>
+<code>readInputsFromSecrets</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.ReadInputsFromSecretSpec">
+[]ReadInputsFromSecretSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
 <code>writeOutputsToSecret</code><br>
 <em>
 <a href="#infra.contrib.fluxcd.io/v1alpha1.WriteOutputsToSecretSpec">
@@ -1413,6 +1494,19 @@ string
 <em>
 <a href="#infra.contrib.fluxcd.io/v1alpha1.Webhook">
 []Webhook
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>dependsOn</code><br>
+<em>
+<a href="https://godoc.org/github.com/fluxcd/pkg/apis/meta#NamespacedObjectReference">
+[]github.com/fluxcd/pkg/apis/meta.NamespacedObjectReference
 </a>
 </em>
 </td>
@@ -1661,6 +1755,19 @@ re-plan and re-apply TF resources. Defaults to false.</p>
 </tr>
 <tr>
 <td>
+<code>readInputsFromSecrets</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.ReadInputsFromSecretSpec">
+[]ReadInputsFromSecretSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
 <code>writeOutputsToSecret</code><br>
 <em>
 <a href="#infra.contrib.fluxcd.io/v1alpha1.WriteOutputsToSecretSpec">
@@ -1845,6 +1952,19 @@ string
 <em>
 <a href="#infra.contrib.fluxcd.io/v1alpha1.Webhook">
 []Webhook
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>dependsOn</code><br>
+<em>
+<a href="https://godoc.org/github.com/fluxcd/pkg/apis/meta#NamespacedObjectReference">
+[]github.com/fluxcd/pkg/apis/meta.NamespacedObjectReference
 </a>
 </em>
 </td>
