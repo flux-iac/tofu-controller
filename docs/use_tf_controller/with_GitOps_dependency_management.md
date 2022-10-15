@@ -56,7 +56,9 @@ We can read the outputs of the S3 bucket from the Secret `aws-s3-bucket-outputs`
 The `spec.readInputsFromSecrets` field is a list of Secret objects. 
 Its `name` field is the name of the Secret, and its `as` field is the name of variable that can be used in the `spec.values` block.
 
-For example, the `spec.values.bucket` field in the `aws-s3-bucket-acl` Terraform object is set to `{{ $.aws_s3_bucket.bucket }}`.
+For example, the `spec.values.bucket` field in the `aws-s3-bucket-acl` Terraform object is set to `${{ .aws_s3_bucket.bucket }}`.
+
+Please note that we use `${{` and  `}}` as the delimiters for the variable name, instead of the Helm default ones, `{{` and `}}`.
 
 ```yaml hl_lines="11 18 20-21"
 ---
@@ -69,7 +71,7 @@ spec:
   path: aws_s3_bucket_acl
   values:
     acl: private
-    bucket: "{{ $.aws_s3_bucket.bucket }}"
+    bucket: ${{ .aws_s3_bucket.bucket }}
   sourceRef:
     kind: OCIRepository
     name: aws-package-v4.33.0

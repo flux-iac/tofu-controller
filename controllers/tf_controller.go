@@ -178,12 +178,12 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			}
 			// we can't rely on exponential backoff because it will prolong the execution too much,
 			// instead we requeue on a fix interval.
-			msg := fmt.Sprintf("Dependencies do not meet ready condition, retrying in %s", r.requeueDependency.String())
+			msg := fmt.Sprintf("Dependencies do not meet ready condition, retrying in %s", terraform.GetRetryInterval().String())
 			log.Info(msg)
 			r.event(ctx, terraform, sourceObj.GetArtifact().Revision, events.EventSeverityInfo, msg, nil)
 			r.recordReadinessMetric(ctx, terraform)
 
-			return ctrl.Result{RequeueAfter: r.requeueDependency}, nil
+			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 		}
 		log.Info("All dependencies are ready, proceeding with reconciliation")
 	}
