@@ -10,7 +10,20 @@ kind load docker-image test/tf-runner:$VERSION
 make install
 
 # Dev deploy
+make dev-deploy MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION || true
 make dev-deploy MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION
+
+kubectl patch deployment \
+  tf-controller \
+  --namespace tf-system \
+  --type='json' \
+  -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/args", "value": [
+  "--watch-all-namespaces",
+  "--log-level=info",
+  "--log-encoding=json",
+  "--enable-leader-election",
+  "--concurrent=10",
+]}]'
 
 kubectl -n tf-system rollout status deploy/source-controller --timeout=1m
 kubectl -n tf-system rollout status deploy/tf-controller --timeout=1m

@@ -295,8 +295,9 @@ message UploadReply {
 message FinalizeSecretsRequest {
   string namespace = 1;
   string name = 2;
-  bool   hasSpecifiedOutputSecret = 3;
-  string outputSecretName = 4;
+  string workspace = 3;
+  bool   hasSpecifiedOutputSecret = 4;
+  string outputSecretName = 5;
 }
 
 message FinalizeSecretsReply {
