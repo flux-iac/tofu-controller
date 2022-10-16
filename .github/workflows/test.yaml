@@ -118,4 +118,7 @@ jobs:
       - name: Run tests
         run: |
           make install-envtest
-          make test
+          make TARGET="^Test_0000"     target-test
+          make TARGET="^Test_000[12]"  target-test
+          make TARGET="^Test_0003"     target-test
+          make TARGET="^Test_0099"     target-test
