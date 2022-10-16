@@ -3,15 +3,15 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"os"
-
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/runner"
 	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"strings"
 )
 
 func (r *TerraformReconciler) backendCompletelyDisable(terraform infrav1.Terraform) bool {
@@ -79,13 +79,17 @@ terraform {
     in_cluster_config = %v
     config_path       = "%s"
     namespace         = "%s"
+    labels            = {
+      %s
+    }
   }
 }
 `,
 			terraform.Spec.BackendConfig.SecretSuffix,
 			terraform.Spec.BackendConfig.InClusterConfig,
 			terraform.Spec.BackendConfig.ConfigPath,
-			terraform.Namespace)
+			terraform.Namespace,
+			getLabelsAsHCL(terraform.Labels, 6))
 	} else if DisableTFK8SBackend && terraform.Spec.BackendConfig == nil {
 		backendConfig = `
 terraform {
@@ -99,9 +103,15 @@ terraform {
     secret_suffix     = "%s"
     in_cluster_config = true
     namespace         = "%s"
+    labels            = {
+      %s
+    }
   }
 }
-`, terraform.Name, terraform.Namespace)
+`,
+			terraform.Name,
+			terraform.Namespace,
+			getLabelsAsHCL(terraform.Labels, 6))
 	}
 
 	if r.backendCompletelyDisable(terraform) {
@@ -386,4 +396,17 @@ terraform {
 	}
 
 	return terraform, tfInstance, tmpDir, nil
+}
+
+func getLabelsAsHCL(labels map[string]string, indent int) string {
+	var result string
+	for k, v := range labels {
+		// print space for indentation
+		for i := 0; i < indent; i++ {
+			result += " "
+		}
+		result = result + fmt.Sprintf("%q = %q\n", k, v)
+	}
+
+	return strings.TrimSpace(result)
 }
