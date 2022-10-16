@@ -166,8 +166,8 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	}
 
-	// check dependencies
-	if len(terraform.Spec.DependsOn) > 0 {
+	// check dependencies, if not being deleted
+	if len(terraform.Spec.DependsOn) > 0 && terraform.ObjectMeta.DeletionTimestamp.IsZero() {
 		if err := r.checkDependencies(sourceObj, terraform); err != nil {
 			terraform = infrav1.TerraformNotReady(
 				terraform, sourceObj.GetArtifact().Revision, infrav1.DependencyNotReadyReason, err.Error())
