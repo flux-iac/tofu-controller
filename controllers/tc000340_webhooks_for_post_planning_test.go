@@ -52,7 +52,7 @@ spec:
   webhooks:
   - stage: post-planning
     url: %s
-    errorMessageTemplate: "Violation: {{ (index .violations 0).message }}"
+    errorMessageTemplate: "Violation: ${{ (index .violations 0).message }}"
 `, "helloworld", "gitrepo", "http://localhost:8080/terraform/admission")), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 	mockRunnerClient := &mockRunnerClientForTestWebhooksForPostPlanning{}
@@ -80,7 +80,7 @@ spec:
   webhooks:
   - stage: post-planning
     url: http://localhost:8080/terraform/admission
-    errorMessageTemplate: "Violation: {{ (index .violations 0).message }}"
+    errorMessageTemplate: "Violation: ${{ (index .violations 0).message }}"
 status:
   tfplan:
     dummy: plan
@@ -125,7 +125,7 @@ spec:
   webhooks:
   - stage: post-planning
     url: %s
-    errorMessageTemplate: "Violation: {{ (index .violations 0).message }}"
+    errorMessageTemplate: "Violation: ${{ (index .violations 0).message }}"
     payloadType: SpecOnly
 `, "helloworld", "gitrepo", "http://localhost:8080/terraform/admission")), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
@@ -154,7 +154,7 @@ spec:
   webhooks:
   - stage: post-planning
     url: http://localhost:8080/terraform/admission
-    errorMessageTemplate: "Violation: {{ (index .violations 0).message }}"
+    errorMessageTemplate: "Violation: ${{ (index .violations 0).message }}"
     payloadType: SpecOnly
 `)
 
@@ -197,7 +197,7 @@ spec:
   webhooks:
   - stage: post-planning
     url: %s
-    errorMessageTemplate: "Violation: {{ (index .violations 0).message }}"
+    errorMessageTemplate: "Violation: ${{ (index .violations 0).message }}"
     payloadType: PlanOnly
 `, "helloworld", "gitrepo", "http://localhost:8080/terraform/admission")), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
@@ -306,17 +306,17 @@ spec:
   webhooks:
   - stage: post-planning
     url: %s
-    testExpression: "{{ .passed }}"
-    errorMessageTemplate: "SHOULD PASS Violation: {{ (index .violations 0).message }}"
+    testExpression: "${{ .passed }}"
+    errorMessageTemplate: "SHOULD PASS Violation: ${{ (index .violations 0).message }}"
   - stage: post-planning
     url: %s
-    testExpression: "{{ .passed }}"
-    errorMessageTemplate: "SHOULD FAIL Violation: {{ (index .violations 0).message }}"
+    testExpression: "${{ .passed }}"
+    errorMessageTemplate: "SHOULD FAIL Violation: ${{ (index .violations 0).message }}"
   - stage: post-planning
     enabled: false # it's disabled, so it should not be called
     url: some-invalid-url
-    testExpression: "{{ .passed }}"
-    errorMessageTemplate: "SHOULD FAIL Violation: {{ (index .violations 0).message }}"
+    testExpression: "${{ .passed }}"
+    errorMessageTemplate: "SHOULD FAIL Violation: ${{ (index .violations 0).message }}"
 `, terraformName, sourceName, server.URL()+"/terraform/admission/pass", server.URL()+"/terraform/admission/fail")), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 

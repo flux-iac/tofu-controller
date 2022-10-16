@@ -20,7 +20,7 @@ output "myappURL" {
 }
 ```
 
-We can use standard Go template expressions, like `{{.rdsAddress}}`, to refer to those output values and use them to verify that the resources are up and running.
+We can use standard Go template expressions, like `${{ .rdsAddress }}`, to refer to those output values and use them to verify that the resources are up and running.
 
 We support two types of health checks, `tcp` amd `http`. The `tcp` type allows us to verify a TCP connection, while the `http` type is for verify an HTTP URL. The default timeout of each health check is 20 seconds.
 
@@ -41,11 +41,11 @@ spec:
   healthChecks:
     - name: rds
       type: tcp
-      address: "{{.rdsAddress}}:{{.rdsPort}}" 
+      address: ${{ .rdsAddress }}:${{ .rdsPort }} 
       timeout: 10s # optional, defaults to 20s
     - name: myapp
       type: http
-      url: "{{.myappURL}}"
+      url: ${{ .myappURL }}
       timeout: 5s
     - name: url_not_from_output
       type: http
