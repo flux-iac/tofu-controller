@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"sigs.k8s.io/kustomize/kyaml/yaml"
 	"strings"
 	"text/template"
 
@@ -19,6 +18,7 @@ import (
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/runner"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/kustomize/kyaml/yaml"
 )
 
 func shouldProcessPostPlanningWebhooks(terraform infrav1.Terraform) bool {
@@ -199,7 +199,10 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, t
 		log.Info("webhook reply decoded")
 
 		// Test if the reply contains a good result
-		testExprTpl, err := template.New("testexpr").Parse(webhook.TestExpression)
+		testExprTpl, err := template.
+			New("testexpr").
+			Delims("${{", "}}").
+			Parse(webhook.TestExpression)
 		if err != nil {
 			err = fmt.Errorf("failed to parse webhook test expression: %w", err)
 			return terraform, err
@@ -229,7 +232,10 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, t
 		log.Info("webhook test expression returned false, webhook is not successful - prepare error message")
 
 		// Extract the error message from the webhook response
-		errMsgTpl, err := template.New("errmsg").Parse(webhook.ErrorMessageTemplate)
+		errMsgTpl, err := template.
+			New("errmsg").
+			Delims("${{", "}}").
+			Parse(webhook.ErrorMessageTemplate)
 		if err != nil {
 			err = fmt.Errorf("failed to parse webhook error message template: %w", err)
 			return terraform, err

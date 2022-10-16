@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"html/template"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
+	"text/template"
 	"time"
 
 	"github.com/fluxcd/pkg/runtime/events"
@@ -186,7 +186,10 @@ func (r *TerraformReconciler) doHTTPHealthCheck(ctx context.Context, name string
 // parse template string from map[string]string
 func (r *TerraformReconciler) parseHealthCheckTemplate(content map[string]string, text string) (string, error) {
 	var b bytes.Buffer
-	tmpl, err := template.New("tmpl").Parse(text)
+	tmpl, err := template.
+		New("tmpl").
+		Delims("${{", "}}").
+		Parse(text)
 	if err != nil {
 		return "", err
 	}

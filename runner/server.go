@@ -422,7 +422,10 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 
 	log.Info("mapping the Spec.Values")
 	if terraform.Spec.Values != nil {
-		tmpl, err := template.New("values").Parse(string(terraform.Spec.Values.Raw))
+		tmpl, err := template.
+			New("values").
+			Delims("${{", "}}").
+			Parse(string(terraform.Spec.Values.Raw))
 		if err != nil {
 			log.Error(err, "unable to parse values as template")
 			return nil, err
@@ -571,7 +574,12 @@ func (r *TerraformRunnerServer) GenerateTemplate(ctx context.Context, req *Gener
 	}
 
 	// render the template
-	tmpl, parseErr := template.New("main.tf.tpl").Funcs(sprig.TxtFuncMap()).ParseFiles(mainTfTplPath)
+	// we use Helm-like syntax for the template
+	tmpl, parseErr := template.
+		New("main.tf.tpl").
+		Delims("{{", "}}").
+		Funcs(sprig.TxtFuncMap()).
+		ParseFiles(mainTfTplPath)
 	if parseErr != nil {
 		log.Error(parseErr, "unable to parse the template", "filePath", mainTfTplPath)
 		return nil, parseErr
