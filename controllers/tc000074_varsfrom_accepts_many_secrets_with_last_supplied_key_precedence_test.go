@@ -93,7 +93,7 @@ func Test_000074_varsfrom_accepts_many_secrets_with_last_supplied_key_precedence
 	g.Expect(err).To(BeNil())
 
 	By("creating a new TF exec instance")
-	_, err = runnerServer.NewTerraform(ctx, &runner.NewTerraformRequest{
+	ntResp, err := runnerServer.NewTerraform(ctx, &runner.NewTerraformRequest{
 		WorkingDir: workDir,
 		ExecPath:   execPath,
 		InstanceID: uuid.New().String(),
@@ -102,7 +102,7 @@ func Test_000074_varsfrom_accepts_many_secrets_with_last_supplied_key_precedence
 	g.Expect(err).Should(BeNil())
 
 	_, err = runnerServer.Init(ctx, &runner.InitRequest{
-		TfInstance: "1",
+		TfInstance: ntResp.Id,
 		Upgrade:    false,
 		ForceCopy:  false,
 	})
