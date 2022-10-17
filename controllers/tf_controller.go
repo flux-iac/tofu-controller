@@ -76,6 +76,7 @@ type TerraformReconciler struct {
 	RunnerGRPCPort           int
 	RunnerCreationTimeout    time.Duration
 	RunnerGRPCMaxMessageSize int
+	ReconciliationLoopID     string
 }
 
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete
@@ -97,8 +98,8 @@ type TerraformReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
 func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	reconcileStart := time.Now()
-	reconciliationLoopID := uuid.New().String()
-	log := ctrl.LoggerFrom(ctx, "reconciliation-loop-id", reconciliationLoopID, "start-time", reconcileStart)
+	r.ReconciliationLoopID = uuid.New().String()
+	log := ctrl.LoggerFrom(ctx, "reconciliation-loop-id", r.ReconciliationLoopID, "start-time", reconcileStart)
 	ctx = ctrl.LoggerInto(ctx, log)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.Reconcile")
 	traceLog.Info("Reconcile Start")

@@ -3,15 +3,16 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
+
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/runner"
 	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"strings"
 )
 
 func (r *TerraformReconciler) backendCompletelyDisable(terraform infrav1.Terraform) bool {
@@ -180,6 +181,7 @@ terraform {
 		&runner.NewTerraformRequest{
 			WorkingDir: workingDir,
 			ExecPath:   execPath,
+			InstanceID: r.ReconciliationLoopID,
 			Terraform:  terraformBytes,
 		})
 	if err != nil {
