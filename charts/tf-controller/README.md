@@ -57,6 +57,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | runner.grpc.maxMessageSize | int | `4` | Maximum GRPC message size (Controller) |
 | runner.image.repository | string | `"ghcr.io/weaveworks/tf-runner"` | Runner image repository |
 | runner.image.tag | string | `.Chart.AppVersion` | Runner image tag |
+| runner.serviceAccount.allowedNamespaces | list | `[]` | List of namespaces that the runner may run within |
 | runner.serviceAccount.annotations | object | `{}` | Additional runner service Account annotations |
 | runner.serviceAccount.create | bool | `true` | If `true`, create a new runner service account |
 | runner.serviceAccount.name | string | `""` | Runner service account to be used |
