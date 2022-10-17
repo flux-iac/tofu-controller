@@ -367,7 +367,7 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 func (r *TerraformRunnerServer) SelectWorkspace(ctx context.Context, req *WorkspaceRequest) (*WorkspaceReply, error) {
 	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
 	log.Info("workspace select")
-	if req.TfInstance != "1" {
+	if req.TfInstance != r.InstanceID {
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "no terraform")
 		return nil, err
