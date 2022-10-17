@@ -1737,7 +1737,7 @@ func (r *TerraformReconciler) recordSuspensionMetric(ctx context.Context, terraf
 		traceLog.Info("Due for deletion, set to false")
 		r.MetricsRecorder.RecordSuspend(*objRef, false)
 	} else {
-		traceLog.Info("Not due for deletion use Suspend data from the resouce")
+		traceLog.Info("Not due for deletion use Suspend data from the resource")
 		r.MetricsRecorder.RecordSuspend(*objRef, terraform.Spec.Suspend)
 	}
 }
@@ -2309,12 +2309,15 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	traceLog.Info("Get pod state")
 	err := r.Get(ctx, runnerPodKey, &runnerPod)
 	traceLog.Info("Check for an error")
+
 	if err != nil && apierrors.IsNotFound(err) {
 		podState = stateNotFound
-		traceLog.Info("Set pod state", "pod-state", podState)
+	} else if err != nil {
+		traceLog.Error(err, "Error getting the Runner Pod", "runner-pod-key", runnerPodKey)
 	} else if err == nil {
 		label, found := runnerPod.Labels["tf.weave.works/tls-secret-name"]
 		traceLog.Info("Set label and found", "label", label, "found", found)
+
 		if !found || label != tlsSecretName {
 			podState = stateMustBeDeleted
 		} else if runnerPod.DeletionTimestamp != nil {
@@ -2322,9 +2325,9 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		} else if runnerPod.Status.Phase == corev1.PodRunning {
 			podState = stateRunning
 		}
-		traceLog.Info("Set pod state", "pod-state", podState)
 	}
 
+	traceLog.Info("Updated Pod State", "pod-state", podState)
 	log.Info("show runner pod state: ", "name", terraform.Name, "state", podState)
 	traceLog.Info("Switch on Pod State")
 	switch podState {
@@ -2382,21 +2385,27 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	// TODO continue here
 	// wait for pod ip
 	traceLog.Info("Wait for pod to receive an IP and check for an error")
-	if wait.PollImmediate(interval, timeout, func() (bool, error) {
+	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		traceLog.Info("Get pod and check for an error")
+
 		if err := r.Get(ctx, runnerPodKey, &runnerPod); err != nil {
 			traceLog.Error(err, "Hit an error")
 			return false, fmt.Errorf("failed to get runner pod: %w", err)
 		}
+
 		traceLog.Info("Check if the pod has an IP")
+
 		if runnerPod.Status.PodIP != "" {
 			traceLog.Info("Success, pod has an IP")
 			return true, nil
 		}
+
 		traceLog.Info("Pod does not have an IP yet")
 		return false, nil
-	}) != nil {
+	}); err != nil {
 		traceLog.Info("Failed to get the pod, force kill the pod")
+		traceLog.Error(err, "Error getting the Pod")
+
 		if err := r.Delete(ctx, &runnerPod,
 			client.GracePeriodSeconds(1), // force kill = 1 second
 			client.PropagationPolicy(metav1.DeletePropagationForeground),
