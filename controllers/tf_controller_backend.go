@@ -19,7 +19,7 @@ func (r *TerraformReconciler) backendCompletelyDisable(terraform infrav1.Terrafo
 	return terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.Disable == true
 }
 
-func (r *TerraformReconciler) setupTerraform(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source, revision string, objectKey types.NamespacedName) (infrav1.Terraform, string, string, error) {
+func (r *TerraformReconciler) setupTerraform(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source, revision string, objectKey types.NamespacedName, reconciliationLoopID string) (infrav1.Terraform, string, string, error) {
 	log := ctrl.LoggerFrom(ctx)
 
 	tfInstance := "0"
@@ -181,7 +181,7 @@ terraform {
 		&runner.NewTerraformRequest{
 			WorkingDir: workingDir,
 			ExecPath:   execPath,
-			InstanceID: r.ReconciliationLoopID,
+			InstanceID: reconciliationLoopID,
 			Terraform:  terraformBytes,
 		})
 	if err != nil {

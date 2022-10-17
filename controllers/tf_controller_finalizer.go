@@ -15,7 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (r *TerraformReconciler) finalize(ctx context.Context, terraform v1alpha1.Terraform, runnerClient runner.RunnerClient, sourceObj v1beta2.Source) (controllerruntime.Result, error) {
+func (r *TerraformReconciler) finalize(ctx context.Context, terraform v1alpha1.Terraform, runnerClient runner.RunnerClient, sourceObj v1beta2.Source, reconciliationLoopID string) (controllerruntime.Result, error) {
 	log := controllerruntime.LoggerFrom(ctx)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.finalize")
 	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
@@ -26,7 +26,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform v1alpha1.T
 		// TODO There's a case of sourceObj got deleted before finalize is called.
 		revision := sourceObj.GetArtifact().Revision
 		traceLog.Info("Setup the terraform instance")
-		terraform, tfInstance, tmpDir, err := r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey)
+		terraform, tfInstance, tmpDir, err := r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey, reconciliationLoopID)
 
 		traceLog.Info("Defer function for cleanup")
 		defer func() {
