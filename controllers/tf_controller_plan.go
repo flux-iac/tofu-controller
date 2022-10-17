@@ -92,7 +92,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 
 	if shouldProcessPostPlanningWebhooks(terraform) {
 		log.Info("calling post planning webhooks ...")
-		terraform, err = r.processPostPlanningWebhooks(ctx, terraform, runnerClient, revision)
+		terraform, err = r.processPostPlanningWebhooks(ctx, terraform, runnerClient, revision, tfInstance)
 		if err != nil {
 			log.Error(err, "failed during the process of post planning webhooks")
 			return infrav1.TerraformNotReady(
