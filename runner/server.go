@@ -1192,7 +1192,7 @@ func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *Finali
 	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
 	log.Info("finalize the output secrets")
 	// nil dereference bug here
-	planObjectKey := types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-" + r.terraform.WorkspaceName() + "-" + req.Name}
+	planObjectKey := types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-" + req.Workspace + "-" + req.Name}
 	var planSecret corev1.Secret
 	if err := r.Client.Get(ctx, planObjectKey, &planSecret); err == nil {
 		if err := r.Client.Delete(ctx, &planSecret); err != nil {
