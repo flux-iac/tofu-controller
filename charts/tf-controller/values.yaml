@@ -110,7 +110,7 @@ runner:
     annotations: {}
     # -- Runner service account to be used
     name: ""
-    # -- List of namespaces that the runner may run within
+    # -- List of namespaces that the runner may run within
     allowedNamespaces: []
 # EKS-specific configurations
 # -- Create an AWS EKS Security Group Policy with the supplied Security Group IDs [See](https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html#deploy-securitygrouppolicy)
