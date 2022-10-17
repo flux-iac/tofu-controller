@@ -102,12 +102,12 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 			HealthChecks: []infrav1.HealthCheck{
 				{
 					Name:    "tcpTest",
-					Address: "{{.foo}}:{{.port}}",
+					Address: "${{.foo}}:${{.port}}",
 					Type:    "tcp",
 				},
 				{
 					Name:    "httpTest",
-					URL:     server.URL() + "{{.bar}}",
+					URL:     server.URL() + "${{.bar}}",
 					Type:    "http",
 					Timeout: &metav1.Duration{Duration: time.Second * 5},
 				},

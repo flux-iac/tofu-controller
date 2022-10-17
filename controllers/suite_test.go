@@ -132,59 +132,9 @@ func TestMain(m *testing.M) {
 	// "setting up a http server to mock the source controller's behaviour"
 	server = ghttp.NewUnstartedServer()
 
-	// "defining a URL for the TF hello world BLOB to be used as a Source Controller's artifact"
-	server.RouteToHandler("GET", "/file.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "data/terraform-hello-world-example.tar.gz")
-	})
-	server.RouteToHandler("GET", "/terraform-outputs-dots.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "data/terraform-outputs-dots.tar.gz")
-	})
-	server.RouteToHandler("GET", "/2222.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "data/terraform-hello-world-example-2.tar.gz")
-	})
-	server.RouteToHandler("GET", "/bad.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "data/bad.tar.gz")
-	})
-	server.RouteToHandler("GET", "/env.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "data/terraform-hello-env.tar.gz")
-	})
-	server.RouteToHandler("GET", "/tf-k8s-configmap.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "data/tf-k8s-configmap.tar.gz")
-	})
-	server.RouteToHandler("GET", "/tf-k8s-configmap-unrelated-change.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "data/tf-k8s-configmap-unrelated-change.tar.gz")
-	})
-	server.RouteToHandler("GET", "/tfc-helloworld.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "data/tfc-helloworld.tar.gz")
-	})
-	server.RouteToHandler("GET", "/tf-multi-var.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "data/tf-multi-var-with-outputs.tar.gz")
-	})
-	server.RouteToHandler("GET", "/tf-health-check.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "data/tf-health-check-example.tar.gz")
-	})
-	server.RouteToHandler("GET", "/tf-hcl-var-with-outputs.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "data/tf-hcl-var-with-outputs.tar.gz")
-	})
-	server.RouteToHandler("GET", "/tf-hcl-vars-advanced-example.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "data/tf-hcl-vars-advanced-example.tar.gz")
-	})
-	server.RouteToHandler("GET", "/tf-data-archive.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "data/tf-data-archive.tar.gz")
-	})
-	server.RouteToHandler("GET", "/terraform-envvar-variable-output.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "data/terraform-envvar-variable-output.tar.gz")
-	})
-	server.RouteToHandler("GET", "/terraform-envvar-provider-vars.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "data/terraform-envvar-provider-vars.tar.gz")
-	})
-	server.RouteToHandler("GET", "/tf-multi-resources.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
-		http.ServeFile(writer, request, "data/tf-multi-resources.tar.gz")
-	})
-	// for health check http test
-	server.RouteToHandler("GET", "/get", func(writer http.ResponseWriter, request *http.Request) {
-		ghttp.RespondWith(http.StatusOK, "ok")
-	})
+	// add route handlers here
+	setupRouteHandlers()
+	setupMockHandlersForWebhook()
 
 	server.Start()
 
@@ -275,6 +225,68 @@ func TestMain(m *testing.M) {
 	}
 
 	os.Exit(code)
+}
+
+func setupRouteHandlers() {
+	// "defining a URL for the TF hello world BLOB to be used as a Source Controller's artifact"
+	server.RouteToHandler("GET", "/file.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/terraform-hello-world-example.tar.gz")
+	})
+	server.RouteToHandler("GET", "/terraform-outputs-dots.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/terraform-outputs-dots.tar.gz")
+	})
+	server.RouteToHandler("GET", "/2222.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/terraform-hello-world-example-2.tar.gz")
+	})
+	server.RouteToHandler("GET", "/bad.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/bad.tar.gz")
+	})
+	server.RouteToHandler("GET", "/env.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/terraform-hello-env.tar.gz")
+	})
+	server.RouteToHandler("GET", "/tf-k8s-configmap.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-k8s-configmap.tar.gz")
+	})
+	server.RouteToHandler("GET", "/tf-k8s-configmap-unrelated-change.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-k8s-configmap-unrelated-change.tar.gz")
+	})
+	server.RouteToHandler("GET", "/tfc-helloworld.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tfc-helloworld.tar.gz")
+	})
+	server.RouteToHandler("GET", "/tf-multi-var.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-multi-var-with-outputs.tar.gz")
+	})
+	server.RouteToHandler("GET", "/tf-health-check.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-health-check-example.tar.gz")
+	})
+	server.RouteToHandler("GET", "/tf-hcl-var-with-outputs.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-hcl-var-with-outputs.tar.gz")
+	})
+	server.RouteToHandler("GET", "/tf-hcl-vars-advanced-example.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-hcl-vars-advanced-example.tar.gz")
+	})
+	server.RouteToHandler("GET", "/tf-hcl-values-advanced-example.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-hcl-values-advanced-example.tar.gz")
+	})
+	server.RouteToHandler("GET", "/tf-hcl-vars-template.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-hcl-vars-template.tar.gz")
+	})
+	server.RouteToHandler("GET", "/tf-data-archive.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-data-archive.tar.gz")
+	})
+	server.RouteToHandler("GET", "/terraform-envvar-variable-output.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/terraform-envvar-variable-output.tar.gz")
+	})
+	server.RouteToHandler("GET", "/terraform-envvar-provider-vars.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/terraform-envvar-provider-vars.tar.gz")
+	})
+	server.RouteToHandler("GET", "/tf-multi-resources.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-multi-resources.tar.gz")
+	})
+	// for health check http test
+	server.RouteToHandler("GET", "/get", func(writer http.ResponseWriter, request *http.Request) {
+		ghttp.RespondWith(http.StatusOK, "ok")
+	})
 }
 
 func findKubeConfig(e *envtest.Environment) (string, error) {

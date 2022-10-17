@@ -30,16 +30,14 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17.x
+          go-version: 1.19.x
       - name: Setup Terraform
         run: |
-          export TF_VERSION=1.1.9
+          export TF_VERSION=1.3.1
           wget https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
           unzip -q terraform_${TF_VERSION}_linux_amd64.zip
           mv terraform $(which terraform)
           terraform --version
-      - name: Run tests
-        run: make test
       - name: Set up yq
         if: "!github.event.pull_request.head.repo.fork"
         uses: frenck/action-setup-yq@v1
@@ -117,3 +115,10 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.version=${{ steps.prep.outputs.VERSION }}
             org.opencontainers.image.created=${{ steps.prep.outputs.BUILD_DATE }}
+      - name: Run tests
+        run: |
+          make install-envtest
+          make TARGET="^Test_0000"     target-test
+          make TARGET="^Test_000[12]"  target-test
+          make TARGET="^Test_0003"     target-test
+          make TARGET="^Test_0099"     target-test

@@ -16,6 +16,7 @@ service Runner {
   rpc ProcessCliConfig(ProcessCliConfigRequest) returns (ProcessCliConfigReply) {}
 
   rpc GenerateVarsForTF(GenerateVarsForTFRequest) returns (GenerateVarsForTFReply) {}
+  rpc GenerateTemplate(GenerateTemplateRequest) returns (GenerateTemplateReply) {}
 
   rpc Plan(PlanRequest) returns (PlanReply) {}
   rpc ShowPlanFileRaw(ShowPlanFileRawRequest) returns (ShowPlanFileRawReply) {}
@@ -31,6 +32,7 @@ service Runner {
   rpc GetOutputs(GetOutputsRequest) returns (GetOutputsReply) {}
 
   rpc Init(InitRequest) returns (InitReply) {}
+  rpc SelectWorkspace(WorkspaceRequest) returns (WorkspaceReply) {}
   rpc Upload(UploadRequest) returns (UploadReply) {}
 
   rpc FinalizeSecrets(FinalizeSecretsRequest) returns (FinalizeSecretsReply) {}
@@ -49,6 +51,7 @@ message NewTerraformRequest {
   string workingDir = 1;
   string execPath = 2;
   string instanceID = 3;
+  bytes  terraform = 4;
 }
 
 message NewTerraformReply {
@@ -123,6 +126,14 @@ message GenerateVarsForTFRequest {
 }
 
 message GenerateVarsForTFReply {
+  string message = 1;
+}
+
+message GenerateTemplateRequest {
+  string workingDir = 1;
+}
+
+message GenerateTemplateReply {
   string message = 1;
 }
 
@@ -259,12 +270,19 @@ message InitRequest {
   string tfInstance = 1;
   bool upgrade = 2;
   bool forceCopy = 3;
-  bytes terraform = 4;
 }
 
 message InitReply {
   string message = 1;
   string stateLockIdentifier = 2;
+}
+
+message WorkspaceRequest {
+  string tfInstance = 1;
+}
+
+message WorkspaceReply {
+  string message = 1;
 }
 
 message UploadRequest {

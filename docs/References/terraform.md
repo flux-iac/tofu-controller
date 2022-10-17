@@ -492,6 +492,46 @@ bool
 </table>
 </div>
 </div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.ReadInputsFromSecretSpec">ReadInputsFromSecretSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>as</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="infra.contrib.fluxcd.io/v1alpha1.ResourceInventory">ResourceInventory
 </h3>
 <p>
@@ -754,6 +794,20 @@ Kubernetes core/v1.Affinity
 <p>Set Volumes for the Runner Pod</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>initContainers</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#container-v1-core">
+[]Kubernetes core/v1.Container
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set up Init Containers for the Runner</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -915,6 +969,20 @@ Kubernetes core/v1.Affinity
 <p>Set Volumes for the Runner Pod</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>initContainers</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#container-v1-core">
+[]Kubernetes core/v1.Container
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set up Init Containers for the Runner</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -950,7 +1018,7 @@ ForceUnlockEnum
 </td>
 <td>
 <em>(Optional)</em>
-<p>ForceUnlock a Terraform state if it has become locked for any reason.</p>
+<p>ForceUnlock a Terraform state if it has become locked for any reason. Defaults to <code>no</code>.</p>
 <p>This is an Enum and has the expected values of:</p>
 <ul>
 <li>auto</li>
@@ -975,7 +1043,7 @@ string
 <p>LockIdentifier holds the Identifier required by Terraform to unlock the state
 if it ever gets into a locked state.</p>
 <p>You&rsquo;ll need to put the Lock Identifier in here while setting ForceUnlock to
-either <code>true</code> or <code>auto</code>.</p>
+either <code>yes</code> or <code>auto</code>.</p>
 <p>Leave this empty to do nothing, set this to the value of the <code>Lock Info: ID: [value]</code>,
 e.g. <code>f2ab685b-f84d-ac0b-a125-378a22877e8d</code>, to force unlock the state.</p>
 </td>
@@ -1077,6 +1145,17 @@ BackendConfigSpec
 </tr>
 <tr>
 <td>
+<code>workspace</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
 <code>vars</code><br>
 <em>
 <a href="#infra.contrib.fluxcd.io/v1alpha1.Variable">
@@ -1103,6 +1182,22 @@ BackendConfigSpec
 <p>List of references to a Secret or a ConfigMap to generate variables for
 Terraform resources based on its data, selectively by varsKey. Values of the later
 Secret / ConfigMap with the same keys will override those of the former.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>values</code><br>
+<em>
+<a href="https://pkg.go.dev/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1?tab=doc#JSON">
+Kubernetes pkg/apis/apiextensions/v1.JSON
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Values map to the Terraform variable &ldquo;values&rdquo;, which is an object of arbitrary values.
+It is a convenient way to pass values to Terraform resources without having to define
+a variable for each value. To use this feature, your Terraform file must define the variable &ldquo;values&rdquo;.</p>
 </td>
 </tr>
 <tr>
@@ -1198,6 +1293,19 @@ bool
 <em>(Optional)</em>
 <p>Force instructs the controller to unconditionally
 re-plan and re-apply TF resources. Defaults to false.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>readInputsFromSecrets</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.ReadInputsFromSecretSpec">
+[]ReadInputsFromSecretSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
 </td>
 </tr>
 <tr>
@@ -1378,6 +1486,32 @@ string
 <td>
 <em>(Optional)</em>
 <p>StoreReadablePlan enables storing the plan in a readable format.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>webhooks</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.Webhook">
+[]Webhook
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>dependsOn</code><br>
+<em>
+<a href="https://godoc.org/github.com/fluxcd/pkg/apis/meta#NamespacedObjectReference">
+[]github.com/fluxcd/pkg/apis/meta.NamespacedObjectReference
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
 </td>
 </tr>
 </table>
@@ -1469,6 +1603,17 @@ BackendConfigSpec
 </tr>
 <tr>
 <td>
+<code>workspace</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
 <code>vars</code><br>
 <em>
 <a href="#infra.contrib.fluxcd.io/v1alpha1.Variable">
@@ -1495,6 +1640,22 @@ BackendConfigSpec
 <p>List of references to a Secret or a ConfigMap to generate variables for
 Terraform resources based on its data, selectively by varsKey. Values of the later
 Secret / ConfigMap with the same keys will override those of the former.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>values</code><br>
+<em>
+<a href="https://pkg.go.dev/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1?tab=doc#JSON">
+Kubernetes pkg/apis/apiextensions/v1.JSON
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Values map to the Terraform variable &ldquo;values&rdquo;, which is an object of arbitrary values.
+It is a convenient way to pass values to Terraform resources without having to define
+a variable for each value. To use this feature, your Terraform file must define the variable &ldquo;values&rdquo;.</p>
 </td>
 </tr>
 <tr>
@@ -1590,6 +1751,19 @@ bool
 <em>(Optional)</em>
 <p>Force instructs the controller to unconditionally
 re-plan and re-apply TF resources. Defaults to false.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>readInputsFromSecrets</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.ReadInputsFromSecretSpec">
+[]ReadInputsFromSecretSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
 </td>
 </tr>
 <tr>
@@ -1770,6 +1944,32 @@ string
 <td>
 <em>(Optional)</em>
 <p>StoreReadablePlan enables storing the plan in a readable format.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>webhooks</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.Webhook">
+[]Webhook
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>dependsOn</code><br>
+<em>
+<a href="https://godoc.org/github.com/fluxcd/pkg/apis/meta#NamespacedObjectReference">
+[]github.com/fluxcd/pkg/apis/meta.NamespacedObjectReference
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
 </td>
 </tr>
 </tbody>
@@ -2077,6 +2277,89 @@ bool
 <p>Optional marks this VarsReference as optional. When set, a not found error
 for the values reference is ignored, but any VarsKey or
 transient error will still result in a reconciliation failure.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.Webhook">Webhook
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>stage</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>enabled</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>url</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>payloadType</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>errorMessageTemplate</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>testExpression</code><br>
+<em>
+string
+</em>
+</td>
+<td>
 </td>
 </tr>
 </tbody>

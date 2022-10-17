@@ -26,24 +26,32 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
   * [x] Performance
   * [x] Scalability
   * [x] Interop with Notification controller's Events and Alert
-  * [ ] Validation webhooks for the planning stage
+  * [x] Validation webhooks for the planning stage
 
 ### Q4 2022
-  * [ ] Cloud cost estimation
-  * [ ] Selectable Terraform versions
-  * [ ] CLI to GitOpsify existing Terraform workflows
-  * [ ] CRD wrappers for Terraform modules
+  * [x]  ~~CRD wrappers~~ A new component model for Terraform modules
+  * [x] Dependency management for TF-controller objects
+  * [ ] AWS package for TF-controller (e.g. EKS, RDS, etc.)
+  * [ ] CLI for Weave GitOps Enterprise
 
 ### Q1 2023
-  * [ ] Enhanced security (the lockdown mode)
-  * [ ] External drift detector
-  * [ ] Typesafety for custom backends
-  * [ ] `v1alpha2` API
+  * [ ] Observability - logging from the different stages of the runner
+  * [ ] CLI to GitOpsify existing Terraform workflows
+  * [ ] Selectable Terraform versions
+  * [ ] Cloud cost estimation
+  * [ ] Write back and show plan in PRs (Atlantis-like experience)
 
 ### Q2 2023
-  * [ ] Write back and show plan in PRs
+  * [ ] Enhanced security (the lockdown mode)
+  * [ ] External drift detector
+  * [ ] Type safety for custom backends
+  * [ ] `v1alpha2` API
+
+### Q3 2023
+  * [ ] Azure package for TF-controller (e.g. AKS, CosmosDB, etc.)
+  * [ ] GCP package for TF-controller (e.g. GKE, CloudSQL, etc.) 
   * [ ] ARM64 & Gravitron support
   * [ ] Containerd compatibility
 
-### Q3 2023
+### Q4 2023
   * [ ] `v1beta1` API (stabilization)

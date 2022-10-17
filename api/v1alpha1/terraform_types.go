@@ -43,6 +43,14 @@ const (
 	OCIRepositoryIndexKey = ".metadata.ociRepository"
 )
 
+type ReadInputsFromSecretSpec struct {
+	// +required
+	Name string `json:"name"`
+
+	// +required
+	As string `json:"as"`
+}
+
 // WriteOutputsToSecretSpec defines where to store outputs, and which outputs to be stored.
 type WriteOutputsToSecretSpec struct {
 	// Name is the name of the Secret to be written
@@ -85,6 +93,10 @@ type TerraformSpec struct {
 	// +optional
 	BackendConfigsFrom []BackendConfigsReference `json:"backendConfigsFrom,omitempty"`
 
+	// +optional
+	// +kubebuilder:default:=default
+	Workspace string `json:"workspace,omitempty"`
+
 	// List of input variables to set for the Terraform program.
 	// +optional
 	Vars []Variable `json:"vars,omitempty"`
@@ -94,6 +106,12 @@ type TerraformSpec struct {
 	// Secret / ConfigMap with the same keys will override those of the former.
 	// +optional
 	VarsFrom []VarsReference `json:"varsFrom,omitempty"`
+
+	// Values map to the Terraform variable "values", which is an object of arbitrary values.
+	// It is a convenient way to pass values to Terraform resources without having to define
+	// a variable for each value. To use this feature, your Terraform file must define the variable "values".
+	// +optional
+	Values *apiextensionsv1.JSON `json:"values,omitempty"`
 
 	// List of all configuration files to be created in initialization.
 	// +optional
@@ -128,6 +146,9 @@ type TerraformSpec struct {
 	// +kubebuilder:default:=false
 	// +optional
 	Force bool `json:"force,omitempty"`
+
+	// +optional
+	ReadInputsFromSecrets []ReadInputsFromSecretSpec `json:"readInputsFromSecrets,omitempty"`
 
 	// A list of target secrets for the outputs to be written as.
 	// +optional
@@ -197,6 +218,41 @@ type TerraformSpec struct {
 	// +kubebuilder:default:=none
 	// +optional
 	StoreReadablePlan string `json:"storeReadablePlan,omitempty"`
+
+	// +optional
+	Webhooks []Webhook `json:"webhooks,omitempty"`
+
+	// +optional
+	DependsOn []meta.NamespacedObjectReference `json:"dependsOn,omitempty"`
+}
+
+type Webhook struct {
+	// +kubebuilder:validation:Enum=post-planning
+	// +kubebuilder:default:=post-planning
+	// +required
+	Stage string `json:"stage"`
+
+	// +kubebuilder:default:=true
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
+
+	// +required
+	URL string `json:"url"`
+
+	// +kubebuilder:value:Enum=SpecAndPlan,SpecOnly,PlanOnly
+	// +kubebuilder:default:=SpecAndPlan
+	// +optional
+	PayloadType string `json:"payloadType,omitempty"`
+
+	// +optional
+	ErrorMessageTemplate string `json:"errorMessageTemplate,omitempty"`
+
+	// +required
+	TestExpression string `json:"testExpression,omitempty"`
+}
+
+func (w Webhook) IsEnabled() bool {
+	return w.Enabled == nil || *w.Enabled
 }
 
 type PlanStatus struct {
@@ -321,7 +377,7 @@ type BackendConfigSpec struct {
 
 // TFStateSpec allows the user to set ForceUnlock
 type TFStateSpec struct {
-	// ForceUnlock a Terraform state if it has become locked for any reason.
+	// ForceUnlock a Terraform state if it has become locked for any reason. Defaults to `no`.
 	//
 	// This is an Enum and has the expected values of:
 	//
@@ -343,7 +399,7 @@ type TFStateSpec struct {
 	// if it ever gets into a locked state.
 	//
 	// You'll need to put the Lock Identifier in here while setting ForceUnlock to
-	// either `true` or `auto`.
+	// either `yes` or `auto`.
 	//
 	// Leave this empty to do nothing, set this to the value of the `Lock Info: ID: [value]`,
 	// e.g. `f2ab685b-f84d-ac0b-a125-378a22877e8d`, to force unlock the state.
@@ -367,25 +423,30 @@ const (
 	DisabledValue             = "disabled"
 	ApprovePlanAutoValue      = "auto"
 	ApprovePlanDisableValue   = "disable"
+	DefaultWorkspaceName      = "default"
 )
 
 // The potential reasons that are associated with condition types
 const (
-	ArtifactFailedReason       = "ArtifactFailed"
-	TFExecNewFailedReason      = "TFExecNewFailed"
-	TFExecInitFailedReason     = "TFExecInitFailed"
-	VarsGenerationFailedReason = "VarsGenerationFailed"
-	DriftDetectionFailedReason = "DriftDetectionFailed"
-	DriftDetectedReason        = "DriftDetected"
-	NoDriftReason              = "NoDrift"
-	TFExecPlanFailedReason     = "TFExecPlanFailed"
-	TFExecApplyFailedReason    = "TFExecApplyFailed"
-	TFExecOutputFailedReason   = "TFExecOutputFailed"
-	OutputsWritingFailedReason = "OutputsWritingFailed"
-	HealthChecksFailedReason   = "HealthChecksFailed"
-	TFExecApplySucceedReason   = "TerraformAppliedSucceed"
-	TFExecLockHeldReason       = "LockHeld"
-	TFExecForceUnlockReason    = "ForceUnlock"
+	ArtifactFailedReason            = "ArtifactFailed"
+	DependencyNotReadyReason        = "DependencyNotReady"
+	TFExecNewFailedReason           = "TFExecNewFailed"
+	TFExecInitFailedReason          = "TFExecInitFailed"
+	VarsGenerationFailedReason      = "VarsGenerationFailed"
+	TemplateGenerationFailedReason  = "TemplateGenerationFailed"
+	WorkspaceSelectFailedReason     = "SelectWorspaceFailed"
+	DriftDetectionFailedReason      = "DriftDetectionFailed"
+	DriftDetectedReason             = "DriftDetected"
+	NoDriftReason                   = "NoDrift"
+	TFExecPlanFailedReason          = "TFExecPlanFailed"
+	PostPlanningWebhookFailedReason = "PostPlanningWebhookFailed"
+	TFExecApplyFailedReason         = "TFExecApplyFailed"
+	TFExecOutputFailedReason        = "TFExecOutputFailed"
+	OutputsWritingFailedReason      = "OutputsWritingFailed"
+	HealthChecksFailedReason        = "HealthChecksFailed"
+	TFExecApplySucceedReason        = "TerraformAppliedSucceed"
+	TFExecLockHeldReason            = "LockHeld"
+	TFExecForceUnlockReason         = "ForceUnlock"
 )
 
 // These constants are the Condition Types that the Terraform Resource works with
@@ -395,6 +456,11 @@ const (
 	ConditionTypeOutput      = "Output"
 	ConditionTypePlan        = "Plan"
 	ConditionTypeStateLocked = "StateLocked"
+)
+
+// Webhook stages
+const (
+	PostPlanningWebhook = "post-planning"
 )
 
 // SetTerraformReadiness sets the ReadyCondition, ObservedGeneration, and LastAttemptedRevision, on the Terraform.
@@ -492,6 +558,27 @@ func GetPlanIdAndApproveMessage(revision string, message string) (string, string
 	}
 	approveMessage := fmt.Sprintf("%s: set approvePlan: \"%s\" to approve this plan.", message, shortPlanId)
 	return planId, approveMessage
+}
+
+func TerraformPostPlanningWebhookFailed(terraform Terraform, revision string, message string) Terraform {
+	newCondition := metav1.Condition{
+		Type:    ConditionTypePlan,
+		Status:  metav1.ConditionFalse,
+		Reason:  PostPlanningWebhookFailedReason,
+		Message: trimString(message, MaxConditionMessageLength),
+	}
+	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+	(&terraform).Status.Plan = PlanStatus{
+		LastApplied:   terraform.Status.Plan.LastApplied,
+		Pending:       "",
+		IsDestroyPlan: terraform.Spec.Destroy,
+	}
+	if revision != "" {
+		(&terraform).Status.LastAttemptedRevision = revision
+		(&terraform).Status.LastPlannedRevision = revision
+	}
+
+	return terraform
 }
 
 func TerraformPlannedWithChanges(terraform Terraform, revision string, forceOrAutoApply bool, message string) Terraform {
@@ -666,6 +753,11 @@ func (in Terraform) HasDrift() bool {
 	return false
 }
 
+// GetDependsOn returns the list of dependencies, namespace scoped.
+func (in Terraform) GetDependsOn() []meta.NamespacedObjectReference {
+	return in.Spec.DependsOn
+}
+
 // GetRetryInterval returns the retry interval
 func (in Terraform) GetRetryInterval() time.Duration {
 	if in.Spec.RetryInterval != nil {
@@ -677,6 +769,13 @@ func (in Terraform) GetRetryInterval() time.Duration {
 // GetStatusConditions returns a pointer to the Status.Conditions slice.
 func (in *Terraform) GetStatusConditions() *[]metav1.Condition {
 	return &in.Status.Conditions
+}
+
+func (in *Terraform) WorkspaceName() string {
+	if in.Spec.Workspace != "" {
+		return in.Spec.Workspace
+	}
+	return DefaultWorkspaceName
 }
 
 func (in Terraform) ToBytes(scheme *runtime.Scheme) ([]byte, error) {

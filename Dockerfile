@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.17 as builder
+FROM golang:1.19 as builder
 
 RUN apt-get update && apt-get install -y unzip
 
@@ -22,7 +22,7 @@ COPY runner/ runner/
 COPY utils/ utils/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o tf-controller cmd/manager/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -gcflags=all="-N -l" -a -o tf-controller cmd/manager/main.go
 
 FROM alpine:3.16
 

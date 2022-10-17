@@ -31,7 +31,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17.x
+          go-version: 1.19.x
       - name: Restore Go cache
         uses: actions/cache@v1
         with:
@@ -93,8 +93,10 @@ jobs:
           # Patch env RUNNER_POD_IMAGE to be test/tf-runner:$VERSION
           yq -i e ".spec.template.spec.containers[0].env[1].value=\"test/tf-runner:$VERSION\"" config/manager/manager.yaml
 
-          # Dev deploy
+          # Dev deploy - do it twice to make sure the CRDs get in first
+          make dev-deploy MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION || true
           make dev-deploy MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION
+
           kubectl -n tf-system rollout status deploy/source-controller --timeout=1m
           kubectl -n tf-system rollout status deploy/tf-controller --timeout=1m
       - name: Get terraform version

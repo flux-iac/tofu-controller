@@ -10,9 +10,9 @@ serviceAccount:
   # @default -- tf-controller
   name: ""
 # Controller
-# -- Provide a name 
+# -- Provide a name
 nameOverride: ""
-# -- Provide a fullname 
+# -- Provide a fullname
 fullnameOverride: ""
 # -- Additional pod annotations
 podAnnotations: {}
@@ -27,7 +27,7 @@ image:
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
   # @default -- `.Chart.AppVersion`
-  tag: "v0.12.0"
+  tag: "v0.13.0-rc.10"
 # -- Controller image pull secret
 imagePullSecrets: []
 # -- Resource limits and requests
@@ -63,6 +63,18 @@ nodeSelector: {}
 tolerations: []
 # -- Affinity properties for the TF-Controller deployment
 affinity: {}
+# -- Volumes properties for the TF-Controller deployment
+volumes: []
+# - name: policy-agent
+#   secret:
+#     secretName: policy-agent-tls
+#     optional: false
+# -- Volume mounts properties for the TF-Controller deployment
+volumeMounts: []
+# - name: policy-agent
+#   mountPath: "/etc/certs/policy-agent.policy-system.svc/"
+#   readOnly: true
+
 # -- PriorityClassName property for the TF-Controller deployment
 priorityClassName: ""
 # Runner
@@ -76,13 +88,16 @@ certRotationCheckFrequency: 30m0s
 certValidityDuration: 6h0m
 # -- Argument for `--ca-cert-validity-duration` (Controller)
 caCertValidityDuration: 168h0m
+# -- Argument for `--events-addr` (Controller). The event address, default to the address of the Notification Controller
+eventsAddress: http://notification-controller.flux-system.svc.cluster.local./
+# -- Runner-specific configurations
 runner:
   image:
     # -- Runner image repository
     repository: ghcr.io/weaveworks/tf-runner
     # -- Runner image tag
     # @default -- `.Chart.AppVersion`
-    tag: "v0.12.0"
+    tag: "v0.13.0-rc.10"
   grpc:
     # -- Maximum GRPC message size (Controller)
     maxMessageSize: 4
@@ -95,15 +110,14 @@ runner:
     annotations: {}
     # -- Runner service account to be used
     name: ""
-# EKS 
+# EKS-specific configurations
 # -- Create an AWS EKS Security Group Policy with the supplied Security Group IDs [See](https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html#deploy-securitygrouppolicy)
 eksSecurityGroupPolicy:
   # -- Create the EKS SecurityGroupPolicy
   create: false
   # -- List of AWS Security Group IDs
   ids: []
+  # For example:
   # - sg-1234567890
   # - sg-1234567891
   # - sg-1234567892
-# -- The event address, default to the address of the Notification Controller
-eventsAddress: http://notification-controller.flux-system.svc.cluster.local./

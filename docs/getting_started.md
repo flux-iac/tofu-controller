@@ -1,8 +1,19 @@
 # Getting Started
 
+## Preflight Checks
+
+Here are the requirements you need to set up before you start:
+
+  1. Flux v0.32.0 or later (not only the CLI, but also the controllers on the cluster). If you are not sure about the Flux version on your cluster, please re-bootstrap your cluster.
+  2. TF-controller uses **the Controller/Runner architecture**. The Controller acts as a client, and talks to each Runner's Pod via gRPC. Please make sure 
+     1. **Each Runner's Pod in each Namespace** is allowed to open, and serve at **port 30000** (the gRPC port of a Runner), and the Controller can connect to it.
+     2. **The Controller** needs to download tar.gz BLOBs from the **Source controller** via **port 80**.
+     3. **The Controller** needs to post the events to the **Notification controller** via **port 80**.
+
 ## Installation
 
 Before using TF-controller, you have to install Flux by using either `flux install` or `flux bootstrap` command.
+Please note that TF-controller now requires **Flux v0.32.0** or later, so please make sure you have the latest version of Flux.
 After that you can install TF-controller with Flux HelmRelease by:
 
 ```shell
@@ -32,7 +43,7 @@ please see [chart readme](https://github.com/weaveworks/tf-controller/tree/main/
 Alternatively, you can install TF-controller via `kubectl`:
 
 ```shell
-export TF_CON_VER=v0.10.1
+export TF_CON_VER=v0.12.0
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
@@ -44,7 +55,7 @@ Here's a simple example of how to GitOps your Terraform resources with TF-contro
 
 ### Define source
 
-First, we need to define a Source controller's source (`GitRepostory`, `Bucket`, `OCIRepository`), for example:
+First, we need to define a Source controller's source (`GitRepository`, `Bucket`, `OCIRepository`), for example:
 
 ```yaml
 apiVersion: source.toolkit.fluxcd.io/v1beta1
@@ -72,7 +83,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m
-  approvePlan: "auto"
+  approvePlan: auto
   path: ./
   sourceRef:
     kind: GitRepository
@@ -80,7 +91,7 @@ spec:
     namespace: flux-system
 ```
 
-For a full list of features and how to use them, follow the [use cases](/tf-controller/use_cases) guide.
+For a full list of features and how to use them, please follow the [Use TF-controller](use_tf_controller/index.md) guide.
 
 ## Other Examples
   * A Terraform GitOps with Flux to automatically reconcile your [AWS IAM Policies](https://github.com/tf-controller/aws-iam-policies).

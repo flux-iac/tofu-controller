@@ -12,7 +12,9 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"text/template"
 
+	"github.com/Masterminds/sprig/v3"
 	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/fluxcd/pkg/untar"
 	"github.com/go-logr/logr"
@@ -117,7 +119,7 @@ func (r *TerraformRunnerServer) CleanupDir(ctx context.Context, req *CleanupDirR
 
 func (r *TerraformRunnerServer) WriteBackendConfig(ctx context.Context, req *WriteBackendConfigRequest) (*WriteBackendConfigReply, error) {
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
-	const backendConfigPath = "generated_backend_config.tf"
+	const backendConfigPath = "backend_override.tf"
 	log.Info("write backend config", "path", req.DirPath, "config", backendConfigPath)
 	filePath, err := securejoin.SecureJoin(req.DirPath, backendConfigPath)
 	if err != nil {
@@ -186,6 +188,14 @@ func (r *TerraformRunnerServer) NewTerraform(ctx context.Context, req *NewTerraf
 
 	// hold only 1 instance
 	r.tf = tf
+
+	var terraform infrav1.Terraform
+	if err := terraform.FromBytes(req.Terraform, r.Scheme); err != nil {
+		log.Error(err, "there was a problem getting the terraform resource")
+		return nil, err
+	}
+	// cache the Terraform resource when initializing
+	r.terraform = &terraform
 
 	disableTestLogging := os.Getenv("DISABLE_TF_LOGS") == "1"
 	if !disableTestLogging {
@@ -278,14 +288,7 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 		return nil, err
 	}
 
-	var terraform infrav1.Terraform
-	err := terraform.FromBytes(req.Terraform, r.Scheme)
-	if err != nil {
-		log.Error(err, "there was a problem getting the terraform resource")
-		return nil, err
-	}
-	// cache the Terraform resource when initializing
-	r.terraform = &terraform
+	terraform := r.terraform
 
 	log.Info("mapping the Spec.BackendConfigsFrom")
 	backendConfigsOpts := []tfexec.InitOption{}
@@ -361,6 +364,33 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 	return &InitReply{Message: "ok"}, nil
 }
 
+func (r *TerraformRunnerServer) SelectWorkspace(ctx context.Context, req *WorkspaceRequest) (*WorkspaceReply, error) {
+	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log.Info("workspace select")
+	if req.TfInstance != "1" {
+		err := fmt.Errorf("no TF instance found")
+		log.Error(err, "no terraform")
+		return nil, err
+	}
+
+	terraform := r.terraform
+
+	if terraform.WorkspaceName() != infrav1.DefaultWorkspaceName {
+		wsOpts := []tfexec.WorkspaceNewCmdOption{}
+		ws := terraform.Spec.Workspace
+		if err := r.tf.WorkspaceNew(ctx, ws, wsOpts...); err != nil {
+			log.Info(fmt.Sprintf("workspace new:, %s", err.Error()))
+		}
+		if err := r.tf.WorkspaceSelect(ctx, ws); err != nil {
+			err := fmt.Errorf("failed to select workspace %s", ws)
+			log.Error(err, "workspace select error")
+			return nil, err
+		}
+	}
+
+	return &WorkspaceReply{Message: "ok"}, nil
+}
+
 // GenerateVarsForTF renders the Terraform variables as a json file for the given inputs
 // variables supplied in the varsFrom field will override those specified in the spec
 func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *GenerateVarsForTFRequest) (*GenerateVarsForTFReply, error) {
@@ -370,8 +400,49 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 	// use from the cached object
 	terraform := *r.terraform
 
-	log.Info("mapping the Spec.Vars")
 	vars := map[string]*apiextensionsv1.JSON{}
+
+	inputs := map[string]interface{}{}
+	if len(terraform.Spec.ReadInputsFromSecrets) > 0 {
+		for _, readSpec := range terraform.Spec.ReadInputsFromSecrets {
+			secret := corev1.Secret{}
+			err := r.Get(ctx, types.NamespacedName{Namespace: terraform.Namespace, Name: readSpec.Name}, &secret)
+			if err != nil {
+				log.Error(err, "unable to get secret", "secret", readSpec.Name)
+				return nil, err
+			}
+
+			// outputs are always strings
+			data := map[string]interface{}{}
+			for k, v := range secret.Data {
+				data[k] = string(v)
+			}
+
+			inputs[readSpec.As] = data
+		}
+	}
+
+	log.Info("mapping the Spec.Values")
+	if terraform.Spec.Values != nil {
+		tmpl, err := template.
+			New("values").
+			Delims("${{", "}}").
+			Parse(string(terraform.Spec.Values.Raw))
+		if err != nil {
+			log.Error(err, "unable to parse values as template")
+			return nil, err
+		}
+
+		var buf bytes.Buffer
+		if err := tmpl.Execute(&buf, inputs); err != nil {
+			log.Error(err, "unable to execute values template")
+			return nil, err
+		}
+
+		vars["values"] = &apiextensionsv1.JSON{Raw: buf.Bytes()}
+	}
+
+	log.Info("mapping the Spec.Vars")
 	if len(terraform.Spec.Vars) > 0 {
 		for _, v := range terraform.Spec.Vars {
 			vars[v.Name] = v.Value
@@ -467,13 +538,75 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 	}
 
 	varFilePath := filepath.Join(req.WorkingDir, "generated.auto.tfvars.json")
-	if err := ioutil.WriteFile(varFilePath, jsonBytes, 0644); err != nil {
+	if err := os.WriteFile(varFilePath, jsonBytes, 0644); err != nil {
 		err = fmt.Errorf("error generating var file: %s", err)
 		log.Error(err, "unable to write the data to file", "filePath", varFilePath)
 		return nil, err
 	}
 
 	return &GenerateVarsForTFReply{Message: "ok"}, nil
+}
+
+func (r *TerraformRunnerServer) GenerateTemplate(ctx context.Context, req *GenerateTemplateRequest) (*GenerateTemplateReply, error) {
+	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	log.Info("generating the template founds")
+
+	workDir := req.WorkingDir
+
+	// find main.tf.tpl file
+	mainTfTplPath := filepath.Join(workDir, "main.tf.tpl")
+	if _, err := os.Stat(mainTfTplPath); os.IsNotExist(err) {
+		log.Info("main.tf.tpl not found, skipping")
+		return &GenerateTemplateReply{Message: "ok"}, nil
+	}
+
+	// marshal the vars
+	vars := make(map[string]interface{})
+
+	varFilePath := filepath.Join(req.WorkingDir, "generated.auto.tfvars.json")
+	jsonBytes, err := ioutil.ReadFile(varFilePath)
+	if err != nil {
+		log.Error(err, "unable to read the file", "filePath", varFilePath)
+		return nil, err
+	}
+
+	if err := json.Unmarshal(jsonBytes, &vars); err != nil {
+		log.Error(err, "unable to unmarshal the data")
+		return nil, err
+	}
+
+	// render the template
+	// we use Helm-like syntax for the template
+	tmpl, parseErr := template.
+		New("main.tf.tpl").
+		Delims("{{", "}}").
+		Funcs(sprig.TxtFuncMap()).
+		ParseFiles(mainTfTplPath)
+	if parseErr != nil {
+		log.Error(parseErr, "unable to parse the template", "filePath", mainTfTplPath)
+		return nil, parseErr
+	}
+
+	mainTfPath := filepath.Join(workDir, "main.tf")
+	f, fileErr := os.Create(mainTfPath)
+	if fileErr != nil {
+		log.Error(fileErr, "unable to create the file", "filePath", mainTfPath)
+		return nil, fileErr
+	}
+
+	// make it Helm compatible
+	vars["Values"] = vars["values"]
+
+	if err := tmpl.Execute(f, vars); err != nil {
+		log.Error(err, "unable to execute the template")
+		return nil, err
+	}
+
+	if err := f.Close(); err != nil {
+		return nil, err
+	}
+
+	return &GenerateTemplateReply{Message: "ok"}, nil
 }
 
 func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*PlanReply, error) {
@@ -560,7 +693,7 @@ func (r *TerraformRunnerServer) ShowPlanFile(ctx context.Context, req *ShowPlanF
 
 	plan, err := r.tf.ShowPlanFile(ctx, req.Filename)
 	if err != nil {
-		log.Error(err, "unable to get the raw plan output")
+		log.Error(err, "unable to get the json plan output")
 		return nil, err
 	}
 
@@ -597,7 +730,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 
 	planRev := strings.Replace(req.Revision, "/", "-", 1)
 	planName := "plan-" + planRev
-	if err := writePlanAsSecret(ctx, r.Client, req.Name, req.Namespace, log, planName, tfplan, "", req.Uuid); err != nil {
+	if err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, log, planName, tfplan, "", req.Uuid); err != nil {
 		return nil, err
 	}
 
@@ -613,7 +746,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 			return nil, err
 		}
 
-		if err := writePlanAsSecret(ctx, r.Client, req.Name, req.Namespace, log, planName, jsonBytes, ".json", req.Uuid); err != nil {
+		if err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, log, planName, jsonBytes, ".json", req.Uuid); err != nil {
 			return nil, err
 		}
 	} else if r.terraform.Spec.StoreReadablePlan == "human" {
@@ -623,7 +756,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 			return nil, err
 		}
 
-		if err := writePlanAsConfigMap(ctx, r.Client, req.Name, req.Namespace, log, planName, rawOutput, "", req.Uuid); err != nil {
+		if err := r.writePlanAsConfigMap(ctx, req.Name, req.Namespace, log, planName, rawOutput, "", req.Uuid); err != nil {
 			return nil, err
 		}
 	}
@@ -631,13 +764,13 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 	return &SaveTFPlanReply{Message: "ok"}, nil
 }
 
-func writePlanAsSecret(ctx context.Context, cli client.Client, name string, namespace string, log logr.Logger, planName string, tfplan []byte, suffix string, uuid string) error {
-	secretName := "tfplan-default-" + name + suffix
+func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name string, namespace string, log logr.Logger, planName string, tfplan []byte, suffix string, uuid string) error {
+	secretName := "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix
 	tfplanObjectKey := types.NamespacedName{Name: secretName, Namespace: namespace}
 	var tfplanSecret corev1.Secret
 	tfplanSecretExists := true
 
-	if err := cli.Get(ctx, tfplanObjectKey, &tfplanSecret); err != nil {
+	if err := r.Client.Get(ctx, tfplanObjectKey, &tfplanSecret); err != nil {
 		if apierrors.IsNotFound(err) {
 			tfplanSecretExists = false
 		} else {
@@ -648,7 +781,7 @@ func writePlanAsSecret(ctx context.Context, cli client.Client, name string, name
 	}
 
 	if tfplanSecretExists {
-		if err := cli.Delete(ctx, &tfplanSecret); err != nil {
+		if err := r.Client.Delete(ctx, &tfplanSecret); err != nil {
 			err = fmt.Errorf("error deleting tfplanSecret: %s", err)
 			log.Error(err, "unable to delete the plan secret")
 			return err
@@ -687,7 +820,7 @@ func writePlanAsSecret(ctx context.Context, cli client.Client, name string, name
 		Data: tfplanData,
 	}
 
-	if err := cli.Create(ctx, &tfplanSecret); err != nil {
+	if err := r.Client.Create(ctx, &tfplanSecret); err != nil {
 		err = fmt.Errorf("error recording plan status: %s", err)
 		log.Error(err, "unable to create plan secret")
 		return err
@@ -696,13 +829,13 @@ func writePlanAsSecret(ctx context.Context, cli client.Client, name string, name
 	return nil
 }
 
-func writePlanAsConfigMap(ctx context.Context, cli client.Client, name string, namespace string, log logr.Logger, planName string, tfplan string, suffix string, uuid string) error {
-	configMapName := "tfplan-default-" + name + suffix
+func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name string, namespace string, log logr.Logger, planName string, tfplan string, suffix string, uuid string) error {
+	configMapName := "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix
 	tfplanObjectKey := types.NamespacedName{Name: configMapName, Namespace: namespace}
 	var tfplanCM corev1.ConfigMap
 	tfplanCMExists := true
 
-	if err := cli.Get(ctx, tfplanObjectKey, &tfplanCM); err != nil {
+	if err := r.Client.Get(ctx, tfplanObjectKey, &tfplanCM); err != nil {
 		if apierrors.IsNotFound(err) {
 			tfplanCMExists = false
 		} else {
@@ -713,7 +846,7 @@ func writePlanAsConfigMap(ctx context.Context, cli client.Client, name string, n
 	}
 
 	if tfplanCMExists {
-		if err := cli.Delete(ctx, &tfplanCM); err != nil {
+		if err := r.Client.Delete(ctx, &tfplanCM); err != nil {
 			err = fmt.Errorf("error deleting tfplanSecret: %s", err)
 			log.Error(err, "unable to delete the plan configmap")
 			return err
@@ -744,7 +877,7 @@ func writePlanAsConfigMap(ctx context.Context, cli client.Client, name string, n
 		Data: tfplanData,
 	}
 
-	if err := cli.Create(ctx, &tfplanCM); err != nil {
+	if err := r.Client.Create(ctx, &tfplanCM); err != nil {
 		err = fmt.Errorf("error recording plan status: %s", err)
 		log.Error(err, "unable to create plan configmap")
 		return err
@@ -762,7 +895,7 @@ func (r *TerraformRunnerServer) LoadTFPlan(ctx context.Context, req *LoadTFPlanR
 		return nil, err
 	}
 
-	tfplanSecretKey := types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-default-" + req.Name}
+	tfplanSecretKey := types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-" + r.terraform.WorkspaceName() + "-" + req.Name}
 	tfplanSecret := corev1.Secret{}
 	err := r.Get(ctx, tfplanSecretKey, &tfplanSecret)
 	if err != nil {
@@ -979,15 +1112,14 @@ func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutp
 	var outputSecret corev1.Secret
 
 	drift := true
+	create := true
 	if err := r.Client.Get(ctx, objectKey, &outputSecret); err == nil {
 		// if everything is there, we don't write anything
 		if reflect.DeepEqual(outputSecret.Data, req.Data) {
 			drift = false
 		} else {
-			if err := r.Client.Delete(ctx, &outputSecret); err != nil {
-				log.Error(err, "unable to delete secret")
-				return nil, err
-			}
+			// found, but need update
+			create = false
 		}
 	} else if apierrors.IsNotFound(err) == false {
 		log.Error(err, "unable to get output secret")
@@ -995,29 +1127,38 @@ func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutp
 	}
 
 	if drift {
-		block := true
-		outputSecret = corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      req.SecretName,
-				Namespace: req.Namespace,
-				OwnerReferences: []metav1.OwnerReference{
-					{
-						APIVersion:         infrav1.GroupVersion.Version + "/" + infrav1.GroupVersion.Version,
-						Kind:               infrav1.TerraformKind,
-						Name:               req.Name,
-						UID:                types.UID(req.Uuid),
-						BlockOwnerDeletion: &block,
+		if create {
+			vTrue := true
+			outputSecret = corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      req.SecretName,
+					Namespace: req.Namespace,
+					OwnerReferences: []metav1.OwnerReference{
+						{
+							APIVersion: infrav1.GroupVersion.Group + "/" + infrav1.GroupVersion.Version,
+							Kind:       infrav1.TerraformKind,
+							Name:       req.Name,
+							UID:        types.UID(req.Uuid),
+							Controller: &vTrue,
+						},
 					},
 				},
-			},
-			Type: corev1.SecretTypeOpaque,
-			Data: req.Data,
-		}
+				Type: corev1.SecretTypeOpaque,
+				Data: req.Data,
+			}
 
-		err := r.Client.Create(ctx, &outputSecret)
-		if err != nil {
-			log.Error(err, "unable to create secret")
-			return nil, err
+			err := r.Client.Create(ctx, &outputSecret)
+			if err != nil {
+				log.Error(err, "unable to create secret")
+				return nil, err
+			}
+		} else {
+			outputSecret.Data = req.Data
+			err := r.Client.Update(ctx, &outputSecret)
+			if err != nil {
+				log.Error(err, "unable to update secret")
+				return nil, err
+			}
 		}
 
 		return &WriteOutputsReply{Message: "ok", Changed: true}, nil
@@ -1052,7 +1193,8 @@ func (r *TerraformRunnerServer) GetOutputs(ctx context.Context, req *GetOutputsR
 func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *FinalizeSecretsRequest) (*FinalizeSecretsReply, error) {
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("finalize the output secrets")
-	planObjectKey := types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-default-" + req.Name}
+	// nil dereference bug here
+	planObjectKey := types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-" + r.terraform.WorkspaceName() + "-" + req.Name}
 	var planSecret corev1.Secret
 	if err := r.Client.Get(ctx, planObjectKey, &planSecret); err == nil {
 		if err := r.Client.Delete(ctx, &planSecret); err != nil {

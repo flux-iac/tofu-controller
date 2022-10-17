@@ -8,6 +8,7 @@ and application resources, in the Kubernetes and Terraform universe, at your own
 "At your own pace" means you don't need to GitOps-ify everything at once.
 
 TF-controller offers many GitOps models:
+
   1. **GitOps Automation Model:** GitOps your Terraform resources from the provision steps to the enforcement steps, like a whole EKS cluster.
   2. **Hybrid GitOps Automation Model:** GitOps parts of your existing infrastructure resources. For example, you have an existing EKS cluster.
      You can choose to GitOps only its nodegroup, or its security group.
@@ -41,10 +42,16 @@ To get started, follow the [getting started](/tf-controller/getting_started) gui
     You make change to the field `.spec.approvePlan`, commit and push to tell the TF-controller to apply the plan for you.
     With this GitOps workflow, you can optionally create and push this change to a new branch for your team member to
     review and approve too. _This feature is available since v0.6.0._
+  * **First-class YAML-based Terraform**: The `Terraform` object in v0.13.0+ allows you to better configure your 
+    Terraform resources via YAMLs, but without introducing any extra CRDs to your cluster. Together with a new generator
+    called **Tofu-Jet**, we'll now be able to ship pre-generated primitive Terraform modules for all major cloud providers.
+    A primitive Terraform module is a module that only contains a single primitive resource, like `aws_iam_role`, or `aws_iam_policy`.
+    With this concept, we would be able to use Terraform without writing Terraform codes, and make it more GitOps-friendly at the same time. 
+    _This feature is available since v0.13.0._
 
 ## Dependencies
 
-|  Version   | Terraform | Source Controller | Flux v2 |
-|:----------:|:---------:|:-----------------:|:-------:|
-| **v0.9.5** |  v1.1.9   |      v0.21.2      | v0.27.x |
-|   v0.8.0   |  v1.1.4   |      v0.20.1      | v0.25.x |
+|   Version   | Terraform | Source Controller | Flux v2 |
+|:-----------:|:---------:|:-----------------:|:-------:|
+| v0.13.0-rc  |  v1.3.1   |      v0.30.0      | v0.35.x |
+| **v0.12.0** |  v1.1.9   |      v0.26.1      | v0.32.x |
