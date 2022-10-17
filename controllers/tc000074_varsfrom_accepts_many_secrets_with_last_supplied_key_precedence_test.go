@@ -3,11 +3,13 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"github.com/weaveworks/tf-controller/runner"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/google/uuid"
+	"github.com/weaveworks/tf-controller/runner"
 
 	. "github.com/onsi/gomega"
 
@@ -94,6 +96,7 @@ func Test_000074_varsfrom_accepts_many_secrets_with_last_supplied_key_precedence
 	_, err = runnerServer.NewTerraform(ctx, &runner.NewTerraformRequest{
 		WorkingDir: workDir,
 		ExecPath:   execPath,
+		InstanceID: uuid.New().String(),
 		Terraform:  terraformBytes,
 	})
 	g.Expect(err).Should(BeNil())

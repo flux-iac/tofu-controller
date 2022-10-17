@@ -50,8 +50,8 @@ message LookPathReply {
 message NewTerraformRequest {
   string workingDir = 1;
   string execPath = 2;
-  string instanceID = 3;
-  bytes  terraform = 4;
+  bytes  terraform = 3;
+  string instanceID = 4;
 }
 
 message NewTerraformReply {
