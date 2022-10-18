@@ -90,6 +90,11 @@ certValidityDuration: 6h0m
 caCertValidityDuration: 168h0m
 # -- Argument for `--events-addr` (Controller). The event address, default to the address of the Notification Controller
 eventsAddress: http://notification-controller.flux-system.svc.cluster.local./
+awsPackage:
+  install: true
+  tag: v4.33.0-v1alpha2
+  repository: ghcr.io/tf-controller/aws-primitive-modules
+
 # -- Runner-specific configurations
 runner:
   image:
