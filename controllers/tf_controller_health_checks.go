@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/fluxcd/pkg/runtime/events"
+	"github.com/fluxcd/pkg/runtime/logger"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/runner"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -51,59 +52,84 @@ func (r *TerraformReconciler) shouldDoHealthChecks(terraform infrav1.Terraform) 
 
 func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infrav1.Terraform, revision string, runnerClient runner.RunnerClient) (infrav1.Terraform, error) {
 	log := ctrl.LoggerFrom(ctx)
+	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.doHealthChecks")
 	log.Info("calling doHealthChecks ...")
 
 	// get terraform output data for health check urls
+	traceLog.Info("Create a map for outputs")
 	outputs := make(map[string]string)
+	traceLog.Info("Check for a name for our outputs secret")
 	if terraform.Spec.WriteOutputsToSecret != nil && terraform.Spec.WriteOutputsToSecret.Name != "" {
+		traceLog.Info("Get outputs from the runner")
 		getOutputsReply, err := runnerClient.GetOutputs(ctx, &runner.GetOutputsRequest{
 			Namespace:  terraform.Namespace,
 			SecretName: terraform.Spec.WriteOutputsToSecret.Name,
 		})
+		traceLog.Info("Check for an error")
 		if err != nil {
 			err = fmt.Errorf("error getting terraform output for health checks: %s", err)
+			traceLog.Error(err, "Hit an error")
 			return infrav1.TerraformHealthCheckFailed(
 				terraform,
 				err.Error(),
 			), err
 		}
+		traceLog.Info("Set outputs")
 		outputs = getOutputsReply.Outputs
 	}
 
+	traceLog.Info("Loop over the health checks")
 	for _, hc := range terraform.Spec.HealthChecks {
 		// perform health check based on type
+		traceLog.Info("Check the health check type")
 		switch hc.Type {
 		case infrav1.HealthCheckTypeTCP:
+			traceLog = traceLog.WithValues("health-check-type", infrav1.HealthCheckTypeTCP)
+			traceLog.Info("Parse Address and outputs into a template")
 			parsed, err := r.parseHealthCheckTemplate(outputs, hc.Address)
+			traceLog.Info("Check for an error")
 			if err != nil {
 				err = fmt.Errorf("error getting terraform output for health checks: %s", err)
+				traceLog.Error(err, "Hit an error")
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
 					err.Error(),
 				), err
 			}
 
+			traceLog.Info("Run TCP health check and check for an error")
 			if err := r.doTCPHealthCheck(ctx, hc.Name, parsed, hc.GetTimeout()); err != nil {
+				traceLog.Error(err, "Hit an error")
 				msg := fmt.Sprintf("TCP health check error: %s, url: %s", hc.Name, hc.Address)
+				traceLog.Info("Record an event")
 				r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+				traceLog.Info("Return failed health check")
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
 					err.Error(),
 				), err
 			}
 		case infrav1.HealthCheckTypeHttpGet:
+			traceLog = traceLog.WithValues("health-check-type", infrav1.HealthCheckTypeHttpGet)
+			traceLog.Info("Parse Address and outputs into a template")
 			parsed, err := r.parseHealthCheckTemplate(outputs, hc.URL)
+			traceLog.Info("Check for an error")
 			if err != nil {
 				err = fmt.Errorf("error getting terraform output for health checks: %s", err)
+				traceLog.Error(err, "Hit an error")
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
 					err.Error(),
 				), err
 			}
 
+			traceLog.Info("Run HTTP health check and check for an error")
 			if err := r.doHTTPHealthCheck(ctx, hc.Name, parsed, hc.GetTimeout()); err != nil {
+				traceLog.Error(err, "Hit an error")
 				msg := fmt.Sprintf("HTTP health check error: %s, url: %s", hc.Name, hc.URL)
+				traceLog.Info("Record an event")
 				r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+				traceLog.Info("Return failed health check")
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
 					err.Error(),
@@ -112,6 +138,7 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 		}
 	}
 
+	traceLog.Info("Health Check successful")
 	terraform = infrav1.TerraformHealthCheckSucceeded(terraform, "Health checks succeeded")
 	return terraform, nil
 }

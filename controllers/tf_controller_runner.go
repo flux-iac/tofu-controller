@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/fluxcd/pkg/runtime/logger"
 	errors2 "github.com/pkg/errors"
 	"github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/mtls"
@@ -17,6 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	controllerruntime "sigs.k8s.io/controller-runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -63,38 +65,65 @@ func runnerPodTemplate(terraform v1alpha1.Terraform, secretName string) v1.Pod {
 }
 
 func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terraform v1alpha1.Terraform) (runner.RunnerClient, func() error, error) {
+	log := ctrl.LoggerFrom(ctx)
+	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.lookupOrCreateRunner_000")
 	// we have to make sure that the secret is valid before we can create the runner.
+	traceLog.Info("Validate the secret used for the Terraform resource")
 	secret, err := r.reconcileRunnerSecret(ctx, &terraform)
+	traceLog.Info("Check for an error")
 	if err != nil {
+		traceLog.Error(err, "Hit an error")
 		return nil, nil, err
 	}
 
 	var hostname string
+	traceLog.Info("Check if we're running a local Runner")
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
+		traceLog.Info("Local Runner, set hostname")
 		hostname = "localhost"
 	} else {
+		traceLog.Info("Get Runner pod IP")
 		podIP, err := r.reconcileRunnerPod(ctx, terraform, secret)
+		traceLog.Info("Check for an error")
 		if err != nil {
+			traceLog.Error(err, "Hit an error")
 			return nil, nil, err
 		}
+		traceLog.Info("Get pod hostname", "pod-ip", podIP)
 		hostname = terraform.GetRunnerHostname(podIP)
 	}
 
+	traceLog.Info("Pod hostname set", "hostname", hostname)
+
+	traceLog.Info("Create a new context for the runner connection")
 	dialCtx, dialCancel := context.WithTimeout(ctx, 30*time.Second)
+	traceLog.Info("Defer dialCancel")
 	defer dialCancel()
+	traceLog.Info("Get the Runner connection")
 	conn, err := r.getRunnerConnection(dialCtx, secret, hostname, r.RunnerGRPCPort)
+	traceLog.Info("Check for an error")
 	if err != nil {
+		traceLog.Error(err, "Hit an error")
 		return nil, nil, err
 	}
+	traceLog.Info("Create a close connection function")
 	connClose := func() error { return conn.Close() }
+	traceLog.Info("Create a new Runner client")
 	runnerClient := runner.NewRunnerClient(conn)
+	traceLog.Info("Return the client and close connection function")
 	return runnerClient, connClose, nil
 }
 
 func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret *v1.Secret, hostname string, port int) (*grpc.ClientConn, error) {
+	log := ctrl.LoggerFrom(ctx)
+	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.getRunnerConnection")
 	addr := fmt.Sprintf("%s:%d", hostname, port)
+	traceLog.Info("Set address for target", "addr", addr)
+	traceLog.Info("Get GRPC Credentials")
 	credentials, err := mtls.GetGRPCClientCredentials(tlsSecret)
+	traceLog.Info("Check for an error")
 	if err != nil {
+		traceLog.Error(err, "Hit an error")
 		return nil, err
 	}
 
@@ -111,6 +140,7 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret
   }
 }]}`
 
+	traceLog.Info("Return dial context")
 	return grpc.DialContext(ctx, addr,
 		grpc.WithTransportCredentials(credentials),
 		grpc.WithBlock(),
@@ -245,6 +275,8 @@ func (r *TerraformReconciler) runnerPodSpec(terraform v1alpha1.Terraform, tlsSec
 
 func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform v1alpha1.Terraform, tlsSecret *v1.Secret) (string, error) {
 	log := controllerruntime.LoggerFrom(ctx)
+	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.reconcileRunnerPod")
+	traceLog.Info("Begin reconcile of the runner pod")
 	type state string
 	const (
 		stateUnknown       state = "unknown"
@@ -255,9 +287,13 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	)
 
 	const interval = time.Second * 15
+	traceLog.Info("Set inteval", "interval", interval)
 	timeout := r.RunnerCreationTimeout // default is 120 seconds
+	traceLog.Info("Set timeout", "timeout", timeout)
 	tlsSecretName := tlsSecret.Name
+	traceLog.Info("Set tlsSecretName", "tlsSecretName", tlsSecretName)
 
+	traceLog.Info("Setup create new pod function")
 	createNewPod := func() error {
 		runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
 		newRunnerPod := *runnerPodTemplate.DeepCopy()
@@ -268,6 +304,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		return nil
 	}
 
+	traceLog.Info("Setup wait for pod to be terminated function")
 	waitForPodToBeTerminated := func() error {
 		runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
 		runnerPod := *runnerPodTemplate.DeepCopy()
@@ -286,15 +323,21 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	}
 
 	podState := stateUnknown
+	traceLog.Info("Set pod state", "pod-state", podState)
 
 	runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
 	runnerPod := *runnerPodTemplate.DeepCopy()
 	runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
+	traceLog.Info("Get pod state")
 	err := r.Get(ctx, runnerPodKey, &runnerPod)
+	traceLog.Info("Check for an error")
 	if err != nil && errors.IsNotFound(err) {
 		podState = stateNotFound
+	} else if err != nil {
+		traceLog.Error(err, "Error getting the Runner Pod", "runner-pod-key", runnerPodKey)
 	} else if err == nil {
 		label, found := runnerPod.Labels["tf.weave.works/tls-secret-name"]
+		traceLog.Info("Set label and found", "label", label, "found", found)
 		if !found || label != tlsSecretName {
 			podState = stateMustBeDeleted
 		} else if runnerPod.DeletionTimestamp != nil {
@@ -304,62 +347,88 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		}
 	}
 
+	traceLog.Info("Updated Pod State", "pod-state", podState)
 	log.Info("show runner pod state: ", "name", terraform.Name, "state", podState)
+	traceLog.Info("Switch on Pod State")
 
 	switch podState {
 	case stateNotFound:
 		// create new pod
+		traceLog.Info("Create a new pod")
 		err := createNewPod()
+		traceLog.Info("Check for an error")
 		if err != nil {
+			traceLog.Error(err, "Hit an error")
 			return "", err
 		}
 	case stateMustBeDeleted:
 		// delete old pod
+		traceLog.Info("Pod must be deleted, attempt deletion")
 		if err := r.Delete(ctx, &runnerPod,
 			client.GracePeriodSeconds(1), // force kill = 1 second
 			client.PropagationPolicy(v12.DeletePropagationForeground),
 		); err != nil {
+			traceLog.Error(err, "Hit an error")
 			return "", err
 		}
 		// wait for pod to be terminated
+		traceLog.Info("Wait for pod to be terminated and check for an error")
 		if err := waitForPodToBeTerminated(); err != nil {
+			traceLog.Error(err, "Hit an error")
 			return "", fmt.Errorf("failed to wait for the old pod termination: %v", err)
 		}
 		// create new pod
+		traceLog.Info("Create a new pod and check for an error")
 		if err := createNewPod(); err != nil {
+			traceLog.Error(err, "Hit an error")
 			return "", err
 		}
 	case stateTerminating:
 		// wait for pod to be terminated
+		traceLog.Info("Check for an error")
 		if err := waitForPodToBeTerminated(); err != nil {
+			traceLog.Error(err, "Hit an error")
 			return "", fmt.Errorf("failed to wait for the old pod termination: %v", err)
 		}
 		// create new pod
+		traceLog.Info("Create a new pod")
 		err := createNewPod()
+		traceLog.Info("Check for an error")
 		if err != nil {
+			traceLog.Error(err, "Hit an error")
 			return "", err
 		}
 	case stateRunning:
 		// do nothing
+		traceLog.Info("Pod is running, do nothing")
 	}
 
 	// wait for pod ip
-	if wait.Poll(interval, timeout, func() (bool, error) {
+	traceLog.Info("Wait for pod to receive an IP and check for an error")
+	if err := wait.Poll(interval, timeout, func() (bool, error) {
+		traceLog.Info("Get pod and check for an error")
 		if err := r.Get(ctx, runnerPodKey, &runnerPod); err != nil {
+			traceLog.Error(err, "Hit an error")
 			return false, fmt.Errorf("failed to get runner pod: %w", err)
 		}
 
+		traceLog.Info("Check if the pod has an IP")
 		if runnerPod.Status.PodIP != "" {
+			traceLog.Info("Success, pod has an IP")
 			return true, nil
 		}
 
+		traceLog.Info("Pod does not have an IP yet")
 		return false, nil
-	}) != nil {
+	}); err != nil {
+		traceLog.Info("Failed to get the pod, force kill the pod")
+		traceLog.Error(err, "Error getting the Pod")
 
 		if err := r.Delete(ctx, &runnerPod,
 			client.GracePeriodSeconds(1), // force kill = 1 second
 			client.PropagationPolicy(v12.DeletePropagationForeground),
 		); err != nil {
+			traceLog.Error(err, "Hit an error")
 			return "", fmt.Errorf("failed to obtain pod ip and delete runner pod: %w", err)
 		}
 
