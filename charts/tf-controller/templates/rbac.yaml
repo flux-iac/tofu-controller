@@ -195,7 +195,9 @@ roleRef:
   kind: ClusterRole
   name: tf-runner-role
 subjects:
+{{- range include "tf-controller.runner.allowedNamespaces" . | fromJsonArray }}
 - kind: ServiceAccount
-  name: {{ include "tf-controller.runner.serviceAccountName" . }}
-  namespace: {{ .Release.Namespace }}
+  name: {{ include "tf-controller.runner.serviceAccountName" $ }}
+  namespace: {{ . }}
+{{- end }}
 {{- end }}
