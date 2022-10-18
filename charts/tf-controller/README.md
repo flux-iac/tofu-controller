@@ -27,6 +27,9 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` | Affinity properties for the TF-Controller deployment |
+| awsPackage.install | bool | `true` |  |
+| awsPackage.repository | string | `"ghcr.io/tf-controller/aws-primitive-modules"` |  |
+| awsPackage.tag | string | `"v4.33.0-v1alpha2"` |  |
 | caCertValidityDuration | string | `"168h0m"` | Argument for `--ca-cert-validity-duration` (Controller) |
 | certRotationCheckFrequency | string | `"30m0s"` | Argument for `--cert-rotation-check-frequency` (Controller) |
 | certValidityDuration | string | `"6h0m"` | Argument for `--cert-validity-duration` (Controller) |
