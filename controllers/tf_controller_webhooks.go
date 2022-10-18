@@ -37,7 +37,7 @@ func shouldProcessPostPlanningWebhooks(terraform infrav1.Terraform) bool {
 	return false
 }
 
-func (r *TerraformReconciler) prepareWebhookPayload(terraform infrav1.Terraform, runnerClient runner.RunnerClient, payloadType string) ([]byte, error) {
+func (r *TerraformReconciler) prepareWebhookPayload(terraform infrav1.Terraform, runnerClient runner.RunnerClient, payloadType string, tfInstance string) ([]byte, error) {
 	toBytes, err := terraform.ToBytes(r.Scheme)
 	if err != nil {
 		err = fmt.Errorf("failed to marshal Terraform resource: %w", err)
@@ -45,7 +45,7 @@ func (r *TerraformReconciler) prepareWebhookPayload(terraform infrav1.Terraform,
 	}
 
 	reply, err := runnerClient.ShowPlanFile(context.Background(), &runner.ShowPlanFileRequest{
-		TfInstance: "1",
+		TfInstance: tfInstance,
 		Filename:   runner.TFPlanName,
 	})
 	if err != nil {
@@ -98,7 +98,7 @@ func (r *TerraformReconciler) prepareWebhookPayload(terraform infrav1.Terraform,
 	return jsonBytes, nil
 }
 
-func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient, revision string) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient, revision string, tfInstance string) (infrav1.Terraform, error) {
 	log := ctrl.LoggerFrom(ctx)
 
 	hooks := []infrav1.Webhook{}
@@ -124,7 +124,7 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, t
 
 		log.Info("webhook is enabled, processing")
 
-		payloadBytes, err := r.prepareWebhookPayload(terraform, runnerClient, webhook.PayloadType)
+		payloadBytes, err := r.prepareWebhookPayload(terraform, runnerClient, webhook.PayloadType, tfInstance)
 		if err != nil {
 			err = fmt.Errorf("failed to prepare webhook payload: %w", err)
 			return terraform, err

@@ -51,6 +51,7 @@ message NewTerraformRequest {
   string workingDir = 1;
   string execPath = 2;
   bytes  terraform = 3;
+  string instanceID = 4;
 }
 
 message NewTerraformReply {

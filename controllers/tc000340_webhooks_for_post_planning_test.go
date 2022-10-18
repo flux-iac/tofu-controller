@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	. "github.com/onsi/gomega"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -56,7 +57,7 @@ spec:
 `, "helloworld", "gitrepo", "http://localhost:8080/terraform/admission")), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 	mockRunnerClient := &mockRunnerClientForTestWebhooksForPostPlanning{}
-	payload, err := reconciler.prepareWebhookPayload(terraform, mockRunnerClient, "SpecAndPlan")
+	payload, err := reconciler.prepareWebhookPayload(terraform, mockRunnerClient, "SpecAndPlan", uuid.New().String())
 	g.Expect(err).ToNot(HaveOccurred())
 
 	expected, err := yaml.Parse(`
@@ -130,7 +131,7 @@ spec:
 `, "helloworld", "gitrepo", "http://localhost:8080/terraform/admission")), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 	mockRunnerClient := &mockRunnerClientForTestWebhooksForPostPlanning{}
-	payload, err := reconciler.prepareWebhookPayload(terraform, mockRunnerClient, "SpecOnly")
+	payload, err := reconciler.prepareWebhookPayload(terraform, mockRunnerClient, "SpecOnly", uuid.New().String())
 	g.Expect(err).ToNot(HaveOccurred())
 
 	expected, err := yaml.Parse(`
@@ -202,7 +203,7 @@ spec:
 `, "helloworld", "gitrepo", "http://localhost:8080/terraform/admission")), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 	mockRunnerClient := &mockRunnerClientForTestWebhooksForPostPlanning{}
-	payload, err := reconciler.prepareWebhookPayload(terraform, mockRunnerClient, "PlanOnly")
+	payload, err := reconciler.prepareWebhookPayload(terraform, mockRunnerClient, "PlanOnly", uuid.New().String())
 	g.Expect(err).ToNot(HaveOccurred())
 
 	expected, err := yaml.Parse(`

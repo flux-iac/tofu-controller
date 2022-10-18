@@ -3,12 +3,13 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
-	"github.com/weaveworks/tf-controller/runner"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+	"github.com/weaveworks/tf-controller/runner"
 
 	. "github.com/onsi/gomega"
 
@@ -101,7 +102,7 @@ func Test_000082_varsfrom_accepts_many_configmaps_with_last_supplied_precedence(
 	g.Expect(err).To(BeNil())
 
 	By("creating a new TF exec instance")
-	_, err = runnerServer.NewTerraform(ctx, &runner.NewTerraformRequest{
+	ntResp, err := runnerServer.NewTerraform(ctx, &runner.NewTerraformRequest{
 		WorkingDir: workDir,
 		ExecPath:   execPath,
 		Terraform:  terraformBytes,
@@ -109,7 +110,7 @@ func Test_000082_varsfrom_accepts_many_configmaps_with_last_supplied_precedence(
 	g.Expect(err).Should(BeNil())
 
 	_, err = runnerServer.Init(ctx, &runner.InitRequest{
-		TfInstance: "1",
+		TfInstance: ntResp.Id,
 		Upgrade:    false,
 		ForceCopy:  false,
 	})
