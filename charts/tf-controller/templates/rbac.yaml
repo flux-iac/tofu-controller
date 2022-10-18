@@ -185,8 +185,6 @@ subjects:
 - kind: ServiceAccount
   name: {{ include "tf-controller.serviceAccountName" . }}
   namespace: {{ .Release.Namespace }}
-{{- $allowedNamespaces := append .Values.runner.serviceAccount.allowedNamespaces .Release.Namespace -}}
-{{- range $allowedNamespaces }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -197,6 +195,7 @@ roleRef:
   kind: ClusterRole
   name: tf-runner-role
 subjects:
+{{- range include "tf-controller.runner.allowedNamespaces" . | fromJsonArray }}
 - kind: ServiceAccount
   name: {{ include "tf-controller.runner.serviceAccountName" $ }}
   namespace: {{ . }}

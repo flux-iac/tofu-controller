@@ -72,3 +72,13 @@ Create the name of the runner service account to use
 {{- default "default" .Values.runner.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+
+{{/*
+Create a unique list of runner allowed namespaces
+*/}}
+{{- define "tf-controller.runner.allowedNamespaces" -}}
+{{- $allowedNamespaces := append .Values.runner.serviceAccount.allowedNamespaces .Release.Namespace -}}
+{{- $allowedNamespaces := $allowedNamespaces | uniq -}}
+{{ toJson $allowedNamespaces }}
+{{- end }}
