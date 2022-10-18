@@ -332,6 +332,7 @@ func Test_000350_depends_on_test(t *testing.T) {
 
 	// Then we approve the first one
 	By("setting the .spec.approvePlan to be plan-main- and a part of commit id (b8e362c206) to approve the plan.")
+	g.Expect(k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)).Should(Succeed())
 	createdHelloWorldTF.Spec.Interval = metav1.Duration{Duration: time.Hour * 10}
 	createdHelloWorldTF.Spec.ApprovePlan = "plan-master-b8e362c206"
 	g.Expect(k8sClient.Update(ctx, &createdHelloWorldTF)).Should(Succeed())

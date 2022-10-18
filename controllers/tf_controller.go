@@ -148,6 +148,27 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, nil
 	}
 
+	// Examine if the object is under deletion
+	if isBeingDeleted(terraform) {
+		dependants := []string{}
+		for _, finalizer := range terraform.GetFinalizers() {
+			if strings.HasPrefix(finalizer, infrav1.TFDependencyOfPrefix) {
+				dependants = append(dependants, strings.TrimPrefix(finalizer, infrav1.TFDependencyOfPrefix))
+			}
+		}
+
+		if len(dependants) > 0 {
+			msg := fmt.Sprintf("Deletion in progress, but blocked. Please delete %s to resume ...", strings.Join(dependants, ", "))
+			terraform = infrav1.TerraformNotReady(terraform, "", infrav1.DeletionBlockedByDependants, msg)
+			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+				log.Error(err, "unable to update status")
+				return ctrl.Result{Requeue: true}, err
+			}
+
+			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
+		}
+	}
+
 	// resolve source reference
 	log.Info("getting source")
 	sourceObj, err := r.getSource(ctx, terraform)
@@ -191,7 +212,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	// check dependencies, if not being deleted
-	if len(terraform.Spec.DependsOn) > 0 && terraform.ObjectMeta.DeletionTimestamp.IsZero() {
+	if len(terraform.Spec.DependsOn) > 0 && !isBeingDeleted(terraform) {
 		if err := r.checkDependencies(sourceObj, terraform); err != nil {
 			terraform = infrav1.TerraformNotReady(
 				terraform, sourceObj.GetArtifact().Revision, infrav1.DependencyNotReadyReason, err.Error())
@@ -217,8 +238,14 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	ready := apimeta.FindStatusCondition(terraform.Status.Conditions, meta.ReadyCondition)
 	log.Info("before lookup runner: checking ready condition", "ready", ready)
 	if ready == nil || ready.Status != metav1.ConditionUnknown {
+
+		msg := "Reconciliation in progress"
+		if isBeingDeleted(terraform) {
+			msg = "Deletion in progress"
+		}
+
 		log.Info("before lookup runner: updating status", "ready", ready)
-		terraform = infrav1.TerraformProgressing(terraform, "Reconciliation in progress")
+		terraform = infrav1.TerraformProgressing(terraform, msg)
 		if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
 			log.Error(err, "unable to update status before Terraform initialization")
 			return ctrl.Result{Requeue: true}, err
@@ -303,7 +330,9 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	traceLog.Info("Check for deletion timestamp to finalize")
 	if !terraform.ObjectMeta.DeletionTimestamp.IsZero() {
 		traceLog.Info("Calling finalize function")
-		return r.finalize(ctx, terraform, runnerClient, sourceObj, reconciliationLoopID)
+		if result, err := r.finalize(ctx, terraform, runnerClient, sourceObj); err != nil {
+			return result, err
+		}
 	}
 
 	// If revision is changed, and there's no intend to apply,
@@ -368,6 +397,10 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	// next reconcile is .Spec.Interval in the future
 	log.Info("requeue after interval", "interval", terraform.Spec.Interval.Duration.String())
 	return ctrl.Result{RequeueAfter: terraform.Spec.Interval.Duration}, nil
+}
+
+func isBeingDeleted(terraform infrav1.Terraform) bool {
+	return !terraform.ObjectMeta.DeletionTimestamp.IsZero()
 }
 
 // Revision is in main/abcdefabcdefabcdefabcdefabcdefabcdefabcdef format
@@ -447,6 +480,7 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 }
 
 func (r *TerraformReconciler) checkDependencies(source sourcev1.Source, terraform infrav1.Terraform) error {
+	dependantFinalizer := infrav1.TFDependencyOfPrefix + terraform.GetName()
 	for _, d := range terraform.Spec.DependsOn {
 		if d.Namespace == "" {
 			d.Namespace = terraform.GetNamespace()
@@ -459,6 +493,15 @@ func (r *TerraformReconciler) checkDependencies(source sourcev1.Source, terrafor
 		err := r.Get(context.Background(), dName, &tf)
 		if err != nil {
 			return fmt.Errorf("unable to get '%s' dependency: %w", dName, err)
+		}
+
+		// add finalizer to the dependency
+		if !controllerutil.ContainsFinalizer(&tf, dependantFinalizer) {
+			patch := client.MergeFrom(tf.DeepCopy())
+			controllerutil.AddFinalizer(&tf, dependantFinalizer)
+			if err := r.Patch(context.Background(), &tf, patch, client.FieldOwner(r.statusManager)); err != nil {
+				return fmt.Errorf("unable to add finalizer to '%s' dependency: %w", dName, err)
+			}
 		}
 
 		if len(tf.Status.Conditions) == 0 || tf.Generation != tf.Status.ObservedGeneration {

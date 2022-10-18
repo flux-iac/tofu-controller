@@ -429,12 +429,13 @@ const (
 // The potential reasons that are associated with condition types
 const (
 	ArtifactFailedReason            = "ArtifactFailed"
+	DeletionBlockedByDependants     = "DeletionBlockedByDependantsReason"
 	DependencyNotReadyReason        = "DependencyNotReady"
 	TFExecNewFailedReason           = "TFExecNewFailed"
 	TFExecInitFailedReason          = "TFExecInitFailed"
 	VarsGenerationFailedReason      = "VarsGenerationFailed"
 	TemplateGenerationFailedReason  = "TemplateGenerationFailed"
-	WorkspaceSelectFailedReason     = "SelectWorspaceFailed"
+	WorkspaceSelectFailedReason     = "SelectWorkspaceFailed"
 	DriftDetectionFailedReason      = "DriftDetectionFailed"
 	DriftDetectedReason             = "DriftDetected"
 	NoDriftReason                   = "NoDrift"
@@ -461,6 +462,10 @@ const (
 // Webhook stages
 const (
 	PostPlanningWebhook = "post-planning"
+)
+
+const (
+	TFDependencyOfPrefix = "tf.dependency.of."
 )
 
 // SetTerraformReadiness sets the ReadyCondition, ObservedGeneration, and LastAttemptedRevision, on the Terraform.

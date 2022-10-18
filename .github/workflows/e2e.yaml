@@ -97,6 +97,19 @@ jobs:
           make dev-deploy MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION || true
           make dev-deploy MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION
 
+          # Increase the concurrency of the controller to speed up tests
+          kubectl patch deployment \
+            tf-controller \
+            --namespace tf-system \
+            --type='json' \
+            -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/args", "value": [
+            "--watch-all-namespaces",
+            "--log-level=info",
+            "--log-encoding=json",
+            "--enable-leader-election",
+            "--concurrent=10",
+          ]}]'
+
           kubectl -n tf-system rollout status deploy/source-controller --timeout=1m
           kubectl -n tf-system rollout status deploy/tf-controller --timeout=1m
       - name: Get terraform version
@@ -183,12 +196,12 @@ jobs:
 
           kubectl -n chaos-testing apply -f ./config/testdata/chaos
           kubectl -n chaos-testing apply -f ./config/testdata/source
-          sleep 20
+          sleep 10
       - name: Randomly delete runner pods
         run: |
           # use chaos level 3 at the moment, as we don't have much CPU resources
           seq 5 | shuf | head -3 | xargs -I{} bash -c "kubectl -n chaos-testing delete pod helloworld-chaos0{}-tf-runner || true"
-          sleep 60
+          sleep 10
       - name: Verify chaos testing result
         run: |
           kubectl -n chaos-testing get pods
