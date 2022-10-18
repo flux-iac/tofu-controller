@@ -330,7 +330,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	traceLog.Info("Check for deletion timestamp to finalize")
 	if !terraform.ObjectMeta.DeletionTimestamp.IsZero() {
 		traceLog.Info("Calling finalize function")
-		if result, err := r.finalize(ctx, terraform, runnerClient, sourceObj); err != nil {
+		if result, err := r.finalize(ctx, terraform, runnerClient, sourceObj, reconciliationLoopID); err != nil {
 			return result, err
 		}
 	}
