@@ -4813,6 +4813,10 @@ spec:
                 description: ObservedGeneration is the last reconciled generation.
                 format: int64
                 type: integer
+              observedSourceRevision:
+                description: ObservedSourceRevision is the last reconciled source
+                  generation.
+                type: string
               plan:
                 properties:
                   isDestroyPlan:

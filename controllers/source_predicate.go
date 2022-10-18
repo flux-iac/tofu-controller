@@ -11,6 +11,25 @@ type SourceRevisionChangePredicate struct {
 	predicate.Funcs
 }
 
+// Create implements Predicate.
+func (SourceRevisionChangePredicate) Create(e event.CreateEvent) bool {
+	sourceObj, ok := e.Object.(sourcev1.Source)
+	if !ok {
+		return false
+	}
+
+	if sourceObj.GetArtifact() != nil {
+		return true
+	}
+
+	return false
+}
+
+// Delete implements Predicate.
+func (SourceRevisionChangePredicate) Delete(e event.DeleteEvent) bool {
+	return false
+}
+
 func (SourceRevisionChangePredicate) Update(e event.UpdateEvent) bool {
 	if e.ObjectOld == nil || e.ObjectNew == nil {
 		return false
@@ -38,29 +57,7 @@ func (SourceRevisionChangePredicate) Update(e event.UpdateEvent) bool {
 	return false
 }
 
-type SecretDeletePredicate struct {
-}
-
-// Create implements Predicate.
-func (SecretDeletePredicate) Create(e event.CreateEvent) bool {
-	return false
-}
-
-// Delete implements Predicate.
-func (SecretDeletePredicate) Delete(e event.DeleteEvent) bool {
-	return true
-}
-
-// Update implements Predicate.
-func (SecretDeletePredicate) Update(e event.UpdateEvent) bool {
-	if e.ObjectOld != nil && e.ObjectNew == nil {
-		return true
-	}
-
-	return false
-}
-
 // Generic implements Predicate.
-func (SecretDeletePredicate) Generic(e event.GenericEvent) bool {
+func (SourceRevisionChangePredicate) Generic(e event.GenericEvent) bool {
 	return false
 }

@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -38,13 +39,9 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		tfInstance string
 		tmpDir     string
 		err        error
-
-		lastKnownAction string
 	)
 	log.Info("setting up terraform")
 	terraform, tfInstance, tmpDir, err = r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey, reconciliationLoopID)
-
-	lastKnownAction = "Setup"
 
 	defer func() {
 		cleanupDirReply, err := runnerClient.CleanupDir(ctx, &runner.CleanupDirRequest{TmpDir: tmpDir})
@@ -90,7 +87,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		}
 
 		// immediately return if drift is detected, but it's not "force" or "auto"
-		if driftDetectionErr.Error() == infrav1.DriftDetectedReason && !r.forceOrAutoApply(terraform) {
+		if driftDetectionErr.Error() == infrav1.DriftDetectedReason && !r.forceOrAutoApply(ctx, terraform) {
 			log.Error(driftDetectionErr, "will not force / auto apply detected drift")
 			return &terraform, driftDetectionErr
 		}
@@ -100,8 +97,6 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 			log.Error(err, "unable to update status after drift detection")
 			return &terraform, err
 		}
-
-		lastKnownAction = "Drift Detection"
 	}
 
 	// return early if we're in drift-detection-only mode
@@ -111,7 +106,8 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 	}
 
 	// if we should plan this Terraform CR, do so
-	if r.shouldPlan(terraform) {
+	if r.shouldPlan(ctx, terraform, revision) {
+
 		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision)
 		if err != nil {
 			log.Error(err, "error planning")
@@ -123,11 +119,10 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 			return &terraform, err
 		}
 
-		lastKnownAction = "Planned"
 	}
 
 	// if we should apply the generated plan, do so
-	if r.shouldApply(terraform) {
+	if r.shouldApply(ctx, terraform) {
 		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision)
 		if err != nil {
 			log.Error(err, "error applying")
@@ -138,8 +133,6 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 			log.Error(err, "unable to update status after applying")
 			return &terraform, err
 		}
-
-		lastKnownAction = "Applied"
 	} else {
 		log.Info("should apply == false")
 	}
@@ -149,7 +142,6 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		log.Error(err, "error process outputs")
 		return &terraform, err
 	}
-	lastKnownAction = "Outputs Processed"
 
 	if r.shouldDoHealthChecks(terraform) {
 
@@ -164,7 +156,6 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 			return &terraform, err
 		}
 
-		lastKnownAction = "Health Checked"
 	}
 
 	var (
@@ -180,8 +171,12 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 	}
 
 	if readyCondition != nil && readyCondition.Status == metav1.ConditionUnknown {
-		_ = lastKnownAction
-		terraform.Status.Conditions[readyConditionIndex].Status = metav1.ConditionTrue
+		cond := terraform.Status.Conditions[readyConditionIndex]
+		if cond.Reason == infrav1.PlannedWithChangesReason && strings.HasPrefix(cond.Message, "Plan generated") {
+			// do nothing
+		} else if cond.Reason != meta.ProgressingReason {
+			terraform.Status.Conditions[readyConditionIndex].Status = metav1.ConditionTrue
+		}
 	}
 
 	return &terraform, nil

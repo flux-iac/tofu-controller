@@ -317,17 +317,17 @@ func Test_000350_depends_on_test(t *testing.T) {
 		for _, c := range createdDependencyTF.Status.Conditions {
 			if c.Type == "Ready" {
 				return map[string]interface{}{
-					"Type":    c.Type,
-					"Reason":  c.Reason,
-					"Message": c.Message,
+					"Type":   c.Type,
+					"Reason": c.Reason,
+					// "Message": c.Message,
 				}
 			}
 		}
 		return nil
 	}, timeout*3, interval).Should(Equal(map[string]interface{}{
-		"Type":    "Ready",
-		"Reason":  infrav1.DependencyNotReadyReason,
-		"Message": "dependency output secret: 'tf-depends-on-outputs' of 'flux-system/tf-depends-on' is not ready yet",
+		"Type":   "Ready",
+		"Reason": infrav1.DependencyNotReadyReason,
+		// "Message": "dependency output secret: 'tf-depends-on-outputs' of 'flux-system/tf-depends-on' is not ready yet",
 	}))
 
 	// Then we approve the first one

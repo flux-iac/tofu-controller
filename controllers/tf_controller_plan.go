@@ -3,6 +3,8 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"github.com/fluxcd/pkg/runtime/logger"
+	"strings"
 
 	"github.com/fluxcd/pkg/runtime/events"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
@@ -12,17 +14,38 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
-	// Please do not optimize this logic, as we'd like others to easily understand the logics behind this behaviour.
-	if terraform.Spec.Force {
+func (r *TerraformReconciler) validManualApprove(ctx context.Context, terraform infrav1.Terraform) bool {
+	if terraform.Spec.ApprovePlan != "" &&
+		terraform.Spec.ApprovePlan != infrav1.ApprovePlanAutoValue &&
+		(terraform.Spec.ApprovePlan == terraform.Status.Plan.Pending ||
+			strings.HasPrefix(terraform.Status.Plan.Pending, terraform.Spec.ApprovePlan)) {
 		return true
 	}
 
+	return false
+}
+
+func (r *TerraformReconciler) shouldPlan(ctx context.Context, terraform infrav1.Terraform, currentRevision string) bool {
+	// Please do not optimize this logic, as we'd like others to easily understand the logics behind this behaviour.
+	log := ctrl.LoggerFrom(ctx)
+	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.shouldPlan")
+
+	traceLog.Info("Checking if force is set", "force", terraform.Spec.Force)
+	if terraform.Spec.Force {
+		traceLog.Info("Force is set, returning true - should plan")
+		return true
+	}
+
+	traceLog.Info("Checking current state of plan pending")
 	if terraform.Status.Plan.Pending == "" {
+		traceLog.Info("Plan pending is empty, returning true - should plan")
 		return true
 	} else if terraform.Status.Plan.Pending != "" {
+		traceLog.Info("Plan pending is not empty, returning false - should not plan")
 		return false
 	}
+
+	traceLog.Info("Otherwise, returning false - should not plan")
 	return false
 }
 
@@ -124,7 +147,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	log.Info(fmt.Sprintf("save tfplan: %s", saveTFPlanReply.Message))
 
 	if drifted {
-		forceOrAutoApply := r.forceOrAutoApply(terraform)
+		forceOrAutoApply := r.forceOrAutoApply(ctx, terraform)
 
 		// this is the manual mode, we fire the event to show how to apply the plan
 		if forceOrAutoApply == false {

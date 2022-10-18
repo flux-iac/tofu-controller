@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"github.com/fluxcd/pkg/runtime/logger"
 	"strings"
 
 	"github.com/fluxcd/pkg/runtime/events"
@@ -13,25 +14,49 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *TerraformReconciler) forceOrAutoApply(terraform infrav1.Terraform) bool {
-	return terraform.Spec.Force || terraform.Spec.ApprovePlan == infrav1.ApprovePlanAutoValue
+func (r *TerraformReconciler) forceOrAutoApply(ctx context.Context, terraform infrav1.Terraform) bool {
+	log := ctrl.LoggerFrom(ctx)
+	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.forceOrAutoApply")
+
+	traceLog.Info("Checking if force is set or auto apply is enabled", "force", terraform.Spec.Force, "autoApply", terraform.Spec.ApprovePlan)
+	result := terraform.Spec.Force || terraform.Spec.ApprovePlan == infrav1.ApprovePlanAutoValue
+	traceLog.Info("Result", "result", result)
+	return result
 }
 
-func (r *TerraformReconciler) shouldApply(terraform infrav1.Terraform) bool {
-	// Please do not optimize this logic, as we'd like others to easily understand the logics behind this behaviour.
+func (r *TerraformReconciler) shouldApply(ctx context.Context, terraform infrav1.Terraform) bool {
+	log := ctrl.LoggerFrom(ctx)
+	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.shouldApply")
+
+	traceLog.Info("Entering shouldApply",
+		"approvePlan", terraform.Spec.ApprovePlan,
+		"force", terraform.Spec.Force,
+		"planPending", terraform.Status.Plan.Pending)
+
+	// Please do not optimize this logic, as we'd like others to easily understand the logics behind this behaviour
+	traceLog.Info("Checking if force is set", "force", terraform.Spec.Force)
 	if terraform.Spec.Force {
+		traceLog.Info("Force is set, returning true")
 		return true
 	}
 
+	traceLog.Info("Checking current state of approvePlan")
 	if terraform.Spec.ApprovePlan == "" {
+		traceLog.Info("ApprovePlan is empty, returning false - should not apply")
 		return false
 	} else if terraform.Spec.ApprovePlan == infrav1.ApprovePlanAutoValue && terraform.Status.Plan.Pending != "" {
+		traceLog.Info("ApprovePlan is auto and plan is pending, returning true - should apply", "plan Pending", terraform.Status.Plan.Pending)
 		return true
 	} else if terraform.Spec.ApprovePlan == terraform.Status.Plan.Pending {
+		traceLog.Info("ApprovePlan is set and matches plan pending, returning true - should apply", "plan Pending", terraform.Status.Plan.Pending)
 		return true
 	} else if strings.HasPrefix(terraform.Status.Plan.Pending, terraform.Spec.ApprovePlan) {
+		traceLog.Info("ApprovePlan is set and matches plan pending prefix, returning true - should apply",
+			"plan Pending", terraform.Status.Plan.Pending, "approvePlan", terraform.Spec.ApprovePlan)
 		return true
 	}
+
+	traceLog.Info("Otherwise, returning false - should not apply")
 	return false
 }
 

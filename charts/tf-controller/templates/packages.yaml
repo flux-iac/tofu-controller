@@ -1,4 +1,4 @@
-{{ if .Values.awsPackage.install }}
+{{- if .Values.awsPackage.install -}}
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: OCIRepository
 metadata:
@@ -8,4 +8,4 @@ spec:
   ref:
     tag: {{ .Values.awsPackage.tag }}
   url: oci://{{ .Values.awsPackage.repository }}
-{{ end }}
+{{- end -}}

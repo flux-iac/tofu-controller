@@ -188,7 +188,7 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 		return map[string]interface{}{
 			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
 			"TFPlanEmpty":           string(tfplanSecret.Data["tfplan"]) == "",
-			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
+			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"SavedPlan":             planId,
