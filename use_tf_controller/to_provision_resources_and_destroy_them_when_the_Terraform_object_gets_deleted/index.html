@@ -355,7 +355,7 @@
 <p>The resources provisioned by a Terraform object are not destroyed by default, and the tfstate of that Terraform object still remains in the cluster.</p>
 <p>It means that you are safe to delete the Terraform object in the cluster and re-create it. 
 If you re-create a new Terraform object with the same name, namespace and workspace, it will continue to use the tfstate inside the cluster as the starting point to renconcle.</p>
-<p>However, you may want to destroy provisioned resources when delete the Terraform object in many scenaros.
+<p>However, you may want to destroy provisioned resources when delete the Terraform object in many scenarios.
 To enable destroy resources on object deletion, set <code>.spec.destroyResourcesOnDeletion</code> to <code>true</code>.</p>
 <p>~&gt; <strong>WARNING:</strong> This feature will destroy your resources on the cloud if the Terraform object gets deleted. Please use it with cautions.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha1</span><span class="w"></span>
