@@ -254,6 +254,32 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		r.recordReadinessMetric(ctx, terraform)
 	}
 
+	if !isBeingDeleted(terraform) {
+		// If revision is changed, and there's no intend to apply,
+		// and has "replan" in the spec.approvePlan
+		// we should clear the Pending Plan to trigger re-plan
+		traceLog.Info("Check artifact revision and if we shouldApply")
+		if sourceObj.GetArtifact().Revision != terraform.Status.LastAttemptedRevision &&
+			!r.shouldApply(terraform) &&
+			strings.HasPrefix(terraform.Spec.ApprovePlan, "replan") {
+			traceLog.Info("Update the status of the Terraform resource")
+			terraform.Status.Plan.Pending = ""
+			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+				log.Error(err, "unable to update status to clear pending plan (revision != last attempted)")
+				return ctrl.Result{Requeue: true}, err
+			}
+		}
+
+		// Return early if it's manually mode and pending
+		traceLog.Info("Check for pending plan, forceOrAutoApply and shouldApply")
+		if terraform.Status.Plan.Pending != "" &&
+			!r.forceOrAutoApply(terraform) &&
+			!r.shouldApply(terraform) {
+			log.Info("reconciliation is stopped to wait for a manual approve")
+			return ctrl.Result{}, nil
+		}
+	}
+
 	// Create Runner Pod.
 	// Wait for the Runner Pod to start.
 	traceLog.Info("Fetch/Create Runner pod for this Terraform resource")
@@ -333,25 +359,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		if result, err := r.finalize(ctx, terraform, runnerClient, sourceObj, reconciliationLoopID); err != nil {
 			return result, err
 		}
-	}
-
-	// If revision is changed, and there's no intend to apply,
-	// we should clear the Pending Plan to trigger re-plan
-	traceLog.Info("Check artifact revision and if we shouldApply")
-	if sourceObj.GetArtifact().Revision != terraform.Status.LastAttemptedRevision && !r.shouldApply(terraform) {
-		traceLog.Info("Update the status of the Terraform resource")
-		terraform.Status.Plan.Pending = ""
-		if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
-			log.Error(err, "unable to update status to clear pending plan (revision != last attempted)")
-			return ctrl.Result{Requeue: true}, err
-		}
-	}
-
-	// Return early if it's manually mode and pending
-	traceLog.Info("Check for pending plan, forceOrAutoApply and shouldApply")
-	if terraform.Status.Plan.Pending != "" && !r.forceOrAutoApply(terraform) && !r.shouldApply(terraform) {
-		log.Info("reconciliation is stopped to wait for a manual approve")
-		return ctrl.Result{}, nil
 	}
 
 	// reconcile Terraform by applying the latest revision
