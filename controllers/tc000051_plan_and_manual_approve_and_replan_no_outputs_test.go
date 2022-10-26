@@ -188,7 +188,7 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 		return map[string]interface{}{
 			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
 			"TFPlanEmpty":           string(tfplanSecret.Data["tfplan"]) == "",
-			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
+			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"SavedPlan":             planId,
@@ -218,6 +218,10 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 		},
 	}
 	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
+
+	// This is the new behavior in v0.13.0
+	createdHelloWorldTF.Spec.ApprovePlan = "replan-master"
+	g.Expect(k8sClient.Update(ctx, &createdHelloWorldTF)).Should(Succeed())
 
 	By("checking the message of the ready status now contains the new $planId.")
 	g.Eventually(func() map[string]interface{} {
