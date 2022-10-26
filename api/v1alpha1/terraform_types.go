@@ -547,7 +547,7 @@ func TerraformApplied(terraform Terraform, revision string, message string, isDe
 		(&terraform).Status.Inventory = &ResourceInventory{Entries: entries}
 	}
 
-	SetTerraformReadiness(&terraform, metav1.ConditionUnknown, TFExecApplySucceedReason, message+": "+revision, revision)
+	SetTerraformReadiness(&terraform, metav1.ConditionTrue, TFExecApplySucceedReason, message+": "+revision, revision)
 	return terraform
 }
 
