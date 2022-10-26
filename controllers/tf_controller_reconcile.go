@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -180,8 +181,13 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 	}
 
 	if readyCondition != nil && readyCondition.Status == metav1.ConditionUnknown {
-		_ = lastKnownAction
-		terraform.Status.Conditions[readyConditionIndex].Status = metav1.ConditionTrue
+		log.Info("Last known action was: " + lastKnownAction)
+		cond := terraform.Status.Conditions[readyConditionIndex]
+		if cond.Reason == infrav1.PlannedWithChangesReason && strings.HasPrefix(cond.Message, "Plan generated") {
+			// do nothing
+		} else if cond.Reason != meta.ProgressingReason {
+			terraform.Status.Conditions[readyConditionIndex].Status = metav1.ConditionTrue
+		}
 	}
 
 	return &terraform, nil

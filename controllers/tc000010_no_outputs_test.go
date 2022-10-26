@@ -142,7 +142,7 @@ spec:
 		return createdHelloWorldTF.Status
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    infrav1.ConditionTypePlan,
-		"Reason":  "TerraformPlannedWithChanges",
+		"Reason":  infrav1.PlannedWithChangesReason,
 		"Message": "Plan generated",
 	}))
 

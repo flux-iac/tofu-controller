@@ -327,7 +327,7 @@ func Test_000350_depends_on_test(t *testing.T) {
 	}, timeout*3, interval).Should(Equal(map[string]interface{}{
 		"Type":    "Ready",
 		"Reason":  infrav1.DependencyNotReadyReason,
-		"Message": "dependency output secret: 'tf-depends-on-outputs' of 'flux-system/tf-depends-on' is not ready yet",
+		"Message": "dependency 'flux-system/tf-depends-on' is not ready",
 	}))
 
 	// Then we approve the first one

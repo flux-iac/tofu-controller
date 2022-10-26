@@ -19,6 +19,7 @@ require (
 	github.com/fluxcd/pkg/untar v0.1.0
 	github.com/fluxcd/source-controller/api v0.30.0
 	github.com/go-logr/logr v1.2.3
+	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-retryablehttp v0.7.1
 	github.com/hashicorp/go-version v1.4.0
@@ -105,7 +106,6 @@ require (
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -193,6 +193,9 @@ replace (
 
 	// Fix CVE-2022-27664
 	golang.org/x/net => golang.org/x/net v0.0.0-20220906165146-f3363e06e74c
+
+	// Fix CVE-2022-32149
+	golang.org/x/text => golang.org/x/text v0.3.8
 
 	// Fix gnostic
 	k8s.io/kubectl v0.23.2 => k8s.io/kubectl v0.24.3

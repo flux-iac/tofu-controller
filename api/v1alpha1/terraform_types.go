@@ -431,23 +431,25 @@ const (
 	ArtifactFailedReason            = "ArtifactFailed"
 	DeletionBlockedByDependants     = "DeletionBlockedByDependantsReason"
 	DependencyNotReadyReason        = "DependencyNotReady"
-	TFExecNewFailedReason           = "TFExecNewFailed"
-	TFExecInitFailedReason          = "TFExecInitFailed"
-	VarsGenerationFailedReason      = "VarsGenerationFailed"
-	TemplateGenerationFailedReason  = "TemplateGenerationFailed"
-	WorkspaceSelectFailedReason     = "SelectWorkspaceFailed"
-	DriftDetectionFailedReason      = "DriftDetectionFailed"
 	DriftDetectedReason             = "DriftDetected"
+	DriftDetectionFailedReason      = "DriftDetectionFailed"
+	HealthChecksFailedReason        = "HealthChecksFailed"
 	NoDriftReason                   = "NoDrift"
-	TFExecPlanFailedReason          = "TFExecPlanFailed"
+	OutputsWritingFailedReason      = "OutputsWritingFailed"
+	PlannedNoChangesReason          = "TerraformPlannedNoChanges"
+	PlannedWithChangesReason        = "TerraformPlannedWithChanges"
 	PostPlanningWebhookFailedReason = "PostPlanningWebhookFailed"
 	TFExecApplyFailedReason         = "TFExecApplyFailed"
-	TFExecOutputFailedReason        = "TFExecOutputFailed"
-	OutputsWritingFailedReason      = "OutputsWritingFailed"
-	HealthChecksFailedReason        = "HealthChecksFailed"
 	TFExecApplySucceedReason        = "TerraformAppliedSucceed"
-	TFExecLockHeldReason            = "LockHeld"
 	TFExecForceUnlockReason         = "ForceUnlock"
+	TFExecInitFailedReason          = "TFExecInitFailed"
+	TFExecLockHeldReason            = "LockHeld"
+	TFExecNewFailedReason           = "TFExecNewFailed"
+	TFExecOutputFailedReason        = "TFExecOutputFailed"
+	TFExecPlanFailedReason          = "TFExecPlanFailed"
+	TemplateGenerationFailedReason  = "TemplateGenerationFailed"
+	VarsGenerationFailedReason      = "VarsGenerationFailed"
+	WorkspaceSelectFailedReason     = "SelectWorkspaceFailed"
 )
 
 // These constants are the Condition Types that the Terraform Resource works with
@@ -591,7 +593,7 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, forceOrAu
 	newCondition := metav1.Condition{
 		Type:    ConditionTypePlan,
 		Status:  metav1.ConditionTrue,
-		Reason:  "TerraformPlannedWithChanges",
+		Reason:  PlannedWithChangesReason,
 		Message: trimString(message, MaxConditionMessageLength),
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
@@ -607,10 +609,10 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, forceOrAu
 	}
 
 	if forceOrAutoApply {
-		SetTerraformReadiness(&terraform, metav1.ConditionUnknown, "TerraformPlannedWithChanges", message, revision)
+		SetTerraformReadiness(&terraform, metav1.ConditionUnknown, PlannedWithChangesReason, message, revision)
 	} else {
 		// this is the manual mode, where we don't want to apply the plan
-		SetTerraformReadiness(&terraform, metav1.ConditionUnknown, "TerraformPlannedWithChanges", approveMessage, revision)
+		SetTerraformReadiness(&terraform, metav1.ConditionUnknown, PlannedWithChangesReason, approveMessage, revision)
 	}
 	return terraform
 }
@@ -619,7 +621,7 @@ func TerraformPlannedNoChanges(terraform Terraform, revision string, message str
 	newCondition := metav1.Condition{
 		Type:    ConditionTypePlan,
 		Status:  metav1.ConditionFalse,
-		Reason:  "TerraformPlannedNoChanges",
+		Reason:  PlannedNoChangesReason,
 		Message: trimString(message, MaxConditionMessageLength),
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
@@ -633,7 +635,7 @@ func TerraformPlannedNoChanges(terraform Terraform, revision string, message str
 		(&terraform).Status.LastPlannedRevision = revision
 	}
 
-	SetTerraformReadiness(&terraform, metav1.ConditionTrue, "TerraformPlannedNoChanges", message+": "+revision, revision)
+	SetTerraformReadiness(&terraform, metav1.ConditionTrue, PlannedNoChangesReason, message+": "+revision, revision)
 	return terraform
 }
 
