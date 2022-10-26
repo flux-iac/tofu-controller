@@ -27,7 +27,7 @@ image:
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
   # @default -- `.Chart.AppVersion`
-  tag: "v0.13.0-rc.10"
+  tag: "v0.13.0-rc.11"
 # -- Controller image pull secret
 imagePullSecrets: []
 # -- Resource limits and requests
@@ -94,7 +94,6 @@ awsPackage:
   install: true
   tag: v4.33.0-v1alpha2
   repository: ghcr.io/tf-controller/aws-primitive-modules
-
 # -- Runner-specific configurations
 runner:
   image:
@@ -102,7 +101,7 @@ runner:
     repository: ghcr.io/weaveworks/tf-runner
     # -- Runner image tag
     # @default -- `.Chart.AppVersion`
-    tag: "v0.13.0-rc.10"
+    tag: "v0.13.0-rc.11"
   grpc:
     # -- Maximum GRPC message size (Controller)
     maxMessageSize: 4
