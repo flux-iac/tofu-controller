@@ -261,7 +261,8 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		traceLog.Info("Check artifact revision and if we shouldApply")
 		if sourceObj.GetArtifact().Revision != terraform.Status.LastAttemptedRevision &&
 			!r.shouldApply(terraform) &&
-			strings.HasPrefix(terraform.Spec.ApprovePlan, "replan") {
+			strings.HasPrefix(terraform.Spec.ApprovePlan, "replan") &&
+			strings.HasPrefix("re"+terraform.Status.Plan.Pending, terraform.Spec.ApprovePlan) {
 			traceLog.Info("Update the status of the Terraform resource")
 			terraform.Status.Plan.Pending = ""
 			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
