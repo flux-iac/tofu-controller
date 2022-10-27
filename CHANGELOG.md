@@ -2,6 +2,43 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.13.0
+
+**Release date:** 2022-10-27
+
+A notable feature in this version is the first-class YAML support for Terraform.
+A Terraform object in v0.13.0+ allows you to better configure your Terraform resources via YAMLs, 
+without introducing any extra CRDs to your cluster. 
+
+Together with a new generator, Tofu-Jet, we'll now be able to ship pre-generated 
+primitive Terraform modules for all major cloud providers. We shipped the alpha version of AWS package in this release.
+
+A primitive Terraform module is a module that only contains a single primitive resource,
+like `aws_iam_role`, or `aws_iam_policy`. With this concept, we would be able to use Terraform
+without writing Terraform codes, and make it more GitOps-friendly at the same time.
+
+New Features and Bug Fixing:
+  * Implement webhooks for Terraform stages (@chanwit)
+  * Add the default value to workspace (@k0da)
+  * Implement `spec.values` and map it to Terraform HCL (@chanwit)
+  * Add docs for preflight checks (@chanwit)
+  * Implement Helm-like template for Terraform files (@chanwit)
+  * Upgrade Golang to v1.19 (@chanwit)
+  * Bundle an alpha version AWS Package (@chanwit)
+  * Fix e2e (@chanwit)
+  * Implement `spec.dependsOn` and watch for the output secret changes (@chanwit)
+  * Implement templating for input references (@chanwit)
+  * Fix the check of dependencies by taking the output secret into account (@chanwit)
+  * Add tests for the `spec.dependsOn` feature (@chanwit)
+  * Change templating delimiter to `${{ }}` (@chanwit)
+  * Add labels to "tfstate" via the K8s backend so that we can group them by the labels (@chanwit)
+  * Fix dependency in the finalizer (@chanwit)
+  * Add an ability to Helm chart for creating service accounts in each namespace (@adamstrawson)
+  * Parameterize AWS package in chart (@k0da)
+  * Fix runner service account template not returning multiple docs (@skeletorXVI)
+  * Implement "replan" to avoid double planning (@chanwit)
+  * Add SHA and version information to the binaries (@chanwit)
+
 # v0.12.0
 
 **Release date:** 2022-09-07
