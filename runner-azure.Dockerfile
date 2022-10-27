@@ -28,7 +28,7 @@ ARG TF_VERSION=1.3.1
 ADD https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip /terraform_${TF_VERSION}_linux_amd64.zip
 RUN unzip -q /terraform_${TF_VERSION}_linux_amd64.zip
 
-FROM alpine:3.16
+FROM alpine:3.16.2
 
 LABEL org.opencontainers.image.source="https://github.com/weaveworks/tf-controller"
 
@@ -39,7 +39,7 @@ RUN apk add --no-cache ca-certificates tini git openssh-client gnupg && \
 # Install az cli
 ARG AZCLI_VERSION=2.40.0
 RUN apk add --no-cache py3-pip && \
-    apk add --no-cache gcc musl-dev python3-dev libffi-dev openssl-dev cargo make
+    apk add --no-cache gcc musl-dev python3-dev libffi-dev openssl-dev
 RUN pip install --upgrade pip && \
     pip install azure-cli==${AZCLI_VERSION}
 
