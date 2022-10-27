@@ -54,6 +54,14 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
+var (
+	// BuildSHA is the controller version
+	BuildSHA string
+
+	// BuildVersion is the controller build version
+	BuildVersion string
+)
+
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
@@ -213,7 +221,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	setupLog.Info("starting manager")
+	setupLog.Info("Starting manager", "version", BuildVersion, "sha", BuildSHA)
+
 	if err := mgr.Start(signalHandlerContext); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
