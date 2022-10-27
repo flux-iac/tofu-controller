@@ -90,8 +90,12 @@ gen-grpc:
 
 .PHONY: build
 build: gen-grpc generate fmt vet ## Build manager binary.
-	go build -o bin/runner cmd/runner/main.go
-	go build -o bin/manager cmd/manager/main.go
+	go build -o bin/runner \
+		-ldflags "-X main.BuildSHA=$(BUILD_SHA) -X main.BuildVersion=$(BUILD_VERSION)" \
+		cmd/runner/main.go
+	go build -o bin/manager \
+		-ldflags "-X main.BuildSHA=$(BUILD_SHA) -X main.BuildVersion=$(BUILD_VERSION)" \
+		cmd/manager/main.go
 	go build -o bin/tfctl \
 		-ldflags "-X main.BuildSHA=$(BUILD_SHA) -X main.BuildVersion=$(BUILD_VERSION)" \
 		cmd/tfctl/main.go

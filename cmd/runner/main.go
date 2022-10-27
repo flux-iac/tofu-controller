@@ -45,6 +45,14 @@ var (
 	logOptions logger.Options
 )
 
+var (
+	// BuildSHA is the runner version
+	BuildSHA string
+
+	// BuildVersion is the runner build version
+	BuildVersion string
+)
+
 func main() {
 	var (
 		grpcPort           int
@@ -76,6 +84,8 @@ func main() {
 	defer func() {
 		signal.Stop(sigterm)
 	}()
+
+	log.Println("Starting the runner...", "version", BuildVersion, "sha", BuildSHA)
 
 	err := mtls.RunnerServe(podNamespace, addr, tlsSecretName, sigterm, grpcMaxMessageSize)
 	if err != nil {
