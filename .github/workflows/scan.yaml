@@ -67,10 +67,20 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
           skip-files: '/usr/local/bin/terraform' # false positive
-      - name: Run Trivy vulnerability scanner on runner image
+      - name: Run Trivy vulnerability scanner on azure runner image
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'ghcr.io/weaveworks/tf-runner-azure:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          skip-files: '/usr/local/bin/terraform' # false positive
+      - name: Run Trivy vulnerability scanner on aws runner image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'ghcr.io/weaveworks/tf-runner-aws:latest'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
