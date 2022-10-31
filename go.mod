@@ -13,11 +13,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.5
 	github.com/cyphar/filepath-securejoin v0.2.3
 	github.com/elgohr/go-localstack v0.0.0-20220812012220-cd041bfe1b37
-	github.com/fluxcd/pkg/apis/meta v0.16.0
+	github.com/fluxcd/pkg/apis/meta v0.17.0
 	github.com/fluxcd/pkg/runtime v0.14.1
 	github.com/fluxcd/pkg/ssa v0.15.2
 	github.com/fluxcd/pkg/untar v0.1.0
-	github.com/fluxcd/source-controller/api v0.30.0
+	github.com/fluxcd/source-controller/api v0.31.0
 	github.com/go-logr/logr v1.2.3
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
@@ -39,7 +39,7 @@ require (
 	google.golang.org/protobuf v1.28.0
 	k8s.io/api v0.25.2
 	k8s.io/apiextensions-apiserver v0.25.2
-	k8s.io/apimachinery v0.25.2
+	k8s.io/apimachinery v0.25.3
 	k8s.io/cli-runtime v0.25.2
 	k8s.io/client-go v0.25.2
 	sigs.k8s.io/cli-utils v0.29.4
