@@ -2,11 +2,15 @@ package tfctl
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/fluxcd/pkg/apis/meta"
+	"github.com/hako/durafmt"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -33,19 +37,43 @@ func (c *CLI) Get(out io.Writer) error {
 				break
 			}
 		}
+
+		age := time.Now().Sub(terraform.CreationTimestamp.Time)
+
 		data = append(data, []string{
+			terraform.Namespace,
 			terraform.Name,
 			string(readyCondition.Status),
-			readyCondition.Message,
+			shorten(readyCondition.Message),
 			strconv.FormatBool(terraform.Status.Plan.Pending != ""),
-			strconv.FormatBool(terraform.Spec.Suspend),
+			durafmt.Parse(age).LimitFirstN(1).String(),
 		})
 	}
 
-	header := []string{"Name", "Ready", "Message", "Plan Pending", "Suspended"}
+	header := []string{"Namespace", "Name", "Ready", "Message", "Plan Pending", "Age"}
 	table := newTablePrinter(out, header)
 	table.AppendBulk(data)
 	table.Render()
 
 	return nil
+}
+
+func shorten(message string) string {
+	// get the last 40 characters of the message
+	var sha string
+	if len(message) > 40 {
+		// find / in the message
+		slash := strings.LastIndex(message, "/")
+		if slash != -1 {
+			sha = message[slash+1:]
+			// check by converting hex string to bytes
+			_, err := hex.DecodeString(sha)
+			if err != nil {
+				return message
+			}
+			return message[:slash+8]
+		}
+	}
+
+	return message
 }

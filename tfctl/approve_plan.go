@@ -1,24 +1,26 @@
 package tfctl
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"os"
 
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/util/retry"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/kustomize/kyaml/kio"
+	"sigs.k8s.io/kustomize/kyaml/yaml"
 )
 
 // ApprovePlan approves the pending plan for a given terraform resource
-func (c *CLI) ApprovePlan(out io.Writer, resource string) error {
+func (c *CLI) ApprovePlan(out io.Writer, resource string, yamlFile string) error {
 	key := types.NamespacedName{
 		Name:      resource,
 		Namespace: c.namespace,
 	}
-	terraform := &infrav1.Terraform{}
-	if err := c.client.Get(context.TODO(), key, terraform); err != nil {
+	terraform := infrav1.Terraform{}
+	if err := c.client.Get(context.TODO(), key, &terraform); err != nil {
 		return fmt.Errorf("resource %s not found", resource)
 	}
 
@@ -27,28 +29,58 @@ func (c *CLI) ApprovePlan(out io.Writer, resource string) error {
 		return nil
 	}
 
-	err := approvePlan(context.TODO(), c.client, key, terraform)
+	//plan := terraform.Status.Plan.Pending
+
+	err := approvePlan(terraform, yamlFile)
 	if err != nil {
 		return err
 	}
 
-	fmt.Fprintln(out, " plan approved")
+	fmt.Fprintln(out, " Plan approval set. Please commit and push to continue.")
 
 	return nil
 }
 
-func approvePlan(ctx context.Context,
-	kubeClient client.Client,
-	namespacedName types.NamespacedName,
-	terraform *infrav1.Terraform,
-) error {
-	return retry.RetryOnConflict(retry.DefaultBackoff, func() (err error) {
-		terraform := &infrav1.Terraform{}
-		if err := kubeClient.Get(ctx, namespacedName, terraform); err != nil {
-			return err
+func approvePlan(terraform infrav1.Terraform, filename string) error {
+	fileBytes, err := os.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	rdr := &kio.ByteReader{
+		Reader:            bytes.NewBuffer(fileBytes),
+		PreserveSeqIndent: true,
+	}
+	nodes, err := rdr.Read()
+	if err != nil {
+		return err
+	}
+	for _, node := range nodes {
+		// check name and namespace of the node
+		if node.GetKind() == "Terraform" &&
+			node.GetApiVersion() == "infra.contrib.fluxcd.io/v1alpha1" &&
+			node.GetName() == terraform.Name &&
+			node.GetNamespace() == terraform.Namespace {
+			// set the plan approval
+			err = node.PipeE(yaml.LookupCreate(yaml.ScalarNode, "spec", "approvePlan"))
+			if err != nil {
+				return err
+			}
+			err = node.PipeE(
+				yaml.Lookup("spec"),
+				yaml.FieldSetter{Name: "approvePlan", StringValue: terraform.Status.Plan.Pending},
+			)
+			if err != nil {
+				return err
+			}
 		}
-		patch := client.MergeFrom(terraform.DeepCopy())
-		terraform.Spec.ApprovePlan = terraform.Status.Plan.Pending
-		return kubeClient.Patch(ctx, terraform, patch)
-	})
+	}
+
+	b := &bytes.Buffer{}
+	wtr := &kio.ByteWriter{Writer: b}
+	err = wtr.Write(nodes)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(filename, b.Bytes(), 0644)
 }

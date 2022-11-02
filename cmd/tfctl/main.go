@@ -53,17 +53,20 @@ func newRootCommand() *cobra.Command {
 	// bind flags to config
 	config.BindPFlags(rootCmd.PersistentFlags())
 
-	rootCmd.AddCommand(buildVersionCmd(app))
-	rootCmd.AddCommand(buildPlanGroup(app))
-	rootCmd.AddCommand(buildInstallCmd(app))
-	rootCmd.AddCommand(buildUninstallCmd(app))
-	rootCmd.AddCommand(buildReconcileCmd(app))
-	rootCmd.AddCommand(buildSuspendCmd(app))
-	rootCmd.AddCommand(buildResumeCmd(app))
-	rootCmd.AddCommand(buildGetGroup(app))
-	rootCmd.AddCommand(buildDeleteCmd(app))
 	rootCmd.AddCommand(buildCreateCmd(app))
+	rootCmd.AddCommand(buildDeleteCmd(app))
 	rootCmd.AddCommand(buildForceUnlockCmd(app))
+	rootCmd.AddCommand(buildInstallCmd(app))
+	rootCmd.AddCommand(buildReconcileCmd(app))
+	rootCmd.AddCommand(buildApprovePlanCmd(app))
+	rootCmd.AddCommand(buildReplanCmd(app))
+	rootCmd.AddCommand(buildResumeCmd(app))
+	rootCmd.AddCommand(buildSuspendCmd(app))
+	rootCmd.AddCommand(buildUninstallCmd(app))
+	rootCmd.AddCommand(buildVersionCmd(app))
+
+	rootCmd.AddCommand(buildGetGroup(app))
+	rootCmd.AddCommand(buildShowGroup(app))
 
 	return rootCmd
 }
@@ -172,26 +175,25 @@ func buildResumeCmd(app *tfctl.CLI) *cobra.Command {
 	}
 }
 
-func buildPlanGroup(app *tfctl.CLI) *cobra.Command {
+func buildShowGroup(app *tfctl.CLI) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "plan",
-		Short: "Plan a Terraform configuration",
+		Use:   "show",
+		Short: "Show a Terraform configuration",
 	}
-	cmd.AddCommand(buildPlanShowCmd(app))
-	cmd.AddCommand(buildPlanApproveCmd(app))
+	cmd.AddCommand(buildShowPlanCmd(app))
 	return cmd
 }
 
-var planShowExamples = `
+var showPlanExamples = `
   # Show the plan for a Terraform resource
-  tfctl plan show my-resource
+  tfctl show plan my-resource
 `
 
-func buildPlanShowCmd(app *tfctl.CLI) *cobra.Command {
+func buildShowPlanCmd(app *tfctl.CLI) *cobra.Command {
 	return &cobra.Command{
-		Use:     "show NAME",
+		Use:     "plan NAME",
 		Short:   "Show pending Terraform plan",
-		Example: strings.Trim(planShowExamples, "\n"),
+		Example: strings.Trim(showPlanExamples, "\n"),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.ShowPlan(os.Stdout, args[0])
@@ -199,21 +201,25 @@ func buildPlanShowCmd(app *tfctl.CLI) *cobra.Command {
 	}
 }
 
-var planApproveExamples = `
+var approvePlanExamples = `
   # Approve the plan for a Terraform resource
-  tfctl plan approve my-resource
+  tfctl approve my-resource -f manifests/my-resource.yaml
 `
 
-func buildPlanApproveCmd(app *tfctl.CLI) *cobra.Command {
-	return &cobra.Command{
+func buildApprovePlanCmd(app *tfctl.CLI) *cobra.Command {
+	approvePlan := &cobra.Command{
 		Use:     "approve NAME",
 		Short:   "Approve pending Terraform plan",
-		Example: strings.Trim(planApproveExamples, "\n"),
+		Example: strings.Trim(approvePlanExamples, "\n"),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.ApprovePlan(os.Stdout, args[0])
+			return app.ApprovePlan(os.Stdout, args[0], viper.GetString("filename"))
 		},
 	}
+
+	approvePlan.Flags().StringP("filename", "f", "", "YAML file to approve.")
+	viper.BindPFlags(approvePlan.Flags())
+	return approvePlan
 }
 
 var getExamples = `
@@ -302,14 +308,6 @@ func buildCreateCmd(app *tfctl.CLI) *cobra.Command {
 	return create
 }
 
-func configureDefaultNamespace() {
-	*kubeconfigArgs.Namespace = defaultNamespace
-	fromEnv := os.Getenv("FLUX_SYSTEM_NAMESPACE")
-	if fromEnv != "" {
-		kubeconfigArgs.Namespace = &fromEnv
-	}
-}
-
 var forceUnlockExample = `
 	# Unlock Terraform resource "aws-security-group" with lock id "f2ab685b-f84d-ac0b-a125-378a22877e8d" in the default namespace
 	tfctl force-unlock aws-security-group -n default --lock-id="f2ab685b-f84d-ac0b-a125-378a22877e8d"
@@ -332,4 +330,30 @@ func buildForceUnlockCmd(app *tfctl.CLI) *cobra.Command {
 	forceUnlock.Flags().String("lock-id", "", "Set the lock-id that currently holds the lock of the terraform state e.g. f2ab685b-f84d-ac0b-a125-378a22877e8d")
 	viper.BindPFlags(forceUnlock.Flags())
 	return forceUnlock
+}
+
+var replanExamples = `
+	# Replan a Terraform resource
+	tfctl -n default replan my-resource 
+`
+
+func buildReplanCmd(app *tfctl.CLI) *cobra.Command {
+	replan := &cobra.Command{
+		Use:     "replan",
+		Short:   "Replan a Terraform resource",
+		Example: strings.Trim(replanExamples, "\n"),
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return app.Replan(os.Stdout, args[0])
+		},
+	}
+	return replan
+}
+
+func configureDefaultNamespace() {
+	*kubeconfigArgs.Namespace = defaultNamespace
+	fromEnv := os.Getenv("FLUX_SYSTEM_NAMESPACE")
+	if fromEnv != "" {
+		kubeconfigArgs.Namespace = &fromEnv
+	}
 }
