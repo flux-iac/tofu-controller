@@ -4,8 +4,10 @@ FROM golang:1.19 as builder
 RUN apt-get update && apt-get install -y unzip
 
 WORKDIR /workspace
-# Copy API and it's go module
+# Copy API and its Go module
 COPY api/ api/
+# Copy tfctl and its Go module
+COPY tfctl/ tfctl/
 
 # Copy the Go Modules manifests
 COPY go.mod go.mod
