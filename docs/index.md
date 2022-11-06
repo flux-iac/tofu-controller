@@ -48,10 +48,15 @@ To get started, follow the [getting started](/tf-controller/getting_started) gui
     A primitive Terraform module is a module that only contains a single primitive resource, like `aws_iam_role`, or `aws_iam_policy`.
     With this concept, we would be able to use Terraform without writing Terraform codes, and make it more GitOps-friendly at the same time. 
     _This feature is available since v0.13.0._
+  * **GitOps Dependency for Terraform**: The `Terraform` object in v0.13.0+ allows you to specify a list of `Terraform` objects
+    that it depends on. The controller will wait for the dependencies to be ready before it starts to reconcile the
+    `Terraform` object. This allows you to create a dependency graph of your Terraform modules, and make sure
+    the modules are applied in the correct order. Please use `.spec.retryInterval` (a small value like `20s`) to control 
+    the retry interval when using this feature. _This feature is available since v0.13.0._
 
-## Dependencies
+## Support Matrix
 
 |   Version   | Terraform | Source Controller | Flux v2 |
 |:-----------:|:---------:|:-----------------:|:-------:|
-| **v0.13.0** |  v1.3.1   |      v0.31.0      | v0.36.x |
+| **v0.13.1** |  v1.3.1   |      v0.31.0      | v0.36.x |
 |   v0.12.0   |  v1.1.9   |      v0.26.1      | v0.32.x |
