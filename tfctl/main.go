@@ -8,12 +8,12 @@ import (
 	"github.com/fluxcd/pkg/ssa"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

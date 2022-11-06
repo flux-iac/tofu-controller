@@ -14,7 +14,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-// Create generates a terraform resource
+// Create generates a Terraform resource
 func (c *CLI) Create(
 	out io.Writer,
 	name string,
