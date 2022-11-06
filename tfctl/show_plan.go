@@ -1,19 +1,37 @@
 package tfctl
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
-	"path/filepath"
 
-	"github.com/hashicorp/terraform-exec/tfexec"
+	"github.com/fluxcd/pkg/apis/meta"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
-	"github.com/weaveworks/tf-controller/utils"
 	corev1 "k8s.io/api/core/v1"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/types"
 )
+
+func gzipDecode(encodedPlan []byte) ([]byte, error) {
+	re := bytes.NewReader(encodedPlan)
+	gr, err := gzip.NewReader(re)
+	if err != nil {
+		return nil, err
+	}
+
+	o, err := ioutil.ReadAll(gr)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = gr.Close(); err != nil {
+		return nil, err
+	}
+	return o, nil
+}
 
 // ShowPlan displays the plan for the given Terraform resource
 func (c *CLI) ShowPlan(out io.Writer, resource string) error {
@@ -26,58 +44,50 @@ func (c *CLI) ShowPlan(out io.Writer, resource string) error {
 		return fmt.Errorf("resource %s not found", resource)
 	}
 
+	if terraform.Spec.StoreReadablePlan == "" || terraform.Spec.StoreReadablePlan == "none" {
+		fmt.Fprintln(out, "no readable plan available")
+		fmt.Fprintln(out, "please set spec.storeReadablePlan to either 'human' or 'json'")
+		return nil
+	}
+
 	if terraform.Status.Plan.Pending == "" {
 		fmt.Fprintln(out, "There is no plan pending.")
 		return nil
 	}
 
-	planKey := types.NamespacedName{
-		Name:      fmt.Sprintf("tfplan-%s-%s", terraform.WorkspaceName(), resource),
-		Namespace: c.namespace,
-	}
-
-	planSecret := &corev1.Secret{}
-	if err := c.client.Get(context.TODO(), planKey, planSecret); err != nil {
-		return fmt.Errorf("plan for resource %s not found", resource)
-	}
-
-	data, err := utils.GzipDecode(planSecret.Data["tfplan"])
-	if err != nil {
-		return fmt.Errorf("failed to decode plan for resources %s: %s", resource, err)
-	}
-
-	tmpDir, err := ioutil.TempDir("", "tfctl")
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if err := os.RemoveAll(tmpDir); err != nil {
-			fmt.Fprintf(out, "failed to remove temporary directory %s: %s", tmpDir, err)
+	if terraform.Spec.StoreReadablePlan == "human" {
+		planKey := types.NamespacedName{
+			Name:      fmt.Sprintf("tfplan-%s-%s", terraform.WorkspaceName(), resource),
+			Namespace: c.namespace,
 		}
-	}()
+		var tfplanCM corev1.ConfigMap
+		if err := c.client.Get(context.TODO(), planKey, &tfplanCM); err != nil {
+			return fmt.Errorf("plan %s not found", planKey)
+		}
+		fmt.Fprintln(out, tfplanCM.Data["tfplan"])
 
-	planFilepath := filepath.Join(tmpDir, "tfctl-plan")
-	if err := os.WriteFile(planFilepath, data, 0644); err != nil {
-		return fmt.Errorf("failed to write plan: %w", err)
+		cond := apimeta.FindStatusCondition(terraform.Status.Conditions, meta.ReadyCondition)
+		if cond != nil {
+			fmt.Fprintln(out, cond.Message)
+			fmt.Fprintf(out, "To set the field, you can also run:\n\n  tfctl approve %s -f filename.yaml \n", resource)
+		}
+
+	} else if terraform.Spec.StoreReadablePlan == "json" {
+		planKey := types.NamespacedName{
+			Name:      fmt.Sprintf("tfplan-%s-%s.json", terraform.WorkspaceName(), resource),
+			Namespace: c.namespace,
+		}
+		planSecret := corev1.Secret{}
+		if err := c.client.Get(context.TODO(), planKey, &planSecret); err != nil {
+			return fmt.Errorf("plan for resource %s not found", resource)
+		}
+
+		data, err := gzipDecode(planSecret.Data["tfplan"])
+		if err != nil {
+			return fmt.Errorf("failed to decode plan for resources %s: %s", resource, err)
+		}
+		fmt.Fprint(out, string(data))
 	}
-
-	wd, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("failed to get current working directory: %w", err)
-	}
-
-	tf, err := tfexec.NewTerraform(wd, c.terraform)
-	if err != nil {
-		return fmt.Errorf("failed to create Terraform instance: %w", err)
-	}
-
-	result, err := tf.ShowPlanFileRaw(context.TODO(), planFilepath)
-	if err != nil {
-		return fmt.Errorf("failed to parse Terraform plan: %w", err)
-	}
-
-	fmt.Fprintln(out, result)
 
 	return nil
 }

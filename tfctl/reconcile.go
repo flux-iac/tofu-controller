@@ -30,8 +30,7 @@ func (c *CLI) Reconcile(out io.Writer, resource string) error {
 	return nil
 }
 
-func requestReconciliation(ctx context.Context, kubeClient client.Client,
-	namespacedName types.NamespacedName) error {
+func requestReconciliation(ctx context.Context, kubeClient client.Client, namespacedName types.NamespacedName) error {
 	return retry.RetryOnConflict(retry.DefaultBackoff, func() (err error) {
 		terraform := &infrav1.Terraform{}
 		if err := kubeClient.Get(ctx, namespacedName, terraform); err != nil {
