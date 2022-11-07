@@ -2,6 +2,14 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.13.1
+
+**Release date:** 2022-11-06
+
+New Features and Bug Fixing:
+  * Update Source controller to v0.31.0 / Flux v0.36.0 (@chanwit)
+  * Improve `tfctl` commands (@chanwit)
+
 # v0.13.0
 
 **Release date:** 2022-10-27

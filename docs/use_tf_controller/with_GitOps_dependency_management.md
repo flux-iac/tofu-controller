@@ -1,15 +1,21 @@
 # Use TF-controller with GitOps dependency management
 
 TF-controller supports GitOps dependency management.
-The GitOps dependency management feature is based on the Kustomization controller of Flux.
+The GitOps dependency management feature is based on the similar technique implemented in the Kustomization controller of Flux.
 
 This means that you can use TF-controller to provision resources that depend on other resources at the GitOps level.
 For example, you can use TF-controller to provision an S3 bucket, and then use TF-controller to provision another resource to configure ACL for that bucket.
+
+GitOps dependency management is different from Terraform's dependency management in the way that it is not based on Terraform's mechanism, which is controlled by the Terraform binary.
+Instead, it is implemented at the controller level, which means that each Terraform module is reconciled independently.
 
 ## Create a Terraform object
 
 Similar to the same feature in the Kustomization controller, the dependency management feature is enabled by setting the `dependsOn` field in the `Terraform` object.
 The `dependsOn` field is a list of `Terraform` objects.
+
+When the dependency is not satisfied, the Terraform object will be in the `Unknown` state, and it will be retry again every `spec.retryInterval`.
+The retry interval is same as the `spec.interval` by default, and it can be configured separately by setting the `spec.retryInterval` field.
 
 First, create a `Terraform` object to provision the S3 bucket, name it `aws-s3-bucket`.
 The S3 bucket is provisioned by the Terraform module `aws_s3_bucket` in the OCI image `aws-package-v4.33.0`.
