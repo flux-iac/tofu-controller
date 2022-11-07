@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.1, mkdocs-material-8.5.7">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.8">
     
     
       
@@ -20,7 +20,7 @@
       <link rel="stylesheet" href="assets/stylesheets/main.20d9efc8.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.cbb835fc.min.css">
+        <link rel="stylesheet" href="assets/stylesheets/palette.815d1a91.min.css">
         
       
       
@@ -272,8 +272,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dependencies" class="md-nav__link">
-    Dependencies
+  <a href="#support-matrix" class="md-nav__link">
+    Support Matrix
   </a>
   
 </li>
@@ -395,8 +395,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dependencies" class="md-nav__link">
-    Dependencies
+  <a href="#support-matrix" class="md-nav__link">
+    Support Matrix
   </a>
   
 </li>
@@ -469,8 +469,13 @@ and application resources, in the Kubernetes and Terraform universe, at your own
     A primitive Terraform module is a module that only contains a single primitive resource, like <code>aws_iam_role</code>, or <code>aws_iam_policy</code>.
     With this concept, we would be able to use Terraform without writing Terraform codes, and make it more GitOps-friendly at the same time. 
     <em>This feature is available since v0.13.0.</em></li>
+<li><strong>GitOps Dependency for Terraform</strong>: The <code>Terraform</code> object in v0.13.0+ allows you to specify a list of <code>Terraform</code> objects
+    that it depends on. The controller will wait for the dependencies to be ready before it starts to reconcile the
+    <code>Terraform</code> object. This allows you to create a dependency graph of your Terraform modules, and make sure
+    the modules are applied in the correct order. Please use <code>.spec.retryInterval</code> (a small value like <code>20s</code>) to control 
+    the retry interval when using this feature. <em>This feature is available since v0.13.0.</em></li>
 </ul>
-<h2 id="dependencies">Dependencies</h2>
+<h2 id="support-matrix">Support Matrix</h2>
 <table>
 <thead>
 <tr>
@@ -482,7 +487,7 @@ and application resources, in the Kubernetes and Terraform universe, at your own
 </thead>
 <tbody>
 <tr>
-<td align="center"><strong>v0.13.0</strong></td>
+<td align="center"><strong>v0.13.1</strong></td>
 <td align="center">v1.3.1</td>
 <td align="center">v0.31.0</td>
 <td align="center">v0.36.x</td>
@@ -556,7 +561,7 @@ and application resources, in the Kubernetes and Terraform universe, at your own
     <script id="__config" type="application/json">{"base": ".", "features": ["content.code.annotate"], "search": "assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="assets/javascripts/bundle.8492ddcf.min.js"></script>
+      <script src="assets/javascripts/bundle.d6c3db9e.min.js"></script>
       
     
   </body>

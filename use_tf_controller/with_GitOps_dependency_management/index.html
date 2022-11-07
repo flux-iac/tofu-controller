@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.1, mkdocs-material-8.5.7">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.8">
     
     
       
@@ -20,7 +20,7 @@
       <link rel="stylesheet" href="../../assets/stylesheets/main.20d9efc8.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.cbb835fc.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.815d1a91.min.css">
         
       
       
@@ -368,12 +368,16 @@
 
 <h1 id="use-tf-controller-with-gitops-dependency-management">Use TF-controller with GitOps dependency management</h1>
 <p>TF-controller supports GitOps dependency management.
-The GitOps dependency management feature is based on the Kustomization controller of Flux.</p>
+The GitOps dependency management feature is based on the similar technique implemented in the Kustomization controller of Flux.</p>
 <p>This means that you can use TF-controller to provision resources that depend on other resources at the GitOps level.
 For example, you can use TF-controller to provision an S3 bucket, and then use TF-controller to provision another resource to configure ACL for that bucket.</p>
+<p>GitOps dependency management is different from Terraform's dependency management in the way that it is not based on Terraform's mechanism, which is controlled by the Terraform binary.
+Instead, it is implemented at the controller level, which means that each Terraform module is reconciled independently.</p>
 <h2 id="create-a-terraform-object">Create a Terraform object</h2>
 <p>Similar to the same feature in the Kustomization controller, the dependency management feature is enabled by setting the <code>dependsOn</code> field in the <code>Terraform</code> object.
 The <code>dependsOn</code> field is a list of <code>Terraform</code> objects.</p>
+<p>When the dependency is not satisfied, the Terraform object will be in the <code>Unknown</code> state, and it will be retry again every <code>spec.retryInterval</code>.
+The retry interval is same as the <code>spec.interval</code> by default, and it can be configured separately by setting the <code>spec.retryInterval</code> field.</p>
 <p>First, create a <code>Terraform</code> object to provision the S3 bucket, name it <code>aws-s3-bucket</code>.
 The S3 bucket is provisioned by the Terraform module <code>aws_s3_bucket</code> in the OCI image <code>aws-package-v4.33.0</code>.
 It is configured to use the <code>auto-apply</code> mode, and write outputs to the secret <code>aws-s3-bucket-outputs</code>.</p>
@@ -483,7 +487,7 @@ Its <code>name</code> field is the name of the Secret, and its <code>as</code> f
     <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.annotate"], "search": "../../assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.8492ddcf.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d6c3db9e.min.js"></script>
       
     
   </body>
