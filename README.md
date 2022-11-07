@@ -32,7 +32,7 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
   * [x]  ~~CRD wrappers~~ A new component model for Terraform modules
   * [x] Dependency management for TF-controller objects
   * [ ] AWS package for TF-controller (e.g. EKS, RDS, etc.)
-  * [ ] CLI for Weave GitOps Enterprise
+  * [ ] CLI for Weave GitOps
 
 ### Q1 2023
   * [ ] Observability - logging from the different stages of the runner
