@@ -115,7 +115,7 @@ type TerraformSpec struct {
 
 	// TfVarsPaths loads all given .tfvars files by precedence where first one is the strongest.
 	// +optional
-	TfVarsPaths []string `json:"tfVarsPaths:omitempty"`
+	TfVarsPaths []string `json:"tfVarsPaths,omitempty"`
 
 	// List of all configuration files to be created in initialization.
 	// +optional

@@ -4445,7 +4445,7 @@ spec:
                 items:
                   type: string
                 type: array
-              tfVarsPaths:omitempty:
+              tfVarsPaths:
                 description: TfVarsPaths loads all given .tfvars files by precedence
                   where first one is the strongest.
                 items:
