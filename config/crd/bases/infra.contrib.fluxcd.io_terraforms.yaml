@@ -4671,7 +4671,6 @@ spec:
             required:
             - interval
             - sourceRef
-            - tfVarsPaths:omitempty
             type: object
           status:
             description: TerraformStatus defines the observed state of Terraform
