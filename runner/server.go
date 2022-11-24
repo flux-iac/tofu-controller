@@ -19,6 +19,7 @@ import (
 	"github.com/fluxcd/pkg/untar"
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/terraform-exec/tfexec"
+
 	tfjson "github.com/hashicorp/terraform-json"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/utils"
@@ -644,6 +645,10 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 		planOpt = append(planOpt, tfexec.Target(target))
 	}
 
+	for _, tfVars := range req.TfVarsPaths {
+		planOpt = append(planOpt, tfexec.VarFile(tfVars))
+	}
+
 	drifted, err := r.tf.Plan(ctx, planOpt...)
 	if err != nil {
 		st := status.New(codes.Internal, err.Error())
@@ -955,6 +960,10 @@ func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest
 		destroyOpt = append(destroyOpt, tfexec.Target(target))
 	}
 
+	for _, tfVars := range req.TfVarsPaths {
+		destroyOpt = append(destroyOpt, tfexec.VarFile(tfVars))
+	}
+
 	if err := r.tf.Destroy(ctx, destroyOpt...); err != nil {
 		st := status.New(codes.Internal, err.Error())
 		var stateErr *tfexec.ErrStateLocked
@@ -1003,6 +1012,10 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 
 	for _, target := range req.Targets {
 		applyOpt = append(applyOpt, tfexec.Target(target))
+	}
+
+	for _, tfVars := range req.TfVarsPaths {
+		applyOpt = append(applyOpt, tfexec.VarFile(tfVars))
 	}
 
 	if err := r.tf.Apply(ctx, applyOpt...); err != nil {
