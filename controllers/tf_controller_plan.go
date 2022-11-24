@@ -26,7 +26,7 @@ func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
 	return false
 }
 
-func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, tfVarsPaths []string) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, sourceRefRootDir string) (infrav1.Terraform, error) {
 
 	log := ctrl.LoggerFrom(ctx)
 
@@ -42,11 +42,11 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	const tfplanFilename = "tfplan"
 
 	planRequest := &runner.PlanRequest{
-		TfInstance:  tfInstance,
-		Out:         tfplanFilename,
-		Refresh:     true, // be careful, refresh requires to be true by default
-		Targets:     terraform.Spec.Targets,
-		TfVarsPaths: tfVarsPaths,
+		TfInstance:       tfInstance,
+		Out:              tfplanFilename,
+		Refresh:          true, // be careful, refresh requires to be true by default
+		Targets:          terraform.Spec.Targets,
+		SourceRefRootDir: sourceRefRootDir,
 	}
 
 	if r.backendCompletelyDisable(terraform) {

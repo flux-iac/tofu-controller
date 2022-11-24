@@ -645,8 +645,13 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 		planOpt = append(planOpt, tfexec.Target(target))
 	}
 
-	for _, tfVars := range req.TfVarsPaths {
-		planOpt = append(planOpt, tfexec.VarFile(tfVars))
+	for _, path := range r.terraform.Spec.TfVarsPaths {
+		secureTfVarsPath, err := securejoin.SecureJoin(req.SourceRefRootDir, path)
+		if err != nil {
+			log.Error(err, "error processing tfVarsPaths")
+			return nil, err
+		}
+		planOpt = append(planOpt, tfexec.VarFile(secureTfVarsPath))
 	}
 
 	drifted, err := r.tf.Plan(ctx, planOpt...)
@@ -960,10 +965,6 @@ func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest
 		destroyOpt = append(destroyOpt, tfexec.Target(target))
 	}
 
-	for _, tfVars := range req.TfVarsPaths {
-		destroyOpt = append(destroyOpt, tfexec.VarFile(tfVars))
-	}
-
 	if err := r.tf.Destroy(ctx, destroyOpt...); err != nil {
 		st := status.New(codes.Internal, err.Error())
 		var stateErr *tfexec.ErrStateLocked
@@ -1012,10 +1013,6 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 
 	for _, target := range req.Targets {
 		applyOpt = append(applyOpt, tfexec.Target(target))
-	}
-
-	for _, tfVars := range req.TfVarsPaths {
-		applyOpt = append(applyOpt, tfexec.VarFile(tfVars))
 	}
 
 	if err := r.tf.Apply(ctx, applyOpt...); err != nil {

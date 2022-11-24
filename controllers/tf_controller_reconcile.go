@@ -63,16 +63,9 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		return &terraform, err
 	}
 
-	// Create a list of full path .tfvars
-	tfVarsPaths, err := r.getTfVarsPaths(terraform, tmpDir)
-	if err != nil {
-		log.Error(err, "error processing tfVarsPaths")
-		return &terraform, err
-	}
-
 	if r.shouldDetectDrift(terraform, revision) {
 		var driftDetectionErr error // declared here to avoid shadowing on terraform variable
-		terraform, driftDetectionErr = r.detectDrift(ctx, terraform, tfInstance, runnerClient, revision, tfVarsPaths)
+		terraform, driftDetectionErr = r.detectDrift(ctx, terraform, tfInstance, runnerClient, revision, tmpDir)
 
 		// immediately return if no drift - reconciliation will retry normally
 		if driftDetectionErr == nil {
@@ -120,7 +113,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 
 	// if we should plan this Terraform CR, do so
 	if r.shouldPlan(terraform) {
-		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision, tfVarsPaths)
+		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision, tmpDir)
 		if err != nil {
 			log.Error(err, "error planning")
 			return &terraform, err
@@ -136,7 +129,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 
 	// if we should apply the generated plan, do so
 	if r.shouldApply(terraform) {
-		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision, tfVarsPaths)
+		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision)
 		if err != nil {
 			log.Error(err, "error applying")
 			return &terraform, err

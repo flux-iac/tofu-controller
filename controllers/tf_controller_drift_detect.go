@@ -52,7 +52,7 @@ func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, rev
 	return false
 }
 
-func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, tfVarsPaths []string) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, sourceRefRootDir string) (infrav1.Terraform, error) {
 
 	log := ctrl.LoggerFrom(ctx)
 
@@ -63,11 +63,11 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 	)
 
 	planRequest := &runner.PlanRequest{
-		TfInstance:  tfInstance,
-		Out:         driftFilename,
-		Refresh:     true,
-		Targets:     terraform.Spec.Targets,
-		TfVarsPaths: tfVarsPaths,
+		TfInstance:       tfInstance,
+		Out:              driftFilename,
+		Refresh:          true,
+		Targets:          terraform.Spec.Targets,
+		SourceRefRootDir: sourceRefRootDir,
 	}
 	if r.backendCompletelyDisable(terraform) {
 		planRequest.Out = ""

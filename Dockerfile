@@ -26,7 +26,7 @@ COPY utils/ utils/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -gcflags=all="-N -l" -a -o tf-controller cmd/manager/main.go
 
-FROM alpine:3.16
+FROM alpine:3.16.2
 
 LABEL org.opencontainers.image.source="https://github.com/weaveworks/tf-controller"
 

@@ -143,7 +143,7 @@ message PlanRequest {
   bool refresh = 3;
   bool destroy = 4;
   repeated string targets = 5;
-  repeated string tfVarsPaths = 6;
+  string sourceRefRootDir = 6;
 }
 
 message PlanReply {
@@ -200,7 +200,6 @@ message ApplyRequest {
   string dirOrPlan = 2;
   bool   refreshBeforeApply = 3;
   repeated string targets = 4;
-  repeated string tfVarsPaths = 5;
 }
 
 message ApplyReply {
@@ -225,7 +224,6 @@ message Inventory {
 message DestroyRequest {
   string tfInstance = 1;
   repeated string targets = 2;
-  repeated string tfVarsPaths = 3;
 }
 
 message DestroyReply {

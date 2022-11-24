@@ -35,7 +35,7 @@ func (r *TerraformReconciler) shouldApply(terraform infrav1.Terraform) bool {
 	return false
 }
 
-func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, tfVarsPaths []string) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string) (infrav1.Terraform, error) {
 
 	const (
 		TFPlanName = "tfplan"
@@ -78,7 +78,6 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		TfInstance:         tfInstance,
 		RefreshBeforeApply: terraform.Spec.RefreshBeforeApply,
 		Targets:            terraform.Spec.Targets,
-		TfVarsPaths:        tfVarsPaths,
 	}
 	if r.backendCompletelyDisable(terraform) {
 		// do nothing
@@ -94,9 +93,8 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	// we need to use "destroy" command instead of apply
 	if r.backendCompletelyDisable(terraform) && terraform.Spec.Destroy == true {
 		destroyReply, err := runnerClient.Destroy(ctx, &runner.DestroyRequest{
-			TfInstance:  tfInstance,
-			Targets:     terraform.Spec.Targets,
-			TfVarsPaths: tfVarsPaths,
+			TfInstance: tfInstance,
+			Targets:    terraform.Spec.Targets,
 		})
 		log.Info(fmt.Sprintf("destroy: %s", destroyReply.Message))
 
