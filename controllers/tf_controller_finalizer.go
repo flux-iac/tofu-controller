@@ -67,9 +67,16 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 			return controllerruntime.Result{Requeue: true}, err
 		}
 
+		// Create a list of full path .tfvars
+		tfVarsPaths, err := r.getTfVarsPaths(terraform, tmpDir)
+		if err != nil {
+			traceLog.Error(err, "error processing tfVarsPaths")
+			return controllerruntime.Result{Requeue: true}, err
+		}
+
 		// This will create the "destroy" plan because deletion timestamp is set.
 		traceLog.Info("Create a new plan to destroy")
-		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision)
+		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision, tfVarsPaths)
 		traceLog.Info("Check for error")
 		if err != nil {
 			traceLog.Error(err, "Error, requeue job")
@@ -83,7 +90,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 		}
 
 		traceLog.Info("Apply the destroy plan")
-		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision)
+		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision, tfVarsPaths)
 		traceLog.Info("Check for error")
 		if err != nil {
 			traceLog.Error(err, "Error, requeue job")

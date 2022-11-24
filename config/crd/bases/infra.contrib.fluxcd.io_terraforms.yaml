@@ -4445,6 +4445,12 @@ spec:
                 items:
                   type: string
                 type: array
+              tfVarsPaths:omitempty:
+                description: TfVarsPaths loads all given .tfvars files by precedence
+                  where first one is the strongest.
+                items:
+                  type: string
+                type: array
               tfstate:
                 description: TFStateSpec allows the user to set ForceUnlock
                 properties:
@@ -4665,6 +4671,7 @@ spec:
             required:
             - interval
             - sourceRef
+            - tfVarsPaths:omitempty
             type: object
           status:
             description: TerraformStatus defines the observed state of Terraform

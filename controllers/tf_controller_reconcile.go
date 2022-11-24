@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"strings"
 
-	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
@@ -65,14 +64,10 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 	}
 
 	// Create a list of full path .tfvars
-	var tfVarsPaths []string
-	for _, path := range terraform.Spec.TfVarsPaths {
-		securePath, err := securejoin.SecureJoin(tmpDir, path)
-		if err != nil {
-			log.Error(err, "tfVarsPaths is not secure")
-			return &terraform, err
-		}
-		tfVarsPaths = append(tfVarsPaths, securePath)
+	tfVarsPaths, err := r.getTfVarsPaths(terraform, tmpDir)
+	if err != nil {
+		log.Error(err, "error processing tfVarsPaths")
+		return &terraform, err
 	}
 
 	if r.shouldDetectDrift(terraform, revision) {

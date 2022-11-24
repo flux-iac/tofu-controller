@@ -425,6 +425,11 @@ func (in *TerraformSpec) DeepCopyInto(out *TerraformSpec) {
 		*out = new(apiextensionsv1.JSON)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.TfVarsPaths != nil {
+		in, out := &in.TfVarsPaths, &out.TfVarsPaths
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.FileMappings != nil {
 		in, out := &in.FileMappings, &out.FileMappings
 		*out = make([]FileMapping, len(*in))
