@@ -1202,12 +1202,13 @@ a variable for each value. To use this feature, your Terraform file must define 
 </tr>
 <tr>
 <td>
-<code>tfVarsPaths:omitempty</code><br>
+<code>tfVarsPaths</code><br>
 <em>
 []string
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>TfVarsPaths loads all given .tfvars files by precedence where first one is the strongest.</p>
 </td>
 </tr>
@@ -1671,12 +1672,13 @@ a variable for each value. To use this feature, your Terraform file must define 
 </tr>
 <tr>
 <td>
-<code>tfVarsPaths:omitempty</code><br>
+<code>tfVarsPaths</code><br>
 <em>
 []string
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>TfVarsPaths loads all given .tfvars files by precedence where first one is the strongest.</p>
 </td>
 </tr>
