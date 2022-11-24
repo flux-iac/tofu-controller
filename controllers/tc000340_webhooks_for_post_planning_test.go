@@ -78,7 +78,6 @@ spec:
     name: gitrepo
     namespace: flux-system
   interval: 10s
-  tfVarsPaths: []
   webhooks:
   - stage: post-planning
     url: http://localhost:8080/terraform/admission
@@ -153,7 +152,6 @@ spec:
     name: gitrepo
     namespace: flux-system
   interval: 10s
-  tfVarsPaths: []
   webhooks:
   - stage: post-planning
     url: http://localhost:8080/terraform/admission
