@@ -4445,8 +4445,8 @@ spec:
                 items:
                   type: string
                 type: array
-              tfVarsPaths:
-                description: TfVarsPaths loads all given .tfvars files by precedence
+              tfVarsFiles:
+                description: TfVarsFiles loads all given .tfvars files by precedence
                   where first one is the strongest.
                 items:
                   type: string

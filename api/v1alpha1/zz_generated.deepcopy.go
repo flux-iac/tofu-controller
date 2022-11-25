@@ -425,8 +425,8 @@ func (in *TerraformSpec) DeepCopyInto(out *TerraformSpec) {
 		*out = new(apiextensionsv1.JSON)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.TfVarsPaths != nil {
-		in, out := &in.TfVarsPaths, &out.TfVarsPaths
+	if in.TfVarsFiles != nil {
+		in, out := &in.TfVarsFiles, &out.TfVarsFiles
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}

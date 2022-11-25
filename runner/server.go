@@ -645,13 +645,13 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 		planOpt = append(planOpt, tfexec.Target(target))
 	}
 
-	for _, path := range r.terraform.Spec.TfVarsPaths {
-		secureTfVarsPath, err := securejoin.SecureJoin(req.SourceRefRootDir, path)
+	for _, path := range r.terraform.Spec.TfVarsFiles {
+		secureTfVarsFile, err := securejoin.SecureJoin(req.SourceRefRootDir, path)
 		if err != nil {
-			log.Error(err, "error processing tfVarsPaths")
+			log.Error(err, "error processing tfVarsFiles")
 			return nil, err
 		}
-		planOpt = append(planOpt, tfexec.VarFile(secureTfVarsPath))
+		planOpt = append(planOpt, tfexec.VarFile(secureTfVarsFile))
 	}
 
 	drifted, err := r.tf.Plan(ctx, planOpt...)

@@ -44,7 +44,7 @@ func Test_000121_destroy_on_delete_test(t *testing.T) {
 			Reference: &sourcev1.GitRepositoryRef{
 				Branch: "master",
 			},
-			Interval:          metav1.Duration{Duration: time.Second * 40},
+			Interval:          metav1.Duration{Duration: time.Second * 30},
 			GitImplementation: "go-git",
 		},
 	}
