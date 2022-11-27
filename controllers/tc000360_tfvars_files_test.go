@@ -20,8 +20,8 @@ func Test_000360_tfvars_files_test(t *testing.T) {
 	It("should be reconciled to have available outputs.")
 
 	const (
-		sourceName    = "gr-test-tfvars-files"
-		terraformName = "tf-test-tfvars-files"
+		sourceName    = "gr-test-tf-vars-files"
+		terraformName = "tf-test-tf-vars-files"
 	)
 	g := NewWithT(t)
 	ctx := context.Background()
