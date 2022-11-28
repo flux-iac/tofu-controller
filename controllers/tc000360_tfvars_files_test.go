@@ -67,7 +67,7 @@ func Test_000360_tfvars_files_test(t *testing.T) {
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/terraform-tfvars-files.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-			Checksum:       "80ddfd18eb96f7d31cadc1a8a5171c6e2d95df3f6c23b0ed9cd8dddf6dba1406", // must be the real checksum value
+			Checksum:       "25df362c8e9a53da0424226e27466ee617e640dda9e4f1d8495fd62d49ce20d1", // must be the real checksum value
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
@@ -84,18 +84,18 @@ func Test_000360_tfvars_files_test(t *testing.T) {
 		},
 		Spec: infrav1.TerraformSpec{
 			ApprovePlan: "auto",
-			Path:        "./controllers/data/terraform-tfvars-files/printer",
+			Path:        "./terraform-tfvars-files",
 			SourceRef: infrav1.CrossNamespaceSourceReference{
 				Kind:      "GitRepository",
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
-			TfVarsFiles: []string{"./controllers/data/terraform-tfvars-files/variables/test.tfvars"},
+			TfVarsFiles: []string{"./terraform-tfvars-files/variables/test.tfvars"},
 			Interval:    metav1.Duration{Duration: time.Second * 10},
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
 				Name: "tf-output-" + terraformName,
 				Outputs: []string{
-					"from_file_mapping",
+					"hello_world",
 				},
 			},
 		},
@@ -107,6 +107,7 @@ func Test_000360_tfvars_files_test(t *testing.T) {
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
 	createdHelloWorldTF := infrav1.Terraform{}
+
 	g.Eventually(func() bool {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {

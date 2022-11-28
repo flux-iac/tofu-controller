@@ -155,28 +155,18 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 # Deploy controller dev image in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: dev-deploy
 dev-deploy: manifests kustomize
-	kind create cluster
-	flux install
-	kind load docker-image ${MANAGER_IMG}:${TAG}
-	kind load docker-image ${RUNNER_IMG}:${TAG}
-	kubectl config use-context kind-kind
 	mkdir -p config/dev && cp config/default/* config/dev
 	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/weaveworks/tf-controller=${MANAGER_IMG}:${TAG}
-	$(KUSTOMIZE) build config/dev | yq e "select(.kind == \"Deployment\" and .metadata.name == \"tf-controller\").spec.template.spec.containers[0].env[1].value = \"${RUNNER_IMG}:${TAG}\"" - | \
-	yq e "select(.kind == \"Deployment\" and .metadata.name == \"tf-controller\").spec.template.spec.containers[0].imagePullPolicy = \"Never\"" - | \
-	kubectl apply -f -
+	$(KUSTOMIZE) build config/dev | yq e "select(.kind == \"Deployment\" and .metadata.name == \"tf-controller\").spec.template.spec.containers[0].env[1].value = \"test/tf-runner:$${TAG}\"" - | kubectl apply -f -
 	rm -rf config/dev
 
 # Delete dev deployment and CRDs
 .PHONY: dev-cleanup
 dev-cleanup: manifests kustomize
-	kind delete cluster
-#	docker image rm -f ${MANAGER_IMG}:${TAG}
-#	docker image rm -f ${RUNNER_IMG}:${TAG}
-#	mkdir -p config/dev && cp config/default/* config/dev
-#	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/weaveworks/tf-controller=${MANAGER_IMG}:${TAG}
-#	$(KUSTOMIZE) build config/dev | kubectl delete -f -
-#	rm -rf config/dev
+	mkdir -p config/dev && cp config/default/* config/dev
+	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/weaveworks/tf-controller=${MANAGER_IMG}:${TAG}
+	$(KUSTOMIZE) build config/dev | kubectl delete -f -
+	rm -rf config/dev
 
 KUSTOMIZE = $(shell pwd)/bin/kustomize
 .PHONY: kustomize

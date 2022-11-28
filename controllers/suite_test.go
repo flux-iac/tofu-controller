@@ -283,6 +283,9 @@ func setupRouteHandlers() {
 	server.RouteToHandler("GET", "/tf-multi-resources.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/tf-multi-resources.tar.gz")
 	})
+	server.RouteToHandler("GET", "/terraform-tfvars-files.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/terraform-tfvars-files.tar.gz")
+	})
 	// for health check http test
 	server.RouteToHandler("GET", "/get", func(writer http.ResponseWriter, request *http.Request) {
 		ghttp.RespondWith(http.StatusOK, "ok")
