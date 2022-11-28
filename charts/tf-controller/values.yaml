@@ -92,7 +92,7 @@ caCertValidityDuration: 168h0m
 eventsAddress: http://notification-controller.flux-system.svc.cluster.local./
 awsPackage:
   install: true
-  tag: v4.33.0-v1alpha2
+  tag: v4.38.0-v1alpha11
   repository: ghcr.io/tf-controller/aws-primitive-modules
 # -- Runner-specific configurations
 runner:
