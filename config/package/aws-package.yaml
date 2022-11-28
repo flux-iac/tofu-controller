@@ -2,9 +2,9 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: OCIRepository
 metadata:
-  name: aws-package-v4.33.0
+  name: aws-package
 spec:
   interval: 1h0m0s
   url: oci://ghcr.io/tf-controller/aws-primitive-modules
   ref:
-    tag: v4.33.0-v1alpha2
+    tag: v4.38.0-v1alpha11
