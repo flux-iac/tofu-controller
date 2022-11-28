@@ -1,6 +1,6 @@
 # Weave GitOps Terraform Controller
 
-![Version: 0.9.2](https://img.shields.io/badge/Version-0.9.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.13.1](https://img.shields.io/badge/AppVersion-v0.13.1-informational?style=flat-square)
+![Version: 0.9.3](https://img.shields.io/badge/Version-0.9.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.13.1](https://img.shields.io/badge/AppVersion-v0.13.1-informational?style=flat-square)
 
 The Helm chart for Weave GitOps Terraform Controller
 
@@ -29,7 +29,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | affinity | object | `{}` | Affinity properties for the TF-Controller deployment |
 | awsPackage.install | bool | `true` |  |
 | awsPackage.repository | string | `"ghcr.io/tf-controller/aws-primitive-modules"` |  |
-| awsPackage.tag | string | `"v4.33.0-v1alpha2"` |  |
+| awsPackage.tag | string | `"v4.38.0-v1alpha11"` |  |
 | caCertValidityDuration | string | `"168h0m"` | Argument for `--ca-cert-validity-duration` (Controller) |
 | certRotationCheckFrequency | string | `"30m0s"` | Argument for `--cert-rotation-check-frequency` (Controller) |
 | certValidityDuration | string | `"6h0m"` | Argument for `--cert-validity-duration` (Controller) |
