@@ -52,8 +52,8 @@ spec:
         - name: RUNNER_POD_IMAGE
           value: "{{ .Values.runner.image.repository }}:{{ default .Chart.AppVersion .Values.runner.image.tag }}"
         {{- range $key, $value := .Values.extraEnv }}
-        - name: {{ $key }}
-          value: {{ $value }}
+        - name: {{ $key | quote }}
+          value: {{ $value | quote }}
         {{- end }}
         image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
