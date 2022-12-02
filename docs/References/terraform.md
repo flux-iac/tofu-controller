@@ -1209,7 +1209,7 @@ a variable for each value. To use this feature, your Terraform file must define 
 </td>
 <td>
 <em>(Optional)</em>
-<p>TfVarsFiles loads all given .tfvars files by precedence where first one is the strongest.</p>
+<p>TfVarsFiles loads all given .tfvars files. It copycats the -var-file functionality.</p>
 </td>
 </tr>
 <tr>
@@ -1679,7 +1679,7 @@ a variable for each value. To use this feature, your Terraform file must define 
 </td>
 <td>
 <em>(Optional)</em>
-<p>TfVarsFiles loads all given .tfvars files by precedence where first one is the strongest.</p>
+<p>TfVarsFiles loads all given .tfvars files. It copycats the -var-file functionality.</p>
 </td>
 </tr>
 <tr>
