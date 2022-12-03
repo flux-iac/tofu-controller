@@ -28,7 +28,11 @@ aws-package   v4.38.0-v1alpha11/6033f3b   False       True    stored artifact fo
 
 ## A step-by-step tutorial
 
+This section describes how to use the AWS package to provision an S3 bucket with ACL using the TF-controller.
+
 ### Create a KinD local cluster
+
+If you don't have a Kubernetes cluster, you can create a KinD cluster with the following command:
 
 ```shell
 kind create cluster
@@ -36,17 +40,26 @@ kind create cluster
 
 ### Install Flux
 
+After you have a Kubernetes cluster, you can install Flux with the following command:
+
 ```shell
 flux install
 ```
 
 ### Install TF-controller
 
+Then, you can install the TF-controller with the following command:
+
 ```shell
 kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml
 ```
 
 ### Setup AWS credentials
+
+To provision AWS resources, you need to provide the AWS credentials to your Terraform objects.
+You can do this by creating a secret with the AWS credentials and reference it in each of your Terraform objects.
+
+```shell
 
 ```yaml
 apiVersion: v1
@@ -61,7 +74,19 @@ stringData:
   AWS_REGION: us-east-1 # the region you want
 ```
 
+To apply the secret, run the following command:
+
+```shell
+kubectl apply -f aws-credentials.yaml
+```
+
 ### Setup AWS Bucket and ACL
+
+Now, you can create two Terraform objects, one for an S3 bucket, another one for ACL.
+Please note that we are using GitOps dependencies to make sure the ACL is created after the bucket is created.
+You can read more about the GitOps dependencies in the [GitOps dependencies](./with_GitOps_dependency_management.md) document.
+
+```shell
 
 ```yaml
 ---
