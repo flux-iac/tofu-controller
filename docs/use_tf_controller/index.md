@@ -16,3 +16,4 @@
   - [Use TF-controller with **Terraform Enterprise**](with_Terraform_Enterprise.md)
   - [Use TF-controller with **primitive modules**](with_primitive_modules.md)
   - [Use TF-controller with **GitOps dependency management**](with_GitOps_dependency_management.md)
+  - [Use TF-controller with **the ready-to-use AWS package**](with_the_ready_to_use_AWS_package.md)
