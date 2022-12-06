@@ -1,6 +1,6 @@
 # Weave GitOps Terraform Controller
 
-![Version: 0.9.4](https://img.shields.io/badge/Version-0.9.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.13.1](https://img.shields.io/badge/AppVersion-v0.13.1-informational?style=flat-square)
+![Version: 0.9.5](https://img.shields.io/badge/Version-0.9.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.13.1](https://img.shields.io/badge/AppVersion-v0.13.1-informational?style=flat-square)
 
 The Helm chart for Weave GitOps Terraform Controller
 
@@ -46,6 +46,17 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | imagePullSecrets | list | `[]` | Controller image pull secret |
 | installCRDs | bool | `true` | If `true`, install CRDs as part of the helm installation |
 | logLevel | string | `"info"` | Level of logging of the controller (Controller) |
+| metrics.enabled | bool | `false` | Enable Metrics Service |
+| metrics.serviceMonitor.annotations | object | `{}` | Assign additional Annotations |
+| metrics.serviceMonitor.enabled | bool | `false` | Enable ServiceMonitor |
+| metrics.serviceMonitor.endpoint.interval | string | `"15s"` | Set the scrape interval for the endpoint of the serviceMonitor |
+| metrics.serviceMonitor.endpoint.metricRelabelings | list | `[]` | Set metricRelabelings for the endpoint of the serviceMonitor |
+| metrics.serviceMonitor.endpoint.relabelings | list | `[]` | Set relabelings for the endpoint of the serviceMonitor |
+| metrics.serviceMonitor.endpoint.scrapeTimeout | string | `""` | Set the scrape timeout for the endpoint of the serviceMonitor |
+| metrics.serviceMonitor.labels | object | `{}` | Assign additional labels according to Prometheus' serviceMonitorSelector matching labels |
+| metrics.serviceMonitor.matchLabels | object | `{}` | Change matching labels |
+| metrics.serviceMonitor.namespace | string | `.Release.Namespace` | Install the ServiceMonitor into a different Namespace, as the monitoring stack one |
+| metrics.serviceMonitor.targetLabels | list | `[]` | Set targetLabels for the serviceMonitor |
 | nameOverride | string | `""` | Provide a name |
 | nodeSelector | object | `{}` | Node Selector properties for the TF-Controller deployment |
 | podAnnotations | object | `{}` | Additional pod annotations |
