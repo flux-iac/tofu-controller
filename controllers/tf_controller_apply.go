@@ -178,8 +178,9 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 				})
 			}
 			log.Info(fmt.Sprintf("got inventory - entries count: %d", len(inventoryEntries)))
-		} else {
-			log.Info("inventory is disabled by default")
+		} else if terraform.Spec.EnableInventory == false {
+			log.Info("inventory is disabled")
+			terraform.Status.Inventory = nil
 		}
 	}
 
