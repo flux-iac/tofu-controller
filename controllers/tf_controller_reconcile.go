@@ -168,6 +168,35 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		lastKnownAction = "Health Checked"
 	}
 
+	// Update the inventory of the Terraform CR, in case it went missing.
+	if terraform.Spec.EnableInventory && terraform.Status.Inventory == nil {
+		var inventoryEntries []infrav1.ResourceRef
+
+		getInventoryRequest := &runner.GetInventoryRequest{TfInstance: tfInstance}
+		getInventoryReply, err := runnerClient.GetInventory(ctx, getInventoryRequest)
+		if err != nil {
+			log.Error(err, "error getting inventory")
+		}
+
+		for _, iv := range getInventoryReply.Inventories {
+			inventoryEntries = append(inventoryEntries, infrav1.ResourceRef{
+				Name:       iv.GetName(),
+				Type:       iv.GetType(),
+				Identifier: iv.GetIdentifier(),
+			})
+		}
+		log.Info(fmt.Sprintf("got inventory - entries count: %d", len(inventoryEntries)))
+
+		if len(inventoryEntries) > 0 {
+			terraform.Status.Inventory = &infrav1.ResourceInventory{
+				Entries: inventoryEntries,
+			}
+		}
+	} else if terraform.Spec.EnableInventory == false {
+		log.Info("inventory is disabled")
+		terraform.Status.Inventory = nil
+	}
+
 	var (
 		readyCondition      *metav1.Condition
 		readyConditionIndex int
