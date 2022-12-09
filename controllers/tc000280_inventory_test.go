@@ -214,6 +214,11 @@ func Test_000280_inventory_test(t *testing.T) {
 		if err != nil {
 			return nil
 		}
+
+		if createdHelloWorldTF.Status.Inventory == nil {
+			return []infrav1.ResourceRef{}
+		}
+
 		return createdHelloWorldTF.Status.Inventory.Entries
 	}, timeout, interval).Should(Equal([]infrav1.ResourceRef{
 		{
