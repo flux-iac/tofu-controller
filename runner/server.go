@@ -759,6 +759,11 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 }
 
 func (r *TerraformRunnerServer) writePlan(ctx context.Context, name string, namespace string, log logr.Logger, planName string, tfplan []byte, suffix string, uuid string) error {
+	tfplan, err := utils.GzipEncode(tfplan)
+	if err != nil {
+		log.Error(err, "unable to encode the plan revision", "planName", planName)
+		return err
+	}
 	if r.terraform.GetClaimName() != "" {
 		return r.writePlanInPVC(name, log, planName, tfplan, suffix)
 	}
@@ -773,7 +778,7 @@ func (r *TerraformRunnerServer) writePlanHuman(ctx context.Context, name string,
 	}
 
 	if r.terraform.GetClaimName() != "" {
-		return r.writePlanInPVC(name, log, planName, tfplan, ".human")
+		return r.writePlanInPVC(name, log, planName, []byte(rawOutput), ".human")
 	}
 	return r.writePlanAsConfigMap(ctx, name, namespace, log, planName, rawOutput, suffix, uuid)
 }
@@ -786,13 +791,12 @@ func (r *TerraformRunnerServer) writePlanInPVC(name string, log logr.Logger, pla
 		return err
 	}
 
-	tfplan, err = utils.GzipEncode(tfplan)
-	if err != nil {
-		log.Error(err, "unable to encode the plan revision", "planName", planName)
+	if err = os.WriteFile(planPVCFilePath, tfplan, os.ModePerm); err != nil {
+		log.Error(err, "write plan to pvc", "planName", planName)
 		return err
 	}
 
-	return os.WriteFile(planPVCFilePath, tfplan, os.ModePerm)
+	return nil
 }
 
 func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name string, namespace string, log logr.Logger, planName string, tfplan []byte, suffix string, uuid string) error {
@@ -817,12 +821,6 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 			log.Error(err, "unable to delete the plan secret")
 			return err
 		}
-	}
-
-	tfplan, err := utils.GzipEncode(tfplan)
-	if err != nil {
-		log.Error(err, "unable to encode the plan revision", "planName", planName)
-		return err
 	}
 
 	tfplanData := map[string][]byte{TFPlanName: tfplan}
@@ -933,10 +931,10 @@ func (r *TerraformRunnerServer) LoadTFPlan(ctx context.Context, req *LoadTFPlanR
 		if err := r.LoadTFPlanFromPVC(ctx, req); err != nil {
 			return nil, err
 		}
-	}
-
-	if err := r.LoadTFPlanFromSecret(ctx, req); err != nil {
-		return nil, err
+	} else {
+		if err := r.LoadTFPlanFromSecret(ctx, req); err != nil {
+			return nil, err
+		}
 	}
 
 	return &LoadTFPlanReply{Message: "ok"}, nil
