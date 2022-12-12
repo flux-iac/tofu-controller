@@ -155,30 +155,18 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 # Deploy controller dev image in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: dev-deploy
 dev-deploy: manifests kustomize
-	kind create cluster --config ~/Projects/tf-controller-testing/kind-config.yml
-	kind load docker-image ${MANAGER_IMG}:${TAG}
-	kind load docker-image ${RUNNER_IMG}:${TAG}
-	kubectl config use-context kind-kind
-	flux install &&\
 	mkdir -p config/dev && cp config/default/* config/dev
 	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/weaveworks/tf-controller=${MANAGER_IMG}:${TAG}
-	$(KUSTOMIZE) build config/dev | yq e "select(.kind == \"Deployment\" and .metadata.name == \"tf-controller\").spec.template.spec.containers[0].env[1].value = \"${RUNNER_IMG}:${TAG}\"" - | \
-	yq e "select(.kind == \"Deployment\" and .metadata.name == \"tf-controller\").spec.template.spec.containers[0].imagePullPolicy = \"Never\"" - | \
-	kubectl apply -f -
+	$(KUSTOMIZE) build config/dev | yq e "select(.kind == \"Deployment\" and .metadata.name == \"tf-controller\").spec.template.spec.containers[0].env[1].value = \"test/tf-runner:$${TAG}\"" - | kubectl apply -f -
 	rm -rf config/dev
-	kubectl apply -f ~/Projects/tf-controller-testing/secret.yaml -n flux-system
-	kubectl apply -f ~/Projects/tf-controller-testing/secret.yaml -n tf-system
-	kubectl apply -f ~/Projects/tf-controller-testing/pvc.yaml -n tf-system
-	kubectl apply -f ~/Projects/tf-controller-testing/gitrepo.yaml -n flux-system
 
 # Delete dev deployment and CRDs
 .PHONY: dev-cleanup
 dev-cleanup: manifests kustomize
-	kind delete cluster
-#	mkdir -p config/dev && cp config/default/* config/dev
-#	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/weaveworks/tf-controller=${MANAGER_IMG}:${TAG}
-#	$(KUSTOMIZE) build config/dev | kubectl delete -f -
-	#rm -rf config/dev
+	mkdir -p config/dev && cp config/default/* config/dev
+	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/weaveworks/tf-controller=${MANAGER_IMG}:${TAG}
+	$(KUSTOMIZE) build config/dev | kubectl delete -f -
+	rm -rf config/dev
 
 KUSTOMIZE = $(shell pwd)/bin/kustomize
 .PHONY: kustomize
