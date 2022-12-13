@@ -356,7 +356,7 @@
 <h1 id="use-tf-controller-to-force-unlock-terraform-states">Use TF-controller to force unlock Terraform states</h1>
 <p>In some situations, you may need to perform the Terraform <a href="https://www.terraform.io/language/state/locking#force-unlock">force-unlock</a> operation on the tfstate inside the cluster. </p>
 <p>There are three possible values of <code>.spec.tfstate.forceUnlock</code>, which are <code>yes</code>, <code>no</code>, and <code>auto</code>.
-The default value is <code>no</code>, which means that you disable this behavour.</p>
+The default value is <code>no</code>, which means that you disable this behaviour.</p>
 <p>The <code>auto</code> force-unlock mode will automatically use the lock identifier produced by the associated state file instead of specified lock identifier.</p>
 <p>The recommended way is to do manual force unlock. To manually <code>force-unlock</code>, you need to:</p>
 <ol>
