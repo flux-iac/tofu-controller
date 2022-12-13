@@ -3,7 +3,7 @@
 In some situations, you may need to perform the Terraform [force-unlock](https://www.terraform.io/language/state/locking#force-unlock) operation on the tfstate inside the cluster. 
 
 There are three possible values of `.spec.tfstate.forceUnlock`, which are `yes`, `no`, and `auto`.
-The default value is `no`, which means that you disable this behavour.
+The default value is `no`, which means that you disable this behaviour.
 
 The `auto` force-unlock mode will automatically use the lock identifier produced by the associated state file instead of specified lock identifier.
 
