@@ -125,6 +125,7 @@ jobs:
           kubectl -n tf-system wait ocirepository/helloworld-oci --for=condition=ready --timeout=4m
       - name: Run planConfig.storage.claimName tests
         run: |
+          rm -rf /tmp/plan-test
           mkdir /tmp/plan-test
           kubectl -n tf-system apply -f ./config/testdata/plan-config-claim
           sleep 240
