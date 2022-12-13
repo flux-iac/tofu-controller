@@ -16,9 +16,9 @@ TF-controller offers many GitOps models:
 
 ## Quickstart and documentation
 
-To get started check out this [guide](https://weaveworks.github.io/tf-controller/getting_started/) on how to GitOps your Terraform resources with TF-controller and Flux.
+To get started check out this [guide](https://docs.gitops.weave.works/docs/terraform/get-started/) on how to GitOps your Terraform resources with TF-controller and Flux.
 
-Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a list of [features](https://weaveworks.github.io/tf-controller/#features) and [use cases](https://weaveworks.github.io/tf-controller/use_cases/).
+Check out the [documentation](https://docs.gitops.weave.works/docs/terraform/overview/) for a list of [features](https://docs.gitops.weave.works/docs/terraform/overview/#features) and [use cases](https://docs.gitops.weave.works/docs/terraform/Using%20Terraform%20CRD/provision/).
 
 ## Roadmap
 
@@ -31,7 +31,7 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) for a
 ### Q4 2022
   * [x]  ~~CRD wrappers~~ A new component model for Terraform modules
   * [x] Dependency management for TF-controller objects
-  * [ ] AWS package for TF-controller (e.g. EKS, RDS, etc.)
+  * [x] AWS package for TF-controller (e.g. EKS, RDS, etc.)
   * [ ] CLI for Weave GitOps
 
 ### Q1 2023
