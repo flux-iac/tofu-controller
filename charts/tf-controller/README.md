@@ -1,6 +1,6 @@
 # Weave GitOps Terraform Controller
 
-![Version: 0.9.5](https://img.shields.io/badge/Version-0.9.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.13.1](https://img.shields.io/badge/AppVersion-v0.13.1-informational?style=flat-square)
+![Version: 0.9.6](https://img.shields.io/badge/Version-0.9.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.13.1](https://img.shields.io/badge/AppVersion-v0.13.1-informational?style=flat-square)
 
 The Helm chart for Weave GitOps Terraform Controller
 
@@ -45,6 +45,8 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | image.tag | string | `.Chart.AppVersion` | Overrides the image tag whose default is the chart appVersion. |
 | imagePullSecrets | list | `[]` | Controller image pull secret |
 | installCRDs | bool | `true` | If `true`, install CRDs as part of the helm installation |
+| kubeAPIBurst | int | `100` | Argument for `--kube-api-burst` (Controller).  Burst indicates the maximum burst queries-per-second of requests sent to the Kubernetes API, defaults to 100. |
+| kubeAPIQPS | int | `50` | Argument for `--kube-api-qps` (Controller).  Kube API QPS indicates the maximum queries-per-second of requests sent to the Kubernetes API, defaults to 50. |
 | logLevel | string | `"info"` | Level of logging of the controller (Controller) |
 | metrics.enabled | bool | `false` | Enable Metrics Service |
 | metrics.serviceMonitor.annotations | object | `{}` | Assign additional Annotations |

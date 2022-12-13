@@ -90,6 +90,12 @@ certValidityDuration: 6h0m
 caCertValidityDuration: 168h0m
 # -- Argument for `--events-addr` (Controller). The event address, default to the address of the Notification Controller
 eventsAddress: http://notification-controller.flux-system.svc.cluster.local./
+# -- Argument for `--kube-api-qps` (Controller).
+#  Kube API QPS indicates the maximum queries-per-second of requests sent to the Kubernetes API, defaults to 50.
+kubeAPIQPS: 50
+# -- Argument for `--kube-api-burst` (Controller).
+#  Burst indicates the maximum burst queries-per-second of requests sent to the Kubernetes API, defaults to 100.
+kubeAPIBurst: 100
 awsPackage:
   install: true
   tag: v4.38.0-v1alpha11
