@@ -126,11 +126,13 @@ jobs:
       - name: Run planConfig.storage.claimName tests
         run: |
           kubectl -n tf-system apply -f ./config/testdata/plan-config-claim
+          sleep 30
+          kubectl get pv -n tf-system
           kubectl get pvc -n tf-system
           kubectl -n tf-system wait terraform/helloworld-plan-config-claim --for=condition=ready --timeout=4m
           
           planFiles=(/tmp/plan-test/tfplan-default-helloworld-plan-config-claim.human /tmp/plan-test/tfplan-default-helloworld-plan-config-claim)
-          for f in "${files[@]}"                                                                                                                                                                 ✔  11:35:44   
+          for f in "${files[@]}"
           do
             if [ ! -f "$f" ];
             then
