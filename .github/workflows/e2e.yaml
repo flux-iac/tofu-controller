@@ -126,6 +126,9 @@ jobs:
       - name: Run planConfig.storage.claimName tests
         run: |
           rm -rf /tmp/plan-test/*
+          if [ ! -d "/tmp/plan-test" ]; then
+            echo "$FILE is a directory."
+          fi
           mkdir /tmp/plan-test
           kubectl -n tf-system apply -f ./config/testdata/plan-config-claim
           sleep 240
