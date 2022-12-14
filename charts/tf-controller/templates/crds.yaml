@@ -247,6 +247,20 @@ spec:
                 description: Path to the directory containing Terraform (.tf) files.
                   Defaults to 'None', which translates to the root path of the SourceRef.
                 type: string
+              planConfig:
+                description: PlanConfigSpec is for specifying configuration for Terraform
+                  plan related options
+                properties:
+                  storage:
+                    description: PlanStorage is for specifying Terraform Plan storage
+                      configurations
+                    properties:
+                      claimName:
+                        description: ClaimName hold a name of a Kubernetes PVC that
+                          will hold the tf-runner plan file.
+                        type: string
+                    type: object
+                type: object
               readInputsFromSecrets:
                 items:
                   properties:
