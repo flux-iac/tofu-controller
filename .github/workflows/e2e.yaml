@@ -129,8 +129,8 @@ jobs:
           kubectl -n tf-system wait terraform/helloworld-plan-config-claim --for=condition=ready --timeout=4m
 
           # delete after tests
-          kubectl -n tf-system delete -f ./config/testdata/plan-config-claim
-          rm -rf /tmp/plan-config-claim
+          kubectl -n tf-system delete -f ./config/testdata/plan-config-claim/test.yaml &&\
+          kubectl -n tf-system delete -f ./config/testdata/plan-config-claim/pvc.yaml
       - name: Run approvePlan tests
         run: |
           kubectl -n tf-system apply -f ./config/testdata/approve-plan
