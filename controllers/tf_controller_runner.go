@@ -227,6 +227,24 @@ func (r *TerraformReconciler) runnerPodSpec(terraform v1alpha1.Terraform, tlsSec
 		podVolumeMounts = append(podVolumeMounts, terraform.Spec.RunnerPodTemplate.Spec.VolumeMounts...)
 	}
 
+	if terraform.GetClaimName() != "" {
+		podVolumes = append(podVolumes,
+			v1.Volume{
+				Name: terraform.Spec.PlanConfig.Storage.ClaimName,
+				VolumeSource: v1.VolumeSource{
+					PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+						ClaimName: terraform.Spec.PlanConfig.Storage.ClaimName,
+						ReadOnly:  false,
+					},
+				},
+			})
+		podVolumeMounts = append(podVolumeMounts, v1.VolumeMount{
+			Name:      terraform.GetClaimName(),
+			ReadOnly:  false,
+			MountPath: "/mnt/plan",
+		})
+	}
+
 	return v1.PodSpec{
 		TerminationGracePeriodSeconds: gracefulTermPeriod,
 		InitContainers:                terraform.Spec.RunnerPodTemplate.Spec.InitContainers,

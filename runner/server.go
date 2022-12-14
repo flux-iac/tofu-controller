@@ -730,7 +730,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 
 	planRev := strings.Replace(req.Revision, "/", "-", 1)
 	planName := "plan-" + planRev
-	if err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, log, planName, tfplan, "", req.Uuid); err != nil {
+	if err := r.writePlan(ctx, req.Name, req.Namespace, log, planName, tfplan, "", req.Uuid); err != nil {
 		return nil, err
 	}
 
@@ -746,22 +746,57 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 			return nil, err
 		}
 
-		if err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, log, planName, jsonBytes, ".json", req.Uuid); err != nil {
+		if err := r.writePlan(ctx, req.Name, req.Namespace, log, planName, jsonBytes, ".json", req.Uuid); err != nil {
 			return nil, err
 		}
 	} else if r.terraform.Spec.StoreReadablePlan == "human" {
-		rawOutput, err := r.tf.ShowPlanFileRaw(ctx, TFPlanName)
-		if err != nil {
-			log.Error(err, "unable to get the plan output for human")
-			return nil, err
-		}
-
-		if err := r.writePlanAsConfigMap(ctx, req.Name, req.Namespace, log, planName, rawOutput, "", req.Uuid); err != nil {
+		if err := r.writePlanHuman(ctx, req.Name, req.Namespace, log, planName, tfplan, "", req.Uuid); err != nil {
 			return nil, err
 		}
 	}
 
 	return &SaveTFPlanReply{Message: "ok"}, nil
+}
+
+func (r *TerraformRunnerServer) writePlan(ctx context.Context, name string, namespace string, log logr.Logger, planName string, tfplan []byte, suffix string, uuid string) error {
+	tfplan, err := utils.GzipEncode(tfplan)
+	if err != nil {
+		log.Error(err, "unable to encode the plan revision", "planName", planName)
+		return err
+	}
+	if r.terraform.GetClaimName() != "" {
+		return r.writePlanInPVC(name, log, planName, tfplan, suffix)
+	}
+	return r.writePlanAsSecret(ctx, name, namespace, log, planName, tfplan, suffix, uuid)
+}
+
+func (r *TerraformRunnerServer) writePlanHuman(ctx context.Context, name string, namespace string, log logr.Logger, planName string, tfplan []byte, suffix string, uuid string) error {
+	rawOutput, err := r.tf.ShowPlanFileRaw(ctx, TFPlanName)
+	if err != nil {
+		log.Error(err, "unable to get the plan output for human")
+		return err
+	}
+
+	if r.terraform.GetClaimName() != "" {
+		return r.writePlanInPVC(name, log, planName, []byte(rawOutput), ".human")
+	}
+	return r.writePlanAsConfigMap(ctx, name, namespace, log, planName, rawOutput, suffix, uuid)
+}
+
+func (r *TerraformRunnerServer) writePlanInPVC(name string, log logr.Logger, planName string, tfplan []byte, suffix string) error {
+	planFileName := "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix
+	planPVCFilePath, err := securejoin.SecureJoin("/mnt/plan", planFileName)
+	if err != nil {
+		log.Error(err, "unable to create PVC file path for plan")
+		return err
+	}
+
+	if err = os.WriteFile(planPVCFilePath, tfplan, os.ModePerm); err != nil {
+		log.Error(err, "write plan to pvc", "planName", planName)
+		return err
+	}
+
+	return nil
 }
 
 func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name string, namespace string, log logr.Logger, planName string, tfplan []byte, suffix string, uuid string) error {
@@ -786,12 +821,6 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 			log.Error(err, "unable to delete the plan secret")
 			return err
 		}
-	}
-
-	tfplan, err := utils.GzipEncode(tfplan)
-	if err != nil {
-		log.Error(err, "unable to encode the plan revision", "planName", planName)
-		return err
 	}
 
 	tfplanData := map[string][]byte{TFPlanName: tfplan}
@@ -888,12 +917,59 @@ func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name s
 
 func (r *TerraformRunnerServer) LoadTFPlan(ctx context.Context, req *LoadTFPlanRequest) (*LoadTFPlanReply, error) {
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
-	log.Info("loading plan from secret")
 	if req.TfInstance != r.InstanceID {
 		err := fmt.Errorf("no TF instance found")
 		log.Error(err, "no terraform")
 		return nil, err
 	}
+
+	if req.BackendCompletelyDisable {
+		return &LoadTFPlanReply{Message: "ok"}, nil
+	}
+
+	if r.terraform.GetClaimName() != "" {
+		if err := r.LoadTFPlanFromPVC(ctx, req); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := r.LoadTFPlanFromSecret(ctx, req); err != nil {
+			return nil, err
+		}
+	}
+
+	return &LoadTFPlanReply{Message: "ok"}, nil
+}
+
+func (r *TerraformRunnerServer) LoadTFPlanFromPVC(ctx context.Context, req *LoadTFPlanRequest) error {
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
+	log.Info("loading plan from PVC storage")
+
+	planFileName := "tfplan-" + r.terraform.WorkspaceName() + "-" + req.Name
+	planPVCFilePath, err := securejoin.SecureJoin("/mnt/plan", planFileName)
+	if err != nil {
+		log.Error(err, "unable to create PVC file path for plan")
+		return err
+	}
+	tfplan, err := os.ReadFile(planPVCFilePath)
+	tfplan, err = utils.GzipDecode(tfplan)
+	if err != nil {
+		log.Error(err, "unable to decode the plan")
+		return err
+	}
+
+	err = os.WriteFile(filepath.Join(r.tf.WorkingDir(), TFPlanName), tfplan, 0644)
+	if err != nil {
+		err = fmt.Errorf("error saving plan file to disk: %s", err)
+		log.Error(err, "unable to write the plan to disk")
+		return err
+	}
+
+	return nil
+}
+
+func (r *TerraformRunnerServer) LoadTFPlanFromSecret(ctx context.Context, req *LoadTFPlanRequest) error {
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
+	log.Info("loading plan from secret")
 
 	tfplanSecretKey := types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-" + r.terraform.WorkspaceName() + "-" + req.Name}
 	tfplanSecret := corev1.Secret{}
@@ -901,7 +977,7 @@ func (r *TerraformRunnerServer) LoadTFPlan(ctx context.Context, req *LoadTFPlanR
 	if err != nil {
 		err = fmt.Errorf("error getting plan secret: %s", err)
 		log.Error(err, "unable to get secret")
-		return nil, err
+		return err
 	}
 
 	if tfplanSecret.Annotations[SavedPlanSecretAnnotation] != req.PendingPlan {
@@ -909,27 +985,23 @@ func (r *TerraformRunnerServer) LoadTFPlan(ctx context.Context, req *LoadTFPlanR
 			req.PendingPlan,
 			tfplanSecret.Annotations[SavedPlanSecretAnnotation])
 		log.Error(err, "plan name mismatch")
-		return nil, err
+		return err
 	}
 
-	if req.BackendCompletelyDisable {
-		// do nothing
-	} else {
-		tfplan := tfplanSecret.Data[TFPlanName]
-		tfplan, err = utils.GzipDecode(tfplan)
-		if err != nil {
-			log.Error(err, "unable to decode the plan")
-			return nil, err
-		}
-		err = ioutil.WriteFile(filepath.Join(r.tf.WorkingDir(), TFPlanName), tfplan, 0644)
-		if err != nil {
-			err = fmt.Errorf("error saving plan file to disk: %s", err)
-			log.Error(err, "unable to write the plan to disk")
-			return nil, err
-		}
+	tfplan := tfplanSecret.Data[TFPlanName]
+	tfplan, err = utils.GzipDecode(tfplan)
+	if err != nil {
+		log.Error(err, "unable to decode the plan")
+		return err
+	}
+	err = ioutil.WriteFile(filepath.Join(r.tf.WorkingDir(), TFPlanName), tfplan, 0644)
+	if err != nil {
+		err = fmt.Errorf("error saving plan file to disk: %s", err)
+		log.Error(err, "unable to write the plan to disk")
+		return err
 	}
 
-	return &LoadTFPlanReply{Message: "ok"}, nil
+	return nil
 }
 
 func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest) (*DestroyReply, error) {

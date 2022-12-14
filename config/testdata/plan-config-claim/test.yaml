@@ -1,0 +1,28 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: plan-config-claim-pvc
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld-plan-config-claim
+spec:
+  interval: 10s
+  approvePlan: "auto"
+  storeReadablePlan: "human"
+  path: ./
+  planConfig:
+    storage:
+      claimName: "plan-config-claim-pvc"
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
