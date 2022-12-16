@@ -1,6 +1,6 @@
 # Weave GitOps Terraform Controller
 
-![Version: 0.9.6](https://img.shields.io/badge/Version-0.9.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.13.1](https://img.shields.io/badge/AppVersion-v0.13.1-informational?style=flat-square)
+![Version: 0.9.7](https://img.shields.io/badge/Version-0.9.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.13.1](https://img.shields.io/badge/AppVersion-v0.13.1-informational?style=flat-square)
 
 The Helm chart for Weave GitOps Terraform Controller
 
@@ -66,7 +66,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | podSecurityContext | object | `{"fsGroup":1337}` | Pod-level security context |
 | priorityClassName | string | `""` | PriorityClassName property for the TF-Controller deployment |
 | rbac.create | bool | `true` | If `true`, create and use RBAC resources |
-| replicaCount | int | `1` | Number of TF-Controller pods to deploy, more than one is not desirable. |
+| replicaCount | int | `1` | Number of TF-Controller pods to deploy |
 | resources | object | `{"limits":{"cpu":"1000m","memory":"1Gi"},"requests":{"cpu":"200m","memory":"64Mi"}}` | Resource limits and requests |
 | runner | object | `{"creationTimeout":"5m0s","grpc":{"maxMessageSize":4},"image":{"repository":"ghcr.io/weaveworks/tf-runner","tag":"v0.13.1"},"serviceAccount":{"allowedNamespaces":[],"annotations":{},"create":true,"name":""}}` | Runner-specific configurations |
 | runner.creationTimeout | string | `"5m0s"` | Timeout for runner-creation (Controller) |
