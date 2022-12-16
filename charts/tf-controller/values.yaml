@@ -18,7 +18,7 @@ fullnameOverride: ""
 podAnnotations: {}
 # -- Additional pod labels
 podLabels: {}
-# -- Number of TF-Controller pods to deploy, more than one is not desirable.
+# -- Number of TF-Controller pods to deploy
 replicaCount: 1
 image:
   # -- Controller image repository
