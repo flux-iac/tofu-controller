@@ -797,7 +797,7 @@ func (in Terraform) GetClaimName() string {
 }
 
 func (in Terraform) GetPlanStorageMountSubDir() string {
-	return strings.Join([]string{PlanStorageMountSubDirBase, in.Name, in.Namespace}, "/")
+	return strings.Join([]string{PlanStorageMountSubDirBase, in.Namespace, in.Name}, "/")
 }
 
 // GetStatusConditions returns a pointer to the Status.Conditions slice.
