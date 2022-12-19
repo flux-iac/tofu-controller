@@ -36,11 +36,12 @@ const (
 	CACertSecretName = "tf-controller.tls"
 	// RunnerTLSSecretName is the name of the secret containing a TLS cert that will be written to
 	// the namespace in which a terraform runner is created
-	RunnerTLSSecretName   = "terraform-runner.tls"
-	RunnerLabel           = "infra.contrib.fluxcd.io/terraform"
-	GitRepositoryIndexKey = ".metadata.gitRepository"
-	BucketIndexKey        = ".metadata.bucket"
-	OCIRepositoryIndexKey = ".metadata.ociRepository"
+	RunnerTLSSecretName        = "terraform-runner.tls"
+	RunnerLabel                = "infra.contrib.fluxcd.io/terraform"
+	GitRepositoryIndexKey      = ".metadata.gitRepository"
+	BucketIndexKey             = ".metadata.bucket"
+	OCIRepositoryIndexKey      = ".metadata.ociRepository"
+	PlanStorageMountSubDirBase = "terraform_controller"
 )
 
 type ReadInputsFromSecretSpec struct {
@@ -793,6 +794,10 @@ func (in Terraform) GetClaimName() string {
 	}
 
 	return ""
+}
+
+func (in Terraform) GetPlanStorageMountSubDir() string {
+	return strings.Join([]string{PlanStorageMountSubDirBase, in.Name, in.Namespace}, "/")
 }
 
 // GetStatusConditions returns a pointer to the Status.Conditions slice.

@@ -42,6 +42,7 @@ const (
 	runnerFileMappingDirectoryPermissions = 0700
 	runnerFileMappingFilePermissions      = 0600
 	HomePath                              = "/home/runner"
+	PlanStoragePath                       = "/mnt/plan"
 )
 
 type LocalPrintfer struct {
@@ -758,6 +759,10 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 	return &SaveTFPlanReply{Message: "ok"}, nil
 }
 
+func (r *TerraformRunnerServer) GetPlanStorageName(name string, suffix string) string {
+	return "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix
+}
+
 func (r *TerraformRunnerServer) writePlan(ctx context.Context, name string, namespace string, log logr.Logger, planName string, tfplan []byte, suffix string, uuid string) error {
 	tfplan, err := utils.GzipEncode(tfplan)
 	if err != nil {
@@ -784,8 +789,8 @@ func (r *TerraformRunnerServer) writePlanHuman(ctx context.Context, name string,
 }
 
 func (r *TerraformRunnerServer) writePlanInPVC(name string, log logr.Logger, planName string, tfplan []byte, suffix string) error {
-	planFileName := "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix
-	planPVCFilePath, err := securejoin.SecureJoin("/mnt/plan", planFileName)
+	planFileName := r.GetPlanStorageName(name, suffix)
+	planPVCFilePath, err := securejoin.SecureJoin(PlanStoragePath, planFileName)
 	if err != nil {
 		log.Error(err, "unable to create PVC file path for plan")
 		return err
@@ -800,7 +805,7 @@ func (r *TerraformRunnerServer) writePlanInPVC(name string, log logr.Logger, pla
 }
 
 func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name string, namespace string, log logr.Logger, planName string, tfplan []byte, suffix string, uuid string) error {
-	secretName := "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix
+	secretName := r.GetPlanStorageName(name, suffix)
 	tfplanObjectKey := types.NamespacedName{Name: secretName, Namespace: namespace}
 	var tfplanSecret corev1.Secret
 	tfplanSecretExists := true
@@ -859,7 +864,7 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 }
 
 func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name string, namespace string, log logr.Logger, planName string, tfplan string, suffix string, uuid string) error {
-	configMapName := "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix
+	configMapName := r.GetPlanStorageName(name, suffix)
 	tfplanObjectKey := types.NamespacedName{Name: configMapName, Namespace: namespace}
 	var tfplanCM corev1.ConfigMap
 	tfplanCMExists := true
@@ -944,8 +949,8 @@ func (r *TerraformRunnerServer) LoadTFPlanFromPVC(ctx context.Context, req *Load
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("loading plan from PVC storage")
 
-	planFileName := "tfplan-" + r.terraform.WorkspaceName() + "-" + req.Name
-	planPVCFilePath, err := securejoin.SecureJoin("/mnt/plan", planFileName)
+	planFileName := r.GetPlanStorageName(req.Name, "")
+	planPVCFilePath, err := securejoin.SecureJoin(PlanStoragePath, planFileName)
 	if err != nil {
 		log.Error(err, "unable to create PVC file path for plan")
 		return err
@@ -971,7 +976,7 @@ func (r *TerraformRunnerServer) LoadTFPlanFromSecret(ctx context.Context, req *L
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("loading plan from secret")
 
-	tfplanSecretKey := types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-" + r.terraform.WorkspaceName() + "-" + req.Name}
+	tfplanSecretKey := types.NamespacedName{Namespace: req.Namespace, Name: r.GetPlanStorageName(req.Name, "")}
 	tfplanSecret := corev1.Secret{}
 	err := r.Get(ctx, tfplanSecretKey, &tfplanSecret)
 	if err != nil {
@@ -1262,25 +1267,63 @@ func (r *TerraformRunnerServer) GetOutputs(ctx context.Context, req *GetOutputsR
 	return &GetOutputsReply{Outputs: outputs}, nil
 }
 
-func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *FinalizeSecretsRequest) (*FinalizeSecretsReply, error) {
+func (r *TerraformRunnerServer) FinalizeStorage(ctx context.Context, req *FinalizeStorageRequest) (*FinalizeStorageReply, error) {
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
+	log.Info("finalize the output storage")
+
+	if err := r.FinalizeSecrets(ctx, req); err != nil {
+		log.Info("Failed to finalize secrets")
+		return nil, err
+	}
+
+	if err := r.FinalizePVC(ctx, req); err != nil {
+		log.Info("Failed to finalize PVC storage")
+		return nil, err
+	}
+
+	return &FinalizeStorageReply{Message: "ok"}, nil
+}
+
+func (r *TerraformRunnerServer) FinalizePVC(ctx context.Context, req *FinalizeStorageRequest) error {
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
+	if r.terraform.GetClaimName() != "" {
+		planRegex := r.GetPlanStorageName(req.Name, "*")
+		planFiles, err := filepath.Glob(strings.Join([]string{PlanStoragePath, planRegex}, "/"))
+		if err != nil {
+			log.Info("failed to find files")
+			return err
+		}
+		for _, f := range planFiles {
+			if err := os.RemoveAll(f); err != nil {
+				log.Info("failed removing file: " + f)
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *FinalizeStorageRequest) error {
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("finalize the output secrets")
 	// nil dereference bug here
-	planObjectKey := types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-" + req.Workspace + "-" + req.Name}
+	planObjectKey := types.NamespacedName{Namespace: req.Namespace, Name: r.GetPlanStorageName(req.Name, "")}
 	var planSecret corev1.Secret
 	if err := r.Client.Get(ctx, planObjectKey, &planSecret); err == nil {
 		if err := r.Client.Delete(ctx, &planSecret); err != nil {
 			// transient failure
 			log.Error(err, "unable to delete the plan secret")
-			return nil, status.Error(codes.Internal, err.Error())
+			return status.Error(codes.Internal, err.Error())
 		}
+	} else if apierrors.IsNotFound(err) && r.terraform.GetClaimName() != "" {
+		log.Error(err, "using PVC as storage. secret not found.")
 	} else if apierrors.IsNotFound(err) {
 		log.Error(err, "plan secret not found")
-		return nil, status.Error(codes.NotFound, err.Error())
+		return status.Error(codes.NotFound, err.Error())
 	} else {
 		// transient failure
 		log.Error(err, "unable to get the plan secret")
-		return nil, status.Error(codes.Internal, err.Error())
+		return status.Error(codes.Internal, err.Error())
 	}
 
 	if req.HasSpecifiedOutputSecret {
@@ -1290,19 +1333,19 @@ func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *Finali
 			if err := r.Client.Delete(ctx, &outputsSecret); err != nil {
 				// transient failure
 				log.Error(err, "unable to delete the output secret")
-				return nil, status.Error(codes.Internal, err.Error())
+				return status.Error(codes.Internal, err.Error())
 			}
 		} else if apierrors.IsNotFound(err) {
 			log.Error(err, "output secret not found")
-			return nil, status.Error(codes.NotFound, err.Error())
+			return status.Error(codes.NotFound, err.Error())
 		} else {
 			// transient failure
 			log.Error(err, "unable to get the output secret")
-			return nil, status.Error(codes.Internal, err.Error())
+			return status.Error(codes.Internal, err.Error())
 		}
 	}
 
-	return &FinalizeSecretsReply{Message: "ok"}, nil
+	return nil
 }
 
 func (r *TerraformRunnerServer) ForceUnlock(ctx context.Context, req *ForceUnlockRequest) (*ForceUnlockReply, error) {

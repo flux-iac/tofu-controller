@@ -46,7 +46,7 @@ type RunnerClient interface {
 	Init(ctx context.Context, in *InitRequest, opts ...grpc.CallOption) (*InitReply, error)
 	SelectWorkspace(ctx context.Context, in *WorkspaceRequest, opts ...grpc.CallOption) (*WorkspaceReply, error)
 	Upload(ctx context.Context, in *UploadRequest, opts ...grpc.CallOption) (*UploadReply, error)
-	FinalizeSecrets(ctx context.Context, in *FinalizeSecretsRequest, opts ...grpc.CallOption) (*FinalizeSecretsReply, error)
+	FinalizeStorage(ctx context.Context, in *FinalizeStorageRequest, opts ...grpc.CallOption) (*FinalizeStorageReply, error)
 	ForceUnlock(ctx context.Context, in *ForceUnlockRequest, opts ...grpc.CallOption) (*ForceUnlockReply, error)
 }
 
@@ -274,9 +274,9 @@ func (c *runnerClient) Upload(ctx context.Context, in *UploadRequest, opts ...gr
 	return out, nil
 }
 
-func (c *runnerClient) FinalizeSecrets(ctx context.Context, in *FinalizeSecretsRequest, opts ...grpc.CallOption) (*FinalizeSecretsReply, error) {
-	out := new(FinalizeSecretsReply)
-	err := c.cc.Invoke(ctx, "/runner.Runner/FinalizeSecrets", in, out, opts...)
+func (c *runnerClient) FinalizeStorage(ctx context.Context, in *FinalizeStorageRequest, opts ...grpc.CallOption) (*FinalizeStorageReply, error) {
+	out := new(FinalizeStorageReply)
+	err := c.cc.Invoke(ctx, "/runner.Runner/FinalizeStorage", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -320,7 +320,7 @@ type RunnerServer interface {
 	Init(context.Context, *InitRequest) (*InitReply, error)
 	SelectWorkspace(context.Context, *WorkspaceRequest) (*WorkspaceReply, error)
 	Upload(context.Context, *UploadRequest) (*UploadReply, error)
-	FinalizeSecrets(context.Context, *FinalizeSecretsRequest) (*FinalizeSecretsReply, error)
+	FinalizeStorage(context.Context, *FinalizeStorageRequest) (*FinalizeStorageReply, error)
 	ForceUnlock(context.Context, *ForceUnlockRequest) (*ForceUnlockReply, error)
 	mustEmbedUnimplementedRunnerServer()
 }
@@ -401,8 +401,8 @@ func (UnimplementedRunnerServer) SelectWorkspace(context.Context, *WorkspaceRequ
 func (UnimplementedRunnerServer) Upload(context.Context, *UploadRequest) (*UploadReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Upload not implemented")
 }
-func (UnimplementedRunnerServer) FinalizeSecrets(context.Context, *FinalizeSecretsRequest) (*FinalizeSecretsReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FinalizeSecrets not implemented")
+func (UnimplementedRunnerServer) FinalizeStorage(context.Context, *FinalizeStorageRequest) (*FinalizeStorageReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FinalizeStorage not implemented")
 }
 func (UnimplementedRunnerServer) ForceUnlock(context.Context, *ForceUnlockRequest) (*ForceUnlockReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForceUnlock not implemented")
@@ -852,20 +852,20 @@ func _Runner_Upload_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Runner_FinalizeSecrets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FinalizeSecretsRequest)
+func _Runner_FinalizeStorage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FinalizeStorageRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RunnerServer).FinalizeSecrets(ctx, in)
+		return srv.(RunnerServer).FinalizeStorage(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/runner.Runner/FinalizeSecrets",
+		FullMethod: "/runner.Runner/FinalizeStorage",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RunnerServer).FinalizeSecrets(ctx, req.(*FinalizeSecretsRequest))
+		return srv.(RunnerServer).FinalizeStorage(ctx, req.(*FinalizeStorageRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -992,8 +992,8 @@ var Runner_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Runner_Upload_Handler,
 		},
 		{
-			MethodName: "FinalizeSecrets",
-			Handler:    _Runner_FinalizeSecrets_Handler,
+			MethodName: "FinalizeStorage",
+			Handler:    _Runner_FinalizeStorage_Handler,
 		},
 		{
 			MethodName: "ForceUnlock",

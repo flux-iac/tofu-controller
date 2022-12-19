@@ -110,8 +110,8 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 		outputSecretName = terraform.Spec.WriteOutputsToSecret.Name
 	}
 
-	traceLog.Info("Finalize the secrets")
-	finalizeSecretsReply, err := runnerClient.FinalizeSecrets(ctx, &runner.FinalizeSecretsRequest{
+	traceLog.Info("Finalize storage: secrets, pvc")
+	finalizeStorageReply, err := runnerClient.FinalizeStorage(ctx, &runner.FinalizeStorageRequest{
 		Namespace:                terraform.Namespace,
 		Name:                     terraform.Name,
 		Workspace:                terraform.WorkspaceName(),
@@ -136,7 +136,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 
 	traceLog.Info("Check for an error")
 	if err == nil {
-		log.Info(fmt.Sprintf("finalizing secrets: %s", finalizeSecretsReply.Message))
+		log.Info(fmt.Sprintf("finalizing secrets: %s", finalizeStorageReply.Message))
 	}
 
 	// Record deleted status

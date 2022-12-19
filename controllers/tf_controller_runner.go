@@ -241,7 +241,8 @@ func (r *TerraformReconciler) runnerPodSpec(terraform v1alpha1.Terraform, tlsSec
 		podVolumeMounts = append(podVolumeMounts, v1.VolumeMount{
 			Name:      terraform.GetClaimName(),
 			ReadOnly:  false,
-			MountPath: "/mnt/plan",
+			MountPath: runner.PlanStoragePath,
+			SubPath:   terraform.GetPlanStorageMountSubDir(),
 		})
 	}
 
