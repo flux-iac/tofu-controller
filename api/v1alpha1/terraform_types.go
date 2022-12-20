@@ -21,15 +21,14 @@ import (
 	"strings"
 	"time"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
-	apimeta "k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-
 	"github.com/fluxcd/pkg/apis/meta"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 )
 
 const (
@@ -224,6 +223,10 @@ type TerraformSpec struct {
 
 	// +optional
 	DependsOn []meta.NamespacedObjectReference `json:"dependsOn,omitempty"`
+
+	// Enterprise is the enterprise configuration placeholder.
+	// +optional
+	Enterprise *apiextensionsv1.JSON `json:"enterprise,omitempty"`
 }
 
 type Webhook struct {
