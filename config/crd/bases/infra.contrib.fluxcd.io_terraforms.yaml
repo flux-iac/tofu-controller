@@ -158,6 +158,9 @@ spec:
                 description: EnableInventory enables the object to store resource
                   entries as the inventory for external use.
                 type: boolean
+              enterprise:
+                description: Enterprise is the enterprise configuration placeholder.
+                x-kubernetes-preserve-unknown-fields: true
               fileMappings:
                 description: List of all configuration files to be created in initialization.
                 items:

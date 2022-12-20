@@ -5,10 +5,10 @@ go 1.19
 require (
 	github.com/fluxcd/pkg/apis/meta v0.17.0
 	github.com/fluxcd/source-controller/api v0.31.0
-	k8s.io/api v0.25.2
-	k8s.io/apiextensions-apiserver v0.25.2
-	k8s.io/apimachinery v0.25.3
-	sigs.k8s.io/controller-runtime v0.13.0
+	k8s.io/api v0.25.4
+	k8s.io/apiextensions-apiserver v0.25.4
+	k8s.io/apimachinery v0.25.4
+	sigs.k8s.io/controller-runtime v0.13.1
 )
 
 require (
