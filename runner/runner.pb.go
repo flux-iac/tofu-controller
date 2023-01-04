@@ -1124,11 +1124,12 @@ type PlanRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TfInstance string   `protobuf:"bytes,1,opt,name=tfInstance,proto3" json:"tfInstance,omitempty"`
-	Out        string   `protobuf:"bytes,2,opt,name=out,proto3" json:"out,omitempty"`
-	Refresh    bool     `protobuf:"varint,3,opt,name=refresh,proto3" json:"refresh,omitempty"`
-	Destroy    bool     `protobuf:"varint,4,opt,name=destroy,proto3" json:"destroy,omitempty"`
-	Targets    []string `protobuf:"bytes,5,rep,name=targets,proto3" json:"targets,omitempty"`
+	TfInstance  string   `protobuf:"bytes,1,opt,name=tfInstance,proto3" json:"tfInstance,omitempty"`
+	Out         string   `protobuf:"bytes,2,opt,name=out,proto3" json:"out,omitempty"`
+	Refresh     bool     `protobuf:"varint,3,opt,name=refresh,proto3" json:"refresh,omitempty"`
+	Destroy     bool     `protobuf:"varint,4,opt,name=destroy,proto3" json:"destroy,omitempty"`
+	Targets     []string `protobuf:"bytes,5,rep,name=targets,proto3" json:"targets,omitempty"`
+	LockTimeout []string `protobuf:"bytes,6,rep,name=lockTimeout,proto3" json:"lockTimeout,omitempty"`
 }
 
 func (x *PlanRequest) Reset() {

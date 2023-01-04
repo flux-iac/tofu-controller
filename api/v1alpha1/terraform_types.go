@@ -120,6 +120,10 @@ type TerraformSpec struct {
 	// +required
 	Interval metav1.Duration `json:"interval"`
 
+	// Duration to retry a state lock.
+	// +optional
+	LockTimeout string `json:"lockTimeout,omitempty"`
+
 	// The interval at which to retry a previously failed reconciliation.
 	// When not specified, the controller uses the TerraformSpec.Interval
 	// value to retry failures.

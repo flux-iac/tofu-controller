@@ -244,6 +244,9 @@ spec:
               interval:
                 description: The interval at which to reconcile the Terraform.
                 type: string
+              lockTimeout:
+                description: Duration to retry a state lock.
+                type: string
               path:
                 description: Path to the directory containing Terraform (.tf) files.
                   Defaults to 'None', which translates to the root path of the SourceRef.

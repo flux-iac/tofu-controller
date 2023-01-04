@@ -143,6 +143,7 @@ message PlanRequest {
   bool refresh = 3;
   bool destroy = 4;
   repeated string targets = 5;
+  string lockTimeout = 6;
 }
 
 message PlanReply {
