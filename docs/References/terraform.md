@@ -1229,6 +1229,18 @@ Kubernetes meta/v1.Duration
 </tr>
 <tr>
 <td>
+<code>lockTimeout</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Duration to retry a state lock.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>retryInterval</code><br>
 <em>
 <a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
@@ -1512,6 +1524,20 @@ string
 </td>
 <td>
 <em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>enterprise</code><br>
+<em>
+<a href="https://pkg.go.dev/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1?tab=doc#JSON">
+Kubernetes pkg/apis/apiextensions/v1.JSON
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Enterprise is the enterprise configuration placeholder.</p>
 </td>
 </tr>
 </table>
@@ -1687,6 +1713,18 @@ Kubernetes meta/v1.Duration
 </tr>
 <tr>
 <td>
+<code>lockTimeout</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Duration to retry a state lock.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>retryInterval</code><br>
 <em>
 <a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
@@ -1970,6 +2008,20 @@ string
 </td>
 <td>
 <em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>enterprise</code><br>
+<em>
+<a href="https://pkg.go.dev/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1?tab=doc#JSON">
+Kubernetes pkg/apis/apiextensions/v1.JSON
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Enterprise is the enterprise configuration placeholder.</p>
 </td>
 </tr>
 </tbody>
