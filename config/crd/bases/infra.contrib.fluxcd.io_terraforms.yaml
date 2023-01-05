@@ -247,6 +247,7 @@ spec:
               lockTimeout:
                 description: Duration to retry a state lock.
                 type: string
+                default: "0s"
               path:
                 description: Path to the directory containing Terraform (.tf) files.
                   Defaults to 'None', which translates to the root path of the SourceRef.
