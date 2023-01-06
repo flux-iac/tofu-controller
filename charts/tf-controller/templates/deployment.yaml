@@ -19,7 +19,7 @@ spec:
         {{- with .Values.podLabels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-        {{- include "tf-controller.selectorLabels" . | nindent 10 }}
+        {{- include "tf-controller.selectorLabels" . | nindent 8 }}
     spec:
       {{- if not .Values.serviceAccount.create }}
       {{- with .Values.imagePullSecrets }}
