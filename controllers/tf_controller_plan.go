@@ -60,9 +60,9 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	}
 
 	// check if Lock Timeout is set
-	if terraform.Spec.LockTimeout != "0s" {
+	if terraform.Spec.TFState.LockTimeout.Duration.String() != "" {
 		log.Info("lock timeout is set")
-		planRequest.LockTimeout = terraform.Spec.LockTimeout
+		planRequest.LockTimeout = terraform.Spec.TFState.LockTimeout.Duration.String()
 	}
 
 	planReply, err := runnerClient.Plan(ctx, planRequest)

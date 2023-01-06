@@ -244,10 +244,6 @@ spec:
               interval:
                 description: The interval at which to reconcile the Terraform.
                 type: string
-              lockTimeout:
-                description: Duration to retry a state lock.
-                type: string
-                default: "0s"
               path:
                 description: Path to the directory containing Terraform (.tf) files.
                   Defaults to 'None', which translates to the root path of the SourceRef.
@@ -4477,6 +4473,9 @@ spec:
                       empty to do nothing, set this to the value of the `Lock Info:
                       ID: [value]`, e.g. `f2ab685b-f84d-ac0b-a125-378a22877e8d`, to
                       force unlock the state."
+                    type: string
+                  lockTimeout:
+                    description: Duration to retry a state lock.
                     type: string
                 type: object
               values:

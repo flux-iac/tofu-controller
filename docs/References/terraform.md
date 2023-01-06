@@ -1048,6 +1048,20 @@ either <code>yes</code> or <code>auto</code>.</p>
 e.g. <code>f2ab685b-f84d-ac0b-a125-378a22877e8d</code>, to force unlock the state.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>lockTimeout</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Duration to retry a state lock.</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1225,18 +1239,6 @@ Kubernetes meta/v1.Duration
 </td>
 <td>
 <p>The interval at which to reconcile the Terraform.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>lockTimeout</code><br>
-<em>
-string
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>Duration to retry a state lock.</p>
 </td>
 </tr>
 <tr>
@@ -1709,18 +1711,6 @@ Kubernetes meta/v1.Duration
 </td>
 <td>
 <p>The interval at which to reconcile the Terraform.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>lockTimeout</code><br>
-<em>
-string
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>Duration to retry a state lock.</p>
 </td>
 </tr>
 <tr>
