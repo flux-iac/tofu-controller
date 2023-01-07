@@ -439,7 +439,27 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 			return nil, err
 		}
 
-		vars["values"] = &apiextensionsv1.JSON{Raw: buf.Bytes()}
+		// When trying to inject a non-string in the template it will always be a string.
+		// For example:
+		// 				template								after tmpl.Execute
+		// `{ "my_object":"${{ .my_object }}" }` ---> `{ "my_object":"{"this":"object"}" }`
+		// We therefore need to remove unnecessary strings making it valid JSON again
+		type replacement struct {
+			old string
+			new string
+		}
+		replacements := []replacement{
+			{old: `"{"`, new: `{"`},
+			{old: `"}"`, new: `"}`},
+			{old: `"["`, new: `["`},
+			{old: `"]"`, new: `"]`},
+		}
+		s := buf.String()
+		for _, replace := range replacements {
+			s = strings.ReplaceAll(s, replace.old, replace.new)
+		}
+
+		vars["values"] = &apiextensionsv1.JSON{Raw: []byte(s)}
 	}
 
 	log.Info("mapping the Spec.Vars")
