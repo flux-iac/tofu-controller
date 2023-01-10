@@ -76,6 +76,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 
 	applyRequest := &runner.ApplyRequest{
 		TfInstance:         tfInstance,
+		Parallelism:        terraform.Spec.Parallelism,
 		RefreshBeforeApply: terraform.Spec.RefreshBeforeApply,
 		Targets:            terraform.Spec.Targets,
 	}

@@ -301,12 +301,14 @@ spec:
                   type: object
                 type: array
               contentConfigChecksum:
-                description: 'ContentConfigChecksum is a checksum of all the configurations
+                description: "ContentConfigChecksum is a checksum of all the configurations
                   related to the content of the source artifact: - .spec.ignore -
                   .spec.layerSelector observed in .status.observedGeneration version
                   of the object. This can be used to determine if the content configuration
                   has changed and the artifact needs to be rebuilt. It has the format
-                  of `<algo>:<checksum>`, for example: `sha256:<checksum>`.'
+                  of `<algo>:<checksum>`, for example: `sha256:<checksum>`. \n Deprecated:
+                  Replaced with explicit fields for observed artifact content config
+                  in the status."
                 type: string
               lastHandledReconcileAt:
                 description: LastHandledReconcileAt holds the value of the most recent
@@ -317,6 +319,29 @@ spec:
                 description: ObservedGeneration is the last observed generation.
                 format: int64
                 type: integer
+              observedIgnore:
+                description: ObservedIgnore is the observed exclusion patterns used
+                  for constructing the source artifact.
+                type: string
+              observedLayerSelector:
+                description: ObservedLayerSelector is the observed layer selector
+                  used for constructing the source artifact.
+                properties:
+                  mediaType:
+                    description: MediaType specifies the OCI media type of the layer
+                      which should be extracted from the OCI Artifact. The first layer
+                      matching this type is selected.
+                    type: string
+                  operation:
+                    description: Operation specifies how the selected layer should
+                      be processed. By default, the layer compressed content is extracted
+                      to storage. When the operation is set to 'copy', the layer compressed
+                      content is persisted to storage as it is.
+                    enum:
+                    - extract
+                    - copy
+                    type: string
+                type: object
               url:
                 description: URL is the download link for the artifact output of the
                   last OCI Repository sync.
