@@ -244,6 +244,12 @@ spec:
               interval:
                 description: The interval at which to reconcile the Terraform.
                 type: string
+              parallelism:
+                default: 0
+                description: Parallelism limits the number of concurrent operations
+                  of Terraform apply step.
+                format: int32
+                type: integer
               path:
                 description: Path to the directory containing Terraform (.tf) files.
                   Defaults to 'None', which translates to the root path of the SourceRef.

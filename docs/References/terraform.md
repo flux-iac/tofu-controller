@@ -1478,6 +1478,18 @@ TFStateSpec
 </tr>
 <tr>
 <td>
+<code>parallelism</code><br>
+<em>
+int32
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Parallelism limits the number of concurrent operations of Terraform apply step.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>storeReadablePlan</code><br>
 <em>
 string
@@ -1512,6 +1524,20 @@ string
 </td>
 <td>
 <em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>enterprise</code><br>
+<em>
+<a href="https://pkg.go.dev/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1?tab=doc#JSON">
+Kubernetes pkg/apis/apiextensions/v1.JSON
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Enterprise is the enterprise configuration placeholder.</p>
 </td>
 </tr>
 </table>
@@ -1936,6 +1962,18 @@ TFStateSpec
 </tr>
 <tr>
 <td>
+<code>parallelism</code><br>
+<em>
+int32
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Parallelism limits the number of concurrent operations of Terraform apply step.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>storeReadablePlan</code><br>
 <em>
 string
@@ -1970,6 +2008,20 @@ string
 </td>
 <td>
 <em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>enterprise</code><br>
+<em>
+<a href="https://pkg.go.dev/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1?tab=doc#JSON">
+Kubernetes pkg/apis/apiextensions/v1.JSON
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Enterprise is the enterprise configuration placeholder.</p>
 </td>
 </tr>
 </tbody>
