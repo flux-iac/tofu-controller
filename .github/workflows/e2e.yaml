@@ -51,6 +51,7 @@ jobs:
         uses: engineerd/setup-kind@v0.5.0
         with:
           version: v0.11.1
+          config: ./config/testdata/kind/kind-config.yaml
           image: kindest/node:v1.21.1@sha256:fae9a58f17f18f06aeac9772ca8b5ac680ebbed985e266f711d936e91d113bad
       - name: Setup Kustomize
         uses: fluxcd/pkg/actions/kustomize@main
@@ -122,6 +123,14 @@ jobs:
           kubectl -n tf-system apply -f ./config/testdata/source
           kubectl -n tf-system wait gitrepository/helloworld --for=condition=ready --timeout=4m
           kubectl -n tf-system wait ocirepository/helloworld-oci --for=condition=ready --timeout=4m
+      - name: Run planConfig.storage.claimName tests
+        run: |
+          kubectl -n tf-system apply -f ./config/testdata/plan-config-claim
+          kubectl -n tf-system wait terraform/helloworld-plan-config-claim --for=condition=ready --timeout=4m
+
+          # delete after tests
+          kubectl -n tf-system delete -f ./config/testdata/plan-config-claim/test.yaml &&\
+          kubectl -n tf-system delete -f ./config/testdata/plan-config-claim/pvc.yaml
       - name: Run approvePlan tests
         run: |
           kubectl -n tf-system apply -f ./config/testdata/approve-plan

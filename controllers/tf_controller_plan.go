@@ -113,7 +113,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		Revision:                 revision,
 	})
 	if err != nil {
-		err = fmt.Errorf("error saving plan secret: %s", err)
+		err = fmt.Errorf("error saving plan: %s", err)
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,

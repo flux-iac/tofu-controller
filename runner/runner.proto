@@ -35,7 +35,7 @@ service Runner {
   rpc SelectWorkspace(WorkspaceRequest) returns (WorkspaceReply) {}
   rpc Upload(UploadRequest) returns (UploadReply) {}
 
-  rpc FinalizeSecrets(FinalizeSecretsRequest) returns (FinalizeSecretsReply) {}
+  rpc FinalizeStorage(FinalizeStorageRequest) returns (FinalizeStorageReply) {}
   rpc ForceUnlock(ForceUnlockRequest) returns (ForceUnlockReply) {}
 }
 
@@ -293,7 +293,7 @@ message UploadReply {
   string message = 1;
 }
 
-message FinalizeSecretsRequest {
+message FinalizeStorageRequest {
   string namespace = 1;
   string name = 2;
   string workspace = 3;
@@ -301,7 +301,7 @@ message FinalizeSecretsRequest {
   string outputSecretName = 5;
 }
 
-message FinalizeSecretsReply {
+message FinalizeStorageReply {
   string message = 1;
   bool   notFound = 2;
 }

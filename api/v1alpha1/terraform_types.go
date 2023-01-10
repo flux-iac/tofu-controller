@@ -35,11 +35,12 @@ const (
 	CACertSecretName = "tf-controller.tls"
 	// RunnerTLSSecretName is the name of the secret containing a TLS cert that will be written to
 	// the namespace in which a terraform runner is created
-	RunnerTLSSecretName   = "terraform-runner.tls"
-	RunnerLabel           = "infra.contrib.fluxcd.io/terraform"
-	GitRepositoryIndexKey = ".metadata.gitRepository"
-	BucketIndexKey        = ".metadata.bucket"
-	OCIRepositoryIndexKey = ".metadata.ociRepository"
+	RunnerTLSSecretName        = "terraform-runner.tls"
+	RunnerLabel                = "infra.contrib.fluxcd.io/terraform"
+	GitRepositoryIndexKey      = ".metadata.gitRepository"
+	BucketIndexKey             = ".metadata.bucket"
+	OCIRepositoryIndexKey      = ".metadata.ociRepository"
+	PlanStorageMountSubDirBase = "terraform_controller"
 )
 
 type ReadInputsFromSecretSpec struct {
@@ -85,6 +86,9 @@ type TerraformSpec struct {
 	// Destroy produces a destroy plan. Applying the plan will destroy all resources.
 	// +optional
 	Destroy bool `json:"destroy,omitempty"`
+
+	// +optional
+	PlanConfig *PlanConfigSpec `json:"planConfig,omitempty"`
 
 	// +optional
 	BackendConfig *BackendConfigSpec `json:"backendConfig,omitempty"`
@@ -353,6 +357,17 @@ type TerraformList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Terraform `json:"items"`
+}
+
+// PlanConfigSpec is for specifying configuration for Terraform plan related options
+type PlanConfigSpec struct {
+	Storage *PlanStorage `json:"storage,omitempty"`
+}
+
+// PlanStorage is for specifying Terraform Plan storage configurations
+type PlanStorage struct {
+	// ClaimName hold a name of a Kubernetes PVC that will hold the tf-runner plan file.
+	ClaimName string `json:"claimName,omitempty"`
 }
 
 // BackendConfigSpec is for specifying configuration for Terraform's Kubernetes backend
@@ -774,6 +789,18 @@ func (in Terraform) GetRetryInterval() time.Duration {
 		return in.Spec.RetryInterval.Duration
 	}
 	return in.Spec.Interval.Duration
+}
+
+func (in Terraform) GetClaimName() string {
+	if in.Spec.PlanConfig != nil && in.Spec.PlanConfig.Storage != nil {
+		return in.Spec.PlanConfig.Storage.ClaimName
+	}
+
+	return ""
+}
+
+func (in Terraform) GetPlanStorageMountSubDir() string {
+	return strings.Join([]string{PlanStorageMountSubDirBase, in.Namespace, in.Name}, "/")
 }
 
 // GetStatusConditions returns a pointer to the Status.Conditions slice.

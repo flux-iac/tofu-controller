@@ -428,6 +428,39 @@ string
 </table>
 </div>
 </div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.PlanConfigSpec">PlanConfigSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+</p>
+<p>PlanConfigSpec is for specifying configuration for Terraform plan related options</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>storage</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.PlanStorage">
+PlanStorage
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="infra.contrib.fluxcd.io/v1alpha1.PlanStatus">PlanStatus
 </h3>
 <p>
@@ -486,6 +519,38 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.PlanStorage">PlanStorage
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.PlanConfigSpec">PlanConfigSpec</a>)
+</p>
+<p>PlanStorage is for specifying Terraform Plan storage configurations</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>claimName</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>ClaimName hold a name of a Kubernetes PVC that will hold the tf-runner plan file.</p>
 </td>
 </tr>
 </tbody>
@@ -1119,6 +1184,19 @@ bool
 </tr>
 <tr>
 <td>
+<code>planConfig</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.PlanConfigSpec">
+PlanConfigSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
 <code>backendConfig</code><br>
 <em>
 <a href="#infra.contrib.fluxcd.io/v1alpha1.BackendConfigSpec">
@@ -1573,6 +1651,19 @@ bool
 <td>
 <em>(Optional)</em>
 <p>Destroy produces a destroy plan. Applying the plan will destroy all resources.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>planConfig</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.PlanConfigSpec">
+PlanConfigSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
 </td>
 </tr>
 <tr>
