@@ -212,6 +212,11 @@ type TerraformSpec struct {
 	// +optional
 	Targets []string `json:"targets,omitempty"`
 
+	// Parallelism limits the number of concurrent operations of Terraform apply step. Zero (0) means using the default value.
+	// +kubebuilder:default:=0
+	// +optional
+	Parallelism int32 `json:"parallelism,omitempty"`
+
 	// StoreReadablePlan enables storing the plan in a readable format.
 	// +kubebuilder:validation:Enum=none;json;human
 	// +kubebuilder:default:=none
