@@ -247,7 +247,7 @@ spec:
               parallelism:
                 default: 0
                 description: Parallelism limits the number of concurrent operations
-                  of Terraform apply step.
+                  of Terraform apply step. Zero (0) means using the default value.
                 format: int32
                 type: integer
               path:
