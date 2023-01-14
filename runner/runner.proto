@@ -199,6 +199,7 @@ message ApplyRequest {
   string dirOrPlan = 2;
   bool   refreshBeforeApply = 3;
   repeated string targets = 4;
+  int32 parallelism = 5;
 }
 
 message ApplyReply {

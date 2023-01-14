@@ -1005,6 +1005,10 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 		applyOpt = append(applyOpt, tfexec.Target(target))
 	}
 
+	if req.Parallelism > 0 {
+		applyOpt = append(applyOpt, tfexec.Parallelism(int(req.Parallelism)))
+	}
+
 	if err := r.tf.Apply(ctx, applyOpt...); err != nil {
 		st := status.New(codes.Internal, err.Error())
 		var stateErr *tfexec.ErrStateLocked
