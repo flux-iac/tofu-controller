@@ -8,8 +8,10 @@
       
       
       
+      
+      
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.10">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.4">
     
     
       
@@ -17,11 +19,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.975780f9.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.9c788c91.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
-        
       
       
 
@@ -109,8 +110,6 @@
       <form class="md-header__option" data-md-component="palette">
         
           
-          
-          
           <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent=""  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
           
             <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
@@ -118,8 +117,6 @@
             </label>
           
         
-          
-          
           
           <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="" data-md-color-accent=""  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
           
@@ -369,43 +366,42 @@
                 
                   
 
-  <a href="https://github.com/weaveworks/tf-controller/edit/master/docs/how_to/backup_and_restore_a_Terraform_state.md" title="Edit this page" class="md-content__button md-icon">
-    
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
-  </a>
+  
+  
+
 
 
 <h1 id="backup-and-restore-a-terraform-state">Backup and restore a Terraform state</h1>
 <h2 id="backup-the-tfstate">Backup the tfstate</h2>
 <p>Assume that we have the <code>my-stack</code> Terraform object with its <code>.spec.workspace</code> set to "default".</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>kubectl get terraform
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>terraform
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>NAME       READY     STATUS         AGE
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>my-stack   Unknown   Initializing   28s
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>NAME<span class="w">       </span>READY<span class="w">     </span>STATUS<span class="w">         </span>AGE
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>my-stack<span class="w">   </span>Unknown<span class="w">   </span>Initializing<span class="w">   </span>28s
 </code></pre></div>
 <p>We can backup its tfstate out of the cluster, like this:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">WORKSPACE</span><span class="o">=</span>default
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nv">NAME</span><span class="o">=</span>my-stack
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>kubectl get secret tfstate-<span class="si">${</span><span class="nv">WORKSPACE</span><span class="si">}</span>-<span class="si">${</span><span class="nv">NAME</span><span class="si">}</span> <span class="se">\</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  -ojsonpath<span class="o">=</span><span class="s1">&#39;{.data.tfstate}&#39;</span> <span class="se">\</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  <span class="p">|</span> base64 -d <span class="p">|</span> gzip -d &gt; terraform.tfstate
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>kubectl<span class="w"> </span>get<span class="w"> </span>secret<span class="w"> </span>tfstate-<span class="si">${</span><span class="nv">WORKSPACE</span><span class="si">}</span>-<span class="si">${</span><span class="nv">NAME</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span>-ojsonpath<span class="o">=</span><span class="s1">&#39;{.data.tfstate}&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>base64<span class="w"> </span>-d<span class="w"> </span><span class="p">|</span><span class="w"> </span>gzip<span class="w"> </span>-d<span class="w"> </span>&gt;<span class="w"> </span>terraform.tfstate
 </code></pre></div>
 <h2 id="restore-the-tfstate">Restore the tfstate</h2>
 <p>To restore the tfstate file or import an existing tfstate file to the cluster, we can use the following operation:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>gzip terraform.tfstate
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>gzip<span class="w"> </span>terraform.tfstate
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nv">WORKSPACE</span><span class="o">=</span>default
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nv">NAME</span><span class="o">=</span>my-stack
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>kubectl create secret <span class="se">\</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>  generic tfstate-<span class="si">${</span><span class="nv">WORKSPACE</span><span class="si">}</span>-<span class="si">${</span><span class="nv">NAME</span><span class="si">}</span> <span class="se">\</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>  --from-file<span class="o">=</span><span class="nv">tfstate</span><span class="o">=</span>terraform.tfstate.gz <span class="se">\</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>  --dry-run<span class="o">=</span>client -o<span class="o">=</span>yaml <span class="se">\</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>  <span class="p">|</span> yq e <span class="s1">&#39;.metadata.annotations[&quot;encoding&quot;]=&quot;gzip&quot;&#39;</span> - <span class="se">\</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>  &gt; tfstate-<span class="si">${</span><span class="nv">WORKSPACE</span><span class="si">}</span>-<span class="si">${</span><span class="nv">NAME</span><span class="si">}</span>.yaml
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span>generic<span class="w"> </span>tfstate-<span class="si">${</span><span class="nv">WORKSPACE</span><span class="si">}</span>-<span class="si">${</span><span class="nv">NAME</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span>--from-file<span class="o">=</span><span class="nv">tfstate</span><span class="o">=</span>terraform.tfstate.gz<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span>--dry-run<span class="o">=</span>client<span class="w"> </span>-o<span class="o">=</span>yaml<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>yq<span class="w"> </span>e<span class="w"> </span><span class="s1">&#39;.metadata.annotations[&quot;encoding&quot;]=&quot;gzip&quot;&#39;</span><span class="w"> </span>-<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span>&gt;<span class="w"> </span>tfstate-<span class="si">${</span><span class="nv">WORKSPACE</span><span class="si">}</span>-<span class="si">${</span><span class="nv">NAME</span><span class="si">}</span>.yaml
 <a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>kubectl apply -f tfstate-<span class="si">${</span><span class="nv">WORKSPACE</span><span class="si">}</span>-<span class="si">${</span><span class="nv">NAME</span><span class="si">}</span>.yaml
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>tfstate-<span class="si">${</span><span class="nv">WORKSPACE</span><span class="si">}</span>-<span class="si">${</span><span class="nv">NAME</span><span class="si">}</span>.yaml
 </code></pre></div>
 
 
@@ -444,12 +440,11 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.annotate"], "search": "../../assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.annotate"], "search": "../../assets/javascripts/workers/search.e5c33ebb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.5a2dcb6a.min.js"></script>
+      <script src="../../assets/javascripts/bundle.ba449ae6.min.js"></script>
       
-    
     
   </body>
 </html>
