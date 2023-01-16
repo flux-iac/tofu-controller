@@ -8,7 +8,7 @@ BUILD_SHA ?= $(shell git rev-parse --short HEAD)
 BUILD_VERSION ?= $(shell git describe --tags $$(git rev-list --tags --max-count=1))
 
 # source controller version
-SOURCE_VER ?= v0.31.0
+SOURCE_VER ?= v0.33.0
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 GOBIN=$(shell pwd)/bin
