@@ -58,6 +58,10 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		PendingPlan:              terraform.Status.Plan.Pending,
 	})
 	if err != nil {
+		// replan if errors occur
+		terraform.Status.Plan.Pending = ""
+		terraform.Status.LastPlannedRevision = ""
+		terraform.Status.LastAttemptedRevision = ""
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
