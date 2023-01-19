@@ -129,3 +129,4 @@ spec:
       envFrom:
       - secretRef:
           name: aws-credentials
+```
