@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -824,12 +825,21 @@ func (in *TerraformSpec) GetAlwaysCleanupRunnerPod() bool {
 	return *in.AlwaysCleanupRunnerPod
 }
 
+// trimString takes in a string and an integer limit, and returns a new string with a maximum length of limit characters.
+// If the length of the input string is greater than limit, the returned string will be truncated to limit characters
+// and "..." will be appended to the end.
+// If limit is less than 3, it will be set to 3 before continuing.
+// It correctly handles unicode characters by using utf8.RuneCountInString to get the number of runes in the string.
 func trimString(str string, limit int) string {
-	if len(str) <= limit {
+	if limit < 3 {
+		limit = 3
+	}
+	if utf8.RuneCountInString(str) <= limit {
 		return str
 	}
 
-	return str[0:limit] + "..."
+	runes := []rune(str)
+	return string(runes[:limit]) + "..."
 }
 
 func init() {
