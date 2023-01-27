@@ -175,6 +175,8 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 					err.Error(),
 				), err
 			}
+
+			// TODO add resource location to inventory
 			for _, iv := range getInventoryReply.Inventories {
 				inventoryEntries = append(inventoryEntries, infrav1.ResourceRef{
 					Name:       iv.GetName(),
@@ -189,15 +191,14 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 		}
 	}
 
+	var msg string
 	if isDestroyApplied {
-		msg := fmt.Sprintf("Destroy applied successfully")
-		r.event(ctx, terraform, revision, events.EventSeverityInfo, msg, nil)
-		terraform = infrav1.TerraformApplied(terraform, revision, "Destroy applied successfully", isDestroyApplied, inventoryEntries)
+		msg = fmt.Sprintf("Destroy applied successfully")
 	} else {
-		msg := fmt.Sprintf("Applied successfully")
-		r.event(ctx, terraform, revision, events.EventSeverityInfo, msg, nil)
-		terraform = infrav1.TerraformApplied(terraform, revision, "Applied successfully", isDestroyApplied, inventoryEntries)
+		msg = fmt.Sprintf("Applied successfully")
 	}
+	r.event(ctx, terraform, revision, events.EventSeverityInfo, msg, nil)
+	terraform = infrav1.TerraformApplied(terraform, revision, msg, isDestroyApplied, inventoryEntries)
 
 	return terraform, nil
 }
