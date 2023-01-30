@@ -1485,7 +1485,7 @@ int32
 </td>
 <td>
 <em>(Optional)</em>
-<p>Parallelism limits the number of concurrent operations of Terraform apply step.</p>
+<p>Parallelism limits the number of concurrent operations of Terraform apply step. Zero (0) means using the default value.</p>
 </td>
 </tr>
 <tr>
@@ -1969,7 +1969,7 @@ int32
 </td>
 <td>
 <em>(Optional)</em>
-<p>Parallelism limits the number of concurrent operations of Terraform apply step.</p>
+<p>Parallelism limits the number of concurrent operations of Terraform apply step. Zero (0) means using the default value.</p>
 </td>
 </tr>
 <tr>
