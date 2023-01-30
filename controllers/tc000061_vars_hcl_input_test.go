@@ -137,7 +137,7 @@ func Test_000061_vars_hcl_input_test(t *testing.T) {
 			return -1, err
 		}
 		return len(outputSecret.Data), nil
-	}, timeout, interval).Should(Equal(4))
+	}, timeout, interval).Should(Equal(7))
 
 	By("checking that the TF output secrets contains the correct output provisioned by the TF hello world")
 	// Value is a JSON representation of TF's OutputMeta
@@ -145,20 +145,26 @@ func Test_000061_vars_hcl_input_test(t *testing.T) {
 		"Name":      "tf-output-" + terraformName,
 		"Namespace": "flux-system",
 		"Values": map[string]string{
-			"cluster_id": "eu-test-1:stg:winter-squirrel",
-			"active":     "true",
-			"node_count": "10",
-			"azs":        `["eu-test-1a","eu-test-1b","eu-test-1c"]`,
+			"cluster_id":      "eu-test-1:stg:winter-squirrel",
+			"active":          "true",
+			"active.type":     `"bool"`,
+			"node_count":      "10",
+			"node_count.type": `"number"`,
+			"azs":             "[\n      \"eu-test-1a\",\n      \"eu-test-1b\",\n      \"eu-test-1c\"\n    ]",
+			"azs.type":        "[\n      \"list\",\n      \"string\"\n    ]",
 		},
 		"OwnerRef[0]": string(createdHelloWorldTF.UID),
 	}
 	g.Eventually(func() (map[string]interface{}, error) {
 		err := k8sClient.Get(ctx, outputKey, &outputSecret)
 		values := map[string]string{
-			"cluster_id": string(outputSecret.Data["cluster_id"]),
-			"active":     string(outputSecret.Data["active"]),
-			"node_count": string(outputSecret.Data["node_count"]),
-			"azs":        string(outputSecret.Data["azs"]),
+			"cluster_id":      string(outputSecret.Data["cluster_id"]),
+			"active":          string(outputSecret.Data["active"]),
+			"active.type":     string(outputSecret.Data["active.type"]),
+			"node_count":      string(outputSecret.Data["node_count"]),
+			"node_count.type": string(outputSecret.Data["node_count.type"]),
+			"azs":             string(outputSecret.Data["azs"]),
+			"azs.type":        string(outputSecret.Data["azs.type"]),
 		}
 		return map[string]interface{}{
 			"Name":        outputSecret.Name,
