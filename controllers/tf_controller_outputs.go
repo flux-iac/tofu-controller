@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -75,6 +74,9 @@ func (r *TerraformReconciler) processOutputs(ctx context.Context, runnerClient r
 	log := ctrl.LoggerFrom(ctx)
 	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
 
+	// OutputMeta has
+	// 1. type
+	// 2. value
 	outputs := map[string]tfexec.OutputMeta{}
 	var err error
 	terraform, err = r.obtainOutputs(ctx, terraform, tfInstance, runnerClient, revision, &outputs)
@@ -133,81 +135,37 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 	wots := terraform.Spec.WriteOutputsToSecret
 	data := map[string][]byte{}
 
-	// if not specified .spec.writeOutputsToSecret.outputs,
-	// then it means export all outputs
+	var filteredOutputs map[string]tfexec.OutputMeta
 	if len(wots.Outputs) == 0 {
-		for output, v := range outputs {
-			ct, err := ctyjson.UnmarshalType(v.Type)
-			if err != nil {
-				return terraform, err
-			}
-			// if it's a string, we can embed it directly into Secret's data
-			switch ct {
-			case cty.String:
-				cv, err := ctyjson.Unmarshal(v.Value, ct)
-				if err != nil {
-					return terraform, err
-				}
-				data[output] = []byte(cv.AsString())
-			// there's no need to unmarshal and convert to []byte
-			// we'll just pass the []byte directly from OutputMeta Value
-			case cty.Number, cty.Bool:
-				data[output] = v.Value
-			default:
-				outputBytes, err := json.Marshal(v.Value)
-				if err != nil {
-					return terraform, err
-				}
-				data[output] = outputBytes
-			}
-		}
+		filteredOutputs = outputs
 	} else {
-		// filter only defined output
-		// output maybe contain mapping output:mapped_name
-		for _, outputMapping := range wots.Outputs {
-			parts := strings.SplitN(outputMapping, ":", 2)
-			var output string
-			var mappedTo string
-			if len(parts) == 1 {
-				output = parts[0]
-				mappedTo = parts[0]
-				// no mapping
-			} else if len(parts) == 2 {
-				output = parts[0]
-				mappedTo = parts[1]
-			} else {
-				log.Error(fmt.Errorf("invalid mapping format"), outputMapping)
-				continue
-			}
+		if result, err := filterOutputs(outputs, wots.Outputs); err != nil {
+			return infrav1.TerraformNotReady(
+				terraform,
+				revision,
+				infrav1.OutputsWritingFailedReason,
+				err.Error(),
+			), err
+		} else {
+			filteredOutputs = result
+		}
+	}
 
-			v, exist := outputs[output]
-			if !exist {
-				log.Error(fmt.Errorf("output not found"), output)
-				continue
-			}
+	for outputOrAlias, outputMeta := range filteredOutputs {
+		ct, err := ctyjson.UnmarshalType(outputMeta.Type)
+		if err != nil {
+			return terraform, err
+		}
 
-			ct, err := ctyjson.UnmarshalType(v.Type)
+		if ct == cty.String {
+			cv, err := ctyjson.Unmarshal(outputMeta.Value, ct)
 			if err != nil {
 				return terraform, err
 			}
-			switch ct {
-			case cty.String:
-				cv, err := ctyjson.Unmarshal(v.Value, ct)
-				if err != nil {
-					return terraform, err
-				}
-				data[mappedTo] = []byte(cv.AsString())
-			// there's no need to unmarshal and convert to []byte
-			// we'll just pass the []byte directly from OutputMeta Value
-			case cty.Number, cty.Bool:
-				data[mappedTo] = v.Value
-			default:
-				outputBytes, err := json.Marshal(v.Value)
-				if err != nil {
-					return terraform, err
-				}
-				data[mappedTo] = outputBytes
-			}
+			data[outputOrAlias] = []byte(cv.AsString())
+		} else {
+			data[outputOrAlias] = outputMeta.Value
+			data[outputOrAlias+".type"] = outputMeta.Type
 		}
 	}
 
@@ -242,4 +200,42 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 	}
 
 	return infrav1.TerraformOutputsWritten(terraform, revision, "Outputs written"), nil
+}
+
+func filterOutputs(outputs map[string]tfexec.OutputMeta, outputsToWrite []string) (map[string]tfexec.OutputMeta, error) {
+	if outputs == nil || outputsToWrite == nil {
+		return nil, fmt.Errorf("input maps or outputsToWrite slice cannot be nil")
+	}
+
+	filteredOutputs := make(map[string]tfexec.OutputMeta)
+	for _, outputMapping := range outputsToWrite {
+		if len(outputMapping) == 0 {
+			return nil, fmt.Errorf("output mapping cannot be empty")
+		}
+
+		// parse output mapping (output[:alias])
+		parts := strings.SplitN(outputMapping, ":", 2)
+		var (
+			output string
+			alias  string
+		)
+		if len(parts) == 1 {
+			output = parts[0]
+			alias = parts[0]
+		} else if len(parts) == 2 {
+			output = parts[0]
+			alias = parts[1]
+		} else {
+			return nil, fmt.Errorf("invalid output mapping format: %s", outputMapping)
+		}
+
+		outputMeta, exist := outputs[output]
+		if !exist {
+			return nil, fmt.Errorf("output not found: %s", output)
+		}
+
+		filteredOutputs[alias] = outputMeta
+	}
+
+	return filteredOutputs, nil
 }
