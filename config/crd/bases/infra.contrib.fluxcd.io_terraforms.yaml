@@ -123,6 +123,27 @@ spec:
                     type: string
                 type: object
                 x-kubernetes-map-type: atomic
+              cloud:
+                properties:
+                  hostname:
+                    type: string
+                  organization:
+                    type: string
+                  token:
+                    type: string
+                  workspaces:
+                    properties:
+                      name:
+                        type: string
+                      tags:
+                        items:
+                          type: string
+                        type: array
+                    type: object
+                required:
+                - organization
+                - workspaces
+                type: object
               dependsOn:
                 items:
                   description: NamespacedObjectReference contains enough information
