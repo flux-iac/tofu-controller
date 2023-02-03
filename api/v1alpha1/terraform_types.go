@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 	"time"
@@ -92,6 +93,9 @@ type TerraformSpec struct {
 
 	// +optional
 	BackendConfigsFrom []BackendConfigsReference `json:"backendConfigsFrom,omitempty"`
+
+	// +optional
+	Cloud *CloudSpec `json:"cloud,omitempty"`
 
 	// +optional
 	// +kubebuilder:default:=default
@@ -233,6 +237,28 @@ type TerraformSpec struct {
 	// Enterprise is the enterprise configuration placeholder.
 	// +optional
 	Enterprise *apiextensionsv1.JSON `json:"enterprise,omitempty"`
+}
+
+type CloudSpec struct {
+	// +required
+	Organization string `json:"organization"`
+
+	// +required
+	Workspaces *CloudWorkspacesSpec `json:"workspaces"`
+
+	// +optional
+	Hostname string `json:"hostname,omitempty"`
+
+	// +optional
+	Token string `json:"token,omitempty"`
+}
+
+type CloudWorkspacesSpec struct {
+	// +optional
+	Name string `json:"name"`
+
+	// +optional
+	Tags []string `json:"tags,omitempty"`
 }
 
 type Webhook struct {
@@ -823,6 +849,44 @@ func (in *TerraformSpec) GetAlwaysCleanupRunnerPod() bool {
 	}
 
 	return *in.AlwaysCleanupRunnerPod
+}
+
+func (c *CloudSpec) IsValid() bool {
+	if c.Organization == "" {
+		return false
+	}
+
+	if c.Workspaces == nil {
+		return false
+	}
+
+	if c.Workspaces.Name == "" && c.Workspaces.Tags == nil {
+		return false
+	}
+
+	return true
+}
+
+func (c *CloudSpec) ToHCL() string {
+	var buf bytes.Buffer
+	buf.WriteString("terraform {\n")
+	buf.WriteString("  cloud {\n")
+	buf.WriteString(fmt.Sprintf("    organization = %q\n", c.Organization))
+	buf.WriteString(fmt.Sprintf("    workspaces {\n"))
+	if c.Workspaces.Name != "" {
+		buf.WriteString(fmt.Sprintf("      name = %q\n", c.Workspaces.Name))
+	}
+	if len(c.Workspaces.Tags) > 0 {
+		tags := "[\"" + strings.Join(c.Workspaces.Tags, "\", \"") + "\"]"
+		buf.WriteString(fmt.Sprintf("      tags = %s\n", tags))
+	}
+	buf.WriteString(fmt.Sprintf("    }\n"))
+	buf.WriteString(fmt.Sprintf("    hostname = %q\n", c.Hostname))
+	buf.WriteString(fmt.Sprintf("    token = %q\n", c.Token))
+	buf.WriteString(fmt.Sprintf("  }\n"))
+	buf.WriteString(fmt.Sprintf("}\n"))
+
+	return buf.String()
 }
 
 // trimString takes in a string and an integer limit, and returns a new string with a maximum length of limit characters.

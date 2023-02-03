@@ -16,6 +16,10 @@ import (
 )
 
 func (r *TerraformReconciler) backendCompletelyDisable(terraform infrav1.Terraform) bool {
+	if terraform.Spec.Cloud != nil {
+		return true
+	}
+
 	return terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.Disable == true
 }
 
@@ -94,7 +98,7 @@ terraform {
 	} else if DisableTFK8SBackend && terraform.Spec.BackendConfig == nil {
 		backendConfig = `
 terraform {
-	backend "local" { }
+  backend "local" { }
 }`
 	} else if terraform.Spec.BackendConfig == nil {
 		// TODO must be tested in cluster only
@@ -116,7 +120,20 @@ terraform {
 	}
 
 	if r.backendCompletelyDisable(terraform) {
-		log.Info("BackendConfig is completely disabled")
+		log.Info("backendConfig is completely disabled. When Spec.Cloud is not nil, backendConfig is disabled by default too.")
+		if terraform.Spec.Cloud != nil {
+			log.Info("Spec.Cloud is not nil. backendConfig is disabled by default.")
+			writeBackendConfigReply, err := runnerClient.WriteBackendConfig(ctx,
+				&runner.WriteBackendConfigRequest{
+					DirPath:       workingDir,
+					BackendConfig: []byte(terraform.Spec.Cloud.ToHCL()),
+				})
+			if err != nil {
+				log.Error(err, "write cloud config error")
+				return terraform, tfInstance, tmpDir, err
+			}
+			log.Info(fmt.Sprintf("write cloud config: %s", writeBackendConfigReply.Message))
+		}
 	} else {
 		writeBackendConfigReply, err := runnerClient.WriteBackendConfig(ctx,
 			&runner.WriteBackendConfigRequest{
