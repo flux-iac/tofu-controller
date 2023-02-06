@@ -47,7 +47,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Build tf-controller image
         run: |
-          make docker-build
+          make docker-buildx
       - name: Run Trivy vulnerability scanner on controller image
         uses: aquasecurity/trivy-action@master
         with:
