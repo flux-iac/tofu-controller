@@ -66,7 +66,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
           file: ./Dockerfile
-          platforms: linux/amd64 #,linux/arm/v7,linux/arm64
+          platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
             ghcr.io/weaveworks/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
             ghcr.io/weaveworks/${{ env.CONTROLLER }}:latest
@@ -85,7 +85,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
           file: ./runner.Dockerfile
-          platforms: linux/amd64 #,linux/arm/v7,linux/arm64
+          platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
             ghcr.io/weaveworks/tf-runner:${{ steps.prep.outputs.VERSION }}
             ghcr.io/weaveworks/tf-runner:latest
@@ -104,7 +104,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
           file: ./runner-azure.Dockerfile
-          platforms: linux/amd64 #,linux/arm/v7,linux/arm64
+          platforms: linux/amd64,linux/arm64 #,linux/arm/v7 - azure-cli does not install correctly on 32 bit arm
           tags: |
             ghcr.io/weaveworks/tf-runner-azure:${{ steps.prep.outputs.VERSION }}
             ghcr.io/weaveworks/tf-runner-azure:latest

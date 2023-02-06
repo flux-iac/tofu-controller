@@ -1,6 +1,8 @@
 # Build the manager binary
 FROM golang:1.19 as builder
 
+ARG TARGETARCH
+
 RUN apt-get update && apt-get install -y unzip
 
 WORKDIR /workspace
@@ -24,12 +26,11 @@ COPY runner/ runner/
 COPY utils/ utils/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -gcflags=all="-N -l" -a -o tf-runner cmd/runner/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -gcflags=all="-N -l" -a -o tf-runner cmd/runner/main.go
 
 ARG TF_VERSION=1.3.7
-ADD https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip /terraform_${TF_VERSION}_linux_amd64.zip
-RUN unzip -q /terraform_${TF_VERSION}_linux_amd64.zip
-
+ADD https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_${TARGETARCH}.zip /terraform_${TF_VERSION}_linux_${TARGETARCH}.zip
+RUN unzip -q /terraform_${TF_VERSION}_linux_${TARGETARCH}.zip
 
 FROM alpine:3.16.2
 
