@@ -77,7 +77,8 @@ volumeMounts: []
 
 # -- PriorityClassName property for the TF-Controller deployment
 priorityClassName: ""
-# Runner
+# -- Argument for `--log-encoding`. Can be 'json' or 'console'. (Controller)
+logEncoding: json
 # -- Level of logging of the controller (Controller)
 logLevel: info
 # -- Concurrency of the controller (Controller)
