@@ -31,7 +31,7 @@ spec:
       - args:
         - --watch-all-namespaces
         - --log-level={{ .Values.logLevel }}
-        - --log-encoding=json
+        - --log-encoding={{ .Values.logEncoding }}
         - --enable-leader-election
         - --concurrent={{ .Values.concurrency }}
         - --ca-cert-validity-duration={{ .Values.caCertValidityDuration }}
