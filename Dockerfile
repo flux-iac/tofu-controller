@@ -28,7 +28,7 @@ COPY utils/ utils/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -gcflags=all="-N -l" -a -o tf-controller cmd/manager/main.go
 
-FROM alpine:3.16.2
+FROM alpine:3.16.4
 
 LABEL org.opencontainers.image.source="https://github.com/weaveworks/tf-controller"
 
@@ -40,7 +40,7 @@ COPY --from=builder /workspace/tf-controller /usr/local/bin/
 
 # Create minimal nsswitch.conf file to prioritize the usage of /etc/hosts over DNS queries.
 # https://github.com/gliderlabs/docker-alpine/issues/367#issuecomment-354316460
-RUN [ ! -e /etc/nsswitch.conf ] && echo 'hosts: files dns' > /etc/nsswitch.conf
+RUN echo 'hosts: files dns' > /etc/nsswitch.conf
 
 RUN addgroup --gid 65532 -S controller && adduser --uid 65532 -S controller -G controller
 

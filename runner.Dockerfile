@@ -28,11 +28,11 @@ COPY utils/ utils/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -gcflags=all="-N -l" -a -o tf-runner cmd/runner/main.go
 
-ARG TF_VERSION=1.3.7
+ARG TF_VERSION=1.3.9
 ADD https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_${TARGETARCH}.zip /terraform_${TF_VERSION}_linux_${TARGETARCH}.zip
 RUN unzip -q /terraform_${TF_VERSION}_linux_${TARGETARCH}.zip
 
-FROM alpine:3.16.2
+FROM alpine:3.16.4
 
 LABEL org.opencontainers.image.source="https://github.com/weaveworks/tf-controller"
 
@@ -45,7 +45,7 @@ COPY --from=builder /workspace/terraform /usr/local/bin/
 
 # Create minimal nsswitch.conf file to prioritize the usage of /etc/hosts over DNS queries.
 # https://github.com/gliderlabs/docker-alpine/issues/367#issuecomment-354316460
-RUN [ ! -e /etc/nsswitch.conf ] && echo 'hosts: files dns' > /etc/nsswitch.conf
+RUN echo 'hosts: files dns' > /etc/nsswitch.conf
 
 RUN addgroup --gid 65532 -S runner && adduser --uid 65532 -S runner -G runner && chmod +x /usr/local/bin/terraform
 
