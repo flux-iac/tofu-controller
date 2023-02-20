@@ -72,6 +72,11 @@ func replan(ctx context.Context, kubeClient client.Client, namespacedName types.
 		terraform.Status.Plan.Pending = ""
 		terraform.Status.LastPlannedRevision = ""
 		terraform.Status.LastAttemptedRevision = ""
-		return kubeClient.Status().Patch(ctx, terraform, patch, client.FieldOwner("tf-controller"))
+		statusOpts := &client.SubResourcePatchOptions{
+			PatchOptions: client.PatchOptions{
+				FieldManager: "tf-controller",
+			},
+		}
+		return kubeClient.Status().Patch(ctx, terraform, patch, statusOpts)
 	})
 }

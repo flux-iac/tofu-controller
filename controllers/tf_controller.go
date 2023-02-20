@@ -452,6 +452,7 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 	r.httpClient = httpClient
 	r.statusManager = "tf-controller"
 	r.requeueDependency = 30 * time.Second
+	recoverPanic := true
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&infrav1.Terraform{}, builder.WithPredicates(
@@ -482,7 +483,7 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 		).
 		WithOptions(controller.Options{
 			MaxConcurrentReconciles: maxConcurrentReconciles,
-			RecoverPanic:            true,
+			RecoverPanic:            &recoverPanic,
 		}).
 		Complete(r)
 }
@@ -731,8 +732,12 @@ func (r *TerraformReconciler) patchStatus(ctx context.Context, objectKey types.N
 	traceLog.Info("Update data and send Patch request")
 	patch := client.MergeFrom(terraform.DeepCopy())
 	terraform.Status = newStatus
-
-	return r.Status().Patch(ctx, &terraform, patch, client.FieldOwner(r.statusManager))
+	statusOpts := &client.SubResourcePatchOptions{
+		PatchOptions: client.PatchOptions{
+			FieldManager: "tf-controller",
+		},
+	}
+	return r.Status().Patch(ctx, &terraform, patch, statusOpts)
 }
 
 func (r *TerraformReconciler) verifyArtifact(artifact *sourcev1.Artifact, buf *bytes.Buffer, reader io.Reader) error {
