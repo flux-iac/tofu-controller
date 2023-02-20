@@ -17,7 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 	"time"
@@ -868,23 +867,23 @@ func (c *CloudSpec) IsValid() bool {
 }
 
 func (c *CloudSpec) ToHCL() string {
-	var buf bytes.Buffer
-	buf.WriteString("terraform {\n")
-	buf.WriteString("  cloud {\n")
-	buf.WriteString(fmt.Sprintf("    organization = %q\n", c.Organization))
-	buf.WriteString(fmt.Sprintf("    workspaces {\n"))
+	buf := newWriter()
+	buf.W("terraform {")
+	buf.W("  cloud {")
+	buf.W("    organization = %q", c.Organization)
+	buf.W("    workspaces {")
 	if c.Workspaces.Name != "" {
-		buf.WriteString(fmt.Sprintf("      name = %q\n", c.Workspaces.Name))
+		buf.W("      name = %q", c.Workspaces.Name)
 	}
 	if len(c.Workspaces.Tags) > 0 {
 		tags := "[\"" + strings.Join(c.Workspaces.Tags, "\", \"") + "\"]"
-		buf.WriteString(fmt.Sprintf("      tags = %s\n", tags))
+		buf.W("      tags = %s", tags)
 	}
-	buf.WriteString(fmt.Sprintf("    }\n"))
-	buf.WriteString(fmt.Sprintf("    hostname = %q\n", c.Hostname))
-	buf.WriteString(fmt.Sprintf("    token = %q\n", c.Token))
-	buf.WriteString(fmt.Sprintf("  }\n"))
-	buf.WriteString(fmt.Sprintf("}\n"))
+	buf.W("    }")
+	buf.W("    hostname = %q", c.Hostname)
+	buf.W("    token = %q", c.Token)
+	buf.W("  }")
+	buf.W("}")
 
 	return buf.String()
 }
