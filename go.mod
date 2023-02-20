@@ -197,10 +197,10 @@ replace (
 
 	// Fix CVE-2022-27664 v0.0.0-20220906165146-f3363e06e74c
 	// Fix CVE-2022-41721 v0.1.1-0.20221104162952-702349b0e862
-	golang.org/x/net => golang.org/x/net v0.1.1-0.20221104162952-702349b0e862
+	// xx golang.org/x/net => golang.org/x/net v0.1.1-0.20221104162952-702349b0e862
 
 	// Fix CVE-2022-32149
-	golang.org/x/text => golang.org/x/text v0.3.8
+	// xx golang.org/x/text => golang.org/x/text v0.3.8
 
 	// Fix gnostic
 	k8s.io/kubectl v0.23.2 => k8s.io/kubectl v0.24.3
