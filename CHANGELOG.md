@@ -2,6 +2,40 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.14.0
+
+**Release date:** 2023-02-25
+
+This release contains a number of new features and bug fixes. 
+The most notable feature is the first-class support for Terraform Cloud in TF-controller with the `spec.cloud` field.
+This feature allows Weave GitOps Enterprise users to use GitOps Templates with Terraform Cloud as a backend for your Terraform resources.
+We also upgraded Flux to v0.40.0 and Terraform to v1.3.9 in this release.
+
+New Features and Bug Fixing:
+  * Add Weave GitOps metadata to the AWS package (@chanwit)
+  * Fix env vars in Helm chart by enforcing quotes (@odise)
+  * Improve AWS package docs (@chanwit)
+  * Add servicemonitor for Helm chart (@oliverbaehler)
+  * Fix missing inventory entries (@chanwit)
+  * Support configuring Kube API QPS and Burst (@tariq1890)
+  * Fix typo and missing links in doc (@tariq1890)
+  * Update docs for replicaCount (@tariq1890)
+  * Add enterprise placeholder (@chanwit)
+  * Fix wrong indentations for selector labels in Helm chart (@geNAZt)
+  * Update Terraform binary to v1.3.7 (@akselleirv)
+  * Add parallelism option for the Terraform apply stage (@siiimooon)
+  * Update Flux to v0.38 (@chanwit)
+  * Force replan if the controller cannot load the plan correctly from secret (@tomhuang12)
+  * Fix error an error in the doc examples (@kingdonb)
+  * Refactor message trimming (@chanwit)
+  * Update dependency for CVE-2022-41721 (@chanwit)
+  * Enhance outputs with type information (@chanwit)
+  * Add cloud spec to first-class support Terraform Cloud (@chanwit)
+  * Support multi-arch images (@rparmer)
+  * Allow customizing controller log encoding (@tomhuang12)
+  * Upgrade Terraform to v1.3.9 and Alpine to v3.16.4 (@chanwit)
+  * Upgrade Flux to v0.40 (@chanwit)
+
 # v0.13.1
 
 **Release date:** 2022-11-06
