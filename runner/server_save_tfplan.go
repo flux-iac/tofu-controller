@@ -33,8 +33,8 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 		var err error
 		tfplan, err = ioutil.ReadFile(filepath.Join(r.tf.WorkingDir(), TFPlanName))
 		if err != nil {
-			err = fmt.Errorf("error running Plan: %s", err)
-			log.Error(err, "unable to run the plan")
+			err = fmt.Errorf("error reading plan file: %s", err)
+			log.Error(err, "unable to complete SaveTFPlan function")
 			return nil, err
 		}
 	}
