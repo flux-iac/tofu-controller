@@ -149,6 +149,7 @@ message PlanReply {
   bool drifted = 1;
   string message = 2;
   string stateLockIdentifier = 3;
+  bool planCreated = 4;
 }
 
 message ShowPlanFileRequest {
