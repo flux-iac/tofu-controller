@@ -90,6 +90,13 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	drifted := planReply.Drifted
 	log.Info(fmt.Sprintf("plan: %s, found drift: %v", planReply.Message, drifted))
 
+	if planRequest.Destroy && planReply.PlanCreated == false {
+		// A corner case
+		// If the destroy plan is empty, we should not call apply
+		terraform = infrav1.TerraformPlannedNoChanges(terraform, revision, "No objects need to be destroyed")
+		return terraform, nil
+	}
+
 	if shouldProcessPostPlanningWebhooks(terraform) {
 		log.Info("calling post planning webhooks ...")
 		terraform, err = r.processPostPlanningWebhooks(ctx, terraform, runnerClient, revision, tfInstance)

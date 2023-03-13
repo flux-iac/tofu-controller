@@ -3,10 +3,10 @@ package controllers
 import (
 	"context"
 	"fmt"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 
 	"github.com/fluxcd/pkg/runtime/logger"
-
 	"github.com/fluxcd/source-controller/api/v1beta2"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/runner"
@@ -14,9 +14,8 @@ import (
 	"google.golang.org/grpc/status"
 	"k8s.io/apimachinery/pkg/types"
 	controllerruntime "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient, sourceObj v1beta2.Source, reconciliationLoopID string) (controllerruntime.Result, error) {
@@ -82,24 +81,27 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 			return controllerruntime.Result{Requeue: true}, err
 		}
 
-		traceLog.Info("Apply the destroy plan")
-		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision)
-		traceLog.Info("Check for error")
-		if err != nil {
-			traceLog.Error(err, "Error, requeue job")
-			return controllerruntime.Result{Requeue: true}, err
+		if thereIsNothingToDestroy(terraform) == false {
+			traceLog.Info("Apply the destroy plan")
+			terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision)
+			traceLog.Info("Check for error")
+			if err != nil {
+				traceLog.Error(err, "Error, requeue job")
+				return controllerruntime.Result{Requeue: true}, err
+			}
+
+			traceLog.Info("Patch status of the Terraform resource")
+			if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+				log.Error(err, "unable to update status after applying")
+				return controllerruntime.Result{Requeue: true}, err
+			}
+
+			traceLog.Info("Check for a nil error")
+			if err == nil {
+				log.Info("finalizing destroyResourcesOnDeletion: ok")
+			}
 		}
 
-		traceLog.Info("Patch status of the Terraform resource")
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
-			log.Error(err, "unable to update status after applying")
-			return controllerruntime.Result{Requeue: true}, err
-		}
-
-		traceLog.Info("Check for a nil error")
-		if err == nil {
-			log.Info("finalizing destroyResourcesOnDeletion: ok")
-		}
 	}
 
 	traceLog.Info("Check if we are writing output to secrets")
@@ -186,4 +188,18 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 	// Stop reconciliation as the object is being deleted
 	traceLog.Info("Return success")
 	return controllerruntime.Result{}, nil
+}
+
+func thereIsNothingToDestroy(terraform infrav1.Terraform) bool {
+	// find condition with type "Plan"
+	for _, c := range terraform.Status.Conditions {
+		if c.Type == infrav1.ConditionTypePlan {
+			if c.Status == metav1.ConditionFalse &&
+				c.Reason == infrav1.PlannedNoChangesReason &&
+				c.Message == "No objects need to be destroyed" {
+				return true
+			}
+		}
+	}
+	return false
 }
