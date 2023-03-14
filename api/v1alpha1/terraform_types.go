@@ -126,8 +126,7 @@ type TerraformSpec struct {
 	Interval metav1.Duration `json:"interval"`
 
 	// The interval at which to retry a previously failed reconciliation.
-	// When not specified, the controller uses the TerraformSpec.Interval
-	// value to retry failures.
+	// The default value is 15 when not specified.
 	// +optional
 	RetryInterval *metav1.Duration `json:"retryInterval,omitempty"`
 
@@ -805,7 +804,9 @@ func (in Terraform) GetRetryInterval() time.Duration {
 	if in.Spec.RetryInterval != nil {
 		return in.Spec.RetryInterval.Duration
 	}
-	return in.Spec.Interval.Duration
+
+	// The default retry interval is 15 seconds.
+	return 15 * time.Second
 }
 
 // GetStatusConditions returns a pointer to the Status.Conditions slice.
