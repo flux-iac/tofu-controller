@@ -443,7 +443,7 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 	}
 
 	// Configure the retryable http client used for fetching artifacts.
-	// By default it retries 10 times within a 3.5 minutes window.
+	// By default, it retries 10 times within a 3.5 minutes window.
 	httpClient := retryablehttp.NewClient()
 	httpClient.RetryWaitMin = 5 * time.Second
 	httpClient.RetryWaitMax = 30 * time.Second

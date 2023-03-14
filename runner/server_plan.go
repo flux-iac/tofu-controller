@@ -62,5 +62,20 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 		return nil, st.Err()
 	}
 
-	return &PlanReply{Message: "ok", Drifted: drifted}, nil
+	plan, err := r.tf.ShowPlanFile(ctx, req.Out)
+	if err != nil {
+		return nil, err
+	}
+
+	planCreated := true
+	// This is the case when the plan is empty.
+	if plan.PlannedValues.Outputs == nil &&
+		plan.PlannedValues.RootModule.Resources == nil &&
+		plan.ResourceChanges == nil &&
+		plan.PriorState == nil &&
+		plan.OutputChanges == nil {
+		planCreated = false
+	}
+
+	return &PlanReply{Message: "ok", Drifted: drifted, PlanCreated: planCreated}, nil
 }
