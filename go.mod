@@ -155,9 +155,9 @@ require (
 	golang.org/x/mod v0.6.0 // indirect
 	golang.org/x/net v0.3.1-0.20221206200815-1e63c2f08a10 // indirect
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5 // indirect
-	golang.org/x/sys v0.3.0 // indirect
-	golang.org/x/term v0.3.0 // indirect
-	golang.org/x/text v0.5.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/term v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
@@ -184,6 +184,9 @@ replace (
 
 	// v0.15.1-0.20220809152546-4850a69faedb is actually the v0.16.1a tag of the fork
 	github.com/hashicorp/terraform-exec v0.16.1 => github.com/tf-controller/terraform-exec v0.15.1-0.20220809152546-4850a69faedb
+
+	// Fix CVE-2022-41723
+	golang.org/x/net => golang.org/x/net v0.7.0
 
 	// Fix CVE-2022-27664 v0.0.0-20220906165146-f3363e06e74c
 	// Fix CVE-2022-41721 v0.1.1-0.20221104162952-702349b0e862
