@@ -165,6 +165,112 @@ transient error will still result in a reconciliation failure.</p>
 </table>
 </div>
 </div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.CloudSpec">CloudSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>organization</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>workspaces</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.CloudWorkspacesSpec">
+CloudWorkspacesSpec
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>hostname</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>token</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha1.CloudWorkspacesSpec">CloudWorkspacesSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.CloudSpec">CloudSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>tags</code><br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="infra.contrib.fluxcd.io/v1alpha1.CrossNamespaceSourceReference">CrossNamespaceSourceReference
 </h3>
 <p>
@@ -1145,6 +1251,19 @@ BackendConfigSpec
 </tr>
 <tr>
 <td>
+<code>cloud</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.CloudSpec">
+CloudSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
 <code>workspace</code><br>
 <em>
 string
@@ -1239,8 +1358,7 @@ Kubernetes meta/v1.Duration
 <td>
 <em>(Optional)</em>
 <p>The interval at which to retry a previously failed reconciliation.
-When not specified, the controller uses the TerraformSpec.Interval
-value to retry failures.</p>
+The default value is 15 when not specified.</p>
 </td>
 </tr>
 <tr>
@@ -1629,6 +1747,19 @@ BackendConfigSpec
 </tr>
 <tr>
 <td>
+<code>cloud</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha1.CloudSpec">
+CloudSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
 <code>workspace</code><br>
 <em>
 string
@@ -1723,8 +1854,7 @@ Kubernetes meta/v1.Duration
 <td>
 <em>(Optional)</em>
 <p>The interval at which to retry a previously failed reconciliation.
-When not specified, the controller uses the TerraformSpec.Interval
-value to retry failures.</p>
+The default value is 15 when not specified.</p>
 </td>
 </tr>
 <tr>

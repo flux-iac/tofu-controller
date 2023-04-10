@@ -11,7 +11,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,8 +40,7 @@ func Test_000150_manual_apply_should_report_and_loop_when_drift_detected_test(t 
 			Reference: &sourcev1.GitRepositoryRef{
 				Branch: "master",
 			},
-			Interval:          metav1.Duration{Duration: time.Second * 30},
-			GitImplementation: "go-git",
+			Interval: metav1.Duration{Duration: time.Second * 30},
 		},
 	}
 	By("creating the GitRepository object")
@@ -62,12 +61,12 @@ func Test_000150_manual_apply_should_report_and_loop_when_drift_detected_test(t 
 				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
-		URL: server.URL() + "/tf-k8s-configmap.tar.gz",
+
 		Artifact: &sourcev1.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/tf-k8s-configmap.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-			Checksum:       "c3bf30bad9621b5110a3761a70754170d1dae6c525a63098b6ec9919efac3555", // must be the real checksum value
+			Digest:         "sha256:c3bf30bad9621b5110a3761a70754170d1dae6c525a63098b6ec9919efac3555", // must be the real checksum value
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}

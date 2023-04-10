@@ -3,9 +3,9 @@ package controllers
 import (
 	"context"
 	"fmt"
+	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"strings"
 
-	"github.com/fluxcd/pkg/runtime/events"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/runner"
 	"google.golang.org/grpc/status"
@@ -109,7 +109,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.DestroyReply); ok {
 						msg := fmt.Sprintf("Destroy error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-						r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+						r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
 						eventSent = true
 						terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 					}
@@ -118,7 +118,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 
 			if eventSent == false {
 				msg := fmt.Sprintf("Destroy error: %s", err.Error())
-				r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+				r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
 			}
 
 			err = fmt.Errorf("error running Destroy: %s", err)
@@ -138,7 +138,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.ApplyReply); ok {
 						msg := fmt.Sprintf("Apply error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-						r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+						r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
 						eventSent = true
 						terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 					}
@@ -147,7 +147,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 
 			if eventSent == false {
 				msg := fmt.Sprintf("Apply error: %s", err.Error())
-				r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+				r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
 			}
 
 			err = fmt.Errorf("error running Apply: %s", err)
@@ -197,7 +197,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	} else {
 		msg = fmt.Sprintf("Applied successfully")
 	}
-	r.event(ctx, terraform, revision, events.EventSeverityInfo, msg, nil)
+	r.event(ctx, terraform, revision, eventv1.EventSeverityInfo, msg, nil)
 	terraform = infrav1.TerraformApplied(terraform, revision, msg, isDestroyApplied, inventoryEntries)
 
 	return terraform, nil

@@ -10,7 +10,8 @@ import (
 	. "github.com/onsi/gomega"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -31,12 +32,12 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 
 	Given("a Bucket")
 	By("defining a new Bucket resource.")
-	testBucket := sourcev1.Bucket{
+	testBucket := sourcev1b2.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      sourceName,
 			Namespace: "flux-system",
 		},
-		Spec: sourcev1.BucketSpec{
+		Spec: sourcev1b2.BucketSpec{
 			BucketName: "test-flux-tf-bucket",
 			Provider:   "generic",
 			Interval:   metav1.Duration{Duration: time.Second * 30},
@@ -51,7 +52,7 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 	Given("the Bucket's reconciled status.")
 	By("setting the Bucket's status, with the downloadable BLOB's URL, and the correct checksum.")
 	updatedTime := time.Now()
-	testBucket.Status = sourcev1.BucketStatus{
+	testBucket.Status = sourcev1b2.BucketStatus{
 		ObservedGeneration: int64(1),
 		Conditions: []metav1.Condition{
 			{
@@ -62,12 +63,11 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 				Message:            "Fetched revision: 822c3dd335579b435b5ada924d6f38b227412a5c",
 			},
 		},
-		URL: server.URL() + "/file.tar.gz",
 		Artifact: &sourcev1.Artifact{
 			Path:           fmt.Sprintf("bucket/flux-system/%s/822c3dd335579b435b5ada924d6f38b227412a5c.tar.gz", sourceName),
 			URL:            server.URL() + "/file.tar.gz",
 			Revision:       "822c3dd335579b435b5ada924d6f38b227412a5c",
-			Checksum:       "80ddfd18eb96f7d31cadc1a8a5171c6e2d95df3f6c23b0ed9cd8dddf6dba1406",
+			Digest:         "sha256:80ddfd18eb96f7d31cadc1a8a5171c6e2d95df3f6c23b0ed9cd8dddf6dba1406",
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
@@ -153,7 +153,7 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 		return map[string]interface{}{
 			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
 			"Is TFPlan empty ?":     string(tfplanSecret.Data["tfplan"]) == "",
-			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
+			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"SavedPlan":             "plan-822c3dd335579b435b5ada924d6f38b227412a5c",

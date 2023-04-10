@@ -12,7 +12,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,8 +50,7 @@ func Test_000220_support_config_file_via_secret_test(t *testing.T) {
 			Reference: &sourcev1.GitRepositoryRef{
 				Branch: "master",
 			},
-			Interval:          metav1.Duration{Duration: time.Second * 30},
-			GitImplementation: "go-git",
+			Interval: metav1.Duration{Duration: time.Second * 30},
 		},
 	}
 	By("creating the GitRepository resource in the cluster.")
@@ -73,12 +72,12 @@ func Test_000220_support_config_file_via_secret_test(t *testing.T) {
 				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
-		URL: server.URL() + "/tfc-helloworld.tar.gz",
+
 		Artifact: &sourcev1.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/tfc-helloworld.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-			Checksum:       "e236bcf665fd3e186cd0d8908d589c37735111b03cd2a67e9c07695e318e9ae5", // must be the real checksum value
+			Digest:         "sha256:e236bcf665fd3e186cd0d8908d589c37735111b03cd2a67e9c07695e318e9ae5", // must be the real checksum value
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}

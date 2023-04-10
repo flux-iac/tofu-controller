@@ -3,9 +3,9 @@ package controllers
 import (
 	"context"
 	"fmt"
+	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"strings"
 
-	"github.com/fluxcd/pkg/runtime/events"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/runner"
 	"google.golang.org/grpc/status"
@@ -80,7 +80,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
 					msg := fmt.Sprintf("Drift detection error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-					r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+					r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
 					eventSent = true
 					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
@@ -89,7 +89,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 
 		if eventSent == false {
 			msg := fmt.Sprintf("Drift detection error: %s", err.Error())
-			r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+			r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
 		}
 
 		err = fmt.Errorf("error running Plan: %s", err)
@@ -128,7 +128,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 		rawOutput = strings.Replace(rawOutput, "You can apply this plan to save these new output values to the Terraform\nstate, without changing any real infrastructure.", "", 1)
 
 		msg := fmt.Sprintf("Drift detected.\n%s", rawOutput)
-		r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+		r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
 
 		// If drift detected & we use the auto mode, then we continue
 		terraform = infrav1.TerraformDriftDetected(terraform, revision, infrav1.DriftDetectedReason, rawOutput)
