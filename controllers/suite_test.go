@@ -39,7 +39,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -111,6 +112,11 @@ func TestMain(m *testing.M) {
 	}
 
 	err = sourcev1.AddToScheme(scheme)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	err = sourcev1b2.AddToScheme(scheme)
 	if err != nil {
 		panic(err.Error())
 	}

@@ -3,8 +3,8 @@ package controllers
 import (
 	"context"
 	"fmt"
+	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 
-	"github.com/fluxcd/pkg/runtime/events"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/runner"
 	"google.golang.org/grpc/status"
@@ -67,7 +67,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
 					msg := fmt.Sprintf("Plan error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-					r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+					r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
 					eventSent = true
 					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
@@ -76,7 +76,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 
 		if eventSent == false {
 			msg := fmt.Sprintf("Plan error: %s", err.Error())
-			r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+			r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
 		}
 		err = fmt.Errorf("error running Plan: %s", err)
 		return infrav1.TerraformNotReady(
@@ -137,7 +137,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		if forceOrAutoApply == false {
 			_, approveMessage := infrav1.GetPlanIdAndApproveMessage(revision, "Plan generated")
 			msg := fmt.Sprintf("Planned.\n%s", approveMessage)
-			r.event(ctx, terraform, revision, events.EventSeverityInfo, msg, nil)
+			r.event(ctx, terraform, revision, eventv1.EventSeverityInfo, msg, nil)
 		}
 		terraform = infrav1.TerraformPlannedWithChanges(terraform, revision, forceOrAutoApply, "Plan generated")
 	} else {
