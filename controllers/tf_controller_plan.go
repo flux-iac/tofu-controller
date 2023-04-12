@@ -48,6 +48,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		Targets:    terraform.Spec.Targets,
 	}
 
+	// if backend is disabled completely, there will be no plan output file (req.Out = "")
 	if r.backendCompletelyDisable(terraform) {
 		planRequest.Out = ""
 	}
@@ -90,6 +91,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	drifted := planReply.Drifted
 	log.Info(fmt.Sprintf("plan: %s, found drift: %v", planReply.Message, drifted))
 
+	// currently the PlanCreated flag is only used here to determine if the destroy plan is empty
 	if planRequest.Destroy && planReply.PlanCreated == false {
 		// A corner case
 		// If the destroy plan is empty, we should not call apply
