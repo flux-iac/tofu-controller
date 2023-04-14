@@ -79,4 +79,3 @@ brews:
     homepage: https://weaveworks.github.io/tf-controller
     install: |
       bin.install "tfctl"
-

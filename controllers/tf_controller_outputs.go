@@ -3,10 +3,10 @@ package controllers
 import (
 	"context"
 	"fmt"
+	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"sort"
 	"strings"
 
-	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/hashicorp/terraform-exec/tfexec"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/runner"
@@ -196,7 +196,7 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 			keysWritten = append(keysWritten, k)
 		}
 		msg := fmt.Sprintf("Outputs written.\n%d output(s): %s", len(keysWritten), strings.Join(keysWritten, ", "))
-		r.event(ctx, terraform, revision, events.EventSeverityInfo, msg, nil)
+		r.event(ctx, terraform, revision, eventv1.EventSeverityInfo, msg, nil)
 	}
 
 	return infrav1.TerraformOutputsWritten(terraform, revision, "Outputs written"), nil

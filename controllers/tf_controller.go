@@ -19,8 +19,6 @@ package controllers
 import (
 	"bytes"
 	"context"
-	"crypto/sha1"
-	"crypto/sha256"
 	"fmt"
 	"io"
 	"net/http"
@@ -29,13 +27,14 @@ import (
 	"strings"
 	"time"
 
+	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/fluxcd/pkg/runtime/dependency"
-	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/fluxcd/pkg/runtime/logger"
 	"github.com/fluxcd/pkg/runtime/metrics"
 	"github.com/fluxcd/pkg/runtime/predicates"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-retryablehttp"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
@@ -225,7 +224,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			// instead we requeue on a fix interval.
 			msg := fmt.Sprintf("Dependencies do not meet ready condition, retrying in %s", terraform.GetRetryInterval().String())
 			log.Info(msg)
-			r.event(ctx, terraform, sourceObj.GetArtifact().Revision, events.EventSeverityInfo, msg, nil)
+			r.event(ctx, terraform, sourceObj.GetArtifact().Revision, eventv1.EventSeverityInfo, msg, nil)
 			r.recordReadinessMetric(ctx, terraform)
 
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
@@ -390,7 +389,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			"revision",
 			sourceObj.GetArtifact().Revision)
 		traceLog.Info("Record an event for the failure")
-		r.event(ctx, *reconciledTerraform, sourceObj.GetArtifact().Revision, events.EventSeverityError, reconcileErr.Error(), nil)
+		r.event(ctx, *reconciledTerraform, sourceObj.GetArtifact().Revision, eventv1.EventSeverityError, reconcileErr.Error(), nil)
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	}
 
@@ -432,13 +431,13 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 
 	// Index the Terraforms by the Bucket references they (may) point at.
 	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, infrav1.BucketIndexKey,
-		r.IndexBy(sourcev1.BucketKind)); err != nil {
+		r.IndexBy(sourcev1b2.BucketKind)); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
 	// Index the Terraforms by the OCIRepository references they (may) point at.
 	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, infrav1.OCIRepositoryIndexKey,
-		r.IndexBy(sourcev1.OCIRepositoryKind)); err != nil {
+		r.IndexBy(sourcev1b2.OCIRepositoryKind)); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
@@ -464,12 +463,12 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 			builder.WithPredicates(SourceRevisionChangePredicate{}),
 		).
 		Watches(
-			&source.Kind{Type: &sourcev1.Bucket{}},
+			&source.Kind{Type: &sourcev1b2.Bucket{}},
 			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(infrav1.BucketIndexKey)),
 			builder.WithPredicates(SourceRevisionChangePredicate{}),
 		).
 		Watches(
-			&source.Kind{Type: &sourcev1.OCIRepository{}},
+			&source.Kind{Type: &sourcev1b2.OCIRepository{}},
 			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(infrav1.OCIRepositoryIndexKey)),
 			builder.WithPredicates(SourceRevisionChangePredicate{}),
 		).
@@ -610,8 +609,8 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform infrav1.T
 			return sourceObj, fmt.Errorf("unable to get source '%s': %w", namespacedName, err)
 		}
 		sourceObj = &repository
-	case sourcev1.BucketKind:
-		var bucket sourcev1.Bucket
+	case sourcev1b2.BucketKind:
+		var bucket sourcev1b2.Bucket
 		err := r.Client.Get(ctx, namespacedName, &bucket)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
@@ -620,8 +619,8 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform infrav1.T
 			return sourceObj, fmt.Errorf("unable to get source '%s': %w", namespacedName, err)
 		}
 		sourceObj = &bucket
-	case sourcev1.OCIRepositoryKind:
-		var repository sourcev1.OCIRepository
+	case sourcev1b2.OCIRepositoryKind:
+		var repository sourcev1b2.OCIRepository
 		err := r.Client.Get(ctx, namespacedName, &repository)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
@@ -664,14 +663,16 @@ func (r *TerraformReconciler) downloadAsBytes(artifact *sourcev1.Artifact) (*byt
 		return nil, fmt.Errorf("failed to download artifact from %s, status: %s", artifactURL, resp.Status)
 	}
 
-	var buf bytes.Buffer
-
-	// verify checksum matches origin
-	if err := r.verifyArtifact(artifact, &buf, resp.Body); err != nil {
-		return nil, err
+	buf, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	return &buf, nil
+	if artifact.Size != nil && resp.ContentLength != *artifact.Size {
+		return nil, fmt.Errorf("expected artifact size %d, got %d", *artifact.Size, len(buf))
+	}
+
+	return bytes.NewBuffer(buf), nil
 }
 
 func (r *TerraformReconciler) recordReadinessMetric(ctx context.Context, terraform infrav1.Terraform) {
@@ -740,28 +741,6 @@ func (r *TerraformReconciler) patchStatus(ctx context.Context, objectKey types.N
 	return r.Status().Patch(ctx, &terraform, patch, statusOpts)
 }
 
-func (r *TerraformReconciler) verifyArtifact(artifact *sourcev1.Artifact, buf *bytes.Buffer, reader io.Reader) error {
-	hasher := sha256.New()
-
-	// for backwards compatibility with source-controller v0.17.2 and older
-	if len(artifact.Checksum) == 40 {
-		hasher = sha1.New()
-	}
-
-	// compute checksum
-	mw := io.MultiWriter(hasher, buf)
-	if _, err := io.Copy(mw, reader); err != nil {
-		return err
-	}
-
-	if checksum := fmt.Sprintf("%x", hasher.Sum(nil)); checksum != artifact.Checksum {
-		return fmt.Errorf("failed to verify artifact: computed checksum '%s' doesn't match advertised '%s'",
-			checksum, artifact.Checksum)
-	}
-
-	return nil
-}
-
 func (r *TerraformReconciler) IndexBy(kind string) func(o client.Object) []string {
 	return func(o client.Object) []string {
 		terraform, ok := o.(*infrav1.Terraform)
@@ -806,7 +785,7 @@ func (r *TerraformReconciler) event(ctx context.Context, terraform infrav1.Terra
 	traceLog.Info("Set the event type to Normal")
 	eventType := "Normal"
 	traceLog.Info("Check if severity is EventSeverityError")
-	if severity == events.EventSeverityError {
+	if severity == eventv1.EventSeverityError {
 		traceLog.Info("Set event type to Warning")
 		eventType = "Warning"
 	}
