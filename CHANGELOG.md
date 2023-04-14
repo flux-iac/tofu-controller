@@ -2,6 +2,18 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.15.0-rc.1
+
+**Release date:** 2023-04-15
+
+This release has a notable breaking change as we started supporting Flux v2.0.0 release candidates.
+Please note that you need to upgrade your Flux to v2.0.0-rc.1 or later to use this release.
+And this version is not compatible with Flux v2 0.41.x or earlier.
+
+Breaking changes:
+  * Upgrade Flux to v2.0.0-rc.1 (@chanwit)
+  * Bump Terraform API to v1alpha2 and deprecated v1alpha1 (@chanwit)
+
 # v0.14.0
 
 **Release date:** 2023-02-25
