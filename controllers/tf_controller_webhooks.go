@@ -15,7 +15,7 @@ import (
 	"text/template"
 
 	"github.com/hashicorp/go-cleanhttp"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/runner"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/kustomize/kyaml/yaml"

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package v1alpha2
 
 import (
 	"bytes"
@@ -364,7 +364,7 @@ type LockStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName=tf
 // +kubebuilder:subresource:status
-// +kubebuilder:deprecatedversion:warning="v1alpha1 Terraform is deprecated, upgrade to v1alpha2"
+// +kubebuilder:storageversion
 // +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description=""
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].message",description=""
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""

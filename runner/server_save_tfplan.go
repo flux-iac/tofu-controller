@@ -4,17 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/go-logr/logr"
-	"github.com/weaveworks/tf-controller/api/v1alpha1"
-	"github.com/weaveworks/tf-controller/utils"
 	"io/ioutil"
+	"path/filepath"
+	"strings"
+
+	"github.com/go-logr/logr"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
+	"github.com/weaveworks/tf-controller/utils"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"path/filepath"
 	"sigs.k8s.io/controller-runtime"
-	"strings"
 )
 
 func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanRequest) (*SaveTFPlanReply, error) {
@@ -108,21 +109,21 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 
 	tfplanData := map[string][]byte{TFPlanName: tfplan}
 	tfplanSecret = v1.Secret{
-		TypeMeta: v12.TypeMeta{
+		TypeMeta: metav1.TypeMeta{
 			Kind:       "Secret",
 			APIVersion: "v1",
 		},
-		ObjectMeta: v12.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
 			Namespace: namespace,
 			Annotations: map[string]string{
 				"encoding":                "gzip",
 				SavedPlanSecretAnnotation: planName,
 			},
-			OwnerReferences: []v12.OwnerReference{
+			OwnerReferences: []metav1.OwnerReference{
 				{
-					APIVersion: v1alpha1.GroupVersion.Group + "/" + v1alpha1.GroupVersion.Version,
-					Kind:       v1alpha1.TerraformKind,
+					APIVersion: infrav1.GroupVersion.Group + "/" + infrav1.GroupVersion.Version,
+					Kind:       infrav1.TerraformKind,
 					Name:       name,
 					UID:        types.UID(uuid),
 				},
@@ -167,20 +168,20 @@ func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name s
 
 	tfplanData := map[string]string{TFPlanName: tfplan}
 	tfplanCM = v1.ConfigMap{
-		TypeMeta: v12.TypeMeta{
+		TypeMeta: metav1.TypeMeta{
 			Kind:       "ConfigMap",
 			APIVersion: "v1",
 		},
-		ObjectMeta: v12.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      configMapName,
 			Namespace: namespace,
 			Annotations: map[string]string{
 				SavedPlanSecretAnnotation: planName,
 			},
-			OwnerReferences: []v12.OwnerReference{
+			OwnerReferences: []metav1.OwnerReference{
 				{
-					APIVersion: v1alpha1.GroupVersion.Group + "/" + v1alpha1.GroupVersion.Version,
-					Kind:       v1alpha1.TerraformKind,
+					APIVersion: infrav1.GroupVersion.Group + "/" + infrav1.GroupVersion.Version,
+					Kind:       infrav1.TerraformKind,
 					Name:       name,
 					UID:        types.UID(uuid),
 				},
