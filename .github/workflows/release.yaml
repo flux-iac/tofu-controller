@@ -129,8 +129,8 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: 1
         run: |
-          cosign sign ghcr.io/weaveworks/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
-          cosign sign ghcr.io/weaveworks/tf-runner:${{ steps.prep.outputs.VERSION }}
+          cosign sign --yes ghcr.io/weaveworks/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
+          cosign sign --yes ghcr.io/weaveworks/tf-runner:${{ steps.prep.outputs.VERSION }}
       - name: Generate release manifests
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
