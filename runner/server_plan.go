@@ -31,6 +31,9 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 	var planOpt []tfexec.PlanOption
 	if req.Out != "" {
 		planOpt = append(planOpt, tfexec.Out(req.Out))
+	} else {
+		// if backend is disabled completely, there will be no plan output file (req.Out = "")
+		log.Info("backend seems to be disabled completely, so there will be no plan output file")
 	}
 
 	if req.Refresh == false {
@@ -62,19 +65,22 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 		return nil, st.Err()
 	}
 
-	plan, err := r.tf.ShowPlanFile(ctx, req.Out)
-	if err != nil {
-		return nil, err
-	}
+	planCreated := false
+	if req.Out != "" {
+		planCreated = true
+		plan, err := r.tf.ShowPlanFile(ctx, req.Out)
+		if err != nil {
+			return nil, err
+		}
 
-	planCreated := true
-	// This is the case when the plan is empty.
-	if plan.PlannedValues.Outputs == nil &&
-		plan.PlannedValues.RootModule.Resources == nil &&
-		plan.ResourceChanges == nil &&
-		plan.PriorState == nil &&
-		plan.OutputChanges == nil {
-		planCreated = false
+		// This is the case when the plan is empty.
+		if plan.PlannedValues.Outputs == nil &&
+			plan.PlannedValues.RootModule.Resources == nil &&
+			plan.ResourceChanges == nil &&
+			plan.PriorState == nil &&
+			plan.OutputChanges == nil {
+			planCreated = false
+		}
 	}
 
 	return &PlanReply{Message: "ok", Drifted: drifted, PlanCreated: planCreated}, nil

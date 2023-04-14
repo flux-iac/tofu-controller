@@ -294,8 +294,7 @@ spec:
                 type: boolean
               retryInterval:
                 description: The interval at which to retry a previously failed reconciliation.
-                  When not specified, the controller uses the TerraformSpec.Interval
-                  value to retry failures.
+                  The default value is 15 when not specified.
                 type: string
               runnerPodTemplate:
                 properties:
@@ -2189,7 +2188,8 @@ spec:
                                     defined in spec.resourceClaims, that are used
                                     by this container. \n This is an alpha field and
                                     requires enabling the DynamicResourceAllocation
-                                    feature gate. \n This field is immutable."
+                                    feature gate. \n This field is immutable. It can
+                                    only be set for containers."
                                   items:
                                     description: ResourceClaim references one entry
                                       in PodSpec.ResourceClaims.
@@ -3406,7 +3406,8 @@ spec:
                                                 that are used by this container. \n
                                                 This is an alpha field and requires
                                                 enabling the DynamicResourceAllocation
-                                                feature gate. \n This field is immutable."
+                                                feature gate. \n This field is immutable.
+                                                It can only be set for containers."
                                               items:
                                                 description: ResourceClaim references
                                                   one entry in PodSpec.ResourceClaims.

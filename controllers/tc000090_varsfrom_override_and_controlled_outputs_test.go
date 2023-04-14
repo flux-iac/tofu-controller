@@ -7,7 +7,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -37,8 +37,7 @@ func Test_000090_varsfrom_override_and_controlled_outputs_test(t *testing.T) {
 			Reference: &sourcev1.GitRepositoryRef{
 				Branch: "master",
 			},
-			Interval:          metav1.Duration{Duration: time.Second * 30},
-			GitImplementation: "go-git",
+			Interval: metav1.Duration{Duration: time.Second * 30},
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
@@ -56,12 +55,12 @@ func Test_000090_varsfrom_override_and_controlled_outputs_test(t *testing.T) {
 				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
-		URL: server.URL() + "/env.tar.gz",
+
 		Artifact: &sourcev1.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/env.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-			Checksum:       "d021eda9b869586f5a43ad1ba7f21e4bf9b3970443236755463f22824b525316",
+			Digest:         "sha256:d021eda9b869586f5a43ad1ba7f21e4bf9b3970443236755463f22824b525316",
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}

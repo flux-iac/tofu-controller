@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"io"
 	"net"
 	"net/http"
@@ -11,7 +12,6 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/fluxcd/pkg/runtime/logger"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/runner"
@@ -102,7 +102,7 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 				traceLog.Error(err, "Hit an error")
 				msg := fmt.Sprintf("TCP health check error: %s, url: %s", hc.Name, hc.Address)
 				traceLog.Info("Record an event")
-				r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+				r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
 				traceLog.Info("Return failed health check")
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
@@ -128,7 +128,7 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 				traceLog.Error(err, "Hit an error")
 				msg := fmt.Sprintf("HTTP health check error: %s, url: %s", hc.Name, hc.URL)
 				traceLog.Info("Record an event")
-				r.event(ctx, terraform, revision, events.EventSeverityError, msg, nil)
+				r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
 				traceLog.Info("Return failed health check")
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,

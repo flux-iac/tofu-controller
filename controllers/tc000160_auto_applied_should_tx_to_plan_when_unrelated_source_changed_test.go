@@ -9,7 +9,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -46,8 +46,7 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 			Reference: &sourcev1.GitRepositoryRef{
 				Branch: "master",
 			},
-			Interval:          metav1.Duration{Duration: time.Second * 30},
-			GitImplementation: "go-git",
+			Interval: metav1.Duration{Duration: time.Second * 30},
 		},
 	}
 
@@ -69,12 +68,12 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
-		URL: server.URL() + "/tf-k8s-configmap.tar.gz",
+
 		Artifact: &sourcev1.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/tf-k8s-configmap.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-			Checksum:       "c3bf30bad9621b5110a3761a70754170d1dae6c525a63098b6ec9919efac3555", // must be the real checksum value
+			Digest:         "sha256:c3bf30bad9621b5110a3761a70754170d1dae6c525a63098b6ec9919efac3555", // must be the real checksum value
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
@@ -197,12 +196,12 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 				Message:            "Fetched revision: master/ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
 			},
 		},
-		URL: server.URL() + "/tf-k8s-configmap-unrelated-change.tar.gz",
+
 		Artifact: &sourcev1.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/ed22ced771a0056455a2fbb8e362c206e3d0cbb7.tar.gz",
 			URL:            server.URL() + "/tf-k8s-configmap-unrelated-change.tar.gz",
 			Revision:       "master/ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
-			Checksum:       "31edb23a8227e8bcd2034cc2223919eee83e9c20f27166535503dc3c1f4326dc", // must be the real checksum value
+			Digest:         "sha256:31edb23a8227e8bcd2034cc2223919eee83e9c20f27166535503dc3c1f4326dc", // must be the real checksum value
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
