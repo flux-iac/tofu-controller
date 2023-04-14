@@ -7,7 +7,7 @@ import (
 	"os"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/runner"
 	"google.golang.org/grpc"
 	v1 "k8s.io/api/core/v1"

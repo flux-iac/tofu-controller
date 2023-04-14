@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fluxcd/pkg/apis/meta"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"io"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

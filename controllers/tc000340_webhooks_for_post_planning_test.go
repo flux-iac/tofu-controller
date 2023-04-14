@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/runner"
 	"google.golang.org/grpc"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,11 +33,11 @@ func Test_000340_PrepareWebhookPayloadSpecAndPlan(t *testing.T) {
 	g := NewWithT(t)
 	terraform := infrav1.Terraform{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "infra.contrib.fluxcd.io/v1alpha1",
+			APIVersion: "infra.contrib.fluxcd.io/v1alpha2",
 		},
 	}
 	err := terraform.FromBytes([]byte(fmt.Sprintf(`
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: %s
@@ -61,7 +61,7 @@ spec:
 	g.Expect(err).ToNot(HaveOccurred())
 
 	expected, err := yaml.Parse(`
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld
@@ -106,11 +106,11 @@ func Test_000340_PrepareWebhookPayloadSpecOnly(t *testing.T) {
 	g := NewWithT(t)
 	terraform := infrav1.Terraform{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "infra.contrib.fluxcd.io/v1alpha1",
+			APIVersion: "infra.contrib.fluxcd.io/v1alpha2",
 		},
 	}
 	err := terraform.FromBytes([]byte(fmt.Sprintf(`
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: %s
@@ -135,7 +135,7 @@ spec:
 	g.Expect(err).ToNot(HaveOccurred())
 
 	expected, err := yaml.Parse(`
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld
@@ -178,11 +178,11 @@ func Test_000340_PrepareWebhookPayloadPlanOnly(t *testing.T) {
 	g := NewWithT(t)
 	terraform := infrav1.Terraform{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "infra.contrib.fluxcd.io/v1alpha1",
+			APIVersion: "infra.contrib.fluxcd.io/v1alpha2",
 		},
 	}
 	err := terraform.FromBytes([]byte(fmt.Sprintf(`
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: %s
@@ -290,7 +290,7 @@ func Test_000340_webhooks_for_post_planning_test(t *testing.T) {
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
 	var helloWorldTF infrav1.Terraform
 	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: %s

@@ -10,7 +10,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/terraform-exec/tfexec"
 	tfjson "github.com/hashicorp/terraform-json"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

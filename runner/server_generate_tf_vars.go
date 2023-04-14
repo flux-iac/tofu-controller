@@ -11,12 +11,12 @@ import (
 	"text/template"
 
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/tf-controller/api/v1alpha1"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/utils"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/json"
 	"k8s.io/api/core/v1"
-	v12 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -187,7 +187,7 @@ func getSecretForReadInputs(ctx context.Context, log logr.Logger, r client.Clien
 	return secret, nil
 }
 
-func readInputsForGenerateVarsForTF(ctx context.Context, log logr.Logger, c client.Client, terraform *v1alpha1.Terraform) (map[string]interface{}, error) {
+func readInputsForGenerateVarsForTF(ctx context.Context, log logr.Logger, c client.Client, terraform *infrav1.Terraform) (map[string]interface{}, error) {
 	inputs := map[string]interface{}{}
 	if len(terraform.Spec.ReadInputsFromSecrets) > 0 {
 		for _, readSpec := range terraform.Spec.ReadInputsFromSecrets {
@@ -215,7 +215,7 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 	// use from the cached object
 	terraform := *r.terraform
 
-	vars := map[string]*v12.JSON{}
+	vars := map[string]*apiextensionsv1.JSON{}
 
 	//inputs := map[string]interface{}{}
 	inputs, err := readInputsForGenerateVarsForTF(ctx, log, r.Client, &terraform)
@@ -239,7 +239,7 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 			return nil, err
 		}
 
-		vars["values"] = &v12.JSON{Raw: buf.Bytes()}
+		vars["values"] = &apiextensionsv1.JSON{Raw: buf.Bytes()}
 	}
 
 	log.Info("mapping the Spec.Vars")
