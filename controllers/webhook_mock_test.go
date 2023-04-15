@@ -63,11 +63,11 @@ func setupMockHandlersForWebhook() {
 			"entity": {
 				"id": "",
 				"name": "helloworld",
-				"apiVersion": "infra.contrib.fluxcd.io/v1alpha1",
+				"apiVersion": "infra.contrib.fluxcd.io/v1alpha2",
 				"kind": "Terraform",
 				"namespace": "default",
 				"manifest": {
-					"apiVersion": "infra.contrib.fluxcd.io/v1alpha1",
+					"apiVersion": "infra.contrib.fluxcd.io/v1alpha2",
 					"kind": "Terraform",
 					"metadata": {
 						"name": "helloworld",

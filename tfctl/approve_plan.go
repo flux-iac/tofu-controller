@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/kustomize/kyaml/kio"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
@@ -57,7 +57,7 @@ func approvePlan(terraform infrav1.Terraform, filename string) error {
 	for _, node := range nodes {
 		// check name and namespace of the node
 		if node.GetKind() == "Terraform" &&
-			node.GetApiVersion() == "infra.contrib.fluxcd.io/v1alpha1" &&
+			node.GetApiVersion() == "infra.contrib.fluxcd.io/v1alpha2" &&
 			node.GetName() == terraform.Name &&
 			node.GetNamespace() == terraform.Namespace {
 			// set the plan approval

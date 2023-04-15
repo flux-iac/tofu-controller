@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -80,7 +80,7 @@ func Test_000011_workspace_no_outputs_test(t *testing.T) {
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
 	var helloWorldTF infrav1.Terraform
 	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: %s

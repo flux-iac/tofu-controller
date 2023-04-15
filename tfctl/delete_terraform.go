@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"k8s.io/apimachinery/pkg/types"
 )
 
