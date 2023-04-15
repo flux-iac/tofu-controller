@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/runner"
 
 	. "github.com/onsi/gomega"

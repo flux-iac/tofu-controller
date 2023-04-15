@@ -8,7 +8,7 @@ import (
 
 	"github.com/fluxcd/pkg/runtime/logger"
 	errors2 "github.com/pkg/errors"
-	"github.com/weaveworks/tf-controller/api/v1alpha1"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/mtls"
 	"github.com/weaveworks/tf-controller/runner"
 	"google.golang.org/grpc"
@@ -22,7 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func getRunnerPodObjectKey(terraform v1alpha1.Terraform) types.NamespacedName {
+func getRunnerPodObjectKey(terraform infrav1.Terraform) types.NamespacedName {
 	return types.NamespacedName{Namespace: terraform.Namespace, Name: fmt.Sprintf("%s-tf-runner", terraform.Name)}
 }
 
@@ -37,7 +37,7 @@ func getRunnerPodImage(image string) string {
 	return runnerPodImage
 }
 
-func runnerPodTemplate(terraform v1alpha1.Terraform, secretName string) v1.Pod {
+func runnerPodTemplate(terraform infrav1.Terraform, secretName string) v1.Pod {
 	podNamespace := terraform.Namespace
 	podName := fmt.Sprintf("%s-tf-runner", terraform.Name)
 	runnerPodTemplate := v1.Pod{
@@ -48,7 +48,7 @@ func runnerPodTemplate(terraform v1alpha1.Terraform, secretName string) v1.Pod {
 				"app.kubernetes.io/created-by":   "tf-controller",
 				"app.kubernetes.io/name":         "tf-runner",
 				"app.kubernetes.io/instance":     podName,
-				v1alpha1.RunnerLabel:             terraform.Namespace,
+				infrav1.RunnerLabel:              terraform.Namespace,
 				"tf.weave.works/tls-secret-name": secretName,
 			},
 			Annotations: terraform.Spec.RunnerPodTemplate.Metadata.Annotations,
@@ -64,7 +64,7 @@ func runnerPodTemplate(terraform v1alpha1.Terraform, secretName string) v1.Pod {
 	return runnerPodTemplate
 }
 
-func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terraform v1alpha1.Terraform) (runner.RunnerClient, func() error, error) {
+func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terraform infrav1.Terraform) (runner.RunnerClient, func() error, error) {
 	log := ctrl.LoggerFrom(ctx)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.lookupOrCreateRunner_000")
 	// we have to make sure that the secret is valid before we can create the runner.
@@ -148,7 +148,7 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret
 	)
 }
 
-func (r *TerraformReconciler) runnerPodSpec(terraform v1alpha1.Terraform, tlsSecretName string) v1.PodSpec {
+func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecretName string) v1.PodSpec {
 	serviceAccountName := terraform.Spec.ServiceAccountName
 	if serviceAccountName == "" {
 		serviceAccountName = "tf-runner"
@@ -273,7 +273,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform v1alpha1.Terraform, tlsSec
 	}
 }
 
-func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform v1alpha1.Terraform, tlsSecret *v1.Secret) (string, error) {
+func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform, tlsSecret *v1.Secret) (string, error) {
 	log := controllerruntime.LoggerFrom(ctx)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.reconcileRunnerPod")
 	traceLog.Info("Begin reconcile of the runner pod")
@@ -444,7 +444,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 // if the cert is not present in the secret or is invalid, it will generate a new cert and
 // write it to the secret. One secret per namespace is created in order to sidestep the need
 // for specifying a pod ip in the certificate SAN field.
-func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terraform *v1alpha1.Terraform) (*v1.Secret, error) {
+func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terraform *infrav1.Terraform) (*v1.Secret, error) {
 	log := controllerruntime.LoggerFrom(ctx)
 
 	log.Info("trigger namespace tls secret generation")

@@ -6,7 +6,7 @@ import (
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	. "github.com/onsi/gomega"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha1"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -81,7 +81,7 @@ func dependencyObject(t *testing.T) (*sourcev1.GitRepository, *infrav1.Terraform
 	By("creating a new TF and attaching to the repo")
 	var helloWorldTF infrav1.Terraform
 	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: %s
