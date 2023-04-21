@@ -364,6 +364,7 @@ type LockStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName=tf
 // +kubebuilder:subresource:status
+// +kubebuilder:unservedversion
 // +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description=""
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].message",description=""
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""
