@@ -3,7 +3,7 @@ on:
   pull_request:
     branches:
       - 'main'
-      - 'release-*'
+      - 'release-v0.14'
     paths:
       - 'charts/tf-controller/**'
       - '.github/workflows/helm-test.yaml'
@@ -62,9 +62,11 @@ jobs:
 
       - name: Install Flux CLI
         uses: fluxcd/flux2/action@main
+        if: steps.list-changed.outputs.changed == 'true'
 
       - name: Install Source controller
         run: flux install --components=source-controller
+        if: steps.list-changed.outputs.changed == 'true'
 
       - name: Run chart-testing (install)
         run: ct install --config ct.yaml
