@@ -1,0 +1,26 @@
+name: helm-release-lts
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write # needed to write releases
+  id-token: write # needed for keyless signing
+  packages: write # needed for ghcr access
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish Helm OCI
+        run: |
+          VERSION=$(yq e '.version' charts/tf-controller/Chart.yaml)
+          mkdir helm-release
+          helm package charts/tf-controller/ -d helm-release
+          helm push helm-release/tf-controller-${VERSION}.tgz oci://ghcr.io/weaveworks/lts-charts
