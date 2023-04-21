@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - release-v0.14
 
 permissions:
   contents: write # needed to write releases

@@ -3,6 +3,7 @@ on:
   pull_request:
     branches:
       - 'main'
+      - 'release-*'
     paths:
       - 'charts/tf-controller/**'
       - '.github/workflows/helm-test.yaml'
