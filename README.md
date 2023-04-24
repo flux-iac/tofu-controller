@@ -32,26 +32,32 @@ Check out the [documentation](https://docs.gitops.weave.works/docs/terraform/ove
   * [x]  ~~CRD wrappers~~ A new component model for Terraform modules
   * [x] Dependency management for TF-controller objects
   * [x] AWS package for TF-controller (e.g. EKS, RDS, etc.)
-  * [ ] CLI for Weave GitOps
+  * [x] CLI for Weave GitOps
 
 ### Q1 2023
-  * [ ] Observability - logging from the different stages of the runner
-  * [ ] CLI to GitOpsify existing Terraform workflows
-  * [ ] Selectable Terraform versions
-  * [ ] Cloud cost estimation
-  * [ ] Write back and show plan in PRs (Atlantis-like experience)
+  * [x] `v1alpha2` API
+  * [x] Flux v2.0.0-rc support
+  * [x] Better Terraform Cloud integration
 
 ### Q2 2023
-  * [ ] Enhanced security (the lockdown mode)
-  * [ ] External drift detector
+  * [ ] Write back and show plan in PRs (Atlantis-like experience)
   * [ ] Type safety for custom backends
-  * [ ] `v1alpha2` API
+  * [ ] Selectable Terraform versions
+  * [ ] Flux v2.0.0 GA support
 
 ### Q3 2023
+  * [ ] `v1beta1` API (stabilization)
+  * [ ] Observability - logging from the different stages of the runner
+  * [ ] CLI to GitOpsify existing Terraform workflows
+  * [ ] Enhanced security (the lockdown mode)
+  * [ ] External drift detector
+  * [ ] Cloud cost estimation
+
+### Q4 2023
   * [ ] Azure package for TF-controller (e.g. AKS, CosmosDB, etc.)
   * [ ] GCP package for TF-controller (e.g. GKE, CloudSQL, etc.) 
   * [ ] ARM64 & Gravitron support
-  * [ ] Containerd compatibility
+  * [ ] Containerd compatibility verification
 
-### Q4 2023
-  * [ ] `v1beta1` API (stabilization)
+### Q1 2024
+  * [ ] `v1beta2` API
