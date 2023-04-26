@@ -7,21 +7,6 @@ import (
 	"github.com/jenkins-x/go-scm/scm"
 )
 
-func handlePush(log logr.Logger, hook scm.Webhook) error {
-	event, ok := hook.(*scm.PushHook)
-	if !ok {
-		return fmt.Errorf("unable to cast type")
-	}
-
-	log.Info(
-		"push event received",
-		"sender", event.Sender.Login,
-		"event", event,
-	)
-
-	return nil
-}
-
 func handlePullRequest(log logr.Logger, hook scm.Webhook) error {
 	event, ok := hook.(*scm.PullRequestHook)
 	if !ok {
