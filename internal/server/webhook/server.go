@@ -16,15 +16,12 @@ const (
 )
 
 type Server struct {
-	log        logr.Logger
-	listenAddr string
+	log      logr.Logger
+	listener net.Listener
 }
 
 func New(options ...Option) *Server {
-	server := &Server{
-		log:        logr.Discard(),
-		listenAddr: DefaultListenAddress,
-	}
+	server := &Server{log: logr.Discard()}
 
 	for _, opt := range options {
 		opt(server)
@@ -36,23 +33,29 @@ func New(options ...Option) *Server {
 func (s *Server) Start(ctx context.Context) error {
 	mux := http.NewServeMux()
 
-	mux.Handle("/callback", newCallbackHandler(s.log))
+	mux.Handle("/callback", NewCallbackHandler(s.log))
 	mux.Handle("/healthz", healthz.CheckHandler{Checker: healthz.Ping})
+	mux.HandleFunc("/", func(response http.ResponseWriter, _ *http.Request) {
+		response.WriteHeader(http.StatusNotFound)
+	})
 
-	listener, err := net.Listen("tcp", s.listenAddr)
-	if err != nil {
-		return fmt.Errorf("failed creating listener: %w", err)
+	if s.listener == nil {
+		var err error
+		s.listener, err = net.Listen("tcp", DefaultListenAddress)
+		if err != nil {
+			return fmt.Errorf("failed creating listener: %w", err)
+		}
 	}
 
 	srv := http.Server{
-		Addr:    listener.Addr().String(),
+		Addr:    s.listener.Addr().String(),
 		Handler: mux,
 	}
 
 	go func() {
-		log := s.log.WithValues("kind", "webhook", "addr", listener.Addr())
+		log := s.log.WithValues("kind", "webhook", "addr", s.listener.Addr())
 		log.Info("Starting server")
-		if err := srv.Serve(listener); err != nil {
+		if err := srv.Serve(s.listener); err != nil {
 			if errors.Is(err, http.ErrServerClosed) {
 				return
 			}

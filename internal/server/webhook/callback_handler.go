@@ -11,11 +11,16 @@ import (
 	"github.com/jenkins-x/go-scm/scm/factory"
 )
 
+const (
+	HubSignatureSHA256Header = "X-Hub-Signature-256"
+	HubSignatureSHA1Header   = "X-Hub-Signature"
+)
+
 type callbackHandler struct {
 	log logr.Logger
 }
 
-func newCallbackHandler(log logr.Logger) *callbackHandler {
+func NewCallbackHandler(log logr.Logger) *callbackHandler {
 	return &callbackHandler{
 		log: log,
 	}
@@ -28,6 +33,20 @@ func (h *callbackHandler) ServeHTTP(response http.ResponseWriter, request *http.
 		return
 	}
 
+	if request.Header.Get(HubSignatureSHA256Header) == "" {
+		h.log.V(logger.DebugLevel).Info("missing hmac signature")
+		response.WriteHeader(http.StatusUnauthorized)
+
+		return
+	}
+
+	if request.URL.Query().Get("provider") == "" {
+		h.log.V(logger.DebugLevel).Info("missing provider")
+		response.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+
 	scmClient, err := factory.NewWebHookService(request.URL.Query().Get("provider"))
 	if err != nil {
 		h.log.V(logger.DebugLevel).Error(err, "failed to create scm webhook client")
@@ -36,10 +55,10 @@ func (h *callbackHandler) ServeHTTP(response http.ResponseWriter, request *http.
 		return
 	}
 
-	hook, err := scmClient.Parse(request, func(hook scm.Webhook) (string, error) {
+	hook, err := scmClient.Parse(request, func(_ scm.Webhook) (string, error) {
 		return fetchHMACKey(), nil
 	})
-	if err != nil && hook.Kind() != scm.WebhookKindPing {
+	if err != nil && (hook == nil || hook.Kind() != scm.WebhookKindPing) {
 		h.log.V(logger.DebugLevel).Error(err, "parsing webhook request")
 		response.WriteHeader(http.StatusBadRequest)
 
@@ -52,7 +71,7 @@ func (h *callbackHandler) ServeHTTP(response http.ResponseWriter, request *http.
 		"repository", hook.Repository().Name,
 	)
 
-	log.V(logger.DebugLevel).Info("incoming hmac requesr is valid")
+	log.V(logger.DebugLevel).Info("incoming hmac request is valid")
 
 	switch hook.Kind() {
 	case scm.WebhookKindPing:
@@ -62,13 +81,6 @@ func (h *callbackHandler) ServeHTTP(response http.ResponseWriter, request *http.
 	case scm.WebhookKindPullRequest:
 		if err := handlePullRequest(log, hook); err != nil {
 			log.V(logger.DebugLevel).Error(err, "processing pull request event")
-			response.WriteHeader(http.StatusBadRequest)
-
-			return
-		}
-	case scm.WebhookKindPush:
-		if err := handlePush(log, hook); err != nil {
-			log.V(logger.DebugLevel).Error(err, "processing push event")
 			response.WriteHeader(http.StatusBadRequest)
 
 			return
@@ -88,7 +100,7 @@ func (h *callbackHandler) ServeHTTP(response http.ResponseWriter, request *http.
 	}
 
 	response.WriteHeader(http.StatusAccepted)
-	io.WriteString(response, "Webhook request is valid")
+	io.WriteString(response, "Webhook request is valid and processed")
 }
 
 func fetchHMACKey() string {
