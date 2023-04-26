@@ -22,9 +22,14 @@ func main() {
 	flag.Parse()
 
 	log := logger.NewLogger(logOptions)
-	server := webhook.New(
+	server, err := webhook.New(
 		webhook.WithLogger(log),
 	)
+	if err != nil {
+		log.Error(err, "problem configuring the webhook receiver server")
+		os.Exit(1)
+	}
+
 	ctx := context.Background()
 
 	if err := server.Start(ctx); err != nil {
