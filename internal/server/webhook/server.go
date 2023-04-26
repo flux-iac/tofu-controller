@@ -20,14 +20,16 @@ type Server struct {
 	listener net.Listener
 }
 
-func New(options ...Option) *Server {
+func New(options ...Option) (*Server, error) {
 	server := &Server{log: logr.Discard()}
 
 	for _, opt := range options {
-		opt(server)
+		if err := opt(server); err != nil {
+			return nil, err
+		}
 	}
 
-	return server
+	return server, nil
 }
 
 func (s *Server) Start(ctx context.Context) error {

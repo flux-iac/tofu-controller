@@ -100,7 +100,7 @@ func (h *callbackHandler) ServeHTTP(response http.ResponseWriter, request *http.
 	}
 
 	response.WriteHeader(http.StatusAccepted)
-	io.WriteString(response, "Webhook request is valid and processed")
+	_, _ = io.WriteString(response, "Webhook request is valid and processed")
 }
 
 func fetchHMACKey() string {
