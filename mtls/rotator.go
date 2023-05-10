@@ -255,11 +255,11 @@ tickerLoop:
 				if err != nil {
 					crLog.Error(err, "error generating TLS for ", "namespace", namespace)
 				}
-				cr.knownNamespaceTLSMap[namespace] = &TriggerResult{Secret: secret, Err: err}
+				triggerResult = &TriggerResult{Secret: secret, Err: err}
+				cr.SetKnownNamespaceTLS(namespace, triggerResult)
 			} else {
 				crLog.Info("TLS already generated for ", "namespace", namespace)
 			}
-			trigger.Ready <- triggerResult
 
 			// GC: request to collect the old TLS artifacts when we have new TLS generated
 			if time.Since(lastGCTime) > gcInterval {
@@ -272,6 +272,8 @@ tickerLoop:
 				// Update the last garbage collection time
 				lastGCTime = time.Now()
 			}
+
+			trigger.Ready <- triggerResult
 
 		case <-gcTicker.C:
 			// GC: request to garbage collect the old TLS artifacts for every gcInterval
