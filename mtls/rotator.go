@@ -20,6 +20,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -36,13 +37,6 @@ const (
 
 var crLog = logf.Log.WithName("cert-rotation")
 var _ manager.Runnable = &CertRotator{}
-
-/*
-// SyncingReader is a reader that needs syncing prior to being usable.
-type SyncingReader interface {
-	client.Reader
-	WaitForCacheSync(ctx context.Context) bool
-}*/
 
 // PartialManager is a subset of the manager.Manager interface that is used by the CertRotator.
 type PartialManager interface {
@@ -100,20 +94,34 @@ type CertRotator struct {
 	knownNamespaceTLSMapMu sync.Mutex
 }
 
-func (cr *CertRotator) GetTLSGenerationResult(namespace string) (*corev1.Secret, error) {
+// GetKnownNamespaceTLS returns the TriggerResult for the given namespace.
+func (cr *CertRotator) GetKnownNamespaceTLS(namespace string) (*TriggerResult, bool) {
 	cr.knownNamespaceTLSMapMu.Lock()
 	defer cr.knownNamespaceTLSMapMu.Unlock()
+	val, ok := cr.knownNamespaceTLSMap[namespace]
+	return val, ok
+}
 
-	result := cr.knownNamespaceTLSMap[namespace]
-	if result == nil {
-		return nil, errors.New("no TLS generation result")
+// SetKnownNamespaceTLS sets the TriggerResult for the given namespace.
+func (cr *CertRotator) SetKnownNamespaceTLS(namespace string, result *TriggerResult) {
+	cr.knownNamespaceTLSMapMu.Lock()
+	defer cr.knownNamespaceTLSMapMu.Unlock()
+	cr.knownNamespaceTLSMap[namespace] = result
+}
+
+// GetKnownNamespaces returns all the keys (namespaces) in knownNamespaceTLSMap.
+func (cr *CertRotator) GetKnownNamespaces() []string {
+	cr.knownNamespaceTLSMapMu.Lock()
+	defer cr.knownNamespaceTLSMapMu.Unlock()
+	keys := make([]string, 0, len(cr.knownNamespaceTLSMap))
+	for k := range cr.knownNamespaceTLSMap {
+		keys = append(keys, k)
 	}
-
-	return result.Secret, result.Err
+	return keys
 }
 
 // AddRotator adds the CertRotator and ReconcileWH to the manager.
-func AddRotator(ctx context.Context, mgr manager.Manager, cr *CertRotator) error {
+func AddRotator(_ context.Context, mgr manager.Manager, cr *CertRotator) error {
 	if mgr == nil || cr == nil {
 		return fmt.Errorf("nil arguments")
 	}
@@ -147,8 +155,34 @@ func (cr *CertRotator) IsCAValid() (bool, error) {
 // Start starts the CertRotator runnable to rotate certs and ensure the certs are ready.
 func (cr *CertRotator) Start(ctx context.Context) error {
 	// Only the leader do cert rotation.
-	// if we're not, we're blocked here and don't do any cert rotation until we becomes the leader.
+	// if we're not, we're blocked here and don't do any cert rotation until we become the leader.
 	<-cr.mgr.Elected()
+
+	// referenceTime is used to calculate the old cert GC threshold
+	var referenceTime = time.Now()
+
+	// lastGCTime is the last time we GCed old certs
+	lastGCTime := referenceTime
+
+	// gcInterval is the interval between GCs
+	// we GC 6 times per rotation check interval
+	var gcInterval time.Duration
+	if cr.RotationCheckFrequency <= 1*time.Minute {
+		gcInterval = cr.RotationCheckFrequency
+	} else if cr.RotationCheckFrequency > 1*time.Minute && cr.RotationCheckFrequency <= 6*time.Minute {
+		gcInterval = 1 * time.Minute
+	} else {
+		gcInterval = cr.RotationCheckFrequency / 6
+	}
+
+	// delete old certs in the current namespace first
+	runtimeNamespace := os.Getenv("RUNTIME_NAMESPACE")
+	if runtimeNamespace != "" {
+		err := cr.garbageCollectTLSCertsForcefully(runtimeNamespace, referenceTime)
+		if err != nil {
+			crLog.Error(err, "failed to garbage collect old certs in the runtime namespace")
+		}
+	}
 
 	cr.extKeyUsages = &[]x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth}
 
@@ -163,8 +197,8 @@ func (cr *CertRotator) Start(ctx context.Context) error {
 
 	close(cr.Ready)
 
-	// TODO implement GC for getting rid of old certs
 	ticker := time.NewTicker(cr.RotationCheckFrequency)
+	gcTicker := time.NewTicker(gcInterval)
 
 tickerLoop:
 	for {
@@ -180,6 +214,7 @@ tickerLoop:
 				trigger.Ready <- &TriggerResult{Secret: secret, Err: nil}
 			}
 
+		// triggerred every RotationCheckFrequency (for example, the default value is 30 minutes in the Helm chart)
 		case <-ticker.C:
 			if err := cr.refreshCACertsIfNeeded(); err != nil {
 				crLog.Error(err, "could not refresh cert")
@@ -187,7 +222,6 @@ tickerLoop:
 
 			// GC: garbage collect the old CA artifacts
 			for {
-
 				if len(cr.artifactCaches) == 0 {
 					break
 				}
@@ -196,7 +230,7 @@ tickerLoop:
 				// we must NOT use cr.lookaheadTime() here
 				if validUntil.Before(time.Now()) {
 					cr.artifactCaches = cr.artifactCaches[1:]
-					for namespace := range cr.knownNamespaceTLSMap {
+					for _, namespace := range cr.GetKnownNamespaces() {
 						err := cr.writer.Delete(context.TODO(), &corev1.Secret{
 							ObjectMeta: metav1.ObjectMeta{
 								Namespace: namespace,
@@ -212,9 +246,11 @@ tickerLoop:
 				}
 			}
 
+		// trigger by Terraform CR reconciliation loop
 		case trigger := <-cr.TriggerNamespaceTLSGeneration:
 			namespace := trigger.Namespace
-			if _, ok := cr.knownNamespaceTLSMap[namespace]; !ok {
+			triggerResult, ok := cr.GetKnownNamespaceTLS(namespace)
+			if !ok {
 				secret, err := cr.generateNamespaceTLS(namespace)
 				if err != nil {
 					crLog.Error(err, "error generating TLS for ", "namespace", namespace)
@@ -223,7 +259,32 @@ tickerLoop:
 			} else {
 				crLog.Info("TLS already generated for ", "namespace", namespace)
 			}
-			trigger.Ready <- cr.knownNamespaceTLSMap[namespace]
+			trigger.Ready <- triggerResult
+
+			// GC: request to collect the old TLS artifacts when we have new TLS generated
+			if time.Since(lastGCTime) > gcInterval {
+				namespaces := cr.GetKnownNamespaces()
+				err := cr.garbageCollectTLSCerts(namespaces, referenceTime)
+				if err != nil {
+					crLog.Error(err, "error garbage collecting TLS certs")
+				}
+
+				// Update the last garbage collection time
+				lastGCTime = time.Now()
+			}
+
+		case <-gcTicker.C:
+			// GC: request to garbage collect the old TLS artifacts for every gcInterval
+			if time.Since(lastGCTime) > gcInterval {
+				namespaces := cr.GetKnownNamespaces()
+				err := cr.garbageCollectTLSCerts(namespaces, referenceTime)
+				if err != nil {
+					crLog.Error(err, "error garbage collecting TLS certs")
+				}
+
+				// Update the last garbage collection time
+				lastGCTime = time.Now()
+			}
 
 		case <-ctx.Done():
 			break tickerLoop
@@ -233,6 +294,78 @@ tickerLoop:
 	ticker.Stop()
 	//close(cr.TriggerCARotation)
 	//close(cr.TriggerNamespaceTLSGeneration)
+	return nil
+}
+
+func (cr *CertRotator) garbageCollectTLSCertsForcefully(namespace string, referenceTime time.Time) error {
+	secretList := &corev1.SecretList{}
+	listOpts := &client.ListOptions{
+		Namespace:     namespace,
+		LabelSelector: labels.SelectorFromSet(map[string]string{infrav1.RunnerLabel: "true"}),
+	}
+	if err := cr.writer.List(context.TODO(), secretList, listOpts); err != nil {
+		return err
+	}
+
+	// Filter Secrets by creation time (before referenceTime)
+	for _, secret := range secretList.Items {
+		if secret.CreationTimestamp.Time.Before(referenceTime) {
+			if err := cr.writer.Delete(context.TODO(), &secret, client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil {
+				crLog.Error(err, "startup gc: could not delete old TLS artifact", "namespace", namespace, "secret", secret.Name)
+			}
+		}
+	}
+
+	return nil
+}
+
+// garbageCollectTLSCerts deletes old TLS certs that are no longer needed
+func (cr *CertRotator) garbageCollectTLSCerts(namespaces []string, referenceTime time.Time) error {
+	// Collect all Secrets to delete across namespaces
+	secretsToDelete := []*corev1.Secret{}
+
+	// deletionThreshold is the maximum number of Secrets to delete per GC run
+	const deletionThreshold = 10
+
+	// Iterate through all namespaces
+	for _, namespace := range namespaces {
+		// List all Secrets in the namespace with the specified label
+		secretList := &corev1.SecretList{}
+		listOpts := &client.ListOptions{
+			Namespace:     namespace,
+			LabelSelector: labels.SelectorFromSet(map[string]string{infrav1.RunnerLabel: "true"}),
+			Limit:         deletionThreshold + 2, // limit to 12 items per list request (deleteThreshold + the current one + the next one)
+		}
+		if err := cr.writer.List(context.TODO(), secretList, listOpts); err != nil {
+			return err
+		}
+
+		// Filter Secrets by creation time (before referenceTime)
+		for _, secret := range secretList.Items {
+			if secret.CreationTimestamp.Time.Before(referenceTime) {
+				secretsToDelete = append(secretsToDelete, &secret)
+				if len(secretsToDelete) >= deletionThreshold {
+					break
+				}
+			}
+		}
+	}
+
+	// Delete the collected Secrets and stop after deleting 10 Secrets
+	deletedCounter := 0
+	for _, secret := range secretsToDelete {
+		if deletedCounter >= deletionThreshold {
+			break
+		}
+
+		if err := cr.writer.Delete(context.TODO(), secret, client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil {
+			crLog.Error(err, "gc: could not delete old TLS Secret", "namespace", secret.Namespace, "secret", secret.Name)
+		} else {
+			crLog.Info("gc: successfully deleted old TLS Secret", "namespace", secret.Namespace, "secret", secret.Name)
+			deletedCounter++
+		}
+	}
+
 	return nil
 }
 
