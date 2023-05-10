@@ -5192,6 +5192,10 @@ spec:
                 description: Path to the directory containing Terraform (.tf) files.
                   Defaults to 'None', which translates to the root path of the SourceRef.
                 type: string
+              planOnly:
+                description: PlanOnly specifies if the reconciliation should or should
+                  not stop at plan phase.
+                type: boolean
               readInputsFromSecrets:
                 items:
                   properties:

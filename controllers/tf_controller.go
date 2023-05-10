@@ -425,19 +425,19 @@ func shortRev(revision string) string {
 func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentReconciles int, httpRetry int) error {
 	// Index the Terraforms by the GitRepository references they (may) point at.
 	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, infrav1.GitRepositoryIndexKey,
-		r.IndexBy(sourcev1.GitRepositoryKind)); err != nil {
+		IndexBy(sourcev1.GitRepositoryKind)); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
 	// Index the Terraforms by the Bucket references they (may) point at.
 	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, infrav1.BucketIndexKey,
-		r.IndexBy(sourcev1b2.BucketKind)); err != nil {
+		IndexBy(sourcev1b2.BucketKind)); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
 	// Index the Terraforms by the OCIRepository references they (may) point at.
 	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, infrav1.OCIRepositoryIndexKey,
-		r.IndexBy(sourcev1b2.OCIRepositoryKind)); err != nil {
+		IndexBy(sourcev1b2.OCIRepositoryKind)); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
@@ -585,7 +585,6 @@ func (r *TerraformReconciler) requestsForRevisionChangeOf(indexKey string) func(
 		}
 		return reqs
 	}
-
 }
 
 func (r *TerraformReconciler) getSource(ctx context.Context, terraform infrav1.Terraform) (sourcev1.Source, error) {
