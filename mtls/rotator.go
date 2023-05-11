@@ -264,9 +264,11 @@ tickerLoop:
 			// GC: request to collect the old TLS artifacts when we have new TLS generated
 			if time.Since(lastGCTime) > gcInterval {
 				namespaces := cr.GetKnownNamespaces()
-				err := cr.garbageCollectTLSCerts(namespaces, referenceTime)
-				if err != nil {
-					crLog.Error(err, "error garbage collecting TLS certs")
+				if len(namespaces) > 0 {
+					err := cr.garbageCollectTLSCerts(namespaces, referenceTime)
+					if err != nil {
+						crLog.Error(err, "error garbage collecting TLS certs")
+					}
 				}
 
 				// Update the last garbage collection time
@@ -279,9 +281,11 @@ tickerLoop:
 			// GC: request to garbage collect the old TLS artifacts for every gcInterval
 			if time.Since(lastGCTime) > gcInterval {
 				namespaces := cr.GetKnownNamespaces()
-				err := cr.garbageCollectTLSCerts(namespaces, referenceTime)
-				if err != nil {
-					crLog.Error(err, "error garbage collecting TLS certs")
+				if len(namespaces) > 0 {
+					err := cr.garbageCollectTLSCerts(namespaces, referenceTime)
+					if err != nil {
+						crLog.Error(err, "error garbage collecting TLS certs")
+					}
 				}
 
 				// Update the last garbage collection time
@@ -354,9 +358,9 @@ func (cr *CertRotator) garbageCollectTLSCerts(namespaces []string, referenceTime
 		}
 
 		// Filter Secrets by creation time (before referenceTime)
-		for _, secret := range secretList.Items {
-			if secret.CreationTimestamp.Time.Before(referenceTime) {
-				secretsToDelete = append(secretsToDelete, &secret)
+		for i := range secretList.Items {
+			if secretList.Items[i].CreationTimestamp.Time.Before(referenceTime) {
+				secretsToDelete = append(secretsToDelete, &secretList.Items[i])
 				if len(secretsToDelete) >= deletionThreshold {
 					break
 				}
@@ -365,6 +369,9 @@ func (cr *CertRotator) garbageCollectTLSCerts(namespaces []string, referenceTime
 	}
 
 	crLog.Info("gc: found TLS artifacts", "count", len(secretsToDelete))
+	if len(secretsToDelete) == 0 {
+		return nil
+	}
 
 	// Delete the collected Secrets and stop after deleting 10 Secrets
 	deletedCounter := 0
