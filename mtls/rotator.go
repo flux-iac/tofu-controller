@@ -180,7 +180,7 @@ func (cr *CertRotator) Start(ctx context.Context) error {
 	if runtimeNamespace != "" {
 		err := cr.garbageCollectTLSCertsForcefully(runtimeNamespace, referenceTime)
 		if err != nil {
-			crLog.Error(err, "failed to garbage collect old certs in the runtime namespace")
+			crLog.Error(err, "failed to garbage collect old certs in the runtime namespace", "namespace", runtimeNamespace)
 		}
 	}
 
@@ -300,6 +300,8 @@ tickerLoop:
 }
 
 func (cr *CertRotator) garbageCollectTLSCertsForcefully(namespace string, referenceTime time.Time) error {
+	crLog.Info("startup gc: scanning old TLS artifacts", "namespace", namespace)
+
 	secretList := &corev1.SecretList{}
 	listOpts := &client.ListOptions{
 		Namespace:     namespace,
@@ -309,20 +311,29 @@ func (cr *CertRotator) garbageCollectTLSCertsForcefully(namespace string, refere
 		return err
 	}
 
+	crLog.Info("startup gc: found TLS artifacts", "namespace", namespace, "count", len(secretList.Items))
+	count := 0
 	// Filter Secrets by creation time (before referenceTime)
 	for _, secret := range secretList.Items {
 		if secret.CreationTimestamp.Time.Before(referenceTime) {
+			crLog.Info("startup gc: deleting old TLS artifact ...", "namespace", namespace, "secret", secret.Name)
 			if err := cr.writer.Delete(context.TODO(), &secret, client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil {
 				crLog.Error(err, "startup gc: could not delete old TLS artifact", "namespace", namespace, "secret", secret.Name)
+			} else {
+				crLog.Info("startup gc: deleted old TLS artifact", "namespace", namespace, "secret", secret.Name)
+				count = count + 1
 			}
 		}
 	}
 
+	crLog.Info("startup gc: finished deleting old TLS artifacts", "namespace", namespace, "count", count)
 	return nil
 }
 
 // garbageCollectTLSCerts deletes old TLS certs that are no longer needed
 func (cr *CertRotator) garbageCollectTLSCerts(namespaces []string, referenceTime time.Time) error {
+	crLog.Info("gc: scanning old TLS artifacts", "namespaces", namespaces)
+
 	// Collect all Secrets to delete across namespaces
 	secretsToDelete := []*corev1.Secret{}
 
@@ -353,6 +364,8 @@ func (cr *CertRotator) garbageCollectTLSCerts(namespaces []string, referenceTime
 		}
 	}
 
+	crLog.Info("gc: found TLS artifacts", "count", len(secretsToDelete))
+
 	// Delete the collected Secrets and stop after deleting 10 Secrets
 	deletedCounter := 0
 	for _, secret := range secretsToDelete {
@@ -368,6 +381,7 @@ func (cr *CertRotator) garbageCollectTLSCerts(namespaces []string, referenceTime
 		}
 	}
 
+	crLog.Info("gc: finished deleting old TLS artifacts", "count", deletedCounter)
 	return nil
 }
 
