@@ -29,12 +29,6 @@ Prerequisites:
 * kustomize = 4.x
 * kubectl >= 1.21
 
-```
-make install-envtest
-make protoc-gen-go-grpc
-make gen-grpc
-```
-
 You can run the unit tests by simply doing
 
 ```bash
