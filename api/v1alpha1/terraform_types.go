@@ -59,6 +59,14 @@ type WriteOutputsToSecretSpec struct {
 	// +required
 	Name string `json:"name"`
 
+	// Labels to add to the outputted secret
+	// +optional
+	Labels map[string]string `json:"labels,omitempty"`
+
+	// Annotations to add to the outputted secret
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
+
 	// Outputs contain the selected names of outputs to be written
 	// to the secret. Empty array means writing all outputs, which is default.
 	// +optional
