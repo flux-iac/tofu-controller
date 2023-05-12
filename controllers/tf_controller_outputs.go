@@ -174,11 +174,13 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 	}
 
 	writeOutputsReply, err := runnerClient.WriteOutputs(ctx, &runner.WriteOutputsRequest{
-		Namespace:  terraform.Namespace,
-		Name:       terraform.Name,
-		SecretName: terraform.Spec.WriteOutputsToSecret.Name,
-		Uuid:       string(terraform.UID),
-		Data:       data,
+		Namespace:   terraform.Namespace,
+		Name:        terraform.Name,
+		SecretName:  terraform.Spec.WriteOutputsToSecret.Name,
+		Uuid:        string(terraform.UID),
+		Data:        data,
+		Labels:      terraform.Spec.WriteOutputsToSecret.Labels,
+		Annotations: terraform.Spec.WriteOutputsToSecret.Annotations,
 	})
 	if err != nil {
 		return infrav1.TerraformNotReady(
