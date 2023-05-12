@@ -9668,6 +9668,16 @@ spec:
                 description: A list of target secrets for the outputs to be written
                   as.
                 properties:
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: Annotations to add to the outputted secret
+                    type: object
+                  labels:
+                    additionalProperties:
+                      type: string
+                    description: Labels to add to the outputted secret
+                    type: object
                   name:
                     description: Name is the name of the Secret to be written
                     type: string
