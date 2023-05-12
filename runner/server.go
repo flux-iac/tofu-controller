@@ -635,8 +635,10 @@ func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutp
 			vTrue := true
 			outputSecret = corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      req.SecretName,
-					Namespace: req.Namespace,
+					Name:        req.SecretName,
+					Namespace:   req.Namespace,
+					Labels:      req.Labels,
+					Annotations: req.Annotations,
 					OwnerReferences: []metav1.OwnerReference{
 						{
 							APIVersion: infrav1.GroupVersion.Group + "/" + infrav1.GroupVersion.Version,

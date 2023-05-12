@@ -252,6 +252,8 @@ message WriteOutputsRequest {
   string secretName = 3;
   string uuid = 4;
   map<string, bytes> data = 5;
+  map<string, string> labels = 6;
+  map<string, string> annotations = 7;
 }
 
 message WriteOutputsReply {

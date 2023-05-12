@@ -2296,11 +2296,13 @@ type WriteOutputsRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Namespace  string            `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Name       string            `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	SecretName string            `protobuf:"bytes,3,opt,name=secretName,proto3" json:"secretName,omitempty"`
-	Uuid       string            `protobuf:"bytes,4,opt,name=uuid,proto3" json:"uuid,omitempty"`
-	Data       map[string][]byte `protobuf:"bytes,5,rep,name=data,proto3" json:"data,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Namespace   string            `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Name        string            `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	SecretName  string            `protobuf:"bytes,3,opt,name=secretName,proto3" json:"secretName,omitempty"`
+	Uuid        string            `protobuf:"bytes,4,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	Data        map[string][]byte `protobuf:"bytes,5,rep,name=data,proto3" json:"data,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Labels      map[string]string `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Annotations map[string]string `protobuf:"bytes,7,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *WriteOutputsRequest) Reset() {
