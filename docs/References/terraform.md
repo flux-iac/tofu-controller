@@ -2,17 +2,17 @@
 <p>Packages:</p>
 <ul class="simple">
 <li>
-<a href="#infra.contrib.fluxcd.io%2fv1alpha1">infra.contrib.fluxcd.io/v1alpha1</a>
+<a href="#infra.contrib.fluxcd.io%2fv1alpha2">infra.contrib.fluxcd.io/v1alpha2</a>
 </li>
 </ul>
-<h2 id="infra.contrib.fluxcd.io/v1alpha1">infra.contrib.fluxcd.io/v1alpha1</h2>
+<h2 id="infra.contrib.fluxcd.io/v1alpha2">infra.contrib.fluxcd.io/v1alpha2</h2>
 Resource Types:
 <ul class="simple"></ul>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.BackendConfigSpec">BackendConfigSpec
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.BackendConfigSpec">BackendConfigSpec
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec</a>)
 </p>
 <p>BackendConfigSpec is for specifying configuration for Terraform&rsquo;s Kubernetes backend</p>
 <div class="md-typeset__scrollwrap">
@@ -96,11 +96,11 @@ map[string]string
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.BackendConfigsReference">BackendConfigsReference
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.BackendConfigsReference">BackendConfigsReference
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec</a>)
 </p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
@@ -165,11 +165,11 @@ transient error will still result in a reconciliation failure.</p>
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.CloudSpec">CloudSpec
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.CloudSpec">CloudSpec
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec</a>)
 </p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
@@ -195,7 +195,7 @@ string
 <td>
 <code>workspaces</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.CloudWorkspacesSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.CloudWorkspacesSpec">
 CloudWorkspacesSpec
 </a>
 </em>
@@ -229,11 +229,11 @@ string
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.CloudWorkspacesSpec">CloudWorkspacesSpec
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.CloudWorkspacesSpec">CloudWorkspacesSpec
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.CloudSpec">CloudSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.CloudSpec">CloudSpec</a>)
 </p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
@@ -271,11 +271,11 @@ string
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.CrossNamespaceSourceReference">CrossNamespaceSourceReference
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.CrossNamespaceSourceReference">CrossNamespaceSourceReference
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec</a>)
 </p>
 <p>CrossNamespaceSourceReference contains enough information to let you locate the
 typed Kubernetes resource object at cluster level.</p>
@@ -339,11 +339,11 @@ string
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.FileMapping">FileMapping
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.FileMapping">FileMapping
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec</a>)
 </p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
@@ -394,17 +394,17 @@ string
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.ForceUnlockEnum">ForceUnlockEnum
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.ForceUnlockEnum">ForceUnlockEnum
 (<code>string</code> alias)</h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TFStateSpec">TFStateSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TFStateSpec">TFStateSpec</a>)
 </p>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.HealthCheck">HealthCheck
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.HealthCheck">HealthCheck
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec</a>)
 </p>
 <p>HealthCheck contains configuration needed to perform a health check after
 terraform is applied.</p>
@@ -490,11 +490,11 @@ When not specified, default 20s timeout is used.</p>
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.LockStatus">LockStatus
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.LockStatus">LockStatus
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformStatus">TerraformStatus</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformStatus">TerraformStatus</a>)
 </p>
 <p>LockStatus defines the observed state of a Terraform State Lock</p>
 <div class="md-typeset__scrollwrap">
@@ -534,11 +534,11 @@ string
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.PlanStatus">PlanStatus
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.PlanStatus">PlanStatus
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformStatus">TerraformStatus</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformStatus">TerraformStatus</a>)
 </p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
@@ -598,11 +598,11 @@ bool
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.ReadInputsFromSecretSpec">ReadInputsFromSecretSpec
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.ReadInputsFromSecretSpec">ReadInputsFromSecretSpec
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec</a>)
 </p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
@@ -638,11 +638,11 @@ string
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.ResourceInventory">ResourceInventory
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.ResourceInventory">ResourceInventory
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformStatus">TerraformStatus</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformStatus">TerraformStatus</a>)
 </p>
 <p>ResourceInventory contains a list of Kubernetes resource object references that have been applied by a Kustomization.</p>
 <div class="md-typeset__scrollwrap">
@@ -659,7 +659,7 @@ string
 <td>
 <code>entries</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.ResourceRef">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.ResourceRef">
 []ResourceRef
 </a>
 </em>
@@ -672,11 +672,11 @@ string
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.ResourceRef">ResourceRef
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.ResourceRef">ResourceRef
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.ResourceInventory">ResourceInventory</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.ResourceInventory">ResourceInventory</a>)
 </p>
 <p>ResourceRef contains the information necessary to locate a resource within a cluster.</p>
 <div class="md-typeset__scrollwrap">
@@ -726,11 +726,11 @@ string
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.RunnerPodMetadata">RunnerPodMetadata
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.RunnerPodMetadata">RunnerPodMetadata
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.RunnerPodTemplate">RunnerPodTemplate</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.RunnerPodTemplate">RunnerPodTemplate</a>)
 </p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
@@ -770,11 +770,11 @@ map[string]string
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.RunnerPodSpec">RunnerPodSpec
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.RunnerPodSpec">RunnerPodSpec
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.RunnerPodTemplate">RunnerPodTemplate</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.RunnerPodTemplate">RunnerPodTemplate</a>)
 </p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
@@ -918,11 +918,11 @@ Kubernetes core/v1.Affinity
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.RunnerPodTemplate">RunnerPodTemplate
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.RunnerPodTemplate">RunnerPodTemplate
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec</a>)
 </p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
@@ -938,7 +938,7 @@ Kubernetes core/v1.Affinity
 <td>
 <code>metadata</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.RunnerPodMetadata">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.RunnerPodMetadata">
 RunnerPodMetadata
 </a>
 </em>
@@ -951,7 +951,7 @@ RunnerPodMetadata
 <td>
 <code>spec</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.RunnerPodSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.RunnerPodSpec">
 RunnerPodSpec
 </a>
 </em>
@@ -1096,11 +1096,11 @@ Kubernetes core/v1.Affinity
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.TFStateSpec">TFStateSpec
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.TFStateSpec">TFStateSpec
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec</a>)
 </p>
 <p>TFStateSpec allows the user to set ForceUnlock</p>
 <div class="md-typeset__scrollwrap">
@@ -1117,7 +1117,7 @@ Kubernetes core/v1.Affinity
 <td>
 <code>forceUnlock</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.ForceUnlockEnum">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.ForceUnlockEnum">
 ForceUnlockEnum
 </a>
 </em>
@@ -1158,7 +1158,7 @@ e.g. <code>f2ab685b-f84d-ac0b-a125-378a22877e8d</code>, to force unlock the stat
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.Terraform">Terraform
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.Terraform">Terraform
 </h3>
 <p>Terraform is the Schema for the terraforms API</p>
 <div class="md-typeset__scrollwrap">
@@ -1189,7 +1189,7 @@ Refer to the Kubernetes API documentation for the fields of the
 <td>
 <code>spec</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">
 TerraformSpec
 </a>
 </em>
@@ -1227,7 +1227,7 @@ bool
 <td>
 <code>backendConfig</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.BackendConfigSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.BackendConfigSpec">
 BackendConfigSpec
 </a>
 </em>
@@ -1240,7 +1240,7 @@ BackendConfigSpec
 <td>
 <code>backendConfigsFrom</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.BackendConfigsReference">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.BackendConfigsReference">
 []BackendConfigsReference
 </a>
 </em>
@@ -1253,7 +1253,7 @@ BackendConfigSpec
 <td>
 <code>cloud</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.CloudSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.CloudSpec">
 CloudSpec
 </a>
 </em>
@@ -1277,7 +1277,7 @@ string
 <td>
 <code>vars</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.Variable">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.Variable">
 []Variable
 </a>
 </em>
@@ -1291,7 +1291,7 @@ string
 <td>
 <code>varsFrom</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.VarsReference">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.VarsReference">
 []VarsReference
 </a>
 </em>
@@ -1323,7 +1323,7 @@ a variable for each value. To use this feature, your Terraform file must define 
 <td>
 <code>fileMappings</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.FileMapping">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.FileMapping">
 []FileMapping
 </a>
 </em>
@@ -1378,7 +1378,7 @@ Defaults to &lsquo;None&rsquo;, which translates to the root path of the SourceR
 <td>
 <code>sourceRef</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.CrossNamespaceSourceReference">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.CrossNamespaceSourceReference">
 CrossNamespaceSourceReference
 </a>
 </em>
@@ -1417,7 +1417,7 @@ re-plan and re-apply TF resources. Defaults to false.</p>
 <td>
 <code>readInputsFromSecrets</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.ReadInputsFromSecretSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.ReadInputsFromSecretSpec">
 []ReadInputsFromSecretSpec
 </a>
 </em>
@@ -1430,7 +1430,7 @@ re-plan and re-apply TF resources. Defaults to false.</p>
 <td>
 <code>writeOutputsToSecret</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.WriteOutputsToSecretSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.WriteOutputsToSecretSpec">
 WriteOutputsToSecretSpec
 </a>
 </em>
@@ -1470,7 +1470,7 @@ Kubernetes core/v1.SecretReference
 <td>
 <code>healthChecks</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.HealthCheck">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.HealthCheck">
 []HealthCheck
 </a>
 </em>
@@ -1548,7 +1548,7 @@ bool
 <td>
 <code>runnerPodTemplate</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.RunnerPodTemplate">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.RunnerPodTemplate">
 RunnerPodTemplate
 </a>
 </em>
@@ -1573,7 +1573,7 @@ bool
 <td>
 <code>tfstate</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TFStateSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TFStateSpec">
 TFStateSpec
 </a>
 </em>
@@ -1622,7 +1622,7 @@ string
 <td>
 <code>webhooks</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.Webhook">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.Webhook">
 []Webhook
 </a>
 </em>
@@ -1665,7 +1665,7 @@ Kubernetes pkg/apis/apiextensions/v1.JSON
 <td>
 <code>status</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformStatus">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformStatus">
 TerraformStatus
 </a>
 </em>
@@ -1677,11 +1677,11 @@ TerraformStatus
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.Terraform">Terraform</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.Terraform">Terraform</a>)
 </p>
 <p>TerraformSpec defines the desired state of Terraform</p>
 <div class="md-typeset__scrollwrap">
@@ -1723,7 +1723,7 @@ bool
 <td>
 <code>backendConfig</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.BackendConfigSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.BackendConfigSpec">
 BackendConfigSpec
 </a>
 </em>
@@ -1736,7 +1736,7 @@ BackendConfigSpec
 <td>
 <code>backendConfigsFrom</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.BackendConfigsReference">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.BackendConfigsReference">
 []BackendConfigsReference
 </a>
 </em>
@@ -1749,7 +1749,7 @@ BackendConfigSpec
 <td>
 <code>cloud</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.CloudSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.CloudSpec">
 CloudSpec
 </a>
 </em>
@@ -1773,7 +1773,7 @@ string
 <td>
 <code>vars</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.Variable">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.Variable">
 []Variable
 </a>
 </em>
@@ -1787,7 +1787,7 @@ string
 <td>
 <code>varsFrom</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.VarsReference">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.VarsReference">
 []VarsReference
 </a>
 </em>
@@ -1819,7 +1819,7 @@ a variable for each value. To use this feature, your Terraform file must define 
 <td>
 <code>fileMappings</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.FileMapping">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.FileMapping">
 []FileMapping
 </a>
 </em>
@@ -1874,7 +1874,7 @@ Defaults to &lsquo;None&rsquo;, which translates to the root path of the SourceR
 <td>
 <code>sourceRef</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.CrossNamespaceSourceReference">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.CrossNamespaceSourceReference">
 CrossNamespaceSourceReference
 </a>
 </em>
@@ -1913,7 +1913,7 @@ re-plan and re-apply TF resources. Defaults to false.</p>
 <td>
 <code>readInputsFromSecrets</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.ReadInputsFromSecretSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.ReadInputsFromSecretSpec">
 []ReadInputsFromSecretSpec
 </a>
 </em>
@@ -1926,7 +1926,7 @@ re-plan and re-apply TF resources. Defaults to false.</p>
 <td>
 <code>writeOutputsToSecret</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.WriteOutputsToSecretSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.WriteOutputsToSecretSpec">
 WriteOutputsToSecretSpec
 </a>
 </em>
@@ -1966,7 +1966,7 @@ Kubernetes core/v1.SecretReference
 <td>
 <code>healthChecks</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.HealthCheck">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.HealthCheck">
 []HealthCheck
 </a>
 </em>
@@ -2044,7 +2044,7 @@ bool
 <td>
 <code>runnerPodTemplate</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.RunnerPodTemplate">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.RunnerPodTemplate">
 RunnerPodTemplate
 </a>
 </em>
@@ -2069,7 +2069,7 @@ bool
 <td>
 <code>tfstate</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TFStateSpec">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TFStateSpec">
 TFStateSpec
 </a>
 </em>
@@ -2118,7 +2118,7 @@ string
 <td>
 <code>webhooks</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.Webhook">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.Webhook">
 []Webhook
 </a>
 </em>
@@ -2158,11 +2158,11 @@ Kubernetes pkg/apis/apiextensions/v1.JSON
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.TerraformStatus">TerraformStatus
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.TerraformStatus">TerraformStatus
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.Terraform">Terraform</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.Terraform">Terraform</a>)
 </p>
 <p>TerraformStatus defines the observed state of Terraform</p>
 <div class="md-typeset__scrollwrap">
@@ -2297,7 +2297,7 @@ terraform apply was performed as a result</p>
 <td>
 <code>plan</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.PlanStatus">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.PlanStatus">
 PlanStatus
 </a>
 </em>
@@ -2310,7 +2310,7 @@ PlanStatus
 <td>
 <code>inventory</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.ResourceInventory">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.ResourceInventory">
 ResourceInventory
 </a>
 </em>
@@ -2324,7 +2324,7 @@ ResourceInventory
 <td>
 <code>lock</code><br>
 <em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.LockStatus">
+<a href="#infra.contrib.fluxcd.io/v1alpha2.LockStatus">
 LockStatus
 </a>
 </em>
@@ -2337,11 +2337,11 @@ LockStatus
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.Variable">Variable
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.Variable">Variable
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec</a>)
 </p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
@@ -2394,11 +2394,11 @@ Kubernetes core/v1.EnvVarSource
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.VarsReference">VarsReference
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.VarsReference">VarsReference
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec</a>)
 </p>
 <p>VarsReference contain a reference of a Secret or a ConfigMap to generate
 variables for Terraform resources based on its data, selectively by varsKey.</p>
@@ -2465,11 +2465,11 @@ transient error will still result in a reconciliation failure.</p>
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.Webhook">Webhook
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.Webhook">Webhook
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec</a>)
 </p>
 <div class="md-typeset__scrollwrap">
 <div class="md-typeset__table">
@@ -2548,11 +2548,11 @@ string
 </table>
 </div>
 </div>
-<h3 id="infra.contrib.fluxcd.io/v1alpha1.WriteOutputsToSecretSpec">WriteOutputsToSecretSpec
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.WriteOutputsToSecretSpec">WriteOutputsToSecretSpec
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#infra.contrib.fluxcd.io/v1alpha1.TerraformSpec">TerraformSpec</a>)
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec</a>)
 </p>
 <p>WriteOutputsToSecretSpec defines where to store outputs, and which outputs to be stored.</p>
 <div class="md-typeset__scrollwrap">
@@ -2574,6 +2574,30 @@ string
 </td>
 <td>
 <p>Name is the name of the Secret to be written</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>labels</code><br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Labels to add to the outputted secret</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>annotations</code><br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Annotations to add to the outputted secret</p>
 </td>
 </tr>
 <tr>
