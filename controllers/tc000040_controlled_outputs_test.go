@@ -97,7 +97,9 @@ func Test_000040_controlled_outputs_test(t *testing.T) {
 			},
 			Interval: metav1.Duration{Duration: time.Second * 10},
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
-				Name: "tf-output-" + terraformName,
+				Name:        "tf-output-" + terraformName,
+				Labels:      map[string]string{"my-new-label": "exists"},
+				Annotations: map[string]string{"my-new-annotation": "also-exists"},
 				Outputs: []string{
 					"hello_world",
 				},
@@ -133,20 +135,24 @@ func Test_000040_controlled_outputs_test(t *testing.T) {
 
 	By("checking that the output secret contains the correct output data, provisioned by the TF resource.")
 	expectedOutputValue := map[string]string{
-		"Name":        "tf-output-" + terraformName,
-		"Namespace":   "flux-system",
-		"Value":       "Hello, World!",
-		"OwnerRef[0]": string(createdHelloWorldTF.UID),
+		"Name":           "tf-output-" + terraformName,
+		"Namespace":      "flux-system",
+		"Value":          "Hello, World!",
+		"OwnerRef[0]":    string(createdHelloWorldTF.UID),
+		"Labels[0]":      "exists",
+		"Annotations[0]": "also-exists",
 	}
 	g.Eventually(func() (map[string]string, error) {
 		err := k8sClient.Get(ctx, outputKey, &outputSecret)
 		value := string(outputSecret.Data["hello_world"])
 		return map[string]string{
-			"Name":        outputSecret.Name,
-			"Namespace":   outputSecret.Namespace,
-			"Value":       value,
-			"OwnerRef[0]": string(outputSecret.OwnerReferences[0].UID),
+			"Name":           outputSecret.Name,
+			"Namespace":      outputSecret.Namespace,
+			"Value":          value,
+			"OwnerRef[0]":    string(outputSecret.OwnerReferences[0].UID),
+			"Labels[0]":      outputSecret.Labels["my-new-label"],
+			"Annotations[0]": outputSecret.Annotations["my-new-annotation"],
 		}, err
-	}, timeout, interval).Should(Equal(expectedOutputValue), "expected output %v", expectedOutputValue)
 
+	}, timeout, interval).Should(Equal(expectedOutputValue), "expected output %v", expectedOutputValue)
 }
