@@ -77,3 +77,31 @@ spec:
     outputs:
     - age_key:age.agekey
 ```
+## Customize metadata of the outputted secret
+
+In some situations, it is needed to add custom labels and annotations to the outputted secret.
+As an example, operators such as [kubernetes-replicator](https://github.com/mittwald/kubernetes-replicator)
+allow replicating secrets from one namespace to another but use annotations to do so.
+
+```yaml hl_lines="16-19"
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: auto
+  interval: 1m
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  writeOutputsToSecret:
+    name: helloworld-output
+    labels:
+      my-label: true
+    annotations:
+      my-annotation: "very long string"
+      
+```
