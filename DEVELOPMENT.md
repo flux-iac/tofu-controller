@@ -35,6 +35,30 @@ You can run the unit tests by simply doing
 make test
 ```
 
+If you get an error stating "etcd" not found then run:
+
+```bash
+make install-envtest
+```
+and then retry `make test`
+
+## GRPC
+
+Any changes to the [runner.pb.go](./runner/runner.pb.go) file will require you to regenerate the necessary proto files.
+
+To do so, first run:
+
+```bash
+make protoc-gen-go-grpc
+```
+
+to install the library and then:
+
+```bash
+make gen-grpc
+```
+
+to update the the generated `runner.pg.go` data.
 ## How to run the controller locally
 
 Install flux on your test cluster:
