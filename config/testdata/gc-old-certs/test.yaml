@@ -1,0 +1,90 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: terraform-runner.tls-0
+  labels:
+    infra.contrib.fluxcd.io/terraform: "true"
+stringData:
+  dummy: "true"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: terraform-runner.tls-1
+  labels:
+    infra.contrib.fluxcd.io/terraform: "true"
+stringData:
+  dummy: "true"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: terraform-runner.tls-2
+  labels:
+    infra.contrib.fluxcd.io/terraform: "true"
+stringData:
+  dummy: "true"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: terraform-runner.tls-3
+  labels:
+    infra.contrib.fluxcd.io/terraform: "true"
+stringData:
+  dummy: "true"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: terraform-runner.tls-4
+  labels:
+    infra.contrib.fluxcd.io/terraform: "true"
+stringData:
+  dummy: "true"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: terraform-runner.tls-5
+  labels:
+    infra.contrib.fluxcd.io/terraform: "true"
+stringData:
+  dummy: "true"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: terraform-runner.tls-6
+  labels:
+    infra.contrib.fluxcd.io/terraform: "true"
+stringData:
+  dummy: "true"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: terraform-runner.tls-7
+  labels:
+    infra.contrib.fluxcd.io/terraform: "true"
+stringData:
+  dummy: "true"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: terraform-runner.tls-8
+  labels:
+    infra.contrib.fluxcd.io/terraform: "true"
+stringData:
+  dummy: "true"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: terraform-runner.tls-9
+  labels:
+    infra.contrib.fluxcd.io/terraform: "true"
+stringData:
+  dummy: "true"
