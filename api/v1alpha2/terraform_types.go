@@ -244,6 +244,11 @@ type TerraformSpec struct {
 	// Enterprise is the enterprise configuration placeholder.
 	// +optional
 	Enterprise *apiextensionsv1.JSON `json:"enterprise,omitempty"`
+
+	// PlanOnly specifies if the reconciliation should or should not stop at plan
+	// phase.
+	// +optional
+	PlanOnly bool `json:"planOnly,omitempty"`
 }
 
 type CloudSpec struct {

@@ -745,7 +745,7 @@ func (r *TerraformReconciler) IndexBy(kind string) func(o client.Object) []strin
 	return func(o client.Object) []string {
 		terraform, ok := o.(*infrav1.Terraform)
 		if !ok {
-			panic(fmt.Sprintf("Expected a Kustomization, got %T", o))
+			panic(fmt.Sprintf("Expected a Terraform, got %T", o))
 		}
 
 		if terraform.Spec.SourceRef.Kind == kind {
