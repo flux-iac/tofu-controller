@@ -78,7 +78,7 @@ func main() {
 	}(log.WithName("webhook-server"))
 
 	func(log logr.Logger) {
-		log.Info("Starting branch-blased planner informer")
+		log.Info("Starting branch-based planner informer")
 
 		if err := startInformer(informerCtx, log, clusterClient); err != nil {
 			log.Error(err, "unable to start branch-based planner informer")

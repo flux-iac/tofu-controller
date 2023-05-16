@@ -11,7 +11,7 @@ func IndexBy(kind string) func(o client.Object) []string {
 	return func(o client.Object) []string {
 		terraform, ok := o.(*tfv1alpha2.Terraform)
 		if !ok {
-			panic(fmt.Sprintf("Expected a Kustomization, got %T", o))
+			panic(fmt.Sprintf("Expected a Terraform object, got %T", o))
 		}
 
 		if terraform.Spec.SourceRef.Kind == kind {
