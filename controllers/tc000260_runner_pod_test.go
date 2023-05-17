@@ -26,6 +26,7 @@ func Test_000260_runner_pod_test(t *testing.T) {
 		sourceName         = "runner-pod-test"
 		serviceAccountName = "helloworld-tf-runner"
 		runnerPodImage     = "ghcr.io/weaveworks/tf-runner:test"
+		revision           = "v2.6@sha256:c7fd0cc69b924aa5f9a6928477311737e439ca1b9e444855b0377e8a8ec65bb5"
 	)
 
 	var stringMap = map[string]string{
@@ -68,7 +69,7 @@ func Test_000260_runner_pod_test(t *testing.T) {
 	g.Expect(spec.ServiceAccountName == serviceAccountName)
 	g.Expect(spec.Containers[0].Image == runnerPodImage)
 
-	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123")
+	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
 	g.Expect(func() bool {
 		for k, v := range stringMap {
 			if v != podTemplate.ObjectMeta.Labels[k] {
@@ -82,6 +83,8 @@ func Test_000260_runner_pod_test(t *testing.T) {
 		}
 		return true
 	})
+
+	g.Expect(podTemplate.Labels["app.kubernetes.io/instance"]).To(Equal("tf-runner-c7fd0cc6"))
 }
 
 func Test_000260_runner_pod_test_env_vars(t *testing.T) {
@@ -92,6 +95,7 @@ func Test_000260_runner_pod_test_env_vars(t *testing.T) {
 		sourceName         = "runner-pod-test"
 		serviceAccountName = "helloworld-tf-runner"
 		runnerPodImage     = "ghcr.io/weaveworks/tf-runner:test"
+		revision           = "v2.6@sha256:c7fd0cc69b924aa5f9a6928477311737e439ca1b9e444855b0377e8a8ec65bb5"
 	)
 
 	var stringMap = map[string]string{
@@ -149,7 +153,7 @@ func Test_000260_runner_pod_test_env_vars(t *testing.T) {
 	g.Expect(spec.Containers[0].Env[3].Name == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Name)
 	g.Expect(spec.Containers[0].Env[3].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Value)
 
-	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123")
+	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
 	g.Expect(func() bool {
 		for k, v := range stringMap {
 			if v != podTemplate.ObjectMeta.Labels[k] {
@@ -173,6 +177,7 @@ func Test_000260_runner_pod_test_env_vars_proxy(t *testing.T) {
 		sourceName         = "runner-pod-test"
 		serviceAccountName = "helloworld-tf-runner"
 		runnerPodImage     = "ghcr.io/weaveworks/tf-runner:test"
+		revision           = "v2.6@sha256:c7fd0cc69b924aa5f9a6928477311737e439ca1b9e444855b0377e8a8ec65bb5"
 	)
 
 	var stringMap = map[string]string{
@@ -239,7 +244,7 @@ func Test_000260_runner_pod_test_env_vars_proxy(t *testing.T) {
 	g.Expect(spec.Containers[0].Env[6].Name == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Name)
 	g.Expect(spec.Containers[0].Env[6].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Value)
 
-	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123")
+	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
 	g.Expect(func() bool {
 		for k, v := range stringMap {
 			if v != podTemplate.ObjectMeta.Labels[k] {
@@ -263,6 +268,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
 		sourceName         = "runner-pod-test"
 		serviceAccountName = "helloworld-tf-runner"
 		runnerPodImage     = "ghcr.io/weaveworks/tf-runner:test"
+		revision           = "v2.6@sha256:c7fd0cc69b924aa5f9a6928477311737e439ca1b9e444855b0377e8a8ec65bb5"
 	)
 
 	var stringMap = map[string]string{
@@ -336,7 +342,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
 	g.Expect(spec.Containers[0].Env[2].Name == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[2].Name)
 	g.Expect(spec.Containers[0].Env[2].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[2].Value)
 
-	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123")
+	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
 	g.Expect(func() bool {
 		for k, v := range stringMap {
 			if v != podTemplate.ObjectMeta.Labels[k] {
