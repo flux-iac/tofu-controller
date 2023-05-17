@@ -283,7 +283,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	// Create Runner Pod.
 	// Wait for the Runner Pod to start.
 	traceLog.Info("Fetch/Create Runner pod for this Terraform resource")
-	runnerClient, closeConn, err := r.LookupOrCreateRunner(ctx, terraform)
+	runnerClient, closeConn, err := r.LookupOrCreateRunner(ctx, terraform, sourceObj.GetArtifact().Revision)
 	if err != nil {
 		log.Error(err, "unable to lookup or create runner")
 		if closeConn != nil {
