@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/fluxcd/pkg/runtime/logger"
@@ -37,7 +38,7 @@ func getRunnerPodImage(image string) string {
 	return runnerPodImage
 }
 
-func runnerPodTemplate(terraform infrav1.Terraform, secretName string) v1.Pod {
+func runnerPodTemplate(terraform infrav1.Terraform, secretName string, revision string) v1.Pod {
 	podNamespace := terraform.Namespace
 	podName := fmt.Sprintf("%s-tf-runner", terraform.Name)
 	runnerPodTemplate := v1.Pod{
@@ -47,7 +48,7 @@ func runnerPodTemplate(terraform infrav1.Terraform, secretName string) v1.Pod {
 			Labels: map[string]string{
 				"app.kubernetes.io/created-by":   "tf-controller",
 				"app.kubernetes.io/name":         "tf-runner",
-				"app.kubernetes.io/instance":     podName,
+				"app.kubernetes.io/instance":     runnerPodInstance(revision),
 				infrav1.RunnerLabel:              terraform.Namespace,
 				"tf.weave.works/tls-secret-name": secretName,
 			},
@@ -64,7 +65,7 @@ func runnerPodTemplate(terraform infrav1.Terraform, secretName string) v1.Pod {
 	return runnerPodTemplate
 }
 
-func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terraform infrav1.Terraform) (runner.RunnerClient, func() error, error) {
+func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terraform infrav1.Terraform, revision string) (runner.RunnerClient, func() error, error) {
 	log := ctrl.LoggerFrom(ctx)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.lookupOrCreateRunner_000")
 	// we have to make sure that the secret is valid before we can create the runner.
@@ -83,7 +84,7 @@ func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terrafor
 		hostname = "localhost"
 	} else {
 		traceLog.Info("Get Runner pod IP")
-		podIP, err := r.reconcileRunnerPod(ctx, terraform, secret)
+		podIP, err := r.reconcileRunnerPod(ctx, terraform, secret, revision)
 		traceLog.Info("Check for an error")
 		if err != nil {
 			traceLog.Error(err, "Hit an error")
@@ -273,7 +274,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 	}
 }
 
-func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform, tlsSecret *v1.Secret) (string, error) {
+func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform, tlsSecret *v1.Secret, revision string) (string, error) {
 	log := controllerruntime.LoggerFrom(ctx)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.reconcileRunnerPod")
 	traceLog.Info("Begin reconcile of the runner pod")
@@ -295,7 +296,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 
 	traceLog.Info("Setup create new pod function")
 	createNewPod := func() error {
-		runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
+		runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName, revision)
 		newRunnerPod := *runnerPodTemplate.DeepCopy()
 		newRunnerPod.Spec = r.runnerPodSpec(terraform, tlsSecretName)
 		if err := r.Create(ctx, &newRunnerPod); err != nil {
@@ -306,7 +307,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 
 	traceLog.Info("Setup wait for pod to be terminated function")
 	waitForPodToBeTerminated := func() error {
-		runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
+		runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName, revision)
 		runnerPod := *runnerPodTemplate.DeepCopy()
 		runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
 		err := wait.PollImmediate(interval, timeout, func() (bool, error) {
@@ -325,7 +326,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	podState := stateUnknown
 	traceLog.Info("Set pod state", "pod-state", podState)
 
-	runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName)
+	runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName, revision)
 	runnerPod := *runnerPodTemplate.DeepCopy()
 	runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
 	traceLog.Info("Get pod state")
@@ -461,4 +462,8 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 	}
 
 	return result.Secret, nil
+}
+
+func runnerPodInstance(revision string) string {
+	return fmt.Sprintf("tf-runner-%s", strings.Split(revision, ":")[1][0:8])
 }
