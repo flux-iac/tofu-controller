@@ -66,8 +66,8 @@ func Test_000260_runner_pod_test(t *testing.T) {
 	}
 
 	spec := reconciler.runnerPodSpec(helloWorldTF, "runner.tls-123")
-	g.Expect(spec.ServiceAccountName == serviceAccountName)
-	g.Expect(spec.Containers[0].Image == runnerPodImage)
+	g.Expect(spec.ServiceAccountName).To(Equal(serviceAccountName))
+	g.Expect(spec.Containers[0].Image).To(Equal(runnerPodImage))
 
 	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
 	g.Expect(func() bool {
@@ -82,7 +82,7 @@ func Test_000260_runner_pod_test(t *testing.T) {
 			}
 		}
 		return true
-	})
+	}()).To(BeTrue())
 
 	g.Expect(podTemplate.Labels["app.kubernetes.io/instance"]).To(Equal("tf-runner-c7fd0cc6"))
 }
@@ -145,13 +145,14 @@ func Test_000260_runner_pod_test_env_vars(t *testing.T) {
 	}
 
 	spec := reconciler.runnerPodSpec(helloWorldTF, "runner.tls-123")
-	g.Expect(spec.ServiceAccountName == serviceAccountName)
-	g.Expect(spec.Containers[0].Image == runnerPodImage)
-	g.Expect(len(spec.Containers[0].Env) == 4)
-	g.Expect(spec.Containers[0].Env[2].Name == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[0].Name)
-	g.Expect(spec.Containers[0].Env[2].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[0].Value)
-	g.Expect(spec.Containers[0].Env[3].Name == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Name)
-	g.Expect(spec.Containers[0].Env[3].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Value)
+	g.Expect(spec.ServiceAccountName).To(Equal(serviceAccountName))
+	g.Expect(spec.Containers[0].Image).To(Equal(runnerPodImage))
+	g.Expect(len(spec.Containers[0].Env)).To(Equal(4))
+
+	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Name", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[0].Name)))
+	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Value", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[0].Value)))
+	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Name", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Name)))
+	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Value", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Value)))
 
 	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
 	g.Expect(func() bool {
@@ -166,7 +167,7 @@ func Test_000260_runner_pod_test_env_vars(t *testing.T) {
 			}
 		}
 		return true
-	})
+	}()).To(BeTrue())
 }
 
 func Test_000260_runner_pod_test_env_vars_proxy(t *testing.T) {
@@ -236,13 +237,14 @@ func Test_000260_runner_pod_test_env_vars_proxy(t *testing.T) {
 	}
 
 	spec := reconciler.runnerPodSpec(helloWorldTF, "runner.tls-123")
-	g.Expect(spec.ServiceAccountName == serviceAccountName)
-	g.Expect(spec.Containers[0].Image == runnerPodImage)
-	g.Expect(len(spec.Containers[0].Env) == 7)
-	g.Expect(spec.Containers[0].Env[5].Name == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[0].Name)
-	g.Expect(spec.Containers[0].Env[5].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[0].Value)
-	g.Expect(spec.Containers[0].Env[6].Name == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Name)
-	g.Expect(spec.Containers[0].Env[6].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Value)
+	g.Expect(spec.ServiceAccountName).To(Equal(serviceAccountName))
+	g.Expect(spec.Containers[0].Image).To(Equal(runnerPodImage))
+	g.Expect(len(spec.Containers[0].Env)).To(Equal(7))
+
+	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Name", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[0].Name)))
+	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Value", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[0].Value)))
+	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Name", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Name)))
+	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Value", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Value)))
 
 	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
 	g.Expect(func() bool {
@@ -257,7 +259,7 @@ func Test_000260_runner_pod_test_env_vars_proxy(t *testing.T) {
 			}
 		}
 		return true
-	})
+	}()).To(BeTrue())
 }
 
 func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
@@ -331,16 +333,16 @@ func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
 	}
 
 	spec := reconciler.runnerPodSpec(helloWorldTF, "runner.tls-123")
-	g.Expect(spec.ServiceAccountName == serviceAccountName)
-	g.Expect(spec.Containers[0].Image == runnerPodImage)
-	g.Expect(len(spec.Containers[0].Env) == 7)
-	g.Expect(spec.Containers[0].Env[5].Name == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[0].Name)
-	g.Expect(spec.Containers[0].Env[5].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[0].Value)
-	g.Expect(spec.Containers[0].Env[6].Name == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Name)
-	g.Expect(spec.Containers[0].Env[6].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Value)
+	g.Expect(spec.ServiceAccountName).To(Equal(serviceAccountName))
+	g.Expect(spec.Containers[0].Image).To(Equal(runnerPodImage))
+	g.Expect(len(spec.Containers[0].Env)).To(Equal(7))
 
-	g.Expect(spec.Containers[0].Env[2].Name == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[2].Name)
-	g.Expect(spec.Containers[0].Env[2].Value == helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[2].Value)
+	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Name", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[0].Name)))
+	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Value", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[0].Value)))
+	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Name", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Name)))
+	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Value", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Value)))
+	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Name", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[2].Name)))
+	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Value", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[2].Value)))
 
 	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
 	g.Expect(func() bool {
@@ -355,7 +357,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
 			}
 		}
 		return true
-	})
+	}()).To(BeTrue())
 }
 
 func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
