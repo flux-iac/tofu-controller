@@ -18,6 +18,7 @@ import (
 	cgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/fluxcd/pkg/runtime/logger"
 )
@@ -59,7 +60,13 @@ func main() {
 		return
 	}
 
-	clusterClient, err := dynamic.NewForConfig(clusterConfig)
+	dynamicClusterClient, err := dynamic.NewForConfig(clusterConfig)
+	if err != nil {
+		log.Error(err, "unable to get cluster config")
+		return
+	}
+
+	clusterClient, err := client.New(clusterConfig, client.Options{})
 	if err != nil {
 		log.Error(err, "unable to get cluster config")
 		return
@@ -68,7 +75,7 @@ func main() {
 	go func(log logr.Logger) {
 		log.Info("Starting webhook server")
 
-		if err := startWebhookServer(webhookCtx, log); err != nil {
+		if err := startWebhookServer(webhookCtx, log, clusterClient); err != nil {
 			log.Error(err, "unable to start webhook server")
 		}
 
@@ -80,7 +87,7 @@ func main() {
 	func(log logr.Logger) {
 		log.Info("Starting branch-based planner informer")
 
-		if err := startInformer(informerCtx, log, clusterClient); err != nil {
+		if err := startInformer(informerCtx, log, dynamicClusterClient, clusterClient); err != nil {
 			log.Error(err, "unable to start branch-based planner informer")
 		}
 
@@ -93,8 +100,8 @@ func main() {
 	<-informerCtx.Done()
 }
 
-func startWebhookServer(ctx context.Context, log logr.Logger) error {
-	server, err := webhook.New(webhook.WithLogger(log))
+func startWebhookServer(ctx context.Context, log logr.Logger, clusterClient client.Client) error {
+	server, err := webhook.New(webhook.WithLogger(log), webhook.WithClusterClient(clusterClient))
 	if err != nil {
 		return fmt.Errorf("problem configuring the webhook receiver server: %w", err)
 	}
@@ -106,8 +113,8 @@ func startWebhookServer(ctx context.Context, log logr.Logger) error {
 	return nil
 }
 
-func startInformer(ctx context.Context, log logr.Logger, client *dynamic.DynamicClient) error {
-	informer := bbp.NewInformer(client, log)
+func startInformer(ctx context.Context, log logr.Logger, dynamicClient *dynamic.DynamicClient, clusterClient client.Client) error {
+	informer := bbp.NewInformer(log, dynamicClient, clusterClient)
 
 	if err := informer.Start(ctx); err != nil {
 		return err
