@@ -287,7 +287,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	)
 
 	const interval = time.Second * 15
-	traceLog.Info("Set inteval", "interval", interval)
+	traceLog.Info("Set interval", "interval", interval)
 	timeout := r.RunnerCreationTimeout // default is 120 seconds
 	traceLog.Info("Set timeout", "timeout", timeout)
 	tlsSecretName := tlsSecret.Name
