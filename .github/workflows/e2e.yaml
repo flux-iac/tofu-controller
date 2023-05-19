@@ -98,7 +98,11 @@ jobs:
           make dev-deploy MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION || true
           make dev-deploy MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION
 
+          # All of these old cert would be cleaned up by GC at the start of the test
+          kubectl -n tf-system apply -f config/testdata/gc-old-certs/test.yaml
+
           # Increase the concurrency of the controller to speed up tests
+          # --cert-rotation-check-frequency=6m0s, then GC will run every 1 minute
           kubectl patch deployment \
             tf-controller \
             --namespace tf-system \
@@ -109,6 +113,7 @@ jobs:
             "--log-encoding=json",
             "--enable-leader-election",
             "--concurrent=10",
+            "--cert-rotation-check-frequency=6m0s",
           ]}]'
 
           kubectl -n tf-system rollout status deploy/source-controller --timeout=1m
@@ -192,11 +197,17 @@ jobs:
 
       - name: Set up chaos testing environment
         run: |
-          # TODO we'll test a race condition with replica=3 later
-          kubectl -n tf-system scale --replicas=1 deploy/tf-controller
+          kubectl -n tf-system scale --replicas=0 deploy/tf-controller
+          sleep 3
 
           kubectl -n chaos-testing apply -f ./config/testdata/chaos
           kubectl -n chaos-testing apply -f ./config/testdata/source
+
+          # Set up namespace-scoped old certs for GC
+          kubectl -n chaos-testing apply -f ./config/testdata/gc-old-certs/test.yaml
+
+          kubectl -n tf-system scale --replicas=1 deploy/tf-controller
+
           sleep 10
       - name: Randomly delete runner pods
         run: |
@@ -212,6 +223,34 @@ jobs:
           kubectl -n chaos-testing wait terraform/helloworld-chaos03 --for=condition=ready --timeout=30m
           kubectl -n chaos-testing wait terraform/helloworld-chaos04 --for=condition=ready --timeout=30m
           kubectl -n chaos-testing wait terraform/helloworld-chaos05 --for=condition=ready --timeout=30m
+      - name: Check that all old certs were GCed
+        run: |
+          echo "wait 120 seconds for GC to happen"
+          sleep 120
+
+          (kubectl get secret terraform-runner.tls-0 -n chaos-testing >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-1 -n chaos-testing >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-2 -n chaos-testing >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-3 -n chaos-testing >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-4 -n chaos-testing >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-5 -n chaos-testing >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-6 -n chaos-testing >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-7 -n chaos-testing >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-8 -n chaos-testing >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-9 -n chaos-testing >/dev/null 2>&1 && exit 1 || exit 0)
+
+          (kubectl get secret terraform-runner.tls-0 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-1 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-2 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-3 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-4 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-5 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-6 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-7 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-8 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-9 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
+
+          echo "All tests are true, all of the old secrets were GCed."
       - name: Logs
         run: |
           kubectl -n tf-system logs deploy/source-controller

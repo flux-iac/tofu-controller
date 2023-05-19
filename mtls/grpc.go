@@ -4,12 +4,11 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"net"
-
 	"github.com/weaveworks/tf-controller/runner"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	corev1 "k8s.io/api/core/v1"
+	"net"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 )
 
