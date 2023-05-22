@@ -69,7 +69,8 @@ func Test_000260_runner_pod_test(t *testing.T) {
 	g.Expect(spec.ServiceAccountName).To(Equal(serviceAccountName))
 	g.Expect(spec.Containers[0].Image).To(Equal(runnerPodImage))
 
-	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
+	podTemplate, err := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
+	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(func() bool {
 		for k, v := range stringMap {
 			if v != podTemplate.ObjectMeta.Labels[k] {
@@ -154,7 +155,8 @@ func Test_000260_runner_pod_test_env_vars(t *testing.T) {
 	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Name", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Name)))
 	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Value", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Value)))
 
-	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
+	podTemplate, err := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
+	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(func() bool {
 		for k, v := range stringMap {
 			if v != podTemplate.ObjectMeta.Labels[k] {
@@ -246,7 +248,8 @@ func Test_000260_runner_pod_test_env_vars_proxy(t *testing.T) {
 	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Name", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Name)))
 	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Value", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Value)))
 
-	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
+	podTemplate, err := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
+	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(func() bool {
 		for k, v := range stringMap {
 			if v != podTemplate.ObjectMeta.Labels[k] {
@@ -344,7 +347,8 @@ func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
 	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Name", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[2].Name)))
 	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Value", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[2].Value)))
 
-	podTemplate := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
+	podTemplate, err := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
+	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(func() bool {
 		for k, v := range stringMap {
 			if v != podTemplate.ObjectMeta.Labels[k] {
