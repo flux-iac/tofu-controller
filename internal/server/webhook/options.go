@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/go-logr/logr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type Option func(s *Server) error
@@ -33,6 +34,14 @@ func WithListenAddress(addr string) Option {
 func WithListener(listener net.Listener) Option {
 	return func(s *Server) error {
 		s.listener = listener
+
+		return nil
+	}
+}
+
+func WithClusterClient(clusterClient client.Client) Option {
+	return func(s *Server) error {
+		s.clusterClient = clusterClient
 
 		return nil
 	}
