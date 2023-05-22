@@ -1,5 +1,5 @@
 # See https://github.com/helm/chart-testing#configuration
 remote: origin
-target-branch: main
+target-branch: release-v0.14
 validate-maintainers: false
 validate-chart-schema: false
