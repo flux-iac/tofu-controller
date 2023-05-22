@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/go-logr/logr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 )
 
@@ -16,8 +17,9 @@ const (
 )
 
 type Server struct {
-	log      logr.Logger
-	listener net.Listener
+	log           logr.Logger
+	listener      net.Listener
+	clusterClient client.Client
 }
 
 func New(options ...Option) (*Server, error) {
