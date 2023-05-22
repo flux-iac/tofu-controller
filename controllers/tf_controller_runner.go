@@ -38,9 +38,14 @@ func getRunnerPodImage(image string) string {
 	return runnerPodImage
 }
 
-func runnerPodTemplate(terraform infrav1.Terraform, secretName string, revision string) v1.Pod {
+func runnerPodTemplate(terraform infrav1.Terraform, secretName string, revision string) (v1.Pod, error) {
 	podNamespace := terraform.Namespace
 	podName := fmt.Sprintf("%s-tf-runner", terraform.Name)
+	podInstance, err := runnerPodInstance(revision)
+	if err != nil {
+		return v1.Pod{}, err
+	}
+
 	runnerPodTemplate := v1.Pod{
 		ObjectMeta: v12.ObjectMeta{
 			Namespace: podNamespace,
@@ -48,7 +53,7 @@ func runnerPodTemplate(terraform infrav1.Terraform, secretName string, revision 
 			Labels: map[string]string{
 				"app.kubernetes.io/created-by":   "tf-controller",
 				"app.kubernetes.io/name":         "tf-runner",
-				"app.kubernetes.io/instance":     runnerPodInstance(revision),
+				"app.kubernetes.io/instance":     podInstance,
 				infrav1.RunnerLabel:              terraform.Namespace,
 				"tf.weave.works/tls-secret-name": secretName,
 			},
@@ -62,7 +67,7 @@ func runnerPodTemplate(terraform infrav1.Terraform, secretName string, revision 
 			runnerPodTemplate.Labels[k] = v
 		}
 	}
-	return runnerPodTemplate
+	return runnerPodTemplate, nil
 }
 
 func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terraform infrav1.Terraform, revision string) (runner.RunnerClient, func() error, error) {
@@ -296,7 +301,11 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 
 	traceLog.Info("Setup create new pod function")
 	createNewPod := func() error {
-		runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName, revision)
+		runnerPodTemplate, err := runnerPodTemplate(terraform, tlsSecretName, revision)
+		if err != nil {
+			return err
+		}
+
 		newRunnerPod := *runnerPodTemplate.DeepCopy()
 		newRunnerPod.Spec = r.runnerPodSpec(terraform, tlsSecretName)
 		if err := r.Create(ctx, &newRunnerPod); err != nil {
@@ -307,10 +316,14 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 
 	traceLog.Info("Setup wait for pod to be terminated function")
 	waitForPodToBeTerminated := func() error {
-		runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName, revision)
+		runnerPodTemplate, err := runnerPodTemplate(terraform, tlsSecretName, revision)
+		if err != nil {
+			return err
+		}
+
 		runnerPod := *runnerPodTemplate.DeepCopy()
 		runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
-		err := wait.PollImmediate(interval, timeout, func() (bool, error) {
+		err = wait.PollImmediate(interval, timeout, func() (bool, error) {
 			err := r.Get(ctx, runnerPodKey, &runnerPod)
 			if err != nil && errors.IsNotFound(err) {
 				return true, nil
@@ -326,11 +339,15 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	podState := stateUnknown
 	traceLog.Info("Set pod state", "pod-state", podState)
 
-	runnerPodTemplate := runnerPodTemplate(terraform, tlsSecretName, revision)
+	runnerPodTemplate, err := runnerPodTemplate(terraform, tlsSecretName, revision)
+	if err != nil {
+		return "", err
+	}
+
 	runnerPod := *runnerPodTemplate.DeepCopy()
 	runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
 	traceLog.Info("Get pod state")
-	err := r.Get(ctx, runnerPodKey, &runnerPod)
+	err = r.Get(ctx, runnerPodKey, &runnerPod)
 	traceLog.Info("Check for an error")
 	if err != nil && errors.IsNotFound(err) {
 		podState = stateNotFound
@@ -464,6 +481,17 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 	return result.Secret, nil
 }
 
-func runnerPodInstance(revision string) string {
-	return fmt.Sprintf("tf-runner-%s", strings.Split(revision, ":")[1][0:8])
+func runnerPodInstance(revision string) (string, error) {
+	parts := strings.Split(revision, ":")
+
+	if len(parts) < 2 {
+		return "", fmt.Errorf("invalid revision: %s", revision)
+	}
+
+	gitSHA := parts[1]
+	if len(gitSHA) < 8 {
+		return "", fmt.Errorf("invalid git sha: %s", gitSHA)
+	}
+
+	return fmt.Sprintf("tf-runner-%s", gitSHA[0:8]), nil
 }
