@@ -6,24 +6,22 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/fluxcd/pkg/runtime/logger"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
-	"github.com/weaveworks/tf-controller/internal/informer/bbp"
-	"github.com/weaveworks/tf-controller/internal/server/webhook"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/dynamic"
 	cgoscheme "k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
-	"github.com/fluxcd/pkg/runtime/logger"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
+	"github.com/weaveworks/tf-controller/internal/informer/bbp"
+	"github.com/weaveworks/tf-controller/internal/server/webhook"
 )
-
-const controllerName = "tf-bbp-controller"
 
 var (
 	scheme = runtime.NewScheme()
@@ -34,7 +32,6 @@ func init() {
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
 	utilruntime.Must(sourcev1b2.AddToScheme(scheme))
 	utilruntime.Must(infrav1.AddToScheme(scheme))
-	//+kubebuilder:scaffold:scheme
 }
 
 var (
@@ -54,7 +51,7 @@ func main() {
 	webhookCtx, webhookCancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	informerCtx, informerCancel := signal.NotifyContext(context.Background(), os.Interrupt)
 
-	clusterConfig, err := getClusterConfig()
+	clusterConfig, err := config.GetConfig()
 	if err != nil {
 		log.Error(err, "unable to get cluster config")
 		return
@@ -121,17 +118,4 @@ func startInformer(ctx context.Context, log logr.Logger, dynamicClient *dynamic.
 	}
 
 	return nil
-}
-
-// This function is here mostly so I can start and test while we don't have an
-// in-cluster Tilefile or something similar.
-func getClusterConfig() (*rest.Config, error) {
-	kubeConfig := os.Getenv("KUBE_CONFIG")
-
-	if kubeConfig != "" {
-		return clientcmd.BuildConfigFromFlags("", kubeConfig)
-	} else {
-		return rest.InClusterConfig()
-	}
-
 }
