@@ -27,13 +27,18 @@ type Informer struct {
 	synced bool
 }
 
-func NewInformer(log logr.Logger, dynamicClient dynamic.Interface, clusterClient client.Client) Informer {
-	resource := tfv1alpha2.GroupVersion.WithResource("terraforms")
+func NewInformer(log logr.Logger, dynamicClient dynamic.Interface, clusterClient client.Client) *Informer {
+	restMapper := clusterClient.RESTMapper()
+	mapping, err := restMapper.RESTMapping(tfv1alpha2.GroupVersion.WithKind(tfv1alpha2.TerraformKind).GroupKind())
+	if err != nil {
+		log.Error(err, "failed to look up mapping for CRD")
+		return nil
+	}
+
 	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynamicClient, time.Minute, corev1.NamespaceAll, nil)
+	informer := factory.ForResource(mapping.Resource).Informer()
 
-	informer := factory.ForResource(resource).Informer()
-
-	return Informer{
+	return &Informer{
 		sharedInformer: informer,
 		mux:            &sync.RWMutex{},
 		log:            log,
