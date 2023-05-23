@@ -165,7 +165,7 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 			data[outputOrAlias] = []byte(cv.AsString())
 		} else {
 			data[outputOrAlias] = outputMeta.Value
-			data[outputOrAlias+".type"] = outputMeta.Type
+			data[outputOrAlias+"__type"] = outputMeta.Type
 		}
 	}
 

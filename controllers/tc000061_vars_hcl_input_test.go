@@ -145,26 +145,26 @@ func Test_000061_vars_hcl_input_test(t *testing.T) {
 		"Name":      "tf-output-" + terraformName,
 		"Namespace": "flux-system",
 		"Values": map[string]string{
-			"cluster_id":      "eu-test-1:stg:winter-squirrel",
-			"active":          "true",
-			"active.type":     `"bool"`,
-			"node_count":      "10",
-			"node_count.type": `"number"`,
-			"azs":             "[\n      \"eu-test-1a\",\n      \"eu-test-1b\",\n      \"eu-test-1c\"\n    ]",
-			"azs.type":        "[\n      \"list\",\n      \"string\"\n    ]",
+			"cluster_id":       "eu-test-1:stg:winter-squirrel",
+			"active":           "true",
+			"active__type":     `"bool"`,
+			"node_count":       "10",
+			"node_count__type": `"number"`,
+			"azs":              "[\n      \"eu-test-1a\",\n      \"eu-test-1b\",\n      \"eu-test-1c\"\n    ]",
+			"azs__type":        "[\n      \"list\",\n      \"string\"\n    ]",
 		},
 		"OwnerRef[0]": string(createdHelloWorldTF.UID),
 	}
 	g.Eventually(func() (map[string]interface{}, error) {
 		err := k8sClient.Get(ctx, outputKey, &outputSecret)
 		values := map[string]string{
-			"cluster_id":      string(outputSecret.Data["cluster_id"]),
-			"active":          string(outputSecret.Data["active"]),
-			"active.type":     string(outputSecret.Data["active.type"]),
-			"node_count":      string(outputSecret.Data["node_count"]),
-			"node_count.type": string(outputSecret.Data["node_count.type"]),
-			"azs":             string(outputSecret.Data["azs"]),
-			"azs.type":        string(outputSecret.Data["azs.type"]),
+			"cluster_id":       string(outputSecret.Data["cluster_id"]),
+			"active":           string(outputSecret.Data["active"]),
+			"active__type":     string(outputSecret.Data["active__type"]),
+			"node_count":       string(outputSecret.Data["node_count"]),
+			"node_count__type": string(outputSecret.Data["node_count__type"]),
+			"azs":              string(outputSecret.Data["azs"]),
+			"azs__type":        string(outputSecret.Data["azs__type"]),
 		}
 		return map[string]interface{}{
 			"Name":        outputSecret.Name,
