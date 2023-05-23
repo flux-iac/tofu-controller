@@ -3,9 +3,10 @@ package controllers
 import (
 	"context"
 	"fmt"
-	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"sort"
 	"strings"
+
+	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 
 	"github.com/hashicorp/terraform-exec/tfexec"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
@@ -165,7 +166,7 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 			data[outputOrAlias] = []byte(cv.AsString())
 		} else {
 			data[outputOrAlias] = outputMeta.Value
-			data[outputOrAlias+".type"] = outputMeta.Type
+			data[outputOrAlias+"__type"] = outputMeta.Type
 		}
 	}
 
