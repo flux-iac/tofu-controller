@@ -10,17 +10,15 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
+	"github.com/weaveworks/tf-controller/internal/informer/bbp"
+	"github.com/weaveworks/tf-controller/internal/server/webhook"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/dynamic"
 	cgoscheme "k8s.io/client-go/kubernetes/scheme"
-
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
-	"github.com/weaveworks/tf-controller/internal/informer/bbp"
-	"github.com/weaveworks/tf-controller/internal/server/webhook"
 )
 
 var (
@@ -111,7 +109,10 @@ func startWebhookServer(ctx context.Context, log logr.Logger, clusterClient clie
 }
 
 func startInformer(ctx context.Context, log logr.Logger, dynamicClient *dynamic.DynamicClient, clusterClient client.Client) error {
-	informer := bbp.NewInformer(log, dynamicClient, clusterClient)
+	informer, err := bbp.NewInformer(log, dynamicClient, clusterClient)
+	if err != nil {
+		return fmt.Errorf("failed to create informer: %w", err)
+	}
 
 	if err := informer.Start(ctx); err != nil {
 		return err
