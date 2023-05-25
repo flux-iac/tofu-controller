@@ -27,12 +27,12 @@ type Informer struct {
 	synced bool
 }
 
-func NewInformer(log logr.Logger, dynamicClient dynamic.Interface, clusterClient client.Client) *Informer {
+func NewInformer(log logr.Logger, dynamicClient dynamic.Interface, clusterClient client.Client) (*Informer, error) {
 	restMapper := clusterClient.RESTMapper()
 	mapping, err := restMapper.RESTMapping(tfv1alpha2.GroupVersion.WithKind(tfv1alpha2.TerraformKind).GroupKind())
 	if err != nil {
 		log.Error(err, "failed to look up mapping for CRD")
-		return nil
+		return nil, err
 	}
 
 	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynamicClient, time.Minute, corev1.NamespaceAll, nil)
@@ -44,7 +44,7 @@ func NewInformer(log logr.Logger, dynamicClient dynamic.Interface, clusterClient
 		log:            log,
 		synced:         false,
 		client:         clusterClient,
-	}
+	}, nil
 }
 
 func (i *Informer) Start(ctx context.Context) error {
