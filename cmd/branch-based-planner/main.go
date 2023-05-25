@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/fluxcd/pkg/runtime/logger"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
@@ -16,14 +17,9 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/dynamic"
 	cgoscheme "k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/fluxcd/pkg/runtime/logger"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
-
-const controllerName = "tf-bbp-controller"
 
 var (
 	scheme = runtime.NewScheme()
@@ -34,7 +30,6 @@ func init() {
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
 	utilruntime.Must(sourcev1b2.AddToScheme(scheme))
 	utilruntime.Must(infrav1.AddToScheme(scheme))
-	//+kubebuilder:scaffold:scheme
 }
 
 var (
@@ -54,7 +49,7 @@ func main() {
 	webhookCtx, webhookCancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	informerCtx, informerCancel := signal.NotifyContext(context.Background(), os.Interrupt)
 
-	clusterConfig, err := getClusterConfig()
+	clusterConfig, err := config.GetConfig()
 	if err != nil {
 		log.Error(err, "unable to get cluster config")
 		return
@@ -114,24 +109,14 @@ func startWebhookServer(ctx context.Context, log logr.Logger, clusterClient clie
 }
 
 func startInformer(ctx context.Context, log logr.Logger, dynamicClient *dynamic.DynamicClient, clusterClient client.Client) error {
-	informer := bbp.NewInformer(log, dynamicClient, clusterClient)
+	informer, err := bbp.NewInformer(log, dynamicClient, clusterClient)
+	if err != nil {
+		return fmt.Errorf("failed to create informer: %w", err)
+	}
 
 	if err := informer.Start(ctx); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-// This function is here mostly so I can start and test while we don't have an
-// in-cluster Tilefile or something similar.
-func getClusterConfig() (*rest.Config, error) {
-	kubeConfig := os.Getenv("KUBE_CONFIG")
-
-	if kubeConfig != "" {
-		return clientcmd.BuildConfigFromFlags("", kubeConfig)
-	} else {
-		return rest.InClusterConfig()
-	}
-
 }
