@@ -89,6 +89,10 @@ time delay between the occurrence of an event and the next scheduled polling. Ad
 the load on the GitHub server if the polling frequency is high. But, these concerns can be mitigated by carefully
 configuring the polling frequency based on the urgency of updates.
 
+The proposed polling mechanism is designed to be as autonomous as possible, requiring minimal configuration from the Terraform object. The bulk of the information necessary for the polling system is derived from the Pull Request (PR) itself. This includes details like the PR number, the base branch, the title, file names involved, and changes in PR comments.
+
+The only initial information required from the user is associated with the `GitRepository` object. This includes the GitHub repository's owner and name, along with the GitHub token for API authentication. This data provides the polling mechanism with a starting point to begin monitoring the respective GitHub repository.
+
 ## Examples
 
 ### Example 1: Polling for PR creation
