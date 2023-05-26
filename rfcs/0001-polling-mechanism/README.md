@@ -249,6 +249,16 @@ slow down requests until the limit is reset.
 To effectively manage GitHub API rate limits and maintain the security of access tokens, we recommend storing the GitHub
 token in a Kubernetes Secret and referencing that Secret in the Terraform Custom Resource (CR).
 
+## Handling Pod Restarts and In-Memory State Management
+
+From examples, the state of PRs and PR comments is integral to the efficiency of the polling mechanism, enabling it to track changes effectively. In the proposed implementation, these states are maintained in memory during the lifetime of a polling process.
+
+One might raise concerns about the transient nature of in-memory data, particularly in cases where a pod restarts. It's crucial to note, however, that this is a deliberate design decision based on the nature of the data and the operation of the system itself.
+
+In the event of a pod restart, while the in-memory state data would indeed be lost, the system is designed to be stateless and idempotent. This means that it can regenerate the necessary state data by querying the GitHub API again upon restart. The state information is primarily used to determine changes between consecutive polls. Therefore, even if a pod restarts, once it's up again, it can retrieve the necessary state information from GitHub (as the single source of truth), compare it with the subsequent poll, and continue tracking changes effectively.
+
+In essence, the temporary nature of in-memory state storage doesn't pose a risk to the functionality or reliability of the system. Instead, it simplifies the system design and reduces dependencies on external storage systems, while ensuring the effective tracking of changes in the GitHub repository.
+
 ## Implementation History
 
 <!--
