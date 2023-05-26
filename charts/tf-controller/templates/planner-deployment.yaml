@@ -1,3 +1,4 @@
+{{- if .Values.branchBasedPlanner.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -69,3 +70,4 @@ spec:
       {{- with .Values.priorityClassName }}
       priorityClassName: {{ . }}
       {{- end }}
+{{- end }}
