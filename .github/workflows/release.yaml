@@ -115,6 +115,25 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.version=${{ steps.prep.outputs.VERSION }}
             org.opencontainers.image.created=${{ steps.prep.outputs.BUILD_DATE }}
+      - name: Publish multi-arch branch-based-planner container image
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          no-cache: true
+          builder: ${{ steps.buildx.outputs.name }}
+          context: .
+          file: ./planner.Dockerfile
+          platforms: linux/amd64,linux/arm64 #,linux/arm/v7 - azure-cli does not install correctly on 32 bit arm
+          tags: |
+            ghcr.io/weaveworks/branch-based-planner:${{ steps.prep.outputs.VERSION }}
+            ghcr.io/weaveworks/branch-based-planner:latest
+          labels: |
+            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.prep.outputs.VERSION }}
+            org.opencontainers.image.created=${{ steps.prep.outputs.BUILD_DATE }}
       - name: Check images
         run: |
           docker buildx imagetools inspect ghcr.io/weaveworks/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
@@ -125,6 +144,9 @@ jobs:
 
           docker buildx imagetools inspect ghcr.io/weaveworks/tf-runner-azure:${{ steps.prep.outputs.VERSION }}
           docker pull ghcr.io/weaveworks/tf-runner-azure:${{ steps.prep.outputs.VERSION }}
+
+          docker buildx imagetools inspect ghcr.io/weaveworks/branch-based-planner:${{ steps.prep.outputs.VERSION }}
+          docker pull ghcr.io/weaveworks/branch-based-planner:${{ steps.prep.outputs.VERSION }}
       - name: Sign images
         env:
           COSIGN_EXPERIMENTAL: 1
