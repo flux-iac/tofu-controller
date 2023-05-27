@@ -4,6 +4,11 @@ on:
   repository_dispatch:
     types: [release-runners]
 
+permissions:
+  contents: write # needed to write releases
+  id-token: write # needed for keyless signing
+  packages: write # needed for ghcr access
+
 env:
   CONTROLLER: ${{ github.event.client_payload.controller }}
   VERSION: ${{ github.event.client_payload.version }}
