@@ -157,3 +157,19 @@ jobs:
         uses: stefanprodan/helm-gh-pages@v1.4.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Trigger the release-runners workflow
+        run: |
+          curl -XPOST -u "${{ secrets.GITHUB_TOKEN }}:" \
+            -H "Accept: application/vnd.github.everest-preview+json" \
+            "https://api.github.com/repos/${{ github.repository }}/dispatches" \
+            -d '{
+            "event_type": "release-runners",
+            "client_payload": {
+              "controller": "${{ env.CONTROLLER }}",
+              "version": "${{ steps.prep.outputs.VERSION }}",
+              "build_date": "${{ steps.prep.outputs.BUILD_DATE }}",
+              "sha": "${{ github.sha }}",
+              "repo_desc": "${{ github.event.repository.description }}",
+              "repo_url": "${{ github.event.repository.html_url }}"
+            }
+          }'
