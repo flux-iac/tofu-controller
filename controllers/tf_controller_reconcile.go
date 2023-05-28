@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -61,6 +62,76 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 	if err != nil {
 		log.Error(err, "error in terraform setup")
 		return &terraform, err
+	}
+
+	if r.AllowBreakTheGlass {
+		// spec.breakTheGlass || annotation
+		breakTheGlass := terraform.Spec.BreakTheGlass
+		if terraform.Annotations != nil {
+			_, exist := terraform.Annotations[infrav1.BreakTheGlassAnnotation]
+			if exist {
+				breakTheGlass = true
+			}
+		}
+
+		if breakTheGlass {
+			// ok, change status to "break the glass"
+			terraform = infrav1.TerraformProgressing(terraform, "Breaking the glass ...")
+			if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+				log.Error(err, "unable to update status after drift detection")
+				return &terraform, err
+			}
+
+			// create /tmp/.break-glass file
+			_, err := runnerClient.StartBreakTheGlassSession(ctx, &runner.BreakTheGlassRequest{})
+			if err != nil {
+				log.Error(err, "error starting break the glass session")
+				return &terraform, err
+			}
+
+			done := false
+			for !done {
+				// check /tmp/.break-glass file exists
+				reply, err := runnerClient.HasBreakTheGlassSessionDone(ctx, &runner.BreakTheGlassRequest{})
+				if err != nil {
+					return nil, err
+				}
+				if reply.Success {
+					done = true
+				}
+
+				time.Sleep(10 * time.Second)
+			}
+
+			// set status back to "Initializing"
+			terraform = infrav1.TerraformProgressing(terraform, "Initializing")
+			if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+				log.Error(err, "unable to update status after drift detection")
+				return &terraform, err
+			}
+
+			return &terraform, fmt.Errorf("break the glass session has ended at %v", time.Now().Format(time.RFC3339))
+		}
+	} else {
+		// spec.breakTheGlass || annotation
+		breakTheGlass := terraform.Spec.BreakTheGlass
+		if terraform.Annotations != nil {
+			_, exist := terraform.Annotations[infrav1.BreakTheGlassAnnotation]
+			if exist {
+				breakTheGlass = true
+			}
+		}
+
+		if breakTheGlass {
+			terraform = infrav1.TerraformProgressing(terraform, "Breaking the glass is not allowed")
+			if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+				log.Error(err, "unable to update status after drift detection")
+				return &terraform, err
+			}
+
+			log.Info("break the glass is not allowed")
+			return &terraform, fmt.Errorf("break the glass is not allowed")
+		}
 	}
 
 	if r.shouldDetectDrift(terraform, revision) {

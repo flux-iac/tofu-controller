@@ -37,6 +37,9 @@ service Runner {
 
   rpc FinalizeSecrets(FinalizeSecretsRequest) returns (FinalizeSecretsReply) {}
   rpc ForceUnlock(ForceUnlockRequest) returns (ForceUnlockReply) {}
+
+  rpc StartBreakTheGlassSession(BreakTheGlassRequest) returns (BreakTheGlassReply) {}
+  rpc HasBreakTheGlassSessionDone(BreakTheGlassRequest) returns (BreakTheGlassReply) {}
 }
 
 message LookPathRequest {
@@ -313,6 +316,14 @@ message ForceUnlockRequest {
 }
 
 message ForceUnlockReply {
+  string message = 1;
+  bool   success = 2;
+}
+
+message BreakTheGlassRequest {
+}
+
+message BreakTheGlassReply {
   string message = 1;
   bool   success = 2;
 }
