@@ -44,6 +44,7 @@ Check out the [documentation](https://docs.gitops.weave.works/docs/terraform/ove
   * [ ] Type safety for custom backends
   * [ ] Selectable Terraform versions
   * [ ] Flux v2.0.0 GA support
+  * [ ] Break-the-glass feature
 
 ### Q3 2023
   * [ ] `v1beta1` API (stabilization)
