@@ -129,6 +129,10 @@ docker-push: ## Push docker image with the manager.
 	docker push ${RUNNER_IMG}:${TAG}
 	docker push ${RUNNER_AZURE_IMAGE}:${TAG}
 
+docker-dev-runner:
+	docker buildx build --load -t ${RUNNER_IMG}:${TAG} -f runner.Dockerfile ${BUILD_ARGS} .
+	docker push ${RUNNER_IMG}:${TAG}
+
 ##@ Deployment
 
 ifndef ignore-not-found
