@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tf-controller
+spec:
+  template:
+    spec:
+      containers:
+        - name: manager
+          args:
+            - --allow-break-the-glass=true
