@@ -27,6 +27,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` | Affinity properties for the TF-Controller deployment |
+| allowBreakTheGlass | bool | `false` | Argument for `--allow-break-the-glass` (Controller).  AllowBreakTheGlass allows the controller to break the glass and modify Terraform states when the sync loop is broken. |
 | awsPackage.install | bool | `true` |  |
 | awsPackage.repository | string | `"ghcr.io/tf-controller/aws-primitive-modules"` |  |
 | awsPackage.tag | string | `"v4.38.0-v1alpha11"` |  |
