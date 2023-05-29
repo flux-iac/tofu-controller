@@ -37,11 +37,12 @@ const (
 	CACertSecretName = "tf-controller.tls"
 	// RunnerTLSSecretName is the name of the secret containing a TLS cert that will be written to
 	// the namespace in which a terraform runner is created
-	RunnerTLSSecretName   = "terraform-runner.tls"
-	RunnerLabel           = "infra.contrib.fluxcd.io/terraform"
-	GitRepositoryIndexKey = ".metadata.gitRepository"
-	BucketIndexKey        = ".metadata.bucket"
-	OCIRepositoryIndexKey = ".metadata.ociRepository"
+	RunnerTLSSecretName     = "terraform-runner.tls"
+	RunnerLabel             = "infra.contrib.fluxcd.io/terraform"
+	GitRepositoryIndexKey   = ".metadata.gitRepository"
+	BucketIndexKey          = ".metadata.bucket"
+	OCIRepositoryIndexKey   = ".metadata.ociRepository"
+	BreakTheGlassAnnotation = "break-the-glass.tf-controller/requestedAt"
 )
 
 type ReadInputsFromSecretSpec struct {
@@ -249,6 +250,11 @@ type TerraformSpec struct {
 	// phase.
 	// +optional
 	PlanOnly bool `json:"planOnly,omitempty"`
+
+	// BreakTheGlass specifies if the reconciliation should stop
+	// and allow interactive shell in case of emergency.
+	// +optional
+	BreakTheGlass bool `json:"breakTheGlass,omitempty"`
 }
 
 type CloudSpec struct {
