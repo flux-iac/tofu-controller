@@ -55,8 +55,20 @@ jobs:
         run: ct lint --config ct.yaml
         if: steps.list-changed.outputs.changed == 'true'
 
+      - name: Build the tf-controller container image
+        run: |
+          make docker-buildx MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=ct \
+            BUILD_ARGS="--load"
+        if: steps.list-changed.outputs.changed == 'true'
+
       - name: Create kind cluster
         uses: helm/kind-action@v1.2.0
+        if: steps.list-changed.outputs.changed == 'true'
+
+      - name: Load test images into KIND
+        run: |
+          kind load docker-image --name=chart-testing test/tf-controller:ct
+          kind load docker-image --name=chart-testing test/tf-runner:ct
         if: steps.list-changed.outputs.changed == 'true'
 
       - name: Install Flux CLI
