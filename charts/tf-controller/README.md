@@ -1,6 +1,6 @@
 # Weave GitOps Terraform Controller
 
-![Version: 0.12.0](https://img.shields.io/badge/Version-0.12.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.15.0-rc.1](https://img.shields.io/badge/AppVersion-v0.15.0--rc.1-informational?style=flat-square)
+![Version: 0.13.0](https://img.shields.io/badge/Version-0.13.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.15.0-rc.1](https://img.shields.io/badge/AppVersion-v0.15.0--rc.1-informational?style=flat-square)
 
 The Helm chart for Weave GitOps Terraform Controller
 
@@ -27,6 +27,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` | Affinity properties for the TF-Controller deployment |
+| allowBreakTheGlass | bool | `false` | Argument for `--allow-break-the-glass` (Controller).  AllowBreakTheGlass allows the controller to break the glass and modify Terraform states when the sync loop is broken. |
 | awsPackage.install | bool | `true` |  |
 | awsPackage.repository | string | `"ghcr.io/tf-controller/aws-primitive-modules"` |  |
 | awsPackage.tag | string | `"v4.38.0-v1alpha11"` |  |

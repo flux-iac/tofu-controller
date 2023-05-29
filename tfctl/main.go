@@ -52,6 +52,7 @@ func (c *CLI) Init(k8sConfig *rest.Config, config *viper.Viper) error {
 	}
 
 	c.client = client
+	c.restConfig = k8sConfig
 	c.namespace = config.GetString("namespace")
 	c.terraform = config.GetString("terraform")
 
