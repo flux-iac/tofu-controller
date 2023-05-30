@@ -60,6 +60,11 @@ func Test_000260_runner_pod_test(t *testing.T) {
 				},
 				Spec: infrav1.RunnerPodSpec{
 					Image: runnerPodImage,
+					HostAliases: []corev1.HostAlias{
+						{
+							Hostnames: []string{"foo", "bar"},
+						},
+					},
 				},
 			},
 		},
@@ -68,6 +73,7 @@ func Test_000260_runner_pod_test(t *testing.T) {
 	spec := reconciler.runnerPodSpec(helloWorldTF, "runner.tls-123")
 	g.Expect(spec.ServiceAccountName).To(Equal(serviceAccountName))
 	g.Expect(spec.Containers[0].Image).To(Equal(runnerPodImage))
+	g.Expect(spec.HostAliases[0].Hostnames).To(Equal([]string{"foo", "bar"}))
 
 	podTemplate, err := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
 	g.Expect(err).ToNot(HaveOccurred())

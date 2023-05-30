@@ -276,6 +276,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform v1alpha1.Terraform, tlsSec
 		NodeSelector:       terraform.Spec.RunnerPodTemplate.Spec.NodeSelector,
 		Affinity:           terraform.Spec.RunnerPodTemplate.Spec.Affinity,
 		Tolerations:        terraform.Spec.RunnerPodTemplate.Spec.Tolerations,
+		HostAliases:        terraform.Spec.RunnerPodTemplate.Spec.HostAliases,
 	}
 }
 
