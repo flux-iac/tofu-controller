@@ -21,7 +21,7 @@ k8s_yaml(
 k8s_kind('Terraform', image_json_path='{.spec.runnerPodTemplate.spec.image}', pod_readiness='ignore')
 
 k8s_resource(
-  objects=['helloworld:GitRepository:flux-system'],
+  objects=['helloworld:GitRepository:flux-system','helloworld-tf:Secret:flux-system'],
   workload='helloworld-tf',
   extra_pod_selectors={'instance': 'helloworld-tf'},
   pod_readiness='ignore',
