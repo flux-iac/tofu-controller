@@ -1,6 +1,6 @@
 # Weave GitOps Terraform Controller
 
-![Version: 0.13.0](https://img.shields.io/badge/Version-0.13.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.15.0-rc.1](https://img.shields.io/badge/AppVersion-v0.15.0--rc.1-informational?style=flat-square)
+![Version: 0.14.0](https://img.shields.io/badge/Version-0.14.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.15.0-rc.1](https://img.shields.io/badge/AppVersion-v0.15.0--rc.1-informational?style=flat-square)
 
 The Helm chart for Weave GitOps Terraform Controller
 
@@ -34,6 +34,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | caCertValidityDuration | string | `"168h0m"` | Argument for `--ca-cert-validity-duration` (Controller) |
 | certRotationCheckFrequency | string | `"30m0s"` | Argument for `--cert-rotation-check-frequency` (Controller) |
 | certValidityDuration | string | `"6h0m"` | Argument for `--cert-validity-duration` (Controller) |
+| clusterDomain | string | `"cluster.local"` | Argument for `--cluster-domain` (Controller).  ClusterDomain indicates the cluster domain, defaults to cluster.local. |
 | concurrency | int | `24` | Concurrency of the controller (Controller) |
 | eksSecurityGroupPolicy | object | `{"create":false,"ids":[]}` | Create an AWS EKS Security Group Policy with the supplied Security Group IDs [See](https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html#deploy-securitygrouppolicy) |
 | eksSecurityGroupPolicy.create | bool | `false` | Create the EKS SecurityGroupPolicy |

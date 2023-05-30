@@ -76,6 +76,7 @@ type TerraformReconciler struct {
 	RunnerCreationTimeout    time.Duration
 	RunnerGRPCMaxMessageSize int
 	AllowBreakTheGlass       bool
+	ClusterDomain            string
 }
 
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete
