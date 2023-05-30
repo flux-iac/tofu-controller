@@ -169,6 +169,7 @@ func TestMain(m *testing.M) {
 		LookaheadInterval:             1 * time.Hour,
 		TriggerCARotation:             make(chan mtls.Trigger),
 		TriggerNamespaceTLSGeneration: make(chan mtls.Trigger),
+		ClusterDomain:                 "cluster.local",
 	}
 
 	if err := mtls.AddRotator(ctx, k8sManager, rotator); err != nil {

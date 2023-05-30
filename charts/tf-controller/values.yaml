@@ -97,6 +97,13 @@ kubeAPIQPS: 50
 # -- Argument for `--kube-api-burst` (Controller).
 #  Burst indicates the maximum burst queries-per-second of requests sent to the Kubernetes API, defaults to 100.
 kubeAPIBurst: 100
+# -- Argument for `--allow-break-the-glass` (Controller).
+#  AllowBreakTheGlass allows the controller to break the glass and modify Terraform states when the sync loop is broken.
+allowBreakTheGlass: false
+# -- Argument for `--cluster-domain` (Controller).
+#  ClusterDomain indicates the cluster domain, defaults to cluster.local.
+clusterDomain: cluster.local
+
 awsPackage:
   install: true
   tag: v4.38.0-v1alpha11

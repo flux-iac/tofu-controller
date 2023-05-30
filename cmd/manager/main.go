@@ -88,6 +88,7 @@ func main() {
 		runnerCreationTimeout    time.Duration
 		runnerGRPCMaxMessageSize int
 		allowBreakTheGlass       bool
+		clusterDomain            string
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
@@ -108,6 +109,7 @@ func main() {
 	flag.DurationVar(&runnerCreationTimeout, "runner-creation-timeout", 120*time.Second, "Timeout for creating a runner pod.")
 	flag.IntVar(&runnerGRPCMaxMessageSize, "runner-grpc-max-message-size", 4, "The maximum message size for gRPC connections in MiB.")
 	flag.BoolVar(&allowBreakTheGlass, "allow-break-the-glass", false, "Allow break the glass mode.")
+	flag.StringVar(&clusterDomain, "cluster-domain", "cluster.local", "The cluster domain used by the cluster.")
 
 	clientOptions.BindFlags(flag.CommandLine)
 	logOptions.BindFlags(flag.CommandLine)
@@ -168,6 +170,7 @@ func main() {
 		LookaheadInterval:             4 * rotationCheckFrequency, // we do 4 rotation checks ahead
 		TriggerCARotation:             make(chan mtls.Trigger),
 		TriggerNamespaceTLSGeneration: make(chan mtls.Trigger),
+		ClusterDomain:                 clusterDomain,
 	}
 
 	const localHost = "localhost"
@@ -193,6 +196,7 @@ func main() {
 		RunnerCreationTimeout:    runnerCreationTimeout,
 		RunnerGRPCMaxMessageSize: runnerGRPCMaxMessageSize,
 		AllowBreakTheGlass:       allowBreakTheGlass,
+		ClusterDomain:            clusterDomain,
 	}
 
 	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {

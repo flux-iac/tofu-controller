@@ -851,9 +851,9 @@ func (in *Terraform) FromBytes(b []byte, scheme *runtime.Scheme) error {
 		), b, in)
 }
 
-func (in *Terraform) GetRunnerHostname(ip string) string {
+func (in *Terraform) GetRunnerHostname(ip string, clusterDomain string) string {
 	prefix := strings.ReplaceAll(ip, ".", "-")
-	return fmt.Sprintf("%s.%s.pod.cluster.local", prefix, in.Namespace)
+	return fmt.Sprintf("%s.%s.pod.%s", prefix, in.Namespace, clusterDomain)
 }
 
 func (in *TerraformSpec) GetAlwaysCleanupRunnerPod() bool {
