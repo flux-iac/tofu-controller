@@ -6,6 +6,7 @@ spec:
   template:
     spec:
       containers:
-        - name: manager
-          args:
-            - --allow-break-the-glass=true
+      - name: manager
+        args:
+        - --allow-break-the-glass=true
+        - --cluster-domain=cluster.local
