@@ -96,7 +96,7 @@ func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terrafor
 			return nil, nil, err
 		}
 		traceLog.Info("Get pod hostname", "pod-ip", podIP)
-		hostname = terraform.GetRunnerHostname(podIP)
+		hostname = terraform.GetRunnerHostname(podIP, r.ClusterDomain)
 	}
 
 	traceLog.Info("Pod hostname set", "hostname", hostname)
