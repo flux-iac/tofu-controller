@@ -10,6 +10,14 @@ spec:
   ref:
     branch: main
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: helloworld-tf
+  namespace: flux-system
+stringData:
+  test-data: "test"
+---
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -23,6 +31,13 @@ spec:
     kind: GitRepository
     name: helloworld
     namespace: flux-system
+  varsFrom:
+  - kind: Secret
+    name: helloworld-tf
+    varsKeys:
+    - test-data:subject
+  writeOutputsToSecret:
+    name: helloworld-tf-outputs
   runnerPodTemplate:
     metadata:
       labels:
