@@ -92,6 +92,7 @@ type CertRotator struct {
 	artifactCaches         []*artifact
 	knownNamespaceTLSMap   map[string]*TriggerResult
 	knownNamespaceTLSMapMu sync.Mutex
+	ClusterDomain          string
 }
 
 // GetKnownNamespaceTLS returns the TriggerResult for the given namespace.
@@ -641,7 +642,7 @@ func (cr *CertRotator) generateNamespaceTLS(namespace string) (*corev1.Secret, e
 	artifactCache := cr.artifactCaches[n-1]
 	caArtifacts := artifactCache.ca
 
-	hostname := fmt.Sprintf("*.%s.pod.cluster.local", namespace)
+	hostname := fmt.Sprintf("*.%s.pod.%s", namespace, cr.ClusterDomain)
 	cert, key, err := cr.createCertPEM(caArtifacts, hostname, time.Now().Add(-1*time.Hour), caArtifacts.validUntil)
 	if err != nil {
 		return nil, err
