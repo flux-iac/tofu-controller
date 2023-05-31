@@ -27,7 +27,7 @@ image:
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
   # @default -- `.Chart.AppVersion`
-  tag: "v0.15.0-rc.1"
+  tag: "v0.15.0-rc.3"
 # -- Controller image pull secret
 imagePullSecrets: []
 # -- Resource limits and requests
@@ -103,7 +103,6 @@ allowBreakTheGlass: false
 # -- Argument for `--cluster-domain` (Controller).
 #  ClusterDomain indicates the cluster domain, defaults to cluster.local.
 clusterDomain: cluster.local
-
 awsPackage:
   install: true
   tag: v4.38.0-v1alpha11
@@ -115,7 +114,7 @@ runner:
     repository: ghcr.io/weaveworks/tf-runner
     # -- Runner image tag
     # @default -- `.Chart.AppVersion`
-    tag: "v0.15.0-rc.1"
+    tag: "v0.15.0-rc.3"
   grpc:
     # -- Maximum GRPC message size (Controller)
     maxMessageSize: 4
