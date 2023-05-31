@@ -1,8 +1,16 @@
-name: Release runners
+name: release-runners
 
 on:
   repository_dispatch:
     types: [release-runners]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'version'
+        required: true
+      build_date:
+        description: 'build date'
+        required: true
 
 permissions:
   contents: write # needed to write releases
@@ -10,9 +18,8 @@ permissions:
   packages: write # needed for ghcr access
 
 env:
-  CONTROLLER: ${{ github.event.client_payload.controller }}
-  VERSION: ${{ github.event.client_payload.version }}
-  BUILD_DATE: ${{ github.event.client_payload.build_date }}
+  VERSION: ${{ github.event.inputs.version }}
+  BUILD_DATE: ${{ github.event.inputs.build_date }}
 
 jobs:
   release:
@@ -33,7 +40,7 @@ jobs:
         with:
           buildkitd-flags: "--debug"
       - name: Login to Docker Registry
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v1
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
