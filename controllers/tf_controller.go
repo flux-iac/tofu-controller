@@ -57,7 +57,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 // TerraformReconciler reconciles a Terraform object
@@ -460,26 +459,23 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 			predicate.Or(predicate.GenerationChangedPredicate{}, predicates.ReconcileRequestedPredicate{}),
 		)).
 		Watches(
-			&source.Kind{Type: &sourcev1.GitRepository{}},
+			&sourcev1.GitRepository{},
 			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(infrav1.GitRepositoryIndexKey)),
 			builder.WithPredicates(SourceRevisionChangePredicate{}),
 		).
 		Watches(
-			&source.Kind{Type: &sourcev1b2.Bucket{}},
+			&sourcev1b2.Bucket{},
 			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(infrav1.BucketIndexKey)),
 			builder.WithPredicates(SourceRevisionChangePredicate{}),
 		).
 		Watches(
-			&source.Kind{Type: &sourcev1b2.OCIRepository{}},
+			&sourcev1b2.OCIRepository{},
 			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(infrav1.OCIRepositoryIndexKey)),
 			builder.WithPredicates(SourceRevisionChangePredicate{}),
 		).
 		Watches(
-			&source.Kind{Type: &corev1.Secret{}},
-			&handler.EnqueueRequestForOwner{
-				OwnerType:    &infrav1.Terraform{},
-				IsController: true,
-			},
+			&corev1.Secret{},
+			handler.EnqueueRequestForOwner(mgr.GetScheme(), mgr.GetRESTMapper(), &infrav1.Terraform{}, handler.OnlyControllerOwner()),
 			builder.WithPredicates(SecretDeletePredicate{}),
 		).
 		WithOptions(controller.Options{
@@ -547,24 +543,26 @@ func (r *TerraformReconciler) checkDependencies(source sourcev1.Source, terrafor
 	return nil
 }
 
-func (r *TerraformReconciler) requestsForRevisionChangeOf(indexKey string) func(obj client.Object) []reconcile.Request {
-	return func(obj client.Object) []reconcile.Request {
+func (r *TerraformReconciler) requestsForRevisionChangeOf(indexKey string) handler.MapFunc {
+	return func(ctx context.Context, obj client.Object) []reconcile.Request {
+		log := ctrl.LoggerFrom(ctx)
 		repo, ok := obj.(interface {
 			GetArtifact() *sourcev1.Artifact
 		})
 		if !ok {
-			panic(fmt.Sprintf("Expected an object conformed with GetArtifact() method, but got a %T", obj))
+			log.Error(fmt.Errorf("expected an object conformed with GetArtifact() method, but got a %T", obj), "failed to get reconcile requests for revision change")
+			return nil
 		}
 		// If we do not have an artifact, we have no requests to make
 		if repo.GetArtifact() == nil {
 			return nil
 		}
 
-		ctx := context.Background()
 		var list infrav1.TerraformList
 		if err := r.List(ctx, &list, client.MatchingFields{
 			indexKey: client.ObjectKeyFromObject(obj).String(),
 		}); err != nil {
+			log.Error(err, "failed to list objects for revision change")
 			return nil
 		}
 		var dd []dependency.Dependent
@@ -578,6 +576,7 @@ func (r *TerraformReconciler) requestsForRevisionChangeOf(indexKey string) func(
 		}
 		sorted, err := dependency.Sort(dd)
 		if err != nil {
+			log.Error(err, "failed to sort dependencies for revision change")
 			return nil
 		}
 		reqs := make([]reconcile.Request, len(sorted))
