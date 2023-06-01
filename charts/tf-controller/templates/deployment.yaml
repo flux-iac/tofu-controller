@@ -42,6 +42,8 @@ spec:
         - --events-addr={{ .Values.eventsAddress }}
         - --kube-api-qps={{ .Values.kubeAPIQPS }}
         - --kube-api-burst={{ .Values.kubeAPIBurst }}
+        - --allow-break-the-glass={{ .Values.allowBreakTheGlass }}
+        - --cluster-domain={{ .Values.clusterDomain }}
         command:
         - /sbin/tini
         - --

@@ -274,10 +274,16 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 					}
 				}
 			} else {
-				for _, key := range vf.VarsKeys {
-					vars[key], err = utils.JSONEncodeBytes(s.Data[key])
+				for _, pattern := range vf.VarsKeys {
+					oldKey, newKey, err := parseRenamePattern(pattern)
 					if err != nil {
-						err := fmt.Errorf("failed to encode key %s with error: %w", key, err)
+						log.Error(err, "unable to parse rename pattern")
+						return nil, err
+					}
+
+					vars[newKey], err = utils.JSONEncodeBytes(s.Data[oldKey])
+					if err != nil {
+						err := fmt.Errorf("failed to encode key %q with error: %w", pattern, err)
 						log.Error(err, "encoding failure")
 						return nil, err
 					}
@@ -310,17 +316,23 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 					}
 				}
 			} else {
-				for _, key := range vf.VarsKeys {
-					if val, ok := cm.Data[key]; ok {
-						vars[key], err = utils.JSONEncodeBytes([]byte(val))
+				for _, pattern := range vf.VarsKeys {
+					oldKey, newKey, err := parseRenamePattern(pattern)
+					if err != nil {
+						log.Error(err, "unable to parse rename pattern")
+						return nil, err
+					}
+
+					if val, ok := cm.Data[oldKey]; ok {
+						vars[newKey], err = utils.JSONEncodeBytes([]byte(val))
 						if err != nil {
-							err := fmt.Errorf("failed to encode key %s with error: %w", key, err)
+							err := fmt.Errorf("failed to encode key %s with error: %w", pattern, err)
 							log.Error(err, "encoding failure")
 							return nil, err
 						}
 					}
-					if val, ok := cm.BinaryData[key]; ok {
-						vars[key], err = utils.JSONEncodeBytes(val)
+					if val, ok := cm.BinaryData[oldKey]; ok {
+						vars[newKey], err = utils.JSONEncodeBytes(val)
 						if err != nil {
 							log.Error(err, "encoding failure")
 							return nil, err
@@ -345,4 +357,31 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 	}
 
 	return &GenerateVarsForTFReply{Message: "ok"}, nil
+}
+
+func parseRenamePattern(pattern string) (string, string, error) {
+	oldKey := pattern
+	newKey := pattern
+	if strings.Contains(pattern, ":") {
+		parts := strings.Split(pattern, ":")
+		if len(parts) != 2 {
+			err := fmt.Errorf("invalid rename pattern %q", pattern)
+			return "", "", err
+		}
+
+		if parts[0] == "" {
+			err := fmt.Errorf("invalid rename pattern old name: %q", pattern)
+			return "", "", err
+		}
+
+		if parts[1] == "" {
+			err := fmt.Errorf("invalid rename pattern new name: %q", pattern)
+			return "", "", err
+		}
+
+		oldKey = parts[0]
+		newKey = parts[1]
+	}
+
+	return oldKey, newKey, nil
 }

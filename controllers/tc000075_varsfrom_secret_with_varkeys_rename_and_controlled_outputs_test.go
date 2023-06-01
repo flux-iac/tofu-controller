@@ -5,9 +5,8 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/onsi/gomega"
-
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	. "github.com/onsi/gomega"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,10 +15,10 @@ import (
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_000081_varsfrom_accepts_many_configMaps(t *testing.T) {
+func Test_000071_varsfrom_secret_with_varkeys_rename_and_controlled_outputs_test(t *testing.T) {
 	const (
-		sourceName    = "src-vars-from-many-config-maps"
-		terraformName = "tf-vars-from-many-config-maps"
+		sourceName    = "tf-vars-from-with-varkeys-rename"
+		terraformName = "helloworld-vars-from-with-varkeys-rename"
 	)
 	g := NewWithT(t)
 	ctx := context.Background()
@@ -54,12 +53,11 @@ func Test_000081_varsfrom_accepts_many_configMaps(t *testing.T) {
 				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
-
 		Artifact: &sourcev1.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
-			URL:            server.URL() + "/tf-multi-var.tar.gz",
+			URL:            server.URL() + "/env.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
-			Digest:         "sha256:52fbbf10455df51136a0c43e0f548c01acdbafca5cbad12c787612e47a4aa815",
+			Digest:         "sha256:d021eda9b869586f5a43ad1ba7f21e4bf9b3970443236755463f22824b525316",
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
 	}
@@ -70,87 +68,68 @@ func Test_000081_varsfrom_accepts_many_configMaps(t *testing.T) {
 	createdRepo := &sourcev1.GitRepository{}
 	g.Expect(k8sClient.Get(ctx, gitRepoKey, createdRepo)).Should(Succeed())
 
-	By("preparing vars configMaps")
-	cmData := []struct {
-		name string
-		data map[string]string
-	}{
-		{
-			name: "cm1",
-			data: map[string]string{
-				"bad-key": "felix",
-			},
+	By("preparing my-vars secret, intentionally with test-data to later be renamed to subject")
+	myVars := corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-vars-" + terraformName,
+			Namespace: "flux-system",
 		},
-		{
-			name: "cm2",
-			data: map[string]string{
-				"region":      "eu-west-1",
-				"environment": "dev",
-			},
+		Data: map[string][]byte{
+			"test-data": []byte("test data"),
+			"unused":    []byte("unused value"),
 		},
+		Type: corev1.SecretTypeOpaque,
 	}
-	for _, cm := range cmData {
-		configMap := &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      cm.name,
-				Namespace: "flux-system",
-			},
-			Data: cm.data,
-		}
-		g.Expect(k8sClient.Create(ctx, configMap)).Should(Succeed())
-		defer func() { g.Expect(k8sClient.Delete(ctx, configMap)).Should(Succeed()) }()
-	}
+	g.Expect(k8sClient.Create(ctx, &myVars)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &myVars)).Should(Succeed()) }()
 
-	By("creating a new TF and attaching to the repo")
-	testTF := infrav1.Terraform{
+	By("creating a new TF and attaching to the repo, with test-data renamed to subject")
+	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
 			Namespace: "flux-system",
 		},
 		Spec: infrav1.TerraformSpec{
 			ApprovePlan: "auto",
-			Path:        "./tf-multi-var-with-outputs",
+			Path:        "./terraform-hello-env",
 			SourceRef: infrav1.CrossNamespaceSourceReference{
 				Kind:      "GitRepository",
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
 			Interval: metav1.Duration{Duration: time.Second * 10},
+			// TODO change to a better type
 			VarsFrom: []infrav1.VarsReference{
 				{
-					Kind:     "ConfigMap",
-					Name:     "cm1",
-					VarsKeys: []string{"bad-key:cluster_name"}, // with rename
-				},
-				{
-					Kind:     "ConfigMap",
-					Name:     "cm2",
-					VarsKeys: []string{"environment", "region"},
+					Kind:     "Secret",
+					Name:     "my-vars-" + terraformName,
+					VarsKeys: []string{"test-data:subject"},
 				},
 			},
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
 				Name: "tf-output-" + terraformName,
 				Outputs: []string{
-					"cluster_id",
+					"hello_world",
 				},
 			},
 		},
 	}
-	g.Expect(k8sClient.Create(ctx, &testTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testTF)).Should(Succeed()) }()
+	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
+	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
 
-	By("checking that the terraform resource got created")
-	testTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
-	testTFInstance := infrav1.Terraform{}
+	By("checking that the hello world TF got created")
+	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
+	createdHelloWorldTF := infrav1.Terraform{}
+	// We'll need to retry getting this newly created Terraform, Given that creation may not immediately happen.
 	g.Eventually(func() bool {
-		err := k8sClient.Get(ctx, testTFKey, &testTFInstance)
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return false
 		}
 		return true
 	}, timeout, interval).Should(BeTrue())
 
-	By("checking that the TF output secret contains binary data")
+	By("checking that the TF output secret contains a binary data")
 	outputKey := types.NamespacedName{Namespace: "flux-system", Name: "tf-output-" + terraformName}
 	outputSecret := corev1.Secret{}
 	g.Eventually(func() (int, error) {
@@ -161,17 +140,17 @@ func Test_000081_varsfrom_accepts_many_configMaps(t *testing.T) {
 		return len(outputSecret.Data), nil
 	}, timeout, interval).Should(Equal(1))
 
-	By("checking that the TF output secret contains the correct output provisioned by the TF resource")
+	By("checking that the TF output secrets contains the correct output provisioned By the TF hello world")
 	// Value is a JSON representation of TF's OutputMeta
 	expectedOutputValue := map[string]string{
 		"Name":        "tf-output-" + terraformName,
 		"Namespace":   "flux-system",
-		"Value":       "dev-eu-west-1-felix",
-		"OwnerRef[0]": string(testTFInstance.UID),
+		"Value":       "Hello, test data!",
+		"OwnerRef[0]": string(createdHelloWorldTF.UID),
 	}
 	g.Eventually(func() (map[string]string, error) {
 		err := k8sClient.Get(ctx, outputKey, &outputSecret)
-		value := string(outputSecret.Data["cluster_id"])
+		value := string(outputSecret.Data["hello_world"])
 		return map[string]string{
 			"Name":        outputSecret.Name,
 			"Namespace":   outputSecret.Namespace,
