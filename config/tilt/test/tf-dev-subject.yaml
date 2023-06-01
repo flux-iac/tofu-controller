@@ -47,3 +47,4 @@ spec:
       hostAliases:
       - hostnames:
         - host.docker.internal
+        ip: 127.0.0.1
