@@ -168,3 +168,7 @@ metrics:
       metricRelabelings: []
       # -- Set relabelings for the endpoint of the serviceMonitor
       relabelings: []
+
+# -- Branch Based Planner-specific configurations
+branchBasedPlanner:
+  enabled: false

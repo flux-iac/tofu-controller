@@ -3,6 +3,7 @@
 MANAGER_IMG ?= ghcr.io/weaveworks/tf-controller
 RUNNER_IMG  ?= ghcr.io/weaveworks/tf-runner
 RUNNER_AZURE_IMAGE ?= ghcr.io/weaveworks/tf-runner-azure
+BRANCH_BASED_PLANNER_IMAGE ?= ghcr.io/weaveworks/branch-based-planner
 TAG ?= latest
 BUILD_SHA ?= $(shell git rev-parse --short HEAD)
 BUILD_VERSION ?= $(shell git describe --tags $$(git rev-list --tags --max-count=1))
@@ -116,18 +117,21 @@ docker-build: ## Build docker
 	docker build -t ${MANAGER_IMG}:${TAG} ${BUILD_ARGS} .
 	docker build -t ${RUNNER_IMG}:${TAG} -f runner.Dockerfile ${BUILD_ARGS} .
 	docker build -t ${RUNNER_AZURE_IMAGE}:${TAG} -f runner-azure.Dockerfile ${BUILD_ARGS} .
+	docker build -t ${BRANCH_BASED_PLANNER_IMAGE}:${TAG} -f planner.Dockerfile ${BUILD_ARGS} .
 
 .PHONY: docker-buildx
 docker-buildx: ## Build docker
 	docker buildx build --load -t ${MANAGER_IMG}:${TAG} ${BUILD_ARGS} .
 	docker buildx build --load -t ${RUNNER_IMG}:${TAG} -f runner.Dockerfile ${BUILD_ARGS} .
 	docker buildx build --load -t ${RUNNER_AZURE_IMAGE}:${TAG} -f runner-azure.Dockerfile ${BUILD_ARGS} .
+	docker buildx build --load -t ${BRANCH_BASED_PLANNER_IMAGE}:${TAG} -f planner.Dockerfile ${BUILD_ARGS} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
 	docker push ${MANAGER_IMG}:${TAG}
 	docker push ${RUNNER_IMG}:${TAG}
 	docker push ${RUNNER_AZURE_IMAGE}:${TAG}
+	docker push ${BRANCH_BASED_PLANNER_IMAGE}:${TAG}
 
 docker-dev-runner:
 	docker buildx build --load -t ${RUNNER_IMG}:${TAG} -f runner.Dockerfile ${BUILD_ARGS} .
