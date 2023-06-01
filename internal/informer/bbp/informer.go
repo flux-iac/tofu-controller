@@ -10,7 +10,6 @@ import (
 	tfv1alpha2 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/internal/git/provider"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/dynamicinformer"
@@ -28,22 +27,24 @@ type Informer struct {
 	synced bool
 }
 
-func NewInformer(log logr.Logger, dynamicClient dynamic.Interface, clusterClient client.Client) Informer {
-	resource := schema.GroupVersionResource{
-		Group:    tfv1alpha2.GroupVersion.Group,
-		Version:  tfv1alpha2.GroupVersion.Version,
-		Resource: tfv1alpha2.TerraformKind,
+func NewInformer(log logr.Logger, dynamicClient dynamic.Interface, clusterClient client.Client) (*Informer, error) {
+	restMapper := clusterClient.RESTMapper()
+	mapping, err := restMapper.RESTMapping(tfv1alpha2.GroupVersion.WithKind(tfv1alpha2.TerraformKind).GroupKind())
+	if err != nil {
+		log.Error(err, "failed to look up mapping for CRD")
+		return nil, err
 	}
-	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynamicClient, time.Minute, corev1.NamespaceAll, nil)
-	informer := factory.ForResource(resource).Informer()
 
-	return Informer{
+	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynamicClient, time.Minute, corev1.NamespaceAll, nil)
+	informer := factory.ForResource(mapping.Resource).Informer()
+
+	return &Informer{
 		sharedInformer: informer,
 		mux:            &sync.RWMutex{},
 		log:            log,
 		synced:         false,
 		client:         clusterClient,
-	}
+	}, nil
 }
 
 func (i *Informer) Start(ctx context.Context) error {
@@ -96,11 +97,11 @@ const (
 func (i *Informer) addHandler(obj interface{}) {}
 
 func (i *Informer) updateHandler(oldObj, newObj interface{}) {
-	i.mux.RLock()
-	defer i.mux.RUnlock()
 	if !i.synced {
 		return
 	}
+	i.mux.RLock()
+	defer i.mux.RUnlock()
 
 	previous, ok := oldObj.(*tfv1alpha2.Terraform)
 	if !ok {
