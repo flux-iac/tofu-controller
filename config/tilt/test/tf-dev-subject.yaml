@@ -1,5 +1,5 @@
 ---
-apiVersion: source.toolkit.fluxcd.io/v1
+apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: GitRepository
 metadata:
   name: helloworld
@@ -18,7 +18,7 @@ metadata:
 stringData:
   test-data: "test"
 ---
-apiVersion: infra.contrib.fluxcd.io/v1alpha2
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
   name: helloworld-tf
@@ -47,3 +47,4 @@ spec:
       hostAliases:
       - hostnames:
         - host.docker.internal
+        ip: 127.0.0.1

@@ -92,4 +92,4 @@ if [ "${kind_network}" != "bridge" ]; then
   fi
 fi
 
-flux install
+./tools/flux install
