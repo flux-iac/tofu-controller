@@ -170,6 +170,18 @@ func (r *TerraformRunnerServer) ProcessCliConfig(ctx context.Context, req *Proce
 	return &ProcessCliConfigReply{FilePath: tfrcFilepath}, nil
 }
 
+// initLogger sets up the logger for the terraform runner
+func (r *TerraformRunnerServer) initLogger(log logr.Logger) {
+	disableTestLogging := os.Getenv("DISABLE_TF_LOGS") == "1"
+	if !disableTestLogging {
+		r.tf.SetStdout(os.Stdout)
+		r.tf.SetStderr(os.Stderr)
+		if os.Getenv("ENABLE_SENSITIVE_TF_LOGS") == "1" {
+			r.tf.SetLogger(&LocalPrintfer{logger: log})
+		}
+	}
+}
+
 func (r *TerraformRunnerServer) NewTerraform(ctx context.Context, req *NewTerraformRequest) (*NewTerraformReply, error) {
 	r.InstanceID = req.GetInstanceID()
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
@@ -191,14 +203,8 @@ func (r *TerraformRunnerServer) NewTerraform(ctx context.Context, req *NewTerraf
 	// cache the Terraform resource when initializing
 	r.terraform = &terraform
 
-	disableTestLogging := os.Getenv("DISABLE_TF_LOGS") == "1"
-	if !disableTestLogging {
-		r.tf.SetStdout(os.Stdout)
-		r.tf.SetStderr(os.Stderr)
-		if os.Getenv("ENABLE_SENSITIVE_TF_LOGS") == "1" {
-			r.tf.SetLogger(&LocalPrintfer{logger: log})
-		}
-	}
+	// init default logger
+	r.initLogger(log)
 
 	return &NewTerraformReply{Id: r.InstanceID}, nil
 }
