@@ -32,7 +32,7 @@ spec:
       - args: []
         env:
         # Update the env variables according to your new deployment
-        image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
+        image: "{{ .Values.branchBasedPlanner.image.repository }}:{{ default .Chart.AppVersion .Values.branchBasedPlanner.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         livenessProbe:
           httpGet:

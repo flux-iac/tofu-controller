@@ -2,14 +2,16 @@ package main
 
 import (
 	"os"
+	"time"
 
 	"github.com/fluxcd/pkg/runtime/logger"
 	flag "github.com/spf13/pflag"
-	"github.com/weaveworks/tf-controller/internal/server/webhook"
+	"github.com/weaveworks/tf-controller/internal/server/polling"
 )
 
 type applicationOptions struct {
-	serverAddr string
+	pollingConfigMap string
+	pollingInterval  time.Duration
 
 	logOptions logger.Options
 
@@ -21,9 +23,13 @@ type applicationOptions struct {
 func parseFlags() *applicationOptions {
 	opts := &applicationOptions{}
 
-	flag.StringVar(&opts.serverAddr,
-		"bind-address", webhook.DefaultListenAddress,
-		"The address the webhook server endpoint binds to.")
+	flag.StringVar(&opts.pollingConfigMap,
+		"polling-configmap", polling.DefaultConfigMapName,
+		"Namespace and name of the ConfigMap for the polling service.")
+
+	flag.DurationVar(&opts.pollingInterval,
+		"polling-intervak", polling.DefaultPollingInterval,
+		"Wait between two request to the same Terraform object.")
 
 	opts.logOptions.BindFlags(flag.CommandLine)
 
