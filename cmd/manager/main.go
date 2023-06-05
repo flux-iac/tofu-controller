@@ -24,10 +24,10 @@ import (
 	"github.com/weaveworks/tf-controller/runner"
 
 	"github.com/fluxcd/pkg/runtime/client"
+	runtimeCtrl "github.com/fluxcd/pkg/runtime/controller"
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/fluxcd/pkg/runtime/leaderelection"
 	"github.com/fluxcd/pkg/runtime/logger"
-	"github.com/fluxcd/pkg/runtime/metrics"
 	"github.com/fluxcd/pkg/runtime/pprof"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -44,7 +44,6 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	ctrl "sigs.k8s.io/controller-runtime"
-	crtlmetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -119,10 +118,6 @@ func main() {
 	flag.Parse()
 
 	ctrl.SetLogger(logger.NewLogger(logOptions))
-	// ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
-
-	metricsRecorder := metrics.NewRecorder()
-	crtlmetrics.Registry.MustRegister(metricsRecorder.Collectors()...)
 
 	runtimeNamespace := os.Getenv("RUNTIME_NAMESPACE")
 
@@ -136,7 +131,6 @@ func main() {
 		Scheme:                        scheme,
 		MetricsBindAddress:            metricsAddr,
 		HealthProbeBindAddress:        healthAddr,
-		Port:                          9443,
 		LeaderElection:                leaderElectionOptions.Enable,
 		LeaderElectionReleaseOnCancel: leaderElectionOptions.ReleaseOnCancel,
 		LeaseDuration:                 &leaderElectionOptions.LeaseDuration,
@@ -158,6 +152,8 @@ func main() {
 		setupLog.Error(err, "unable to create event recorder")
 		os.Exit(1)
 	}
+
+	metricsH := runtimeCtrl.MustMakeMetrics(mgr)
 
 	signalHandlerContext := ctrl.SetupSignalHandler()
 
@@ -191,7 +187,7 @@ func main() {
 		Client:                   mgr.GetClient(),
 		Scheme:                   mgr.GetScheme(),
 		EventRecorder:            eventRecorder,
-		MetricsRecorder:          metricsRecorder,
+		Metrics:                  metricsH,
 		StatusPoller:             polling.NewStatusPoller(mgr.GetClient(), mgr.GetRESTMapper(), polling.Options{}),
 		CertRotator:              rotator,
 		RunnerGRPCPort:           runnerGRPCPort,
