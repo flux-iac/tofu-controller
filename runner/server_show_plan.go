@@ -16,7 +16,7 @@ func (r *TerraformRunnerServer) ShowPlanFileRaw(ctx context.Context, req *ShowPl
 		return nil, err
 	}
 
-	rawOutput, err := r.tf.ShowPlanFileRaw(ctx, req.Filename)
+	rawOutput, err := r.tfShowPlanFileRaw(ctx, req.Filename)
 	if err != nil {
 		log.Error(err, "unable to get the raw plan output")
 		return nil, err
@@ -34,7 +34,7 @@ func (r *TerraformRunnerServer) ShowPlanFile(ctx context.Context, req *ShowPlanF
 		return nil, err
 	}
 
-	plan, err := r.tf.ShowPlanFile(ctx, req.Filename)
+	plan, err := r.tfShowPlanFile(ctx, req.Filename)
 	if err != nil {
 		log.Error(err, "unable to get the json plan output")
 		return nil, err
