@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
+	"strings"
+
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/tf-controller/utils"
@@ -12,13 +15,11 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"path/filepath"
-	"sigs.k8s.io/controller-runtime"
-	"strings"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanRequest) (*SaveTFPlanReply, error) {
-	log := controllerruntime.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("save the plan")
 	if req.TfInstance != r.InstanceID {
 		err := fmt.Errorf("no TF instance found")
@@ -46,7 +47,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 	}
 
 	if r.terraform.Spec.StoreReadablePlan == "json" {
-		planObj, err := r.tf.ShowPlanFile(ctx, TFPlanName)
+		planObj, err := r.tfShowPlanFile(ctx, TFPlanName)
 		if err != nil {
 			log.Error(err, "unable to get the plan output for json")
 			return nil, err
@@ -62,7 +63,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 		}
 
 	} else if r.terraform.Spec.StoreReadablePlan == "human" {
-		rawOutput, err := r.tf.ShowPlanFileRaw(ctx, TFPlanName)
+		rawOutput, err := r.tfShowPlanFileRaw(ctx, TFPlanName)
 		if err != nil {
 			log.Error(err, "unable to get the plan output for human")
 			return nil, err

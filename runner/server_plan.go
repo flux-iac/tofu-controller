@@ -4,11 +4,39 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+
 	"github.com/hashicorp/terraform-exec/tfexec"
+	tfjson "github.com/hashicorp/terraform-json"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"sigs.k8s.io/controller-runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
+
+func (r *TerraformRunnerServer) tfShowPlanFile(ctx context.Context, planPath string, opts ...tfexec.ShowOption) (*tfjson.Plan, error) {
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
+
+	// This is the only place where we disable the logger
+	r.tf.SetStdout(io.Discard)
+	r.tf.SetStderr(io.Discard)
+
+	defer r.initLogger(log)
+
+	return r.tf.ShowPlanFile(ctx, planPath, opts...)
+}
+
+func (r *TerraformRunnerServer) tfShowPlanFileRaw(ctx context.Context, planPath string, opts ...tfexec.ShowOption) (string, error) {
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
+
+	// This is the only place where we disable the logger
+	r.tf.SetStdout(io.Discard)
+	r.tf.SetStderr(io.Discard)
+
+	defer r.initLogger(log)
+
+	return r.tf.ShowPlanFileRaw(ctx, planPath, opts...)
+}
 
 func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*PlanReply, error) {
 	log := controllerruntime.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
@@ -68,7 +96,8 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 	planCreated := false
 	if req.Out != "" {
 		planCreated = true
-		plan, err := r.tf.ShowPlanFile(ctx, req.Out)
+
+		plan, err := r.tfShowPlanFile(ctx, req.Out)
 		if err != nil {
 			return nil, err
 		}
@@ -81,6 +110,7 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 			plan.OutputChanges == nil {
 			planCreated = false
 		}
+
 	}
 
 	return &PlanReply{Message: "ok", Drifted: drifted, PlanCreated: planCreated}, nil
