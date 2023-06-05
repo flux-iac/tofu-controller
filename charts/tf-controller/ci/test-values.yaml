@@ -1,0 +1,7 @@
+image:
+  repository: test/tf-controller
+  tag: ct
+runner:
+  image:
+    repository: test/tf-runner
+    tag: ct
