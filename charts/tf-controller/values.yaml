@@ -171,3 +171,7 @@ metrics:
 # -- Branch Based Planner-specific configurations
 branchBasedPlanner:
   enabled: false
+  replicaCount: 1
+  image:
+    repository: ghcr.io/weaveworks/branch-based-planner
+    tag: latest

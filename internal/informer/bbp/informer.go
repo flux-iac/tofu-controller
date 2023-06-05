@@ -146,7 +146,7 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		return
 	}
 
-	gitProvider.AddCommentToPullREquest(ctx, provider.PullRequest{}, planOutput)
+	gitProvider.AddCommentToPullRequest(ctx, provider.PullRequest{}, planOutput)
 }
 
 func (i *Informer) deleteHandler(obj interface{}) {}
