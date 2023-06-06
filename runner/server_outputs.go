@@ -3,8 +3,10 @@ package runner
 import (
 	"context"
 	"fmt"
+	"io"
 	"reflect"
 
+	"github.com/hashicorp/terraform-exec/tfexec"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -12,6 +14,18 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
+
+func (r *TerraformRunnerServer) tfOutput(ctx context.Context, opts ...tfexec.OutputOption) (map[string]tfexec.OutputMeta, error) {
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
+
+	// This is the only place where we disable the logger
+	r.tf.SetStdout(io.Discard)
+	r.tf.SetStderr(io.Discard)
+
+	defer r.initLogger(log)
+
+	return r.tf.Output(ctx, opts...)
+}
 
 func (r *TerraformRunnerServer) Output(ctx context.Context, req *OutputRequest) (*OutputReply, error) {
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
@@ -22,7 +36,7 @@ func (r *TerraformRunnerServer) Output(ctx context.Context, req *OutputRequest) 
 		return nil, err
 	}
 
-	outputs, err := r.tf.Output(ctx)
+	outputs, err := r.tfOutput(ctx)
 	if err != nil {
 		log.Error(err, "unable to get outputs")
 		return nil, err
