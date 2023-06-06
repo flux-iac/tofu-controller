@@ -27,7 +27,7 @@ image:
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
   # @default -- `.Chart.AppVersion`
-  tag: "v0.14.3"
+  tag: "v0.14.4"
 # -- Controller image pull secret
 imagePullSecrets: []
 # -- Resource limits and requests
@@ -108,7 +108,7 @@ runner:
     repository: ghcr.io/weaveworks/tf-runner
     # -- Runner image tag
     # @default -- `.Chart.AppVersion`
-    tag: "v0.14.3"
+    tag: "v0.14.4"
   grpc:
     # -- Maximum GRPC message size (Controller)
     maxMessageSize: 4
