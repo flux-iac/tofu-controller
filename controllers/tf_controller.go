@@ -29,9 +29,9 @@ import (
 
 	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"github.com/fluxcd/pkg/apis/meta"
+	runtimeCtrl "github.com/fluxcd/pkg/runtime/controller"
 	"github.com/fluxcd/pkg/runtime/dependency"
 	"github.com/fluxcd/pkg/runtime/logger"
-	"github.com/fluxcd/pkg/runtime/metrics"
 	"github.com/fluxcd/pkg/runtime/predicates"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -62,12 +62,13 @@ import (
 // TerraformReconciler reconciles a Terraform object
 type TerraformReconciler struct {
 	client.Client
+	kuberecorder.EventRecorder
+	runtimeCtrl.Metrics
+
 	httpClient        *retryablehttp.Client
 	statusManager     string
 	requeueDependency time.Duration
 
-	EventRecorder            kuberecorder.EventRecorder
-	MetricsRecorder          *metrics.Recorder
 	StatusPoller             *polling.StatusPoller
 	Scheme                   *runtime.Scheme
 	CertRotator              *mtls.CertRotator
