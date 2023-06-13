@@ -8,12 +8,6 @@ docker_build(
     dockerfile='Dockerfile',
 )
 
-docker_build(
-    'weaveworks/branch-based-planner',
-    context='.',
-    dockerfile='planner.Dockerfile',
-)
-
 custom_build(
     'localhost:5000/weaveworks/tf-runner',
     'make docker-dev-runner RUNNER_IMG=localhost:5000/weaveworks/tf-runner TAG=$EXPECTED_TAG',
