@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	controllerruntime "sigs.k8s.io/controller-runtime"
@@ -47,7 +47,7 @@ func runnerPodTemplate(terraform infrav1.Terraform, secretName string, revision 
 	}
 
 	runnerPodTemplate := v1.Pod{
-		ObjectMeta: v12.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Namespace: podNamespace,
 			Name:      podName,
 			Labels: map[string]string{
@@ -350,6 +350,8 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	traceLog.Info("Get pod state")
 	err = r.Get(ctx, runnerPodKey, &runnerPod)
 	traceLog.Info("Check for an error")
+
+	gracefulTermPeriod := *terraform.Spec.RunnerTerminationGracePeriodSeconds
 	if err != nil && errors.IsNotFound(err) {
 		podState = stateNotFound
 	} else if err != nil {
@@ -357,8 +359,14 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	} else if err == nil {
 		label, found := runnerPod.Labels["tf.weave.works/tls-secret-name"]
 		traceLog.Info("Set label and found", "label", label, "found", found)
-		if !found || label != tlsSecretName {
+		if !found {
+			// this is the pod created by something else but with the same name
 			podState = stateMustBeDeleted
+			gracefulTermPeriod = int64(1) // force kill = 1 second
+		} else if label != tlsSecretName {
+			// this is the old pod, created by the previous instance of the controller
+			podState = stateMustBeDeleted
+			gracefulTermPeriod = *terraform.Spec.RunnerTerminationGracePeriodSeconds // honor the value from the spec
 		} else if runnerPod.DeletionTimestamp != nil {
 			podState = stateTerminating
 		} else if runnerPod.Status.Phase == v1.PodRunning {
@@ -384,8 +392,8 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		// delete old pod
 		traceLog.Info("Pod must be deleted, attempt deletion")
 		if err := r.Delete(ctx, &runnerPod,
-			client.GracePeriodSeconds(1), // force kill = 1 second
-			client.PropagationPolicy(v12.DeletePropagationForeground),
+			client.GracePeriodSeconds(gracefulTermPeriod),
+			client.PropagationPolicy(metav1.DeletePropagationForeground),
 		); err != nil {
 			traceLog.Error(err, "Hit an error")
 			return "", err
@@ -445,7 +453,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 
 		if err := r.Delete(ctx, &runnerPod,
 			client.GracePeriodSeconds(1), // force kill = 1 second
-			client.PropagationPolicy(v12.DeletePropagationForeground),
+			client.PropagationPolicy(metav1.DeletePropagationForeground),
 		); err != nil {
 			traceLog.Error(err, "Hit an error")
 			return "", fmt.Errorf("failed to obtain pod ip and delete runner pod: %w", err)

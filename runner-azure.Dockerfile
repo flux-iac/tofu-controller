@@ -38,11 +38,11 @@ LABEL org.opencontainers.image.source="https://github.com/weaveworks/tf-controll
 
 RUN apk update
 
-RUN apk add --no-cache ca-certificates tini git openssh-client gnupg && \
+RUN apk add --no-cache libcrypto3=3.1.1-r1 && \
+    apk add --no-cache libssl3=3.1.1-r1 && \
+    apk add --no-cache ca-certificates tini git openssh-client gnupg && \
     apk add --no-cache libretls && \
-    apk add --no-cache busybox && \
-    apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/main -U libcrypto3 && \
-    apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/main -U libssl3
+    apk add --no-cache busybox
 
 # Install az cli
 ARG AZCLI_VERSION=2.40.0
