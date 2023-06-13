@@ -19,12 +19,16 @@ COPY go.sum go.sum
 RUN go mod download
 
 # Copy the go source
-COPY cmd/branch-based-planner/ cmd/branch-based-planner/
-COPY internal/ internal/
-COPY utils/ utils/
+COPY cmd/branch-based-planner cmd/branch-based-planner
+COPY internal internal
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -gcflags=all="-N -l" -a -o branch-based-planner cmd/branch-based-planner/*.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} \
+  go build \
+      -gcflags=all="-N -l" \
+      -a \
+      -o branch-based-planner \
+      ./cmd/branch-based-planner
 
 FROM alpine:3.18
 
@@ -44,7 +48,7 @@ COPY --from=builder /workspace/branch-based-planner /usr/local/bin/
 # https://github.com/gliderlabs/docker-alpine/issues/367#issuecomment-354316460
 RUN echo 'hosts: files dns' > /etc/nsswitch.conf
 
-RUN addgroup --gid 65532 -S planner && adduser --uid 65532 -S planner -G planner
+RUN addgroup --gid 65532 -S controller && adduser --uid 65532 -S controller -G controller
 
 USER 65532:65532
 
