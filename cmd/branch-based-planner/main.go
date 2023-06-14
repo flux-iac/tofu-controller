@@ -56,7 +56,7 @@ func main() {
 		informerCancel()
 	}(log.WithName("polling-server"))
 
-	func(log logr.Logger) {
+	go func(log logr.Logger) {
 		log.Info("Starting branch-based planner informer")
 
 		if err := startInformer(informerCtx, log, dynamicClusterClient, clusterClient); err != nil {
