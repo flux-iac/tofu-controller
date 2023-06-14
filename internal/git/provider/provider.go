@@ -37,6 +37,10 @@ func New(provider string, options ...ProviderOption) (Provider, error) {
 		}
 	}
 
+	if err := p.Setup(); err != nil {
+		return p, err
+	}
+
 	return p, nil
 }
 

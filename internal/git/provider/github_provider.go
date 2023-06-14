@@ -53,13 +53,13 @@ func (p GitHubProvider) AddCommentToPullRequest(ctx context.Context, pr PullRequ
 	}, nil
 }
 
-func (p GitHubProvider) SetLogger(log logr.Logger) error {
+func (p *GitHubProvider) SetLogger(log logr.Logger) error {
 	p.log = log
 
 	return nil
 }
 
-func (p GitHubProvider) SetToken(tokenType, token string) error {
+func (p *GitHubProvider) SetToken(tokenType, token string) error {
 	switch tokenType {
 	case APITokenType:
 		p.apiToken = token
@@ -70,13 +70,13 @@ func (p GitHubProvider) SetToken(tokenType, token string) error {
 	return nil
 }
 
-func (p GitHubProvider) SetHostname(hostname string) error {
+func (p *GitHubProvider) SetHostname(hostname string) error {
 	p.hostname = hostname
 
 	return nil
 }
 
-func (p GitHubProvider) Setup() error {
+func (p *GitHubProvider) Setup() error {
 	var err error
 
 	if p.apiToken == "" {

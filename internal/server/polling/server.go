@@ -52,8 +52,6 @@ func (s *Server) Start(ctx context.Context) error {
 			return err
 		}
 
-		fmt.Println(config)
-
 		secret, err := s.getSecret(ctx, client.ObjectKey{
 			Namespace: config.SecretNamespace,
 			Name:      config.SecretName,
@@ -90,7 +88,7 @@ func (s *Server) poll(ctx context.Context, resource types.NamespacedName, secret
 	gitProvider, repo, err := provider.FromURL(
 		source.Spec.URL,
 		provider.WithLogger(s.log),
-		provider.WithToken("apiToken", string(secret.Data["token"])),
+		provider.WithToken("api-token", string(secret.Data["token"])),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get git provider: %w", err)
