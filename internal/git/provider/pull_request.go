@@ -5,5 +5,6 @@ type PullRequest struct {
 	Number     int
 	BaseBranch string
 	HeadBranch string
-	HeadRef    string
+	BaseSha    string
+	HeadSha    string
 }

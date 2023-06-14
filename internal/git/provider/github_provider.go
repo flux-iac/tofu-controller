@@ -31,7 +31,8 @@ func (p GitHubProvider) ListPullRequests(ctx context.Context, repo Repository) (
 			Number:     pr.Number,
 			BaseBranch: pr.Base.Ref,
 			HeadBranch: pr.Head.Ref,
-			HeadRef:    pr.Head.Ref,
+			BaseSha:    pr.Base.Sha,
+			HeadSha:    pr.Head.Sha,
 		})
 	}
 
