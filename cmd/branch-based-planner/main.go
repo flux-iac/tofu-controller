@@ -10,20 +10,16 @@ import (
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
-	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
 	cgoscheme "k8s.io/client-go/kubernetes/scheme"
 )
 
-var (
-	scheme = runtime.NewScheme()
-)
-
 func init() {
-	utilruntime.Must(cgoscheme.AddToScheme(scheme))
-	utilruntime.Must(sourcev1.AddToScheme(scheme))
-	utilruntime.Must(sourcev1b2.AddToScheme(scheme))
-	utilruntime.Must(infrav1.AddToScheme(scheme))
+	utilruntime.Must(cgoscheme.AddToScheme(scheme.Scheme))
+	utilruntime.Must(sourcev1.AddToScheme(scheme.Scheme))
+	utilruntime.Must(sourcev1b2.AddToScheme(scheme.Scheme))
+	utilruntime.Must(infrav1.AddToScheme(scheme.Scheme))
 }
 
 var (
