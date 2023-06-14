@@ -1,6 +1,8 @@
 package provider
 
-import "github.com/go-logr/logr"
+import (
+	"github.com/go-logr/logr"
+)
 
 const APITokenType = "api-token"
 
