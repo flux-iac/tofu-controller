@@ -28,7 +28,7 @@ func parseFlags() *applicationOptions {
 		"Namespace and name of the ConfigMap for the polling service.")
 
 	flag.DurationVar(&opts.pollingInterval,
-		"polling-intervak", polling.DefaultPollingInterval,
+		"polling-interval", polling.DefaultPollingInterval,
 		"Wait between two request to the same Terraform object.")
 
 	opts.logOptions.BindFlags(flag.CommandLine)
