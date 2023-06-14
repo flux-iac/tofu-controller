@@ -52,10 +52,15 @@ func (s *Server) Start(ctx context.Context) error {
 			return err
 		}
 
+		fmt.Println(config)
+
 		secret, err := s.getSecret(ctx, client.ObjectKey{
 			Namespace: config.SecretNamespace,
 			Name:      config.SecretName,
 		})
+		if err != nil {
+			s.log.Error(err, "failed to get secret")
+		}
 
 		for _, resource := range config.Resources {
 			if err := s.poll(ctx, resource, secret); err != nil {
@@ -68,6 +73,10 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 func (s *Server) poll(ctx context.Context, resource types.NamespacedName, secret *corev1.Secret) error {
+	if secret == nil {
+		return fmt.Errorf("secret is not defined")
+	}
+
 	tf, err := s.getTerraform(ctx, resource)
 	if err != nil {
 		return fmt.Errorf("failed to get Terraform object: %w", err)

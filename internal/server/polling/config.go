@@ -52,6 +52,10 @@ func (s *Server) readConfig(ctx context.Context) (*Config, error) {
 	config.SecretName = configMap.Data["secretName"]
 	resourceData := configMap.Data["resources"]
 
+	if config.SecretNamespace == "" {
+		config.SecretNamespace = "default"
+	}
+
 	err = yaml.Unmarshal([]byte(resourceData), &config.Resources)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse resource list from ConfigMap: %w", err)
