@@ -46,7 +46,7 @@ func (s *Server) Start(ctx context.Context) error {
 		// allow the user to change the list of resources without the need of
 		// restart of the pod.
 		// It can be a bit smarter like using a time.Ticker and refresh config
-		// preiodically.
+		// periodically.
 		config, err := s.readConfig(ctx)
 		if err != nil {
 			return err

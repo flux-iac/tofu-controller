@@ -13,7 +13,7 @@ const DefaultConfigMapName = "default/branch-based-planner"
 
 // Example ConfigMap
 //
-// The secret is as reference to a secret with a 'token' key.
+// The secret is a reference to a secret with a 'token' key.
 //
 // ---
 // kind: ConfigMap
@@ -21,7 +21,7 @@ const DefaultConfigMapName = "default/branch-based-planner"
 //   name: branch-based-planner
 // data:
 //   # Secret to use to use GitHub API
-//   secretMamespace: flux-system
+//   secretNamespace: flux-system
 //   secretName: bbp-token
 //   # List of Terraform resources
 //   resources: |-
@@ -48,8 +48,8 @@ func (s *Server) readConfig(ctx context.Context) (*Config, error) {
 	}
 
 	config := &Config{}
-	config.SecretNamespace = configMap.Data["secretMamespace"]
-	config.SecretName = configMap.Data["secretMame"]
+	config.SecretNamespace = configMap.Data["secretNamespace"]
+	config.SecretName = configMap.Data["secretName"]
 	resourceData := configMap.Data["resources"]
 
 	err = yaml.Unmarshal([]byte(resourceData), &config.Resources)
