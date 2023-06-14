@@ -58,7 +58,7 @@ func main() {
 		// Does not matter if it was an error or not, if this routine is done for
 		// unknown reasons, stop the other routine too.
 		informerCancel()
-	}(log.WithName("webhook-server"))
+	}(log.WithName("polling-server"))
 
 	func(log logr.Logger) {
 		log.Info("Starting branch-based planner informer")
