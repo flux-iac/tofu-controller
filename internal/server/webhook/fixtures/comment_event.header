@@ -1,9 +1,0 @@
-User-Agent: GitHub-Hookshot/58531cc
-Content-Type: application/json
-X-Github-Delivery: c4fe1960-e435-11ed-8f71-4fec31291dc4
-X-Github-Event: issue_comment
-X-Github-Hook-Id: 411682903
-X-Github-Hook-Installation-Target-Id: 632384958
-X-Github-Hook-Installation-Target-Type: repository
-X-Hub-Signature: sha1=67039d6688db01a1737283b2f0dafed80214471c
-X-Hub-Signature-256: sha256=38d1871d87159733944891a16182c782fb3593266a86ae60d3a20c93c9b6a26b
