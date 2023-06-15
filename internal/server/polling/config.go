@@ -16,6 +16,7 @@ const DefaultConfigMapName = "default/branch-based-planner"
 // The secret is a reference to a secret with a 'token' key.
 //
 // ---
+// apiVersion: v1
 // kind: ConfigMap
 // metadata:
 //   name: branch-based-planner

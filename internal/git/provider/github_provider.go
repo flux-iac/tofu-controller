@@ -64,7 +64,7 @@ func (p *GitHubProvider) SetToken(tokenType, token string) error {
 	case APITokenType:
 		p.apiToken = token
 	default:
-		return fmt.Errorf("uknown token type: %s", tokenType)
+		return fmt.Errorf("unknown token type: %s", tokenType)
 	}
 
 	return nil
