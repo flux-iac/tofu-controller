@@ -20,7 +20,8 @@ const DefaultConfigMapName = "default/branch-based-planner"
 // metadata:
 //   name: branch-based-planner
 // data:
-//   # Secret to use to use GitHub API
+//   # Secret to use to use GitHub API.
+//   # Key in the secret: token
 //   secretNamespace: flux-system
 //   secretName: bbp-token
 //   # List of Terraform resources
