@@ -105,14 +105,14 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 
 	previous, ok := oldObj.(*tfv1alpha2.Terraform)
 	if !ok {
-		i.log.Info("received object is not a Terraform object")
+		i.log.Info("previous object is not a Terraform object", "object", oldObj)
 
 		return
 	}
 
 	current, ok := newObj.(*tfv1alpha2.Terraform)
 	if !ok {
-		i.log.Info("received object is not a Terraform object")
+		i.log.Info("current object is not a Terraform object", "object", newObj)
 
 		return
 	}
@@ -146,7 +146,7 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		return
 	}
 
-	gitProvider.AddCommentToPullREquest(ctx, provider.PullRequest{}, planOutput)
+	gitProvider.AddCommentToPullRequest(ctx, provider.PullRequest{}, planOutput)
 }
 
 func (i *Informer) deleteHandler(obj interface{}) {}

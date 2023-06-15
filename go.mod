@@ -33,13 +33,14 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.13.0
-	github.com/tonglil/buflogr v1.0.1
+	github.com/stretchr/testify v1.8.3
 	github.com/weaveworks/tf-controller/api v0.0.0-00010101000000-000000000000
 	github.com/weaveworks/tf-controller/tfctl v0.0.0-00010101000000-000000000000
 	github.com/zclconf/go-cty v1.10.0
 	golang.org/x/net v0.10.0
 	google.golang.org/grpc v1.51.0
 	google.golang.org/protobuf v1.30.0
+	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.27.2
 	k8s.io/apiextensions-apiserver v0.27.2
 	k8s.io/apimachinery v0.27.2
@@ -152,7 +153,6 @@ require (
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/stretchr/testify v1.8.3 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/theckman/yacspin v0.13.12 // indirect
 	github.com/xlab/treeprint v1.1.0 // indirect
@@ -174,7 +174,6 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/component-base v0.27.2 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
