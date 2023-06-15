@@ -34,39 +34,37 @@ func New(options ...Option) (*Server, error) {
 }
 
 func (s *Server) Start(ctx context.Context) error {
-
+	tick := time.Tick(s.pollingInterval)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
-		default:
-		}
 
-		// Read the config in each iteration. The idea behind this decision is to
-		// allow the user to change the list of resources without the need of
-		// restart of the pod.
-		// It can be a bit smarter like using a time.Ticker and refresh config
-		// periodically.
-		config, err := s.readConfig(ctx)
-		if err != nil {
-			return err
-		}
+		case <-tick:
+			// Read the config in each iteration. The idea behind this decision is to
+			// allow the user to change the list of resources without the need of
+			// restart of the pod.
+			// It can be a bit smarter like using a time.Ticker and refresh config
+			// periodically.
+			config, err := s.readConfig(ctx)
+			if err != nil {
+				return err
+			}
 
-		secret, err := s.getSecret(ctx, client.ObjectKey{
-			Namespace: config.SecretNamespace,
-			Name:      config.SecretName,
-		})
-		if err != nil {
-			s.log.Error(err, "failed to get secret")
-		}
+			secret, err := s.getSecret(ctx, client.ObjectKey{
+				Namespace: config.SecretNamespace,
+				Name:      config.SecretName,
+			})
+			if err != nil {
+				s.log.Error(err, "failed to get secret")
+			}
 
-		for _, resource := range config.Resources {
-			if err := s.poll(ctx, resource, secret); err != nil {
-				s.log.Error(err, "failed to check pull request")
+			for _, resource := range config.Resources {
+				if err := s.poll(ctx, resource, secret); err != nil {
+					s.log.Error(err, "failed to check pull request")
+				}
 			}
 		}
-
-		time.Sleep(s.pollingInterval)
 	}
 }
 
