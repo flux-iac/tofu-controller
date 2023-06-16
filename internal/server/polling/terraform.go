@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/fluxcd/pkg/runtime/acl"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	bpconfig "github.com/weaveworks/tf-controller/internal/config"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sLabels "k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 )
 
 func (s *Server) getTerraformObject(ctx context.Context, ref client.ObjectKey) (*infrav1.Terraform, error) {
@@ -53,9 +55,20 @@ func (s *Server) getSource(ctx context.Context, tf *infrav1.Terraform) (*sourcev
 	}
 
 	ref := client.ObjectKey{
-		Namespace: tf.Spec.SourceRef.Namespace,
+		Namespace: tf.GetNamespace(),
 		Name:      tf.Spec.SourceRef.Name,
 	}
+
+	if ns := tf.Spec.SourceRef.Namespace; ns != "" {
+		ref.Namespace = ns
+	}
+
+	if s.noCrossNamespaceRefs && ref.Namespace != tf.GetNamespace() {
+		return nil, acl.AccessDeniedError(
+			fmt.Sprintf("cannot access %s/%s, cross-namespace references have been disabled", tf.Spec.SourceRef.Kind, ref),
+		)
+	}
+
 	obj := &sourcev1.GitRepository{}
 	if err := s.clusterClient.Get(ctx, ref, obj); err != nil {
 		return nil, fmt.Errorf("unable to get Source: %w", err)
