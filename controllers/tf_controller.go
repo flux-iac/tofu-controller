@@ -29,6 +29,7 @@ import (
 
 	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"github.com/fluxcd/pkg/apis/meta"
+	"github.com/fluxcd/pkg/runtime/acl"
 	runtimeCtrl "github.com/fluxcd/pkg/runtime/controller"
 	"github.com/fluxcd/pkg/runtime/dependency"
 	"github.com/fluxcd/pkg/runtime/logger"
@@ -77,6 +78,7 @@ type TerraformReconciler struct {
 	RunnerGRPCMaxMessageSize int
 	AllowBreakTheGlass       bool
 	ClusterDomain            string
+	NoCrossNamespaceRefs     bool
 }
 
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete
@@ -189,6 +191,19 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			log.Info(msg)
 			// do not requeue immediately, when the source is created the watcher should trigger a reconciliation
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
+		} else if acl.IsAccessDenied(err) {
+			traceLog.Info("The cross-namespace Source was denied by reconciler.NoCrossNamespaceRefs")
+			msg := fmt.Sprintf("Source '%s' access denied", terraform.Spec.SourceRef.String())
+			terraform = infrav1.TerraformNotReady(terraform, "", infrav1.ArtifactFailedReason, msg)
+			traceLog.Info("Patch the Terraform resource Status with NotReady")
+			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+				log.Error(err, "unable to update status for source access denied")
+				return ctrl.Result{Requeue: true}, err
+			}
+			r.recordReadinessMetric(ctx, terraform)
+			log.Info(msg)
+			// don't requeue to retry; it won't succeed unless the sourceRef changes
+			return ctrl.Result{}, nil
 		} else {
 			// retry on transient errors
 			log.Error(err, "retry")
@@ -600,6 +615,12 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform infrav1.T
 		Namespace: sourceNamespace,
 		Name:      terraform.Spec.SourceRef.Name,
 	}
+	if r.NoCrossNamespaceRefs && namespacedName.Namespace != terraform.GetNamespace() {
+		return sourceObj, acl.AccessDeniedError(
+			fmt.Sprintf("cannot access %s/%s, cross-namespace references have been disabled", terraform.Spec.SourceRef.Kind, namespacedName),
+		)
+	}
+
 	switch terraform.Spec.SourceRef.Kind {
 	case sourcev1.GitRepositoryKind:
 		var repository sourcev1.GitRepository
