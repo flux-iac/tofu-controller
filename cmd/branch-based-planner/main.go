@@ -36,8 +36,7 @@ func main() {
 		NewLogger(opts.logOptions).
 		WithValues("version", BuildVersion, "sha", BuildSHA)
 
-	pollingCtx, pollingCancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	informerCtx, informerCancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 
 	dynamicClusterClient, clusterClient, err := getClusterClient()
 	if err != nil {
@@ -47,27 +46,21 @@ func main() {
 	go func(log logr.Logger) {
 		log.Info("Starting polling server")
 
-		if err := startPollingServer(pollingCtx, log, clusterClient, opts); err != nil {
+		if err := startPollingServer(ctx, log, clusterClient, opts); err != nil {
 			log.Error(err, "unable to start polling server")
 		}
 
 		// Does not matter if it was an error or not, if this routine is done for
 		// unknown reasons, stop the other routine too.
-		informerCancel()
+		cancel()
 	}(log.WithName("polling-server"))
 
-	go func(log logr.Logger) {
-		log.Info("Starting branch-based planner informer")
-
-		if err := startInformer(informerCtx, log, dynamicClusterClient, clusterClient); err != nil {
-			log.Error(err, "unable to start branch-based planner informer")
-		}
-
-		// Does not matter if it was an error or not, if this routine is done for
-		// unknown reasons, stop the other routine too.
-		pollingCancel()
-	}(log.WithName("informer"))
-
-	<-pollingCtx.Done()
-	<-informerCtx.Done()
+	informerLog := log.WithName("informer")
+	informerLog.Info("Starting branch-based planner informer")
+	if err := startInformer(ctx, informerLog, dynamicClusterClient, clusterClient); err != nil {
+		informerLog.Error(err, "branch-based planner informer failed")
+	}
+	// once the informer exits, make sure the goroutine above is also
+	// cancelled.
+	cancel()
 }
