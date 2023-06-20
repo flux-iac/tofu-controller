@@ -914,6 +914,20 @@ Kubernetes core/v1.Affinity
 <p>Set up Init Containers for the Runner</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>hostAliases</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#hostalias-v1-core">
+[]Kubernetes core/v1.HostAlias
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set host aliases for the Runner Pod</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1087,6 +1101,20 @@ Kubernetes core/v1.Affinity
 <td>
 <em>(Optional)</em>
 <p>Set up Init Containers for the Runner</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>hostAliases</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#hostalias-v1-core">
+[]Kubernetes core/v1.HostAlias
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set host aliases for the Runner Pod</p>
 </td>
 </tr>
 </table>
@@ -1658,6 +1686,32 @@ Kubernetes pkg/apis/apiextensions/v1.JSON
 <p>Enterprise is the enterprise configuration placeholder.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>planOnly</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>PlanOnly specifies if the reconciliation should or should not stop at plan
+phase.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>breakTheGlass</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>BreakTheGlass specifies if the reconciliation should stop
+and allow interactive shell in case of emergency.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -2152,6 +2206,32 @@ Kubernetes pkg/apis/apiextensions/v1.JSON
 <td>
 <em>(Optional)</em>
 <p>Enterprise is the enterprise configuration placeholder.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>planOnly</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>PlanOnly specifies if the reconciliation should or should not stop at plan
+phase.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>breakTheGlass</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>BreakTheGlass specifies if the reconciliation should stop
+and allow interactive shell in case of emergency.</p>
 </td>
 </tr>
 </tbody>

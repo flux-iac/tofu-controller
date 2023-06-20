@@ -17,13 +17,13 @@ import (
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_000041_all_outputs_test(t *testing.T) {
-	Spec("This spec describes the behaviour of a Terraform resource when not specified a list of output to .spec.writeOutputsToSecret.")
-	It("should be reconciled and write all outputs to the output secret.")
+func Test_000044_plan_only_mode_test(t *testing.T) {
+	Spec("This spec describes the behaviour of a Terraform resource when PlanOnly is abled")
+	It("should be reconciled and write human readable plan output.")
 
 	const (
-		sourceName    = "test-tf-controller-all-output"
-		terraformName = "helloworld-all-output"
+		sourceName    = "test-tf-controller-plan-only"
+		terraformName = "helloworld-plan-only"
 	)
 	g := NewWithT(t)
 	ctx := context.Background()
@@ -39,7 +39,7 @@ func Test_000041_all_outputs_test(t *testing.T) {
 		Spec: sourcev1.GitRepositorySpec{
 			URL: "https://github.com/openshift-fluxv2-poc/podinfo",
 			Reference: &sourcev1.GitRepositoryRef{
-				Branch: "master",
+				Branch: "main",
 			},
 			Interval: metav1.Duration{Duration: time.Second * 30},
 		},
@@ -60,13 +60,13 @@ func Test_000041_all_outputs_test(t *testing.T) {
 				Status:             metav1.ConditionTrue,
 				LastTransitionTime: metav1.Time{Time: updatedTime},
 				Reason:             "GitOperationSucceed",
-				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+				Message:            "Fetched revision: main/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
 		Artifact: &sourcev1.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/file.tar.gz",
-			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+			Revision:       "main/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:80ddfd18eb96f7d31cadc1a8a5171c6e2d95df3f6c23b0ed9cd8dddf6dba1406",
 			LastUpdateTime: metav1.Time{Time: updatedTime},
 		},
@@ -89,14 +89,15 @@ func Test_000041_all_outputs_test(t *testing.T) {
 			Namespace: "flux-system",
 		},
 		Spec: infrav1.TerraformSpec{
-			ApprovePlan: "auto",
-			Path:        "./terraform-hello-world-example",
+			PlanOnly: true,
+			Path:     "./terraform-hello-world-example",
 			SourceRef: infrav1.CrossNamespaceSourceReference{
 				Kind:      "GitRepository",
 				Name:      sourceName,
 				Namespace: "flux-system",
 			},
-			Interval: metav1.Duration{Duration: time.Second * 10},
+			Interval:          metav1.Duration{Duration: time.Second * 10},
+			StoreReadablePlan: "human",
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
 				Name: "tf-output-" + terraformName,
 				// NOTE comment out only. Please not remove this line: Outputs: []string{},
@@ -121,32 +122,55 @@ func Test_000041_all_outputs_test(t *testing.T) {
 
 	It("should be reconciled and produce the correct output secret.")
 	By("checking that the named output secret contains all outputs.")
-	outputKey := types.NamespacedName{Namespace: "flux-system", Name: "tf-output-" + terraformName}
-	outputSecret := corev1.Secret{}
+	outputKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
+	planOutput := corev1.ConfigMap{}
 	g.Eventually(func() (int, error) {
-		err := k8sClient.Get(ctx, outputKey, &outputSecret)
+		err := k8sClient.Get(ctx, outputKey, &planOutput)
 		if err != nil {
 			return -1, err
 		}
-		return len(outputSecret.Data), nil
+		return len(planOutput.Data), nil
 	}, timeout, interval).Should(Equal(1))
 
 	By("checking that the output secret contains the correct output data, provisioned by the TF resource.")
 	expectedOutputValue := map[string]string{
-		"Name":        "tf-output-" + terraformName,
+		"Name":        "tfplan-default-" + terraformName,
 		"Namespace":   "flux-system",
-		"Value":       "Hello, World!",
+		"Value":       "\nChanges to Outputs:\n  + hello_world = \"Hello, World!\"\n\nYou can apply this plan to save these new output values to the Terraform\nstate, without changing any real infrastructure.\n",
 		"OwnerRef[0]": string(createdHelloWorldTF.UID),
 	}
 	g.Eventually(func() (map[string]string, error) {
-		err := k8sClient.Get(ctx, outputKey, &outputSecret)
-		value := string(outputSecret.Data["hello_world"])
+		err := k8sClient.Get(ctx, outputKey, &planOutput)
+		value := string(planOutput.Data["tfplan"])
 		return map[string]string{
-			"Name":        outputSecret.Name,
-			"Namespace":   outputSecret.Namespace,
+			"Name":        planOutput.Name,
+			"Namespace":   planOutput.Namespace,
 			"Value":       value,
-			"OwnerRef[0]": string(outputSecret.OwnerReferences[0].UID),
+			"OwnerRef[0]": string(planOutput.OwnerReferences[0].UID),
 		}, err
 	}, timeout, interval).Should(Equal(expectedOutputValue), "expected output %v", expectedOutputValue)
+
+	It("should be stopped.")
+	By("checking the ready condition is still Plan after 5 seconds.")
+	g.Eventually(func() map[string]interface{} {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return nil
+		}
+		for _, c := range createdHelloWorldTF.Status.Conditions {
+			if c.Type == "Ready" {
+				return map[string]interface{}{
+					"Type":    c.Type,
+					"Reason":  c.Reason,
+					"Message": c.Message,
+				}
+			}
+		}
+		return nil
+	}, timeout, interval).Should(Equal(map[string]interface{}{
+		"Type":    "Ready",
+		"Reason":  "TerraformPlannedWithChanges",
+		"Message": "Plan generated: set approvePlan: \"plan-main-b8e362c206\" to approve this plan.",
+	}))
 
 }
