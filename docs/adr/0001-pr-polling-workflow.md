@@ -3,7 +3,7 @@
 * Status: proposed
 * Date: 2023-06-20 
 * Authors: @yitsushi
-* Deciders: @yitsushi @chanwit @squaremo @yiannistri
+* Deciders: @yitsushi @chanwit @yiannistri
 
 ## Context
 
