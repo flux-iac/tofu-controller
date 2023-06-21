@@ -111,14 +111,7 @@ func Test_000044_plan_only_mode_test(t *testing.T) {
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
 	createdHelloWorldTF := infrav1.Terraform{}
-	// We'll need to retry getting this newly created Terraform, Given that creation may not immediately happen.
-	g.Eventually(func() bool {
-		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
-		if err != nil {
-			return false
-		}
-		return true
-	}, timeout, interval).Should(BeTrue())
+	g.Expect(k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)).To(Succeed())
 
 	It("should be reconciled and produce the correct output secret.")
 	By("checking that the named output secret contains all outputs.")
