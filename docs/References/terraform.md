@@ -1615,7 +1615,13 @@ string
 </td>
 <td>
 <em>(Optional)</em>
-<p>StoreReadablePlan enables storing the plan in a readable format.</p>
+<p>StoreReadablePlan enables storing the plan in a readable format. Defaults to 'none'.</p>
+<p>This is an Enum and has the expected values of:</p>
+<ul>
+<li>human</li>
+<li>json</li>
+<li>none</li>
+</ul>
 </td>
 </tr>
 <tr>
@@ -2111,7 +2117,13 @@ string
 </td>
 <td>
 <em>(Optional)</em>
-<p>StoreReadablePlan enables storing the plan in a readable format.</p>
+<p>StoreReadablePlan enables storing the plan in a readable format. Defaults to 'none'.</p>
+<p>This is an Enum and has the expected values of:</p>
+<ul>
+<li>human</li>
+<li>json</li>
+<li>none</li>
+</ul>
 </td>
 </tr>
 <tr>
