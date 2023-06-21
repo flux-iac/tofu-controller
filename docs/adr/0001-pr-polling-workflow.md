@@ -1,4 +1,4 @@
-# 1. Pull Request Polling Workflow
+# 1. Pull Request Polling
 
 * Status: proposed
 * Date: 2023-06-20 
@@ -21,31 +21,6 @@ The Branch-Based Planner has two components:
 1. Polling Server: Detect Pull Request changes and manage Teraform resource
    state.
 2. Informer: Make a comment when new plan output is available.
-
-
-Full workflow and responsibilities:
-
-1. The poller reads information from Pull Requests (PRs).
-2. Using the PR information, the poller creates a `Terraform` Custom Resource
-   with `planOnly=true` and sets labels. When new `Terraform` resources are
-   created, they are done so with `planOnly=true`, which means they are not
-   `terraform apply`, only planned.
-3. A `GitRepository` object is also created by the poller which points to the
-   branch of the PR.
-4. The poller ensures that every PR of interest is associated with
-   a `GitRepository` and `Terraform` object, and it also triggers "replans"
-   when necessary.
-5. The informer is responsible for watching a set of `Terraform` Custom
-   Resources with the labels set by the poller.
-6. When there's a new commit in the PR branch, Flux's source controller automatically detects the change and updates the source.
-7. In the case of specific comments like `!restart` or `!replan`, the poller
-   initiates a "force restart" of the plan. This triggers a "replan".
-8. The informer is also responsible for relaying the `Terraform` plan back to
-   GitHub.
-9. Once a PR is merged, the associated `Terraform` resource and `GitRepository`
-   are deleted by the poller.
-10. Existing Terraform resources managed by Git remain untouched.
-11. All of the above communication happens via the Kubernetes API.
 
 ## Consequences
 
