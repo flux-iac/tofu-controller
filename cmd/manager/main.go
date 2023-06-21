@@ -23,6 +23,7 @@ import (
 	"github.com/weaveworks/tf-controller/mtls"
 	"github.com/weaveworks/tf-controller/runner"
 
+	"github.com/fluxcd/pkg/runtime/acl"
 	"github.com/fluxcd/pkg/runtime/client"
 	runtimeCtrl "github.com/fluxcd/pkg/runtime/controller"
 	"github.com/fluxcd/pkg/runtime/events"
@@ -90,6 +91,7 @@ func main() {
 		runnerGRPCMaxMessageSize int
 		allowBreakTheGlass       bool
 		clusterDomain            string
+		aclOptions               acl.Options
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
@@ -115,6 +117,7 @@ func main() {
 	clientOptions.BindFlags(flag.CommandLine)
 	logOptions.BindFlags(flag.CommandLine)
 	leaderElectionOptions.BindFlags(flag.CommandLine)
+	aclOptions.BindFlags(flag.CommandLine)
 	flag.Parse()
 
 	ctrl.SetLogger(logger.NewLogger(logOptions))
@@ -195,6 +198,7 @@ func main() {
 		RunnerGRPCMaxMessageSize: runnerGRPCMaxMessageSize,
 		AllowBreakTheGlass:       allowBreakTheGlass,
 		ClusterDomain:            clusterDomain,
+		NoCrossNamespaceRefs:     aclOptions.NoCrossNamespaceRefs,
 	}
 
 	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {
