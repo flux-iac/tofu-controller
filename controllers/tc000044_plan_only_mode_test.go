@@ -145,6 +145,7 @@ func Test_000044_plan_only_mode_test(t *testing.T) {
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
+					"Status":  c.Status,
 				}
 			}
 		}
@@ -153,6 +154,6 @@ func Test_000044_plan_only_mode_test(t *testing.T) {
 		"Type":    "Ready",
 		"Reason":  "TerraformPlannedWithChanges",
 		"Message": "Plan generated: set approvePlan: \"plan-main-b8e362c206\" to approve this plan.",
+		"Status":  metav1.ConditionTrue,
 	}))
-
 }
