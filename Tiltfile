@@ -1,6 +1,7 @@
 local('kubectl apply --server-side -k config/tilt/base')
 
 k8s_yaml(kustomize('config/tilt/manager'))
+k8s_yaml(kustomize('config/tilt/bbp'))
 
 docker_build(
     'weaveworks/tf-controller',
@@ -12,6 +13,12 @@ custom_build(
     'localhost:5000/weaveworks/tf-runner',
     'make docker-dev-runner RUNNER_IMG=localhost:5000/weaveworks/tf-runner TAG=$EXPECTED_TAG',
     deps=['runner/', 'runner.Dockerfile'],
+)
+
+docker_build(
+    'weaveworks/branch-based-planner',
+    context='.',
+    dockerfile='planner.Dockerfile',
 )
 
 ### this is a group of resources that are deployed together
