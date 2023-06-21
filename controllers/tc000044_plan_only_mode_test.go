@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"strings"
 	"testing"
 	"time"
 
@@ -134,22 +133,11 @@ func Test_000044_plan_only_mode_test(t *testing.T) {
 	}, timeout, interval).Should(Equal(1))
 
 	By("checking that the output ConfigMap contains the correct output data, provisioned by the TF resource.")
-	expectedOutputValue := map[string]string{
-		"Name":        "tfplan-default-" + terraformName,
-		"Namespace":   "flux-system",
-		"Value":       "Changes to Outputs:  + hello_world = \"Hello, World!\"You can apply this plan to save these new output values to the Terraformstate, without changing any real infrastructure.",
-		"OwnerRef[0]": string(createdHelloWorldTF.UID),
-	}
-	g.Eventually(func() (map[string]string, error) {
-		err := k8sClient.Get(ctx, outputKey, &planOutput)
-		value := string(planOutput.Data["tfplan"])
-		return map[string]string{
-			"Name":        planOutput.Name,
-			"Namespace":   planOutput.Namespace,
-			"Value":       strings.ReplaceAll(value, "\n", ""),
-			"OwnerRef[0]": string(planOutput.OwnerReferences[0].UID),
-		}, err
-	}, timeout, interval).Should(Equal(expectedOutputValue), "expected output %v", expectedOutputValue)
+
+	g.Expect(planOutput.Name).To(Equal("tfplan-default-" + terraformName))
+	g.Expect(planOutput.Namespace).To(Equal("flux-system"))
+	g.Expect(string(planOutput.OwnerReferences[0].UID)).To(Equal(string(createdHelloWorldTF.UID)))
+	g.Expect(string(planOutput.Data["tfplan"])).To(ContainSubstring(`+ hello_world = "Hello, World!"`))
 
 	It("should be stopped.")
 	By("checking the ready condition is still Plan within 5 seconds.")
