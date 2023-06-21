@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -18,7 +19,7 @@ import (
 // +kubebuilder:docs-gen:collapse=Imports
 
 func Test_000044_plan_only_mode_test(t *testing.T) {
-	Spec("This spec describes the behaviour of a Terraform resource when PlanOnly is abled")
+	Spec("This spec describes the behaviour of a Terraform resource when PlanOnly is set")
 	It("should be reconciled and write human readable plan output.")
 
 	const (
@@ -132,11 +133,11 @@ func Test_000044_plan_only_mode_test(t *testing.T) {
 		return len(planOutput.Data), nil
 	}, timeout, interval).Should(Equal(1))
 
-	By("checking that the output secret contains the correct output data, provisioned by the TF resource.")
+	By("checking that the output ConfigMap contains the correct output data, provisioned by the TF resource.")
 	expectedOutputValue := map[string]string{
 		"Name":        "tfplan-default-" + terraformName,
 		"Namespace":   "flux-system",
-		"Value":       "\nChanges to Outputs:\n  + hello_world = \"Hello, World!\"\n\nYou can apply this plan to save these new output values to the Terraform\nstate, without changing any real infrastructure.\n",
+		"Value":       "Changes to Outputs:  + hello_world = \"Hello, World!\"You can apply this plan to save these new output values to the Terraformstate, without changing any real infrastructure.",
 		"OwnerRef[0]": string(createdHelloWorldTF.UID),
 	}
 	g.Eventually(func() (map[string]string, error) {
@@ -145,13 +146,13 @@ func Test_000044_plan_only_mode_test(t *testing.T) {
 		return map[string]string{
 			"Name":        planOutput.Name,
 			"Namespace":   planOutput.Namespace,
-			"Value":       value,
+			"Value":       strings.ReplaceAll(value, "\n", ""),
 			"OwnerRef[0]": string(planOutput.OwnerReferences[0].UID),
 		}, err
 	}, timeout, interval).Should(Equal(expectedOutputValue), "expected output %v", expectedOutputValue)
 
 	It("should be stopped.")
-	By("checking the ready condition is still Plan after 5 seconds.")
+	By("checking the ready condition is still Plan within 5 seconds.")
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
