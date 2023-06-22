@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: flux-system
+resources:
+  - planner.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+images:
+  - name: weaveworks/branch-based-planner
+    newName: ghcr.io/weaveworks/branch-based-planner
+    newTag: v0.15.0-rc.5
