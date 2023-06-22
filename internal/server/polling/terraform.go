@@ -142,6 +142,10 @@ func (s *Server) createAnnotations(annotations map[string]string, branch string,
 func (s *Server) deleteTerraform(ctx context.Context, tf *v1alpha2.Terraform) error {
 	msg := fmt.Sprintf("Terraform %s in the namespace %s", tf.ObjectMeta.Name, tf.ObjectMeta.Namespace)
 
+	if err := s.deleteSource(ctx, tf); err != nil {
+		s.log.Info("unable to delete Source for %s: %w, err", msg)
+	}
+
 	if err := s.clusterClient.Delete(ctx, tf); err != nil {
 		return fmt.Errorf("unable to delete %s: %w", msg, err)
 	}
@@ -151,7 +155,12 @@ func (s *Server) deleteTerraform(ctx context.Context, tf *v1alpha2.Terraform) er
 	return nil
 }
 
-func (s *Server) deleteSource(ctx context.Context, source *sourcev1b2.GitRepository) error {
+func (s *Server) deleteSource(ctx context.Context, tf *v1alpha2.Terraform) error {
+	source, err := s.getSource(ctx, tf)
+	if err != nil {
+		return fmt.Errorf("Error getting Source for Terraform %s in the namespace %s: %w", tf.ObjectMeta.Name, tf.ObjectMeta.Namespace, err)
+	}
+
 	msg := fmt.Sprintf("Source %s in the namespace %s", source.ObjectMeta.Name, source.ObjectMeta.Namespace)
 
 	if err := s.clusterClient.Delete(ctx, source); err != nil {
