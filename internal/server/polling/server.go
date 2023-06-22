@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/tf-controller/internal/git/provider"
+	"github.com/weaveworks/tf-controller/internal/informer/bbp"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -73,7 +74,7 @@ func (s *Server) poll(ctx context.Context, resource types.NamespacedName, secret
 		return fmt.Errorf("secret is not defined")
 	}
 
-	tf, err := s.getTerraform(ctx, resource)
+	tf, err := s.getTerraformObject(ctx, resource)
 	if err != nil {
 		return fmt.Errorf("failed to get Terraform object: %w", err)
 	}
@@ -97,6 +98,26 @@ func (s *Server) poll(ctx context.Context, resource types.NamespacedName, secret
 		return fmt.Errorf("failed to list pull requests: %w", err)
 	}
 
+	fields := map[string]string{
+		fmt.Sprintf("%s.%s", bbp.AnnotationsKey, bbp.AnnotationBBPKey): bbp.AnnotationBBPValue,
+	}
+
+	// List Terraform objects, created by BBP.
+	_, err = s.listTerraformObjects(ctx, resource.Namespace, fields)
+	if err != nil {
+		return fmt.Errorf("failed to list Terraform objects: %w", err)
+	}
+
+	// List Sources, created by BBP.
+	_, err = s.listSources(ctx, tf, fields)
+	if err != nil {
+		return fmt.Errorf("failed to list Sources: %w", err)
+	}
+
+	// TODO: Create list of objects to delete.
+	// TODO: Create list of objects to create.
+
+	// Process the PRs.
 	for _, pr := range prs {
 		s.log.Info("pull request", "pr", pr)
 	}

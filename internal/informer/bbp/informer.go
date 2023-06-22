@@ -90,8 +90,10 @@ func (i *Informer) SetDeleteHandler(fn func(interface{})) {
 }
 
 const (
-	AnnotationKey   = "terraform-conrtoller/branch-based-planner"
-	AnnotationValue = "true"
+	AnnotationsKey            = "annotations"
+	AnnotationBBPKey          = "terraform-controller/branch-based-planner"
+	AnnotationBBPValue        = "true"
+	AnnotationPRIDKey  string = "terraform-controller/pr-id"
 )
 
 func (i *Informer) addHandler(obj interface{}) {}
@@ -117,7 +119,7 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		return
 	}
 
-	if previous.Annotations[AnnotationKey] != AnnotationValue || current.Annotations[AnnotationKey] != AnnotationValue {
+	if previous.Annotations[AnnotationBBPKey] != AnnotationBBPValue || current.Annotations[AnnotationBBPKey] != AnnotationBBPValue {
 		i.log.Info("Terraform object is not managed by the branch-based planner")
 
 		return
