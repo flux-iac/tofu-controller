@@ -43,7 +43,7 @@ spec:
       labels:
         instance: helloworld-tf # This is the name of the Terraform resource
     spec:
-      image: localhost:5000/weaveworks/tf-runner
+      image: weaveworks/tf-runner
       hostAliases:
       - hostnames:
         - host.docker.internal

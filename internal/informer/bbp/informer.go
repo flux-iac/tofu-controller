@@ -10,6 +10,9 @@ import (
 	tfv1alpha2 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/internal/git/provider"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/dynamicinformer"
@@ -105,17 +108,29 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 	i.mux.RLock()
 	defer i.mux.RUnlock()
 
-	previous, ok := oldObj.(*tfv1alpha2.Terraform)
+	previous := &tfv1alpha2.Terraform{}
+	oldU, ok := oldObj.(*unstructured.Unstructured)
 	if !ok {
-		i.log.Info("previous object is not a Terraform object", "object", oldObj)
+		i.log.Info("previous object is not a unstructured.Unstructured object", "object", oldObj)
 
 		return
 	}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(oldU.Object, previous)
+	if err != nil {
+		i.log.Error(err, "failed to convert previous object to Terraform object", "object", oldObj)
+		return
+	}
 
-	current, ok := newObj.(*tfv1alpha2.Terraform)
+	current := &tfv1alpha2.Terraform{}
+	currentU, ok := oldObj.(*unstructured.Unstructured)
 	if !ok {
-		i.log.Info("current object is not a Terraform object", "object", newObj)
+		i.log.Info("previous object is not a unstructured.Unstructured object", "object", oldObj)
 
+		return
+	}
+	err = runtime.DefaultUnstructuredConverter.FromUnstructured(currentU.Object, current)
+	if err != nil {
+		i.log.Error(err, "failed to convert current object to Terraform object", "object", oldObj)
 		return
 	}
 

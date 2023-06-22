@@ -9,10 +9,10 @@ docker_build(
     dockerfile='Dockerfile',
 )
 
-custom_build(
-    'localhost:5000/weaveworks/tf-runner',
-    'make docker-dev-runner RUNNER_IMG=localhost:5000/weaveworks/tf-runner TAG=$EXPECTED_TAG',
-    deps=['runner/', 'runner.Dockerfile'],
+docker_build(
+    'weaveworks/tf-runner',
+    context='.',
+    dockerfile='runner.Dockerfile',
 )
 
 docker_build(
