@@ -35,6 +35,7 @@ func main() {
 	log := logger.
 		NewLogger(opts.logOptions).
 		WithValues("version", BuildVersion, "sha", BuildSHA)
+	logger.SetLogger(log)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 
