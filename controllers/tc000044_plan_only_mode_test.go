@@ -8,9 +8,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gstruct"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -134,26 +136,25 @@ func Test_000044_plan_only_mode_test(t *testing.T) {
 
 	It("should be stopped.")
 	By("checking the ready condition is still Plan within 5 seconds.")
-	g.Eventually(func() map[string]interface{} {
+
+	var readyCondition *metav1.Condition
+	g.Eventually(func() *metav1.Condition {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
-		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Ready" {
-				return map[string]interface{}{
-					"Type":    c.Type,
-					"Reason":  c.Reason,
-					"Message": c.Message,
-					"Status":  c.Status,
-				}
-			}
-		}
-		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":    "Ready",
-		"Reason":  "TerraformPlannedWithChanges",
-		"Message": "Plan generated: set approvePlan: \"plan-main-b8e362c206\" to approve this plan.",
-		"Status":  metav1.ConditionTrue,
-	}))
+
+		readyCondition = meta.FindStatusCondition(createdHelloWorldTF.Status.Conditions, "Ready")
+
+		return readyCondition
+	}, timeout, interval).ShouldNot(BeNil())
+
+	g.Expect(*readyCondition).To(
+		gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{
+			"Type":    Equal("Ready"),
+			"Reason":  Equal(infrav1.PlannedWithChangesReason),
+			"Message": Equal("Plan generated: set approvePlan: \"plan-main-b8e362c206\" to approve this plan."),
+			"Status":  Equal(metav1.ConditionTrue),
+		}),
+	)
 }
