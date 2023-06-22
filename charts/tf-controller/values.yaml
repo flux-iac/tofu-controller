@@ -171,3 +171,7 @@ metrics:
 # -- Branch Based Planner-specific configurations
 branchBasedPlanner:
   enabled: false
+  image:
+    repository: ghcr.io/weaveworks/branch-based-planner
+    pullPolicy: IfNotPresent
+    tag: ""
