@@ -517,8 +517,8 @@ func (r *TerraformReconciler) checkDependencies(source sourcev1.Source, terrafor
 			return fmt.Errorf("unable to get '%s' dependency: %w", dName, err)
 		}
 
-		// add finalizer to the dependency
-		if !controllerutil.ContainsFinalizer(&tf, dependantFinalizer) {
+		// add finalizer to the dependency only if object is not being deleted
+		if tf.ObjectMeta.DeletionTimestamp.IsZero() && !controllerutil.ContainsFinalizer(&tf, dependantFinalizer) {
 			patch := client.MergeFrom(tf.DeepCopy())
 			controllerutil.AddFinalizer(&tf, dependantFinalizer)
 			if err := r.Patch(context.Background(), &tf, patch, client.FieldOwner(r.statusManager)); err != nil {
