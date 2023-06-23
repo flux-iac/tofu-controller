@@ -284,9 +284,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		log.Info("Last known action was: " + lastKnownAction)
 		cond := terraform.Status.Conditions[readyConditionIndex]
 		if cond.Reason == infrav1.PlannedWithChangesReason && strings.HasPrefix(cond.Message, "Plan generated") {
-			if terraform.Spec.PlanOnly {
-				terraform.Status.Conditions[readyConditionIndex].Status = metav1.ConditionTrue
-			}
+			// do nothing
 		} else if cond.Reason != meta.ProgressingReason {
 			terraform.Status.Conditions[readyConditionIndex].Status = metav1.ConditionTrue
 		}

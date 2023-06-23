@@ -153,8 +153,8 @@ func Test_000044_plan_only_mode_test(t *testing.T) {
 		gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{
 			"Type":    Equal("Ready"),
 			"Reason":  Equal(infrav1.PlannedWithChangesReason),
-			"Message": Equal("Plan generated: set approvePlan: \"plan-main-b8e362c206\" to approve this plan."),
-			"Status":  Equal(metav1.ConditionTrue),
+			"Message": Equal("Plan generated: This object is in the plan only mode."),
+			"Status":  Equal(metav1.ConditionUnknown),
 		}),
 	)
 }
