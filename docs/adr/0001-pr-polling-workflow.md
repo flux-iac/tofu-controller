@@ -12,9 +12,9 @@ API.
 
 ## Decision
 
-We decided to use polling for security reasons. Using webhook would require to
-open an ingress to the cluster and that's not acceptable especially in an
-air-gapped environment.
+We decided to start with polling for security reasons. Using webhooks would require users to
+open an ingress to the cluster. Because of this requirement, we think security conscious folks may refuse to roll this out on production clusters especially in an
+air-gapped environment. This does not mean that we will never consider using webhooks for this, but that initially, polling is what we have chosen to implement.
 
 The Branch-Based Planner has two components:
 
