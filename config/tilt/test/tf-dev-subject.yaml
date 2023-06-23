@@ -26,7 +26,9 @@ metadata:
 spec:
   path: ./
   interval: 20s
-  approvePlan: auto
+  # approvePlan: auto
+  planOnly: true
+  storeReadablePlan: human
   sourceRef:
     kind: GitRepository
     name: helloworld
