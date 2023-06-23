@@ -89,6 +89,10 @@ time delay between the occurrence of an event and the next scheduled polling. Ad
 the load on the GitHub server if the polling frequency is high. But, these concerns can be mitigated by carefully
 configuring the polling frequency based on the urgency of updates.
 
+The proposed polling mechanism is designed to be as autonomous as possible, requiring minimal configuration from the Terraform object. The bulk of the information necessary for the polling system is derived from the Pull Request (PR) itself. This includes details like the PR number, the base branch, the title, file names involved, and changes in PR comments.
+
+The only initial information required from the user is associated with the `GitRepository` object. This includes the GitHub repository's owner and name, along with the GitHub token for API authentication. This data provides the polling mechanism with a starting point to begin monitoring the respective GitHub repository.
+
 ## Examples
 
 ### Example 1: Polling for PR creation
@@ -248,6 +252,16 @@ slow down requests until the limit is reset.
 
 To effectively manage GitHub API rate limits and maintain the security of access tokens, we recommend storing the GitHub
 token in a Kubernetes Secret and referencing that Secret in the Terraform Custom Resource (CR).
+
+## Handling Pod Restarts and In-Memory State Management
+
+From examples, the state of PRs and PR comments is integral to the efficiency of the polling mechanism, enabling it to track changes effectively. In the proposed implementation, these states are maintained in memory during the lifetime of a polling process.
+
+One might raise concerns about the transient nature of in-memory data, particularly in cases where a pod restarts. It's crucial to note, however, that this is a deliberate design decision based on the nature of the data and the operation of the system itself.
+
+In the event of a pod restart, while the in-memory state data would indeed be lost, the system is designed to be stateless and idempotent. This means that it can regenerate the necessary state data by querying the GitHub API again upon restart. The state information is primarily used to determine changes between consecutive polls. Therefore, even if a pod restarts, once it's up again, it can retrieve the necessary state information from GitHub (as the single source of truth), compare it with the subsequent poll, and continue tracking changes effectively.
+
+In essence, the temporary nature of in-memory state storage doesn't pose a risk to the functionality or reliability of the system. Instead, it simplifies the system design and reduces dependencies on external storage systems, while ensuring the effective tracking of changes in the GitHub repository.
 
 ## Implementation History
 
