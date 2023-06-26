@@ -15,7 +15,7 @@
         <link rel="next" href="../../tfctl/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.17">
     
     
       
@@ -1277,6 +1277,20 @@ Kubernetes core/v1.Affinity
 <p>Set up Init Containers for the Runner</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>hostAliases</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#hostalias-v1-core">
+[]Kubernetes core/v1.HostAlias
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set host aliases for the Runner Pod</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1450,6 +1464,20 @@ Kubernetes core/v1.Affinity
 <td>
 <em>(Optional)</em>
 <p>Set up Init Containers for the Runner</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>hostAliases</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#hostalias-v1-core">
+[]Kubernetes core/v1.HostAlias
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set host aliases for the Runner Pod</p>
 </td>
 </tr>
 </table>
@@ -2021,6 +2049,32 @@ Kubernetes pkg/apis/apiextensions/v1.JSON
 <p>Enterprise is the enterprise configuration placeholder.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>planOnly</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>PlanOnly specifies if the reconciliation should or should not stop at plan
+phase.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>breakTheGlass</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>BreakTheGlass specifies if the reconciliation should stop
+and allow interactive shell in case of emergency.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -2515,6 +2569,32 @@ Kubernetes pkg/apis/apiextensions/v1.JSON
 <td>
 <em>(Optional)</em>
 <p>Enterprise is the enterprise configuration placeholder.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>planOnly</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>PlanOnly specifies if the reconciliation should or should not stop at plan
+phase.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>breakTheGlass</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>BreakTheGlass specifies if the reconciliation should stop
+and allow interactive shell in case of emergency.</p>
 </td>
 </tr>
 </tbody>
@@ -3023,7 +3103,7 @@ to the secret. Empty array means writing all outputs, which is default.</p>
     <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.annotate"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.a51614de.min.js"></script>
+      <script src="../../assets/javascripts/bundle.b425cdc4.min.js"></script>
       
     
   </body>
