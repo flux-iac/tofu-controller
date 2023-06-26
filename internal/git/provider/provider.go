@@ -2,14 +2,17 @@ package provider
 
 import (
 	"fmt"
-	"net/url"
-	"strings"
 
 	"github.com/go-logr/logr"
+	giturl "github.com/kubescape/go-git-url"
+	azureparserv1 "github.com/kubescape/go-git-url/azureparser/v1"
 	"golang.org/x/net/context"
 )
 
-const GitHubProviderName = "github"
+const (
+	GitHubProviderName = "github"
+	AzureProviderName  = "azure"
+)
 
 type Provider interface {
 	ListPullRequests(ctx context.Context, repo Repository) ([]PullRequest, error)
@@ -48,27 +51,17 @@ func FromURL(repoURL string, options ...ProviderOption) (Provider, Repository, e
 	targetProvider := ""
 	repo := Repository{}
 
-	parsedURL, err := url.Parse(repoURL)
+	gitURL, err := giturl.NewGitURL(repoURL)
 	if err != nil {
-		return nil, repo, fmt.Errorf("unable to parse url: %w", err)
+		return nil, repo, fmt.Errorf("failed parsing repository url: %w", err)
 	}
 
-	// That's a pretty naiv check for now.
-	// Use proper parsing later with a well tested library.
-	if parsedURL.Hostname() == "github.com" {
-		targetProvider = GitHubProviderName
+	targetProvider = gitURL.GetProvider()
+	repo.Org = gitURL.GetOwnerName()
+	repo.Name = gitURL.GetRepoName()
 
-		parts := strings.Split(parsedURL.Path, "/")
-		if len(parts) != 3 {
-			return nil, repo, fmt.Errorf("invalid github repository url: %s", repoURL)
-		}
-
-		repo.Org = parts[1]
-		repo.Name = strings.TrimSuffix(parts[2], ".git")
-	}
-
-	if targetProvider == "" {
-		return nil, repo, fmt.Errorf("could not parse provider from url: %s", repoURL)
+	if targetProvider == AzureProviderName {
+		repo.Project = gitURL.(*azureparserv1.AzureURL).GetProjectName()
 	}
 
 	provider, err := New(targetProvider, options...)
