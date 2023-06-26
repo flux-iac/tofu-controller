@@ -3,8 +3,9 @@ package controllers
 import (
 	"context"
 	"fmt"
-	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"strings"
+
+	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/runner"
@@ -21,6 +22,10 @@ func (r *TerraformReconciler) shouldApply(terraform infrav1.Terraform) bool {
 	// Please do not optimize this logic, as we'd like others to easily understand the logics behind this behaviour.
 	if terraform.Spec.Force {
 		return true
+	}
+
+	if terraform.Spec.PlanOnly {
+		return false
 	}
 
 	if terraform.Spec.ApprovePlan == "" {
