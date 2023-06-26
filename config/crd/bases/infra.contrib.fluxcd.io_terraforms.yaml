@@ -1653,7 +1653,10 @@ spec:
                                               header to be used in HTTP probes
                                             properties:
                                               name:
-                                                description: The header field name
+                                                description: The header field name.
+                                                  This will be canonicalized upon
+                                                  output, so case-variant names will
+                                                  be understood as the same header.
                                                 type: string
                                               value:
                                                 description: The header field value
@@ -1757,7 +1760,10 @@ spec:
                                               header to be used in HTTP probes
                                             properties:
                                               name:
-                                                description: The header field name
+                                                description: The header field name.
+                                                  This will be canonicalized upon
+                                                  output, so case-variant names will
+                                                  be understood as the same header.
                                                 type: string
                                               value:
                                                 description: The header field value
@@ -1842,8 +1848,7 @@ spec:
                                   type: integer
                                 grpc:
                                   description: GRPC specifies an action involving
-                                    a GRPC port. This is a beta field and requires
-                                    enabling GRPCContainerProbe feature gate.
+                                    a GRPC port.
                                   properties:
                                     port:
                                       description: Port number of the gRPC service.
@@ -1877,7 +1882,10 @@ spec:
                                           header to be used in HTTP probes
                                         properties:
                                           name:
-                                            description: The header field name
+                                            description: The header field name. This
+                                              will be canonicalized upon output, so
+                                              case-variant names will be understood
+                                              as the same header.
                                             type: string
                                           value:
                                             description: The header field value
@@ -2054,8 +2062,7 @@ spec:
                                   type: integer
                                 grpc:
                                   description: GRPC specifies an action involving
-                                    a GRPC port. This is a beta field and requires
-                                    enabling GRPCContainerProbe feature gate.
+                                    a GRPC port.
                                   properties:
                                     port:
                                       description: Port number of the gRPC service.
@@ -2089,7 +2096,10 @@ spec:
                                           header to be used in HTTP probes
                                         properties:
                                           name:
-                                            description: The header field name
+                                            description: The header field name. This
+                                              will be canonicalized upon output, so
+                                              case-variant names will be understood
+                                              as the same header.
                                             type: string
                                           value:
                                             description: The header field value
@@ -2181,6 +2191,28 @@ spec:
                                   format: int32
                                   type: integer
                               type: object
+                            resizePolicy:
+                              description: Resources resize policy for the container.
+                              items:
+                                description: ContainerResizePolicy represents resource
+                                  resize policy for the container.
+                                properties:
+                                  resourceName:
+                                    description: 'Name of the resource to which this
+                                      resource resize policy applies. Supported values:
+                                      cpu, memory.'
+                                    type: string
+                                  restartPolicy:
+                                    description: Restart policy to apply when specified
+                                      resource is resized. If not specified, it defaults
+                                      to NotRequired.
+                                    type: string
+                                required:
+                                - resourceName
+                                - restartPolicy
+                                type: object
+                              type: array
+                              x-kubernetes-list-type: atomic
                             resources:
                               description: 'Compute Resources required by this container.
                                 Cannot be updated. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
@@ -2230,7 +2262,8 @@ spec:
                                     of compute resources required. If Requests is
                                     omitted for a container, it defaults to Limits
                                     if that is explicitly specified, otherwise to
-                                    an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                                    an implementation-defined value. Requests cannot
+                                    exceed Limits. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                                   type: object
                               type: object
                             securityContext:
@@ -2456,8 +2489,7 @@ spec:
                                   type: integer
                                 grpc:
                                   description: GRPC specifies an action involving
-                                    a GRPC port. This is a beta field and requires
-                                    enabling GRPCContainerProbe feature gate.
+                                    a GRPC port.
                                   properties:
                                     port:
                                       description: Port number of the gRPC service.
@@ -2491,7 +2523,10 @@ spec:
                                           header to be used in HTTP probes
                                         properties:
                                           name:
-                                            description: The header field name
+                                            description: The header field name. This
+                                              will be canonicalized upon output, so
+                                              case-variant names will be understood
+                                              as the same header.
                                             type: string
                                           value:
                                             description: The header field value
@@ -3213,7 +3248,7 @@ spec:
                                     be the minimum value between the SizeLimit specified
                                     here and the sum of memory limits of all containers
                                     in a pod. The default is nil which means that
-                                    the limit is undefined. More info: http://kubernetes.io/docs/user-guide/volumes#emptydir'
+                                    the limit is undefined. More info: https://kubernetes.io/docs/concepts/storage/volumes#emptydir'
                                   pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                                   x-kubernetes-int-or-string: true
                               type: object
@@ -3452,7 +3487,8 @@ spec:
                                                 a container, it defaults to Limits
                                                 if that is explicitly specified, otherwise
                                                 to an implementation-defined value.
-                                                More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                                                Requests cannot exceed Limits. More
+                                                info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                                               type: object
                                           type: object
                                         selector:
@@ -6593,7 +6629,10 @@ spec:
                                               header to be used in HTTP probes
                                             properties:
                                               name:
-                                                description: The header field name
+                                                description: The header field name.
+                                                  This will be canonicalized upon
+                                                  output, so case-variant names will
+                                                  be understood as the same header.
                                                 type: string
                                               value:
                                                 description: The header field value
@@ -6697,7 +6736,10 @@ spec:
                                               header to be used in HTTP probes
                                             properties:
                                               name:
-                                                description: The header field name
+                                                description: The header field name.
+                                                  This will be canonicalized upon
+                                                  output, so case-variant names will
+                                                  be understood as the same header.
                                                 type: string
                                               value:
                                                 description: The header field value
@@ -6782,8 +6824,7 @@ spec:
                                   type: integer
                                 grpc:
                                   description: GRPC specifies an action involving
-                                    a GRPC port. This is a beta field and requires
-                                    enabling GRPCContainerProbe feature gate.
+                                    a GRPC port.
                                   properties:
                                     port:
                                       description: Port number of the gRPC service.
@@ -6817,7 +6858,10 @@ spec:
                                           header to be used in HTTP probes
                                         properties:
                                           name:
-                                            description: The header field name
+                                            description: The header field name. This
+                                              will be canonicalized upon output, so
+                                              case-variant names will be understood
+                                              as the same header.
                                             type: string
                                           value:
                                             description: The header field value
@@ -6994,8 +7038,7 @@ spec:
                                   type: integer
                                 grpc:
                                   description: GRPC specifies an action involving
-                                    a GRPC port. This is a beta field and requires
-                                    enabling GRPCContainerProbe feature gate.
+                                    a GRPC port.
                                   properties:
                                     port:
                                       description: Port number of the gRPC service.
@@ -7029,7 +7072,10 @@ spec:
                                           header to be used in HTTP probes
                                         properties:
                                           name:
-                                            description: The header field name
+                                            description: The header field name. This
+                                              will be canonicalized upon output, so
+                                              case-variant names will be understood
+                                              as the same header.
                                             type: string
                                           value:
                                             description: The header field value
@@ -7121,6 +7167,28 @@ spec:
                                   format: int32
                                   type: integer
                               type: object
+                            resizePolicy:
+                              description: Resources resize policy for the container.
+                              items:
+                                description: ContainerResizePolicy represents resource
+                                  resize policy for the container.
+                                properties:
+                                  resourceName:
+                                    description: 'Name of the resource to which this
+                                      resource resize policy applies. Supported values:
+                                      cpu, memory.'
+                                    type: string
+                                  restartPolicy:
+                                    description: Restart policy to apply when specified
+                                      resource is resized. If not specified, it defaults
+                                      to NotRequired.
+                                    type: string
+                                required:
+                                - resourceName
+                                - restartPolicy
+                                type: object
+                              type: array
+                              x-kubernetes-list-type: atomic
                             resources:
                               description: 'Compute Resources required by this container.
                                 Cannot be updated. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
@@ -7170,7 +7238,8 @@ spec:
                                     of compute resources required. If Requests is
                                     omitted for a container, it defaults to Limits
                                     if that is explicitly specified, otherwise to
-                                    an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                                    an implementation-defined value. Requests cannot
+                                    exceed Limits. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                                   type: object
                               type: object
                             securityContext:
@@ -7396,8 +7465,7 @@ spec:
                                   type: integer
                                 grpc:
                                   description: GRPC specifies an action involving
-                                    a GRPC port. This is a beta field and requires
-                                    enabling GRPCContainerProbe feature gate.
+                                    a GRPC port.
                                   properties:
                                     port:
                                       description: Port number of the gRPC service.
@@ -7431,7 +7499,10 @@ spec:
                                           header to be used in HTTP probes
                                         properties:
                                           name:
-                                            description: The header field name
+                                            description: The header field name. This
+                                              will be canonicalized upon output, so
+                                              case-variant names will be understood
+                                              as the same header.
                                             type: string
                                           value:
                                             description: The header field value
@@ -8153,7 +8224,7 @@ spec:
                                     be the minimum value between the SizeLimit specified
                                     here and the sum of memory limits of all containers
                                     in a pod. The default is nil which means that
-                                    the limit is undefined. More info: http://kubernetes.io/docs/user-guide/volumes#emptydir'
+                                    the limit is undefined. More info: https://kubernetes.io/docs/concepts/storage/volumes#emptydir'
                                   pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                                   x-kubernetes-int-or-string: true
                               type: object
@@ -8392,7 +8463,8 @@ spec:
                                                 a container, it defaults to Limits
                                                 if that is explicitly specified, otherwise
                                                 to an implementation-defined value.
-                                                More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                                                Requests cannot exceed Limits. More
+                                                info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                                               type: object
                                           type: object
                                         selector:

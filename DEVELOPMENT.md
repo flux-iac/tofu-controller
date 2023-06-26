@@ -24,7 +24,7 @@ TF-controller requires a specific version of Protobuf compiler and its Go plugin
 
 Prerequisites:
 * go = 1.19.x
-* kubebuilder = 3.5.x
+* kubebuilder = 3.6.x
 * controller-gen = 0.8.x
 * kustomize = 4.x
 * kubectl >= 1.21

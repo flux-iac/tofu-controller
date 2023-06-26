@@ -644,6 +644,7 @@ func TerraformPostPlanningWebhookFailed(terraform Terraform, revision string, me
 
 func TerraformPlannedWithChanges(terraform Terraform, revision string, forceOrAutoApply bool, message string) Terraform {
 	planId, approveMessage := GetPlanIdAndApproveMessage(revision, message)
+
 	newCondition := metav1.Condition{
 		Type:    ConditionTypePlan,
 		Status:  metav1.ConditionTrue,
@@ -662,7 +663,10 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, forceOrAu
 		(&terraform).Status.LastPlannedRevision = revision
 	}
 
-	if forceOrAutoApply {
+	// planOnly takes the highest precedence
+	if terraform.Spec.PlanOnly {
+		SetTerraformReadiness(&terraform, metav1.ConditionUnknown, PlannedWithChangesReason, message+": This object is in the plan only mode.", revision)
+	} else if forceOrAutoApply {
 		SetTerraformReadiness(&terraform, metav1.ConditionUnknown, PlannedWithChangesReason, message, revision)
 	} else {
 		// this is the manual mode, where we don't want to apply the plan

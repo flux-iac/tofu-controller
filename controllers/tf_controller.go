@@ -119,7 +119,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		traceLog.Info("Ready Signal Received")
 	}
 
-	traceLog.Info("Fetch Terrafom Resource", "namespacedName", req.NamespacedName)
+	traceLog.Info("Fetch Terraform Resource", "namespacedName", req.NamespacedName)
 	var terraform infrav1.Terraform
 	if err := r.Get(ctx, req.NamespacedName, &terraform); err != nil {
 		traceLog.Error(err, "Hit an error", "namespacedName", req.NamespacedName)
@@ -271,9 +271,11 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	if !isBeingDeleted(terraform) {
+		// case 1:
 		// If revision is changed, and there's no intend to apply,
 		// and has "replan" in the spec.approvePlan
 		// we should clear the Pending Plan to trigger re-plan
+		//
 		traceLog.Info("Check artifact revision and if we shouldApply")
 		if sourceObj.GetArtifact().Revision != terraform.Status.LastAttemptedRevision &&
 			!r.shouldApply(terraform) &&
@@ -287,7 +289,23 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			}
 		}
 
-		// Return early if it's manually mode and pending
+		// case 2:
+		// if revision is changed, and planOnly is true,
+		// we should clear the Pending Plan to trigger re-plan
+		//
+		if sourceObj.GetArtifact().Revision != terraform.Status.LastAttemptedRevision &&
+			terraform.Spec.PlanOnly {
+			traceLog.Info("Update the status of the Terraform resource")
+			terraform.Status.Plan.Pending = ""
+			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+				log.Error(err, "unable to update status to clear pending plan (revision != last attempted)")
+				return ctrl.Result{Requeue: true}, err
+			}
+		}
+
+		// case 3:
+		// return early if it's manually mode and pending
+		//
 		traceLog.Info("Check for pending plan, forceOrAutoApply and shouldApply")
 		if terraform.Status.Plan.Pending != "" &&
 			!r.forceOrAutoApply(terraform) &&
@@ -414,7 +432,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	traceLog.Info("Check for pending plan and forceOrAutoApply")
 	if reconciledTerraform.Status.Plan.Pending != "" && !r.forceOrAutoApply(*reconciledTerraform) {
-		log.Info("Reconciliation is stopped to wait for a manual approve")
+		log.Info("Reconciliation is stopped to wait for manual operations")
 		return ctrl.Result{}, nil
 	}
 
