@@ -4,10 +4,10 @@
 
 ### Fine-Grained Personal Access Token
 
-For public repositories, it's enough to enable `Public Repositories`, without
+For public repositories, it's sufficient to enable `Public Repositories`, without
 any additional permissions.
 
-For privet repositories the following permissions are required:
+For private repositories the following permissions are required:
 
 * `Issues` with Read and Write access. This is required to list and read
   comments for commands, and to create comments with the Plan output.
