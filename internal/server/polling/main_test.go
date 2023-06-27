@@ -3,13 +3,18 @@ package polling
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"sync/atomic"
 	"testing"
 
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
+
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 )
 
 var (
@@ -19,18 +24,27 @@ var (
 // TestMain wraps all the other tests in this file by starting an
 // testEnv (Kubernetes API), and stopping it after the tests.
 func TestMain(m *testing.M) {
-	testEnv := &envtest.Environment{}
+	testEnv := &envtest.Environment{
+		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "..", "config", "crd", "bases")},
+		ErrorIfCRDPathMissing: true,
+	}
 	cfg, err := testEnv.Start()
 	if err != nil {
 		panic(err)
 	}
 	defer testEnv.Stop()
 
-	c, err := client.New(cfg, client.Options{})
+	if err = infrav1.AddToScheme(scheme.Scheme); err != nil {
+		panic(err)
+	}
+	if err = sourcev1.AddToScheme(scheme.Scheme); err != nil {
+		panic(err)
+	}
+
+	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	if err != nil {
 		panic(err)
 	}
-	k8sClient = c
 
 	m.Run()
 }
