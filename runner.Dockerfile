@@ -32,11 +32,15 @@ ARG TF_VERSION=1.3.9
 ADD https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_${TARGETARCH}.zip /terraform_${TF_VERSION}_linux_${TARGETARCH}.zip
 RUN unzip -q /terraform_${TF_VERSION}_linux_${TARGETARCH}.zip
 
-FROM alpine:3.16.5
+FROM alpine:3.18
 
 LABEL org.opencontainers.image.source="https://github.com/weaveworks/tf-controller"
 
-RUN apk add --no-cache ca-certificates tini git openssh-client gnupg && \
+RUN apk update
+
+RUN apk add --no-cache libcrypto3=3.1.1-r1 && \
+    apk add --no-cache libssl3=3.1.1-r1 && \
+    apk add --no-cache ca-certificates tini git openssh-client gnupg && \
     apk add --no-cache libretls && \
     apk add --no-cache busybox
 
