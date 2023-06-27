@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -16,7 +16,7 @@ import (
 // This checks poll can be called with a little setting-up, with no
 // result expected.
 func Test_poll_empty(t *testing.T) {
-	g := NewWithT(t)
+	g := gomega.NewWithT(t)
 	ns := newNamespace(g)
 
 	// Create a source for the Terraform object to point to
@@ -27,7 +27,7 @@ func Test_poll_empty(t *testing.T) {
 	}
 	source.SetName("original-source")
 	source.SetNamespace(ns.GetName())
-	g.Expect(k8sClient.Create(context.TODO(), source)).To(Succeed())
+	expectToSucceed(g, k8sClient.Create(context.TODO(), source))
 
 	// Create a Terraform object to be the template
 	original := &infrav1.Terraform{
@@ -40,7 +40,7 @@ func Test_poll_empty(t *testing.T) {
 	}
 	original.SetNamespace(ns.GetName())
 	original.SetName("original")
-	g.Expect(k8sClient.Create(context.TODO(), original)).To(Succeed())
+	expectToSucceed(g, k8sClient.Create(context.TODO(), original))
 
 	// This fakes a provider for the server to use.
 	var prs []provider.PullRequest
@@ -50,7 +50,7 @@ func Test_poll_empty(t *testing.T) {
 	server, err := New(
 		WithClusterClient(k8sClient),
 	)
-	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	// Now we'll run `poll` to step the server once, and afterwards,
 	// we should be able to see what it did.
@@ -61,17 +61,17 @@ func Test_poll_empty(t *testing.T) {
 	// We expect it to have done nothing! So, check it didn't create
 	// any more Terraform or source objects.
 	var list infrav1.TerraformList
-	g.Expect(k8sClient.List(context.TODO(), &list, &client.ListOptions{
+	expectToSucceed(g, k8sClient.List(context.TODO(), &list, &client.ListOptions{
 		Namespace: ns.GetName(),
-	})).To(Succeed())
-	g.Expect(len(list.Items)).To(Equal(1)) // just the original
-	g.Expect(list.Items[0].GetName()).To(Equal(original.GetName()))
+	}))
+	expectToEqual(g, len(list.Items), 1) // just the original
+	expectToEqual(g, list.Items[0].GetName(), original.GetName())
 
 	var srclist sourcev1.GitRepositoryList
-	g.Expect(k8sClient.List(context.TODO(), &srclist, &client.ListOptions{
+	expectToSucceed(g, k8sClient.List(context.TODO(), &srclist, &client.ListOptions{
 		Namespace: ns.GetName(),
-	})).To(Succeed())
-	g.Expect(len(list.Items)).To(Equal(1)) // just `source`
+	}))
+	expectToEqual(g, len(list.Items), 1) // just `source`
 
-	t.Cleanup(func() { g.Expect(k8sClient.Delete(context.TODO(), ns)).To(Succeed()) })
+	t.Cleanup(func() { expectToSucceed(g, k8sClient.Delete(context.TODO(), ns)) })
 }

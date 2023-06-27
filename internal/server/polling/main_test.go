@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -57,20 +57,28 @@ var (
 // general, an individual test will want to create a namespace at its
 // start, use its name for any other objects it creates, and delete
 // the namespace afterward. Test_scaffold shows how to do this.
-func newNamespace(g Gomega) *corev1.Namespace {
+func newNamespace(g gomega.Gomega) *corev1.Namespace {
 	num := nscounter.Add(1)
 	name := fmt.Sprintf("test-ns-%d", num)
 	ns := corev1.Namespace{}
 	ns.SetName(name)
-	g.ExpectWithOffset(1, k8sClient.Create(context.TODO(), &ns)).To(Succeed())
+	g.ExpectWithOffset(1, k8sClient.Create(context.TODO(), &ns)).To(gomega.Succeed())
 	return &ns
+}
+
+func expectToSucceed(g gomega.Gomega, arg interface{}) {
+	g.ExpectWithOffset(1, arg).To(gomega.Succeed())
+}
+
+func expectToEqual(g gomega.Gomega, arg interface{}, expect interface{}) {
+	g.ExpectWithOffset(1, arg).To(gomega.Equal(expect))
 }
 
 // Minimal test to check the scaffolding works.
 func Test_scaffold(t *testing.T) {
-	g := NewWithT(t)
+	g := gomega.NewWithT(t)
 	ns := newNamespace(g)
 	// here is where you'd create some objects in the namespace, as
 	// part of your test case.
-	t.Cleanup(func() { g.Expect(k8sClient.Delete(context.TODO(), ns)).To(Succeed()) })
+	t.Cleanup(func() { expectToSucceed(g, k8sClient.Delete(context.TODO(), ns)) })
 }
