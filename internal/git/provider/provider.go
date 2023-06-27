@@ -5,13 +5,17 @@ import (
 
 	"github.com/go-logr/logr"
 	giturl "github.com/kubescape/go-git-url"
-	azureparserv1 "github.com/kubescape/go-git-url/azureparser/v1"
+	giturlapis "github.com/kubescape/go-git-url/apis"
 	"golang.org/x/net/context"
 )
 
+type ProviderType string
+
 const (
-	GitHubProviderName = "github"
-	AzureProviderName  = "azure"
+	ProviderGitHub    = ProviderType(giturlapis.ProviderGitHub)
+	ProviderGitlab    = ProviderType(giturlapis.ProviderGitLab)
+	ProviderBitbucket = ProviderType(giturlapis.ProviderBitBucket)
+	ProviderAzure     = ProviderType(giturlapis.ProviderAzure)
 )
 
 type Provider interface {
@@ -25,10 +29,10 @@ type Provider interface {
 	Setup() error
 }
 
-func New(provider string, options ...ProviderOption) (Provider, error) {
+func New(provider ProviderType, options ...ProviderOption) (Provider, error) {
 	var p Provider
 	switch provider {
-	case GitHubProviderName:
+	case ProviderGitHub:
 		p = newGitHubProvider()
 	default:
 		return nil, fmt.Errorf("unknown provider: %s", provider)
@@ -48,21 +52,21 @@ func New(provider string, options ...ProviderOption) (Provider, error) {
 }
 
 func FromURL(repoURL string, options ...ProviderOption) (Provider, Repository, error) {
-	targetProvider := ""
-	repo := Repository{}
-
 	gitURL, err := giturl.NewGitURL(repoURL)
 	if err != nil {
-		return nil, repo, fmt.Errorf("failed parsing repository url: %w", err)
+		return nil, Repository{}, fmt.Errorf("failed parsing repository url: %w", err)
 	}
 
-	targetProvider = gitURL.GetProvider()
-	repo.Org = gitURL.GetOwnerName()
-	repo.Name = gitURL.GetRepoName()
-
-	if targetProvider == AzureProviderName {
-		repo.Project = gitURL.(*azureparserv1.AzureURL).GetProjectName()
+	targetProvider := ProviderType(gitURL.GetProvider())
+	repo := Repository{
+		Org:  gitURL.GetOwnerName(),
+		Name: gitURL.GetRepoName(),
 	}
+
+	// Uncomment this when implementing Azure provider
+	// if targetProvider == ProviderAzure {
+	// 	repo.Project = gitURL.(*azureparserv1.AzureURL).GetProjectName()
+	// }
 
 	provider, err := New(targetProvider, options...)
 	if err != nil {
