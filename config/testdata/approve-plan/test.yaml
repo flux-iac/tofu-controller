@@ -7,6 +7,9 @@ spec:
   interval: 10s
   approvePlan: "auto"
   path: ./
+  vars:
+  - name: secret_subject
+    value: shhhh
   sourceRef:
     kind: GitRepository
     name: helloworld
@@ -19,6 +22,9 @@ spec:
   interval: 10s
   approvePlan: ""
   path: ./
+  vars:
+  - name: secret_subject
+    value: shhhh
   sourceRef:
     kind: GitRepository
     name: helloworld
@@ -31,6 +37,9 @@ spec:
   interval: 10s
   approvePlan: "auto"
   path: ./
+  vars:
+  - name: secret_subject
+    value: shhhh
   sourceRef:
     kind: OCIRepository
     name: helloworld-oci
