@@ -139,7 +139,7 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		return
 	}
 
-	gitProvider, err := provider.New("github")
+	gitProvider, err := provider.New(provider.ProviderGitHub)
 	if err != nil {
 		i.log.Error(err, "unable to get provider", "provider", "github")
 

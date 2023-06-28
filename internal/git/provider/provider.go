@@ -2,14 +2,21 @@ package provider
 
 import (
 	"fmt"
-	"net/url"
-	"strings"
 
 	"github.com/go-logr/logr"
+	giturl "github.com/kubescape/go-git-url"
+	giturlapis "github.com/kubescape/go-git-url/apis"
 	"golang.org/x/net/context"
 )
 
-const GitHubProviderName = "github"
+type ProviderType string
+
+const (
+	ProviderGitHub    = ProviderType(giturlapis.ProviderGitHub)
+	ProviderGitlab    = ProviderType(giturlapis.ProviderGitLab)
+	ProviderBitbucket = ProviderType(giturlapis.ProviderBitBucket)
+	ProviderAzure     = ProviderType(giturlapis.ProviderAzure)
+)
 
 type Provider interface {
 	ListPullRequests(ctx context.Context, repo Repository) ([]PullRequest, error)
@@ -22,10 +29,10 @@ type Provider interface {
 	Setup() error
 }
 
-func New(provider string, options ...ProviderOption) (Provider, error) {
+func New(provider ProviderType, options ...ProviderOption) (Provider, error) {
 	var p Provider
 	switch provider {
-	case GitHubProviderName:
+	case ProviderGitHub:
 		p = newGitHubProvider()
 	default:
 		return nil, fmt.Errorf("unknown provider: %s", provider)
@@ -45,31 +52,21 @@ func New(provider string, options ...ProviderOption) (Provider, error) {
 }
 
 func FromURL(repoURL string, options ...ProviderOption) (Provider, Repository, error) {
-	targetProvider := ""
-	repo := Repository{}
-
-	parsedURL, err := url.Parse(repoURL)
+	gitURL, err := giturl.NewGitURL(repoURL)
 	if err != nil {
-		return nil, repo, fmt.Errorf("unable to parse url: %w", err)
+		return nil, Repository{}, fmt.Errorf("failed parsing repository url: %w", err)
 	}
 
-	// That's a pretty naiv check for now.
-	// Use proper parsing later with a well tested library.
-	if parsedURL.Hostname() == "github.com" {
-		targetProvider = GitHubProviderName
-
-		parts := strings.Split(parsedURL.Path, "/")
-		if len(parts) != 3 {
-			return nil, repo, fmt.Errorf("invalid github repository url: %s", repoURL)
-		}
-
-		repo.Org = parts[1]
-		repo.Name = strings.TrimSuffix(parts[2], ".git")
+	targetProvider := ProviderType(gitURL.GetProvider())
+	repo := Repository{
+		Org:  gitURL.GetOwnerName(),
+		Name: gitURL.GetRepoName(),
 	}
 
-	if targetProvider == "" {
-		return nil, repo, fmt.Errorf("could not parse provider from url: %s", repoURL)
-	}
+	// Uncomment this when implementing Azure provider
+	// if targetProvider == ProviderAzure {
+	// 	repo.Project = gitURL.(*azureparserv1.AzureURL).GetProjectName()
+	// }
 
 	provider, err := New(targetProvider, options...)
 	if err != nil {
