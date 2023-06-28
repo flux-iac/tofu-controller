@@ -1,6 +1,6 @@
 # Overview
 
-TF-controller is an experimental controller for [Flux](https://fluxcd.io) to reconcile Terraform resources
+TF-controller is a reliable controller for [Flux](https://fluxcd.io) to reconcile Terraform resources
 in the GitOps way.
 With the power of Flux together with Terraform, TF-controller allows you to GitOps-ify infrastructure,
 and application resources, in the Kubernetes and Terraform universe, at your own pace.
