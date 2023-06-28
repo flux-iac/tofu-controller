@@ -10,6 +10,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 )
 
 const DefaultPollingInterval = time.Second * 30
@@ -88,6 +91,7 @@ func (s *Server) poll(ctx context.Context, resource types.NamespacedName, secret
 		provider.WithLogger(s.log),
 		provider.WithToken("api-token", string(secret.Data["token"])),
 	)
+
 	if err != nil {
 		return fmt.Errorf("failed to get git provider: %w", err)
 	}
@@ -97,9 +101,12 @@ func (s *Server) poll(ctx context.Context, resource types.NamespacedName, secret
 		return fmt.Errorf("failed to list pull requests: %w", err)
 	}
 
+	return s.reconcile(ctx, tf, source, prs)
+}
+
+func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, source *sourcev1.GitRepository, prs []provider.PullRequest) error {
 	for _, pr := range prs {
 		s.log.Info("pull request", "pr", pr)
 	}
-
 	return nil
 }
