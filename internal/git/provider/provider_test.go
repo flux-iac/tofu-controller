@@ -41,7 +41,7 @@ func TestFromURL(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		p, repo, err := provider.FromURL(testCase.url)
+		p, repo, err := provider.FromURL(testCase.url, provider.WithToken("api-token", "token"))
 
 		if testCase.shouldError {
 			assert.Error(t, err)
