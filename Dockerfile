@@ -28,11 +28,15 @@ COPY utils/ utils/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -gcflags=all="-N -l" -a -o tf-controller cmd/manager/main.go
 
-FROM alpine:3.16.5
+FROM alpine:3.18
 
 LABEL org.opencontainers.image.source="https://github.com/weaveworks/tf-controller"
 
-RUN apk add --no-cache ca-certificates tini git openssh-client gnupg && \
+RUN apk update
+
+RUN apk add --no-cache libcrypto3=3.1.1-r1 && \
+    apk add --no-cache libssl3=3.1.1-r1 && \
+    apk add --no-cache ca-certificates tini git openssh-client gnupg && \
     apk add --no-cache libretls && \
     apk add --no-cache busybox
 
