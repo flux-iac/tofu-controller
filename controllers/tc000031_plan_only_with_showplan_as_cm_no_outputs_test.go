@@ -142,7 +142,7 @@ func Test_000031_plan_only_with_showplan_as_cm_no_outputs_test(t *testing.T) {
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
-		"Pending": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"Pending": "plan-master-b8e362c206",
 	}))
 
 	It("should generate the Secret containing the plan named with branch and commit id.")
@@ -160,7 +160,7 @@ func Test_000031_plan_only_with_showplan_as_cm_no_outputs_test(t *testing.T) {
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":             "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"SavedPlan":             "plan-master-b8e362c206",
 		"TFPlanEmpty":           false,
 		"HasEncodingAnnotation": true,
 	}))
@@ -179,7 +179,7 @@ func Test_000031_plan_only_with_showplan_as_cm_no_outputs_test(t *testing.T) {
 			"TFPlan":    tfplanCM.Data["tfplan"],
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"SavedPlan": "plan-master-b8e362c206",
 		"TFPlan": `
 Changes to Outputs:
   + hello_world = "Hello, World!"

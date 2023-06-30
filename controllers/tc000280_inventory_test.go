@@ -177,7 +177,7 @@ func Test_000280_inventory_test(t *testing.T) {
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":             "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"SavedPlan":             "plan-master-b8e362c206",
 		"Is TFPlan empty ?":     false,
 		"HasEncodingAnnotation": true,
 	}))
@@ -203,7 +203,7 @@ func Test_000280_inventory_test(t *testing.T) {
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
-		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"LastAppliedPlan": "plan-master-b8e362c206",
 	}))
 	// TODO check Output condition
 

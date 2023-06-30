@@ -129,7 +129,7 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
-		"Pending": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"Pending": "plan-master-b8e362c206",
 		"Message": "Plan generated",
 	}))
 
@@ -147,7 +147,7 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":             "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"SavedPlan":             "plan-master-b8e362c206",
 		"TFPlanEmpty":           false,
 		"HasEncodingAnnotation": true,
 	}))
@@ -175,7 +175,7 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
-		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"LastAppliedPlan": "plan-master-b8e362c206",
 	}))
 	// TODO check Output condition
 
@@ -240,7 +240,7 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 			"TFPlanEmpty": string(tfplanSecret.Data["tfplan"]) == "",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":   "plan-master-ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
+		"SavedPlan":   "plan-master-ed22ced771",
 		"TFPlanEmpty": false,
 	}))
 
@@ -265,7 +265,7 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
-		"LastAppliedPlan": "plan-master-ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
+		"LastAppliedPlan": "plan-master-ed22ced771",
 		"Pending":         "",
 		"Message":         "Applied successfully",
 	}))

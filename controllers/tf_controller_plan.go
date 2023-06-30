@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
+	"github.com/weaveworks/tf-controller/api/planid"
 
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/runner"
@@ -137,7 +138,8 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 
 		// this is the manual mode, we fire the event to show how to apply the plan
 		if forceOrAutoApply == false {
-			_, approveMessage := infrav1.GetPlanIdAndApproveMessage(revision, "Plan generated")
+			planId := planid.GetPlanID(revision)
+			approveMessage := planid.GetApproveMessage(planId, "Plan generated")
 			msg := fmt.Sprintf("Planned.\n%s", approveMessage)
 			r.event(ctx, terraform, revision, eventv1.EventSeverityInfo, msg, nil)
 		}
