@@ -391,7 +391,12 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	traceLog.Info("Check for deletion timestamp to finalize")
 	if !terraform.ObjectMeta.DeletionTimestamp.IsZero() {
 		traceLog.Info("Calling finalize function")
-		if result, err := r.finalize(ctx, terraform, runnerClient, sourceObj, reconciliationLoopID); err != nil {
+		if terraform, result, err := r.finalize(ctx, terraform, runnerClient, sourceObj, reconciliationLoopID); err != nil {
+			traceLog.Info("Patch the status of the Terraform resource")
+			if patchErr := r.patchStatus(ctx, req.NamespacedName, terraform.Status); patchErr != nil {
+				log.Error(patchErr, "unable to update status after the finalize is complete")
+				return ctrl.Result{Requeue: true}, patchErr
+			}
 			return result, err
 		}
 	}
