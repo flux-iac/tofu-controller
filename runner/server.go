@@ -409,9 +409,11 @@ func (r *TerraformRunnerServer) LoadTFPlan(ctx context.Context, req *LoadTFPlanR
 		return nil, err
 	}
 
-	if tfplanSecret.Annotations[SavedPlanSecretAnnotation] != req.PendingPlan {
+	// this must be the short plan format: see api/planid/plan_id.go
+	pendingPlanId := req.PendingPlan
+	if tfplanSecret.Annotations[SavedPlanSecretAnnotation] != pendingPlanId {
 		err = fmt.Errorf("error pending plan and plan's name in the secret are not matched: %s != %s",
-			req.PendingPlan,
+			pendingPlanId,
 			tfplanSecret.Annotations[SavedPlanSecretAnnotation])
 		log.Error(err, "plan name mismatch")
 		return nil, err

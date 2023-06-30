@@ -25,6 +25,7 @@ import (
 
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"github.com/weaveworks/tf-controller/api/planid"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
@@ -607,20 +608,6 @@ func TerraformApplied(terraform Terraform, revision string, message string, isDe
 	return terraform
 }
 
-func GetPlanIdAndApproveMessage(revision string, message string) (string, string) {
-	planRev := strings.Replace(revision, "/", "-", 1)
-	planId := fmt.Sprintf("plan-%s", planRev)
-	shortPlanId := planId
-	parts := strings.SplitN(revision, "/", 2)
-	if len(parts) == 2 {
-		if len(parts[1]) >= 10 {
-			shortPlanId = fmt.Sprintf("plan-%s-%s", parts[0], parts[1][0:10])
-		}
-	}
-	approveMessage := fmt.Sprintf("%s: set approvePlan: \"%s\" to approve this plan.", message, shortPlanId)
-	return planId, approveMessage
-}
-
 func TerraformPostPlanningWebhookFailed(terraform Terraform, revision string, message string) Terraform {
 	newCondition := metav1.Condition{
 		Type:    ConditionTypePlan,
@@ -643,7 +630,8 @@ func TerraformPostPlanningWebhookFailed(terraform Terraform, revision string, me
 }
 
 func TerraformPlannedWithChanges(terraform Terraform, revision string, forceOrAutoApply bool, message string) Terraform {
-	planId, approveMessage := GetPlanIdAndApproveMessage(revision, message)
+	planId := planid.GetPlanID(revision)
+	approveMessage := planid.GetApproveMessage(planId, message)
 
 	newCondition := metav1.Condition{
 		Type:    ConditionTypePlan,
@@ -654,7 +642,7 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, forceOrAu
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
 	(&terraform).Status.Plan = PlanStatus{
 		LastApplied:          terraform.Status.Plan.LastApplied,
-		Pending:              planId,
+		Pending:              planId, // pending plan id is always the short plan format.
 		IsDestroyPlan:        terraform.Spec.Destroy,
 		IsDriftDetectionPlan: terraform.HasDrift(),
 	}

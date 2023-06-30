@@ -141,7 +141,7 @@ func Test_000030_plan_only_no_outputs_test(t *testing.T) {
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
-		"Pending": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"Pending": "plan-master-b8e362c206",
 	}))
 
 	time.Sleep(5 * time.Second)
@@ -184,7 +184,7 @@ func Test_000030_plan_only_no_outputs_test(t *testing.T) {
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":             "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"SavedPlan":             "plan-master-b8e362c206",
 		"TFPlanEmpty":           false,
 		"HasEncodingAnnotation": true,
 	}))

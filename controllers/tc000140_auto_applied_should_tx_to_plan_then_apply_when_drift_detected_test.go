@@ -174,7 +174,7 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":             "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"SavedPlan":             "plan-master-b8e362c206",
 		"Is TFPlan empty ?":     false,
 		"HasEncodingAnnotation": true,
 	}))
@@ -200,7 +200,7 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
-		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"LastAppliedPlan": "plan-master-b8e362c206",
 	}))
 	// TODO check Output condition
 
@@ -307,7 +307,7 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
-		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"LastAppliedPlan": "plan-master-b8e362c206",
 		"Pending":         "",
 		"Message":         "Applied successfully",
 	}))

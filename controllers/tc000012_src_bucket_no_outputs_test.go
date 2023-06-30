@@ -142,7 +142,7 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 	}))
 
 	It("should generate the Secret containing the plan named with the artifact revision")
-	By("checking that the Secret contains plan-822c3dd335579b435b5ada924d6f38b227412a5c in its labels.")
+	By("checking that the Secret contains plan-822c3dd335 in its labels.")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
 	tfplanSecret := corev1.Secret{}
 	g.Eventually(func() map[string]interface{} {
@@ -156,7 +156,7 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":             "plan-822c3dd335579b435b5ada924d6f38b227412a5c",
+		"SavedPlan":             "plan-822c3dd335",
 		"Is TFPlan empty ?":     false,
 		"HasEncodingAnnotation": true,
 	}))
@@ -183,7 +183,7 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
-		"LastAppliedPlan": "plan-822c3dd335579b435b5ada924d6f38b227412a5c",
+		"LastAppliedPlan": "plan-822c3dd335",
 	}))
 
 	It("should have an available output.")

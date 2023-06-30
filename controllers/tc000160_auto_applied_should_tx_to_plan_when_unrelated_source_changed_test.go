@@ -168,7 +168,7 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 	}, timeout, interval).Should(Equal(map[string]interface{}{
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
-		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"LastAppliedPlan": "plan-master-b8e362c206",
 	}))
 
 	By("checking that the config map payload got created.")
@@ -221,7 +221,7 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":             "plan-master-ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
+		"SavedPlan":             "plan-master-ed22ced771",
 		"TFPlanEmpty":           false,
 		"HasEncodingAnnotation": true,
 	}))
@@ -253,7 +253,7 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 		"LastAppliedRevision":   "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 		"LastAttemptedRevision": "master/ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
 		"LastPlannedRevision":   "master/ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
-		"LastAppliedPlan":       "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"LastAppliedPlan":       "plan-master-b8e362c206",
 		"Pending":               "",
 		"Message":               "Plan no changes",
 	}))
