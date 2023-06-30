@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
-	"strings"
 
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/tf-controller/api/planid"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/utils"
 	"k8s.io/api/core/v1"
@@ -40,9 +40,9 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 		}
 	}
 
-	planRev := strings.Replace(req.Revision, "/", "-", 1)
-	planName := "plan-" + planRev
-	if err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, log, planName, tfplan, "", req.Uuid); err != nil {
+	// planid must be the short plan id format
+	planId := planid.GetPlanID(req.Revision)
+	if err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, log, planId, tfplan, "", req.Uuid); err != nil {
 		return nil, err
 	}
 
@@ -58,7 +58,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 			return nil, err
 		}
 
-		if err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, log, planName, jsonBytes, ".json", req.Uuid); err != nil {
+		if err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, log, planId, jsonBytes, ".json", req.Uuid); err != nil {
 			return nil, err
 		}
 
@@ -69,7 +69,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 			return nil, err
 		}
 
-		if err := r.writePlanAsConfigMap(ctx, req.Name, req.Namespace, log, planName, rawOutput, "", req.Uuid); err != nil {
+		if err := r.writePlanAsConfigMap(ctx, req.Name, req.Namespace, log, planId, rawOutput, "", req.Uuid); err != nil {
 			return nil, err
 		}
 	}
@@ -77,7 +77,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 	return &SaveTFPlanReply{Message: "ok"}, nil
 }
 
-func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name string, namespace string, log logr.Logger, planName string, tfplan []byte, suffix string, uuid string) error {
+func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name string, namespace string, log logr.Logger, planId string, tfplan []byte, suffix string, uuid string) error {
 	secretName := "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix
 	tfplanObjectKey := types.NamespacedName{Name: secretName, Namespace: namespace}
 	var tfplanSecret v1.Secret
@@ -103,7 +103,7 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 
 	tfplan, err := utils.GzipEncode(tfplan)
 	if err != nil {
-		log.Error(err, "unable to encode the plan revision", "planName", planName)
+		log.Error(err, "unable to encode the plan revision", "planId", planId)
 		return err
 	}
 
@@ -118,7 +118,7 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 			Namespace: namespace,
 			Annotations: map[string]string{
 				"encoding":                "gzip",
-				SavedPlanSecretAnnotation: planName,
+				SavedPlanSecretAnnotation: planId,
 			},
 			OwnerReferences: []metav1.OwnerReference{
 				{
@@ -142,7 +142,7 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 	return nil
 }
 
-func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name string, namespace string, log logr.Logger, planName string, tfplan string, suffix string, uuid string) error {
+func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name string, namespace string, log logr.Logger, planId string, tfplan string, suffix string, uuid string) error {
 	configMapName := "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix
 	tfplanObjectKey := types.NamespacedName{Name: configMapName, Namespace: namespace}
 	var tfplanCM v1.ConfigMap
@@ -176,7 +176,7 @@ func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name s
 			Name:      configMapName,
 			Namespace: namespace,
 			Annotations: map[string]string{
-				SavedPlanSecretAnnotation: planName,
+				SavedPlanSecretAnnotation: planId,
 			},
 			OwnerReferences: []metav1.OwnerReference{
 				{
