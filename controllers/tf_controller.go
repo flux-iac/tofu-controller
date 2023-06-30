@@ -450,17 +450,6 @@ func isBeingDeleted(terraform infrav1.Terraform) bool {
 	return !terraform.ObjectMeta.DeletionTimestamp.IsZero()
 }
 
-// Revision is in main/abcdefabcdefabcdefabcdefabcdefabcdefabcdef format
-// We want to return main/abcdefa
-func shortRev(revision string) string {
-	const maxLength = 8
-	if strings.Contains(revision, "/") {
-		return revision[:strings.Index(revision, "/")+maxLength]
-	} else {
-		return revision[:maxLength]
-	}
-}
-
 // SetupWithManager sets up the controller with the Manager.
 func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentReconciles int, httpRetry int) error {
 	// Index the Terraforms by the GitRepository references they (may) point at.
