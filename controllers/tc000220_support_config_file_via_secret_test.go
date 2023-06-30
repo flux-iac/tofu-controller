@@ -177,7 +177,7 @@ credentials "app.terraform.io" {
 			"Is TFPlan empty ?": string(tfplanSecret.Data["tfplan"]) == "",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":         "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"SavedPlan":         "plan-master-b8e362c206",
 		"Is TFPlan empty ?": false,
 	}))
 
@@ -203,7 +203,7 @@ credentials "app.terraform.io" {
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
-		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"LastAppliedPlan": "plan-master-b8e362c206",
 	}))
 
 	g.Expect(k8sClient.Get(ctx, helloWorldTFKey, &helloWorldTF)).Should(Succeed())
@@ -231,7 +231,7 @@ credentials "app.terraform.io" {
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
-		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"LastAppliedPlan": "plan-master-b8e362c206",
 		"IsDestroy":       true,
 	}))
 

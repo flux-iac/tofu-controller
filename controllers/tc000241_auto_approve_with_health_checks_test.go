@@ -150,7 +150,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
-		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"LastAppliedPlan": "plan-master-b8e362c206",
 	}))
 
 	By("checking that we have outputs available in the TF object")

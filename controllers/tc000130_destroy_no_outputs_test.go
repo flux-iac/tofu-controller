@@ -182,7 +182,7 @@ func Test_000130_destroy_no_outputs_test(t *testing.T) {
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
 		}
 	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"SavedPlan":             "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"SavedPlan":             "plan-master-b8e362c206",
 		"Is TFPlan empty ?":     false,
 		"HasEncodingAnnotation": true,
 	}))
@@ -209,7 +209,7 @@ func Test_000130_destroy_no_outputs_test(t *testing.T) {
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
-		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"LastAppliedPlan": "plan-master-b8e362c206",
 		"Destroy?":        false,
 	}))
 	// TODO check Output condition
@@ -278,7 +278,7 @@ func Test_000130_destroy_no_outputs_test(t *testing.T) {
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Destroy applied successfully",
-		"LastAppliedPlan": "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+		"LastAppliedPlan": "plan-master-b8e362c206",
 		"Destroy?":        true,
 	}))
 

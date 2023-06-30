@@ -126,7 +126,7 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 	}, timeout*3, interval).ShouldNot(BeZero())
 
 	Given("the plan id is the `plan` plus the branch name (master) plus the commit id.")
-	const planId = "plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb"
+	const planId = "plan-master-b8e362c206"
 
 	By("checking that the planned status of the TF is created successfully.")
 	By("checking the reason is `TerraformPlannedWithChanges`.")
