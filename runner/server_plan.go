@@ -1,10 +1,14 @@
 package runner
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"os"
+	"strings"
 
 	"github.com/hashicorp/terraform-exec/tfexec"
 	tfjson "github.com/hashicorp/terraform-json"
@@ -36,6 +40,54 @@ func (r *TerraformRunnerServer) tfShowPlanFileRaw(ctx context.Context, planPath 
 	defer r.initLogger(log)
 
 	return r.tf.ShowPlanFileRaw(ctx, planPath, opts...)
+}
+
+func sanitizeLog(log string) string {
+	lines := strings.Split(log, "\n")
+	for i := 0; i < len(lines); i++ {
+		if strings.Contains(lines[i], "on generated.auto.tfvars.json line") {
+			if i+1 < len(lines) {
+				// Extract the JSON part after the line number
+				parts := strings.SplitN(lines[i+1], ": ", 2)
+				if len(parts) < 2 {
+					continue
+				}
+				var jsonObj map[string]interface{}
+				if err := json.Unmarshal([]byte(parts[1]), &jsonObj); err != nil {
+					continue
+				}
+				for key := range jsonObj {
+					jsonObj[key] = "***"
+				}
+				sanitizedJson, err := json.Marshal(jsonObj)
+				if err != nil {
+					continue
+				}
+				lines[i+1] = parts[0] + ": " + string(sanitizedJson)
+			}
+		}
+	}
+
+	return strings.Join(lines, "\n")
+}
+
+func (r *TerraformRunnerServer) tfPlan(ctx context.Context, opts ...tfexec.PlanOption) (bool, error) {
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
+
+	// This is the only place where we disable the logger
+	r.tf.SetStdout(io.Discard)
+	errBuf := &bytes.Buffer{}
+	r.tf.SetStderr(errBuf)
+
+	defer r.initLogger(log)
+
+	diff, err := r.tf.Plan(ctx, opts...)
+	if err != nil {
+		fmt.Fprint(os.Stderr, sanitizeLog(errBuf.String()))
+		err = errors.New(sanitizeLog(err.Error()))
+	}
+
+	return diff, err
 }
 
 func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*PlanReply, error) {
@@ -76,7 +128,7 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 		planOpt = append(planOpt, tfexec.Target(target))
 	}
 
-	drifted, err := r.tf.Plan(ctx, planOpt...)
+	drifted, err := r.tfPlan(ctx, planOpt...)
 	if err != nil {
 		st := status.New(codes.Internal, err.Error())
 		var stateErr *tfexec.ErrStateLocked
