@@ -32,10 +32,7 @@ archives:
   - id: tfctl
     builds:
       - tfctl
-    name_template: "tfctl_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
-    replacements:
-      darwin: Darwin
-      linux: Linux
+    name_template: "tfctl_{{ title .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
     format: tar.gz
 
 source:
