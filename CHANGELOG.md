@@ -9,50 +9,50 @@ All notable changes of this project are documented in this file.
 This is the last release candidate for v0.15.0.  We'll release v0.15.0 in the next release.
 
 Breaking changes:
-    * Upgrade Flux to v2.0.0-rc.5 (@chanwit)
+   * Upgrade Flux to v2.0.0-rc.5 (@chanwit)
 
 New Features and Bug Fixing:
-    * Honor pod grace period seconds in case of the controller restarting (@chanwit)
-    * Add planOnly mode (@yitsushi) 
-    * Add finalizer to a dependency only if object is not being deleted (@chanwit)
-    * Add --no-cross-namespace-refs to the tf-controller / the lockdown mode (@squaremo)
-    * Fix force-unlock in the object deletion path (@mmeha)
-    * Pending plan not equal plan id in the plan storage (@chanwit)
-    * Add plan log sanitization (@chanwit)
+   * Honor pod grace period seconds in case of the controller restarting (@chanwit)
+   * Add planOnly mode (@yitsushi) 
+   * Add finalizer to a dependency only if object is not being deleted (@chanwit)
+   * Add --no-cross-namespace-refs to the tf-controller / the lockdown mode (@squaremo)
+   * Fix force-unlock in the object deletion path (@mmeha)
+   * Pending plan not equal plan id in the plan storage (@chanwit)
+   * Add plan log sanitization (@chanwit)
 
 # v0.15.0-rc.5
 
 New Features and Bug Fixing:
-    * Fix logging in tf-runner (@chanwit)
-    * Fix broken metrics due to the Flux v2 upgrade (@chanwit)
-    * Upgrade Alpine to v3.18 (@chanwit)
-    * Fix logging in terraform output (@chanwit)
+   * Fix logging in tf-runner (@chanwit)
+   * Fix broken metrics due to the Flux v2 upgrade (@chanwit)
+   * Upgrade Alpine to v3.18 (@chanwit)
+   * Fix logging in terraform output (@chanwit)
 
 # v0.15.0-rc.4
 
 New Features and Bug Fixing:
-    * Upgrade Flux to v2.0.0-rc.4 (@chanwit)
+   * Upgrade Flux to v2.0.0-rc.4 (@chanwit)
 
 # v0.15.0-rc.3
 
 New Features and Bug Fixing:
-    * Allow passing cluster domain (default is cluster.local) (@chanwit)
-    * Add host aliases to the runner pod template (@chanwit)
+   * Allow passing cluster domain (default is cluster.local) (@chanwit)
+   * Add host aliases to the runner pod template (@chanwit)
 
 # v0.15.0-rc.2
 
 New Features and Bug Fixing:
-    * Update Flux APIs and use OCI HelmRepository (@stefanprodan)
-    * Fix the case of no resources to destroy (@chanwit)
-    * Change the default retryInterval to 15s (@chanwit)
-    * Fix regression when output plan is blank (@chanwit)
-    * Implement garbage collection for old cert secrets (@chanwit)
-    * Add labels and annotations to outputted secrets (@scott-david-walker)
-    * Fix instance label (@luizbafilho)
-    * Change output type suffix to __type (@luizbafilho)
-    * Implement break-the-glass mode (@chanwit)
-    * Support renaming keys in varsFrom (@chanwit)
-    * Support multiple version of Terraform Runners (@chanwit)
+   * Update Flux APIs and use OCI HelmRepository (@stefanprodan)
+   * Fix the case of no resources to destroy (@chanwit)
+   * Change the default retryInterval to 15s (@chanwit)
+   * Fix regression when output plan is blank (@chanwit)
+   * Implement garbage collection for old cert secrets (@chanwit)
+   * Add labels and annotations to outputted secrets (@scott-david-walker)
+   * Fix instance label (@luizbafilho)
+   * Change output type suffix to __type (@luizbafilho)
+   * Implement break-the-glass mode (@chanwit)
+   * Support renaming keys in varsFrom (@chanwit)
+   * Support multiple version of Terraform Runners (@chanwit)
 
 # v0.15.0-rc.1
 
