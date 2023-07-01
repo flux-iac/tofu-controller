@@ -8,7 +8,7 @@ spec:
   interval: 30s
   url: https://github.com/tf-controller/helloworld
   ref:
-    branch: main
+    branch: dev
 ---
 apiVersion: v1
 kind: Secret
@@ -33,6 +33,9 @@ spec:
     kind: GitRepository
     name: helloworld
     namespace: flux-system
+  vars:
+  - name: secret_subject
+    value: "test-"
   varsFrom:
   - kind: Secret
     name: helloworld-tf
