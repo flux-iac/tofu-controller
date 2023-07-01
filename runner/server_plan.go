@@ -82,7 +82,9 @@ func (r *TerraformRunnerServer) tfPlan(ctx context.Context, opts ...tfexec.PlanO
 	defer r.initLogger(log)
 
 	diff, err := r.tf.Plan(ctx, opts...)
-	if err != nil {
+	// sanitize the error message only if it's not a state lock error
+	var sl *tfexec.ErrStateLocked
+	if err != nil && errors.As(err, &sl) == false {
 		fmt.Fprint(os.Stderr, sanitizeLog(errBuf.String()))
 		err = errors.New(sanitizeLog(err.Error()))
 	}
