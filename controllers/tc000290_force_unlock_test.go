@@ -18,7 +18,7 @@ import (
 )
 
 func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
-	Spec("This spec describes the behaviour of a Terraform resource with inventory enabled.")
+	Spec("This spec describes the behaviour of a Terraform resource with force unlock.")
 	It("should be reconciled successfully with a set of inventory entries shown in the status.")
 
 	const (
@@ -628,7 +628,6 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
 
 	It("should be created")
 	By("checking that the hello world TF got created")
@@ -767,4 +766,6 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 		"LockIdentifier": "",
 		"ForceUnlock":    infrav1.ForceUnlockEnumAuto,
 	}))
+
+	defer func() { g.Expect(k8sClient.Delete(ctx, &createdHelloWorldTF)).Should(Succeed()) }()
 }
