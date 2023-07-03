@@ -11,7 +11,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.17">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
     
     
       
@@ -340,6 +340,28 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#define-the-terraform-object" class="md-nav__link">
+    Define the Terraform object
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#view-the-approval-message" class="md-nav__link">
+    View the approval message
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -357,8 +379,24 @@
 
 
 <h1 id="use-tf-controller-to-plan-and-manually-apply-terraform-resources">Use TF-controller to plan and manually apply Terraform resources</h1>
+<p>In this guide, we will walk through the steps of using TF-controller to plan and
+manually apply Terraform resources.</p>
+<p>We will start by creating the <code>Terraform</code> object and specifying the necessary fields,
+including the <code>approvePlan</code> field.</p>
+<p>We will then create the <code>GitRepository</code> object,
+which points to the Git repository containing the Terraform configuration.</p>
+<p>Once these objects are created, we will use kubectl to obtain the <code>approvePlan</code> value
+and set it in the <code>Terraform</code> object. After making our changes and pushing them to the Git repository,
+TF-controller will apply the plan and create the real resources.</p>
+<h2 id="define-the-terraform-object">Define the Terraform object</h2>
 <p>Assume that you have a <code>GitRepository</code> object named <code>helloworld</code> pointing to a Git repository, and you want to plan and apply the Terraform resources under <code>./</code> of that Git repo.</p>
-<p>For the plan &amp; manual approval workflow, please start by either setting <code>.spec.approvePlan</code> to be the blank value, or omitting the field.</p>
+<p>For the plan &amp; manual approval workflow, please start by either setting <code>.spec.approvePlan</code> to be the blank value, or omitting the field. This will tell TF-controller to use the plan &amp; manual approval workflow, rather than the auto-apply workflow.
+If you want to use the auto-apply workflow, you will need to set the <code>spec.approvePlan</code> field to "auto".</p>
+<p>In addition to setting the <code>spec.approvePlan</code> field, you will also need to specify the <code>interval</code>, <code>path</code>,
+and <code>sourceRef</code> fields in the spec field.
+The <code>interval</code> field determines how often TF-controller will run the Terraform configuration,
+the <code>path</code> field specifies the location of the configuration files,
+and the <code>sourceRef</code> field points to the GitRepository object.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha1</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Terraform</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">metadata</span><span class="p">:</span>
@@ -373,11 +411,19 @@
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">helloworld</span>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-system</span>
 </code></pre></div>
+<h2 id="view-the-approval-message">View the approval message</h2>
 <p>Then after a reconciliation loop, the controller will generate a plan, and tell you how to use field <code>.spec.approvePlan</code> to approve the plan.
 You can run the following command to obtain that message.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>flux-system<span class="w"> </span>get<span class="w"> </span>tf/helloworld
 </code></pre></div>
-<p>After making change and push, it will apply the plan to create real resources.</p>
+<p>This command will output the message containing the approvePlan value
+that you will need to use to approve the plan.
+Once you have this value, you can edit the Terraform object file, and set the <code>spec.approvePlan</code> field
+to the value obtained from the message.</p>
+<p>After making your changes and pushing them to the Git repository,
+TF-controller will apply the plan and create the real resources.
+This process is known as the plan &amp; manual approval workflow,
+as it involves generating a plan and requiring manual approval before the changes are applied.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha1</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Terraform</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nt">metadata</span><span class="p">:</span>
@@ -429,10 +475,10 @@ You can run the following command to obtain that message.</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.annotate"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.annotate"], "search": "../../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.b425cdc4.min.js"></script>
+      <script src="../../assets/javascripts/bundle.220ee61c.min.js"></script>
       
     
   </body>

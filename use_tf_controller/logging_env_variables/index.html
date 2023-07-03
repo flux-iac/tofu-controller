@@ -15,7 +15,7 @@
     
     
       
-        <title>To detect drifts only without plan or apply - Weave GitOps Terraform Controller</title>
+        <title>Logging Env Variables - Weave GitOps Terraform Controller</title>
       
     
     
@@ -67,7 +67,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#use-tf-controller-to-detect-drifts-only-without-plan-or-apply" class="md-skip">
+        <a href="#logging-env-variables" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              To detect drifts only without plan or apply
+              Logging Env Variables
             
           </span>
         </div>
@@ -337,21 +337,8 @@
   
   
   
+    
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#use-tf-controller-to-detect-drifts-only-without-plan-or-apply" class="md-nav__link">
-    Use TF-controller to detect drifts only without plan or apply
-  </a>
-  
-</li>
-      
-    </ul>
   
 </nav>
                   </div>
@@ -369,24 +356,18 @@
   
 
 
-  <h1>To detect drifts only without plan or apply</h1>
-
-<h2 id="use-tf-controller-to-detect-drifts-only-without-plan-or-apply">Use TF-controller to detect drifts only without plan or apply</h2>
-<p>We can set <code>.spec.approvePlan</code> to <code>disable</code> to tell the controller to detect drifts of your Terraform resources only. Doing so will skip the <code>plan</code> and <code>apply</code> stages.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha1</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Terraform</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">metadata</span><span class="p">:</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hello-world</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-system</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nt">spec</span><span class="p">:</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="hll"><span class="w">  </span><span class="nt">approvePlan</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">disable</span>
-</span><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1m</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="nt">sourceRef</span><span class="p">:</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GitRepository</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">helloworld</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-system</span>
-</code></pre></div>
+<h1 id="logging-env-variables">Logging Env Variables</h1>
+<p>A Terraform Runner uses two environment variables, <code>DISABLE_TF_LOGS</code> and <code>ENABLE_SENSITIVE_TF_LOGS</code>, to control the logging behavior of the Terraform execution.</p>
+<p>To use these environment variables, they need to be set on each Terraform Runner pod where the Terraform code is being executed.
+This can typically be done by adding them to the pod's environment variables in the Terraform Runner deployment configuration.</p>
+<ul>
+<li>The <code>DISABLE_TF_LOGS</code> variable, when set to "1", will disable all Terraform output logs to stdout and stderr.</li>
+<li>The <code>ENABLE_SENSITIVE_TF_LOGS</code> variable, when set to "1", will enable logging of sensitive Terraform data,
+such as secret variables, to the local log. However, it is important to note that for the <code>ENABLE_SENSITIVE_TF_LOGS</code> to take effect,
+the <code>DISABLE_TF_LOGS</code> variable must also be set to "1".</li>
+</ul>
+<p>For more information on configuring the Terraform Runner and its environment variables,
+please consult the documentation on <a href="https://github.com/weaveworks/tf-controller/blob/main/docs/use_tf_controller/to_provision_resources_with_customized_Runner_Pods.md">customizing runners</a> within the Weave TF-controller.</p>
 
 
 
