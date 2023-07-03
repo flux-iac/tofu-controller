@@ -14,6 +14,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
