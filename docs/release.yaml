@@ -6,7 +6,8 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1h0s
-  url: https://weaveworks.github.io/tf-controller/
+  type: oci
+  url: oci://ghcr.io/weaveworks/charts
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
@@ -20,16 +21,20 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: tf-controller
-      version: '>=0.11.0'
+      version: '>=0.15.0'
   interval: 1h0s
   releaseName: tf-controller
   targetNamespace: flux-system
   install:
     crds: Create
+    remediation:
+      retries: -1
   upgrade:
     crds: CreateReplace
+    remediation:
+      retries: -1
   values:
-    replicaCount: 1
+    replicaCount: 3
     concurrency: 24
     resources:
       limits:
@@ -41,10 +46,9 @@ spec:
     caCertValidityDuration: 24h
     certRotationCheckFrequency: 30m
     image:
-      tag: v0.14.0
+      tag: v0.15.0
     runner:
       image:
-        tag: v0.14.0
-    awsPackage:
-      install: true
-      tag: v4.38.0-v1alpha11
+        tag: v0.15.0
+      grpc:
+        maxMessageSize: 30
