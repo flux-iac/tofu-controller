@@ -15,7 +15,7 @@
     
     
       
-        <title>Logging Env Variables - Weave GitOps Terraform Controller</title>
+        <title>Break the glass - Weave GitOps Terraform Controller</title>
       
     
     
@@ -67,7 +67,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#logging-env-variables" class="md-skip">
+        <a href="#break-the-glass" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Logging Env Variables
+              Break the glass
             
           </span>
         </div>
@@ -268,7 +268,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+      <a href="../../use_tf_controller/" class="md-nav__link">
         Use TF-controller
       </a>
     </li>
@@ -283,7 +283,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../how_to/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         How to
       </a>
     </li>
@@ -340,6 +340,35 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-break-the-glass" class="md-nav__link">
+    What is break the glass?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-tfctl-to-break-the-glass" class="md-nav__link">
+    Using tfctl to Break the Glass
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#break-the-glass-with-specbreaktheglass-field" class="md-nav__link">
+    Break the glass with spec.breakTheGlass field
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -356,18 +385,43 @@
   
 
 
-<h1 id="logging-env-variables">Logging Env Variables</h1>
-<p>A Terraform Runner uses two environment variables, <code>DISABLE_TF_LOGS</code> and <code>ENABLE_SENSITIVE_TF_LOGS</code>, to control the logging behavior of the Terraform execution.</p>
-<p>To use these environment variables, they need to be set on each Terraform Runner pod where the Terraform code is being executed.
-This can typically be done by adding them to the pod's environment variables in the Terraform Runner deployment configuration.</p>
-<ul>
-<li>The <code>DISABLE_TF_LOGS</code> variable, when set to "1", will disable all Terraform output logs to stdout and stderr.</li>
-<li>The <code>ENABLE_SENSITIVE_TF_LOGS</code> variable, when set to "1", will enable logging of sensitive Terraform data,
-such as secret variables, to the local log. However, it is important to note that for the <code>ENABLE_SENSITIVE_TF_LOGS</code> to take effect,
-the <code>DISABLE_TF_LOGS</code> variable must also be set to "1".</li>
-</ul>
-<p>For more information on configuring the Terraform Runner and its environment variables,
-please consult the documentation on <a href="https://github.com/weaveworks/tf-controller/blob/main/docs/use_tf_controller/to_provision_resources_with_customized_Runner_Pods.md">customizing runners</a> within the Weave TF-controller.</p>
+<h1 id="break-the-glass">Break the glass</h1>
+<h2 id="what-is-break-the-glass">What is break the glass?</h2>
+<p>"Break the glass" refers to a troubleshooting mode specifically designed
+to provide a manual solution when the Terraform controller (TF-controller) 
+is not performing as expected. There are two primary methods of initiating this mode:</p>
+<ol>
+<li>Using the <code>tfctl</code> command-line tool.</li>
+<li>Setting the <code>spec.breakTheGlass</code> field to <code>true</code> in the Terraform object.</li>
+</ol>
+<h2 id="using-tfctl-to-break-the-glass">Using <code>tfctl</code> to Break the Glass</h2>
+<p>To start a one-time troubleshooting session, you can use the <code>tfctl break-glass</code> command. For instance:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>tfctl<span class="w"> </span><span class="k">break</span>-glass<span class="w"> </span>hello-world
+</code></pre></div>
+<p>This command initiates a session that allows you to execute any Terraform command
+to rectify the issues with your Terraform resources. It is noteworthy that this command
+does not require setting the <code>spec.breakTheGlass</code> field to <code>true</code> in the Terraform object.</p>
+<p>After resolving the issues, you can simply exit the shell. 
+GitOps will then continue to reconcile the Terraform object.</p>
+<h2 id="break-the-glass-with-specbreaktheglass-field">Break the glass with <code>spec.breakTheGlass</code> field</h2>
+<p>This feature is particularly useful for troubleshooting Terraform objects at their initialization stage or in situations with unexpected errors.
+It is generally not recommended to use this mode routinely for fixing Terraform resources.</p>
+<p>You can enable the 'Break the Glass' feature for every reconciliation by setting the <code>breakTheGlass</code> field to <code>true</code> in the <code>spec</code> of the Terraform object.</p>
+<p>Here is a sample example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha2</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Terraform</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hello-world</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-system</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="nt">breakTheGlass</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1m</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="nt">sourceRef</span><span class="p">:</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GitRepository</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">helloworld</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-system</span>
+</code></pre></div>
 
 
 

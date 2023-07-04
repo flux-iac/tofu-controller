@@ -390,7 +390,7 @@
 <p>In some situations, it is needed to add custom labels and annotations to the runner pod used to reconcile Terraform.
 For example, for Azure AKS to grant pod active directory permissions using Azure Active Directory (AAD) Pod Identity,
 a label like <code>aadpodidbinding: myIdentity</code> on the pod is required.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha1</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha2</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Terraform</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">metadata</span><span class="p">:</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">helloworld</span>
@@ -412,7 +412,7 @@ a label like <code>aadpodidbinding: myIdentity</code> on the pod is required.</p
 </code></pre></div>
 <h2 id="customize-runner-pod-image">Customize Runner Pod Image</h2>
 <p>By default, the Terraform controller uses <code>RUNNER_POD_IMAGE</code> environment variable to identify the Runner Pod's image to use. You can customize the image on the global level by updating the value of the environment variable or, you can specify an image to use per Terraform object for its reconciliation.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha1</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha2</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Terraform</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">metadata</span><span class="p">:</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">helloworld</span>
@@ -432,7 +432,7 @@ a label like <code>aadpodidbinding: myIdentity</code> on the pod is required.</p
 <p>You can use <a href="https://github.com/weaveworks/tf-controller/blob/main/runner.Dockerfile"><code>runner.Dockerfile</code></a> as a basis of customizing runner pod image.</p>
 <h2 id="customize-runner-pod-specifications">Customize Runner Pod Specifications</h2>
 <p>You can also customize various Runner Pod <code>spec</code> fields to control and configure how the Runner Pod runs. 
-For example, you can configure Runner Pod <code>spec</code> affinity and tolerations if you need to run in on a specific set of nodes. Please see <a href="https://weaveworks.github.io/tf-controller/References/terraform/#infra.contrib.fluxcd.io/v1alpha1.RunnerPodSpec">RunnerPodSpec</a> for a list of the configurable Runner Pod <code>spec</code> fields.</p>
+For example, you can configure Runner Pod <code>spec</code> affinity and tolerations if you need to run in on a specific set of nodes. Please see <a href="https://weaveworks.github.io/tf-controller/References/terraform/#infra.contrib.fluxcd.io/v1alpha2.RunnerPodSpec">RunnerPodSpec</a> for a list of the configurable Runner Pod <code>spec</code> fields.</p>
 
 
 

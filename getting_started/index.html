@@ -502,7 +502,8 @@
 <h2 id="preflight-checks">Preflight Checks</h2>
 <p>Here are the requirements you need to set up before you start:</p>
 <ol>
-<li>Flux v0.32.0 or later (not only the CLI, but also the controllers on the cluster). If you are not sure about the Flux version on your cluster, please re-bootstrap your cluster.</li>
+<li>For Terraform Controller <strong>v0.15+</strong>, it requires <strong>Flux v2.0</strong> or later (not only the CLI, but also the controllers on the cluster). If you are not sure about the Flux version on your cluster, please re-bootstrap your cluster.</li>
+<li>For Terraform Controller v0.13 and v0.14, Flux 2 v0.32 - v0.41 (of course, not only the CLI, but also the controllers on the cluster).</li>
 <li>TF-controller uses <strong>the Controller/Runner architecture</strong>. The Controller acts as a client, and talks to each Runner's Pod via gRPC. Please make sure <ol>
 <li><strong>Each Runner's Pod in each Namespace</strong> is allowed to open, and serve at <strong>port 30000</strong> (the gRPC port of a Runner), and the Controller can connect to it.</li>
 <li><strong>The Controller</strong> needs to download tar.gz BLOBs from the <strong>Source controller</strong> via <strong>port 80</strong>.</li>
@@ -512,7 +513,7 @@
 </ol>
 <h2 id="installation">Installation</h2>
 <p>Before using TF-controller, you have to install Flux by using either <code>flux install</code> or <code>flux bootstrap</code> command.
-Please note that TF-controller now requires <strong>Flux v0.32.0</strong> or later, so please make sure you have the latest version of Flux.
+Please note that TF-controller now requires <strong>Flux v2.0</strong> or later, so please make sure you have the latest version of Flux.
 After that you can install TF-controller with Flux HelmRelease by:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml
 </code></pre></div>
@@ -530,7 +531,7 @@ After that you can install TF-controller with Flux HelmRelease by:</p>
 <p>For details on configurable parameters of the TF-controller chart,
 please see <a href="https://github.com/weaveworks/tf-controller/tree/main/charts/tf-controller#tf-controller-for-flux">chart readme</a>.</p>
 <p>Alternatively, you can install TF-controller via <code>kubectl</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">TF_CON_VER</span><span class="o">=</span>v0.13.1
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">TF_CON_VER</span><span class="o">=</span>v0.15.0
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://github.com/weaveworks/tf-controller/releases/download/<span class="si">${</span><span class="nv">TF_CON_VER</span><span class="si">}</span>/tf-controller.crds.yaml
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://github.com/weaveworks/tf-controller/releases/download/<span class="si">${</span><span class="nv">TF_CON_VER</span><span class="si">}</span>/tf-controller.rbac.yaml
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://github.com/weaveworks/tf-controller/releases/download/<span class="si">${</span><span class="nv">TF_CON_VER</span><span class="si">}</span>/tf-controller.deployment.yaml
@@ -553,7 +554,7 @@ please see <a href="https://github.com/weaveworks/tf-controller/tree/main/charts
 <h3 id="the-gitops-automation-mode">The GitOps Automation mode</h3>
 <p>The GitOps automation mode could be enabled by setting <code>.spec.approvePlan=auto</code>. In this mode, Terraform resources will be planned,
 and automatically applied for you.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha1</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha2</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Terraform</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nt">metadata</span><span class="p">:</span>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">helloworld</span>
