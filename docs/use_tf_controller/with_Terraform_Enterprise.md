@@ -53,7 +53,7 @@ In your Terraform object, you'll have to 1. disable the backend by setting `spec
 
 ```yaml hl_lines="10-14"
 ---
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: tfe-demo

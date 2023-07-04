@@ -30,7 +30,7 @@ spec:
   ref:
     tag: main
 ---
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld-tf-oci

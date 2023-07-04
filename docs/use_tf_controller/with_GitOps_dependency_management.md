@@ -23,7 +23,7 @@ It is configured to use the `auto-apply` mode, and write outputs to the secret `
 
 ```yaml hl_lines="20-24"
 ---
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: aws-s3-bucket
@@ -68,7 +68,7 @@ Please note that we use `${{` and  `}}` as the delimiters for the variable name,
 
 ```yaml hl_lines="11 18 20-21"
 ---
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: aws-s3-bucket-acl
@@ -102,7 +102,7 @@ To avoid this, we need to add the `kustomize.toolkit.fluxcd.io/substitute: disab
 
 ```yaml hl_lines="8"
 ---
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: aws-s3-bucket-acl
