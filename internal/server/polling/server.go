@@ -80,7 +80,7 @@ func (s *Server) poll(ctx context.Context, resource types.NamespacedName, secret
 
 	tf, err := s.getTerraformObject(ctx, resource)
 	if err != nil {
-		return fmt.Errorf("failed to get Terraform object: %w", err)
+		return fmt.Errorf("failed to get Terraform object %s/%s: %w", resource.Namespace, resource.Name, err)
 	}
 
 	source, err := s.getSource(ctx, tf)

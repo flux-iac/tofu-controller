@@ -11,7 +11,7 @@ import (
 	"github.com/weaveworks/tf-controller/internal/config"
 	"github.com/weaveworks/tf-controller/internal/git/provider"
 	corev1 "k8s.io/api/core/v1"
-	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -51,7 +51,11 @@ func NewInformer(dynamicClient dynamic.Interface, options ...Option) (*Informer,
 		return nil, err
 	}
 
-	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynamicClient, time.Minute, corev1.NamespaceAll, nil)
+	tweakListOptionsFunc := func(options *metav1.ListOptions) {
+		options.LabelSelector = fmt.Sprintf("%s=%s", LabelKey, LabelValue)
+	}
+
+	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynamicClient, time.Minute, corev1.NamespaceAll, tweakListOptionsFunc)
 	sharedInformer := factory.ForResource(mapping.Resource).Informer()
 
 	informer.sharedInformer = sharedInformer
@@ -81,33 +85,6 @@ func NewInformer(dynamicClient dynamic.Interface, options ...Option) (*Informer,
 
 	return informer, nil
 }
-
-// func NewInformer(log logr.Logger, dynamicClient dynamic.Interface, clusterClient client.Client, opts *applicationOptions) (*Informer, error) {
-// 	restMapper := clusterClient.RESTMapper()
-// 	mapping, err := restMapper.RESTMapping(tfv1alpha2.GroupVersion.WithKind(tfv1alpha2.TerraformKind).GroupKind())
-// 	if err != nil {
-// 		log.Error(err, "failed to look up mapping for CRD")
-// 		return nil, err
-// 	}
-
-// 	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynamicClient, time.Minute, corev1.NamespaceAll, nil)
-// 	informer := factory.ForResource(mapping.Resource).Informer()
-
-// 	gitProvider, err := provider.New(provider.ProviderGitHub, provider.WithToken("api-token", string(secret.Data["token"])))
-// 	if err != nil {
-// 		i.log.Error(err, "unable to get provider", "provider", "github")
-
-// 		return
-// 	}
-
-// 	return &Informer{
-// 		sharedInformer: informer,
-// 		mux:            &sync.RWMutex{},
-// 		log:            log,
-// 		synced:         false,
-// 		client:         clusterClient,
-// 	}, nil
-// }
 
 func (i *Informer) Start(ctx context.Context) error {
 	if i.handlers.AddFunc == nil {
@@ -199,7 +176,7 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 	}
 
 	if !i.isNewPlan(old, new) {
-		i.log.Info("Plan not updated")
+		i.log.Info("Plan not updated", "namespace", new.Namespace, "name", new.Name, "pr-id", new.Labels[LabelPRIDKey])
 
 		return
 	}
@@ -242,18 +219,15 @@ func (i *Informer) getPlan(ctx context.Context, obj *tfv1alpha2.Terraform) (*cor
 }
 
 func (i *Informer) isNewPlan(old, new *tfv1alpha2.Terraform) bool {
-	oldConditionPlan := apimeta.FindStatusCondition(*old.GetStatusConditions(), tfv1alpha2.ConditionTypePlan)
-	newConditionPlan := apimeta.FindStatusCondition(*new.GetStatusConditions(), tfv1alpha2.ConditionTypePlan)
-
-	if newConditionPlan == nil {
+	if new.Status.LastPlanAt == nil {
 		return false
 	}
 
-	if oldConditionPlan == nil && newConditionPlan != nil {
+	if old.Status.LastPlanAt == nil && new.Status.LastPlanAt != nil {
 		return true
 	}
 
-	if newConditionPlan.LastTransitionTime.After(oldConditionPlan.LastTransitionTime.Time) {
+	if new.Status.LastPlanAt.After(old.Status.LastPlanAt.Time) {
 		return true
 	}
 

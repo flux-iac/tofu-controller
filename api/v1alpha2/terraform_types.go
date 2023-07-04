@@ -348,6 +348,10 @@ type TerraformStatus struct {
 	// +optional
 	LastPlannedRevision string `json:"lastPlannedRevision,omitempty"`
 
+	// LastPlanAt is the time when the last terraform plan was performed
+	// +optional
+	LastPlanAt *metav1.Time `json:"lastPlanAt,omitempty"`
+
 	// LastDriftDetectedAt is the time when the last drift was detected
 	// +optional
 	LastDriftDetectedAt *metav1.Time `json:"lastDriftDetectedAt,omitempty"`
@@ -651,6 +655,8 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, forceOrAu
 		(&terraform).Status.LastPlannedRevision = revision
 	}
 
+	(&terraform).Status.LastPlanAt = &metav1.Time{Time: time.Now()}
+
 	// planOnly takes the highest precedence
 	if terraform.Spec.PlanOnly {
 		SetTerraformReadiness(&terraform, metav1.ConditionUnknown, PlannedWithChangesReason, message+": This object is in the plan only mode.", revision)
@@ -680,6 +686,8 @@ func TerraformPlannedNoChanges(terraform Terraform, revision string, message str
 		(&terraform).Status.LastAttemptedRevision = revision
 		(&terraform).Status.LastPlannedRevision = revision
 	}
+
+	(&terraform).Status.LastPlanAt = &metav1.Time{Time: time.Now()}
 
 	SetTerraformReadiness(&terraform, metav1.ConditionTrue, PlannedNoChangesReason, message+": "+revision, revision)
 	return terraform
