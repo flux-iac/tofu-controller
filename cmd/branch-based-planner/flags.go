@@ -10,8 +10,9 @@ import (
 )
 
 type applicationOptions struct {
-	pollingConfigMap string
-	pollingInterval  time.Duration
+	pollingConfigMap      string
+	pollingInterval       time.Duration
+	branchPollingInterval time.Duration
 
 	logOptions logger.Options
 
@@ -29,11 +30,19 @@ func parseFlags() *applicationOptions {
 
 	flag.DurationVar(&opts.pollingInterval,
 		"polling-interval", polling.DefaultPollingInterval,
-		"Wait between two request to the same Terraform object.")
+		"Wait between two requests to the same Terraform object.")
+
+	flag.DurationVar(&opts.branchPollingInterval,
+		"branch-polling-interval", 0,
+		"Interval to use for PR branch sources (default is to use the value of --polling-interval).")
 
 	opts.logOptions.BindFlags(flag.CommandLine)
 
 	flag.Parse()
+
+	if opts.branchPollingInterval == 0 {
+		opts.branchPollingInterval = opts.pollingInterval
+	}
 
 	opts.runtimeNamespace = os.Getenv("RUNTIME_NAMESPACE")
 

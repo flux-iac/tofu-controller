@@ -64,3 +64,11 @@ func WithPollingInterval(interval time.Duration) Option {
 		return nil
 	}
 }
+
+func WithBranchPollingInterval(interval time.Duration) Option {
+	return func(s *Server) error {
+		s.branchPollingInterval = interval
+
+		return nil
+	}
+}

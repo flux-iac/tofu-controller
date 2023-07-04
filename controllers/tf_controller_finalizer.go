@@ -87,13 +87,13 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 			traceLog.Info("Check for error")
 			if err != nil {
 				traceLog.Error(err, "Error, requeue job")
-				return terraform,controllerruntime.Result{Requeue: true}, err
+				return terraform, controllerruntime.Result{Requeue: true}, err
 			}
 
 			traceLog.Info("Patch status of the Terraform resource")
 			if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
 				log.Error(err, "unable to update status after applying")
-				return terraform,controllerruntime.Result{Requeue: true}, err
+				return terraform, controllerruntime.Result{Requeue: true}, err
 			}
 
 			traceLog.Info("Check for a nil error")

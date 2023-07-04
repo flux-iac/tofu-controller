@@ -84,6 +84,10 @@ test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests
 target-test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests. e.g make TARGET=250 target-test
 	$(TEST_SETTINGS) go test ./controllers -coverprofile cover.out -v -run $(TARGET)
 
+.PHONY: test-internal
+test-internal: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests in the internal directory.
+	$(TEST_SETTINGS) go test ./internal/... -coverprofile cover.out -v
+
 .PHONY: gen-grpc
 gen-grpc:
 	env PATH=$(shell pwd)/bin:$$PATH $(PROJECT_DIR)/bin/protoc --go_out=. --go_opt=Mrunner/runner.proto=runner/ --go-grpc_out=. --go-grpc_opt=Mrunner/runner.proto=runner/ runner/runner.proto
