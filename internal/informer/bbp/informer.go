@@ -90,25 +90,19 @@ func (i *Informer) SetDeleteHandler(fn func(interface{})) {
 }
 
 const (
-	AnnotationKey   = "terraform-conrtoller/branch-based-planner"
-	AnnotationValue = "true"
+	LabelKey            = "infra.weave.works/branch-based-planner"
+	LabelValue          = "true"
+	LabelPRIDKey string = "infra.weave.works/pr-id"
 )
 
 func (i *Informer) addHandler(obj interface{}) {}
 
-func (i *Informer) updateHandler(oldObj, newObj interface{}) {
+func (i *Informer) updateHandler(_, newObj interface{}) {
 	if !i.synced {
 		return
 	}
 	i.mux.RLock()
 	defer i.mux.RUnlock()
-
-	previous, ok := oldObj.(*tfv1alpha2.Terraform)
-	if !ok {
-		i.log.Info("previous object is not a Terraform object", "object", oldObj)
-
-		return
-	}
 
 	current, ok := newObj.(*tfv1alpha2.Terraform)
 	if !ok {
@@ -117,7 +111,7 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		return
 	}
 
-	if previous.Annotations[AnnotationKey] != AnnotationValue || current.Annotations[AnnotationKey] != AnnotationValue {
+	if current.Labels[LabelKey] != LabelValue {
 		i.log.Info("Terraform object is not managed by the branch-based planner")
 
 		return

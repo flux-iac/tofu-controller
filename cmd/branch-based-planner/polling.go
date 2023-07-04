@@ -15,6 +15,7 @@ func startPollingServer(ctx context.Context, log logr.Logger, clusterClient clie
 		polling.WithClusterClient(clusterClient),
 		polling.WithConfigMap(opts.pollingConfigMap),
 		polling.WithPollingInterval(opts.pollingInterval),
+		polling.WithBranchPollingInterval(opts.branchPollingInterval),
 	)
 	if err != nil {
 		return fmt.Errorf("problem configuring the polling server: %w", err)

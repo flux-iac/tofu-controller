@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/tf-controller/internal/git/provider"
+	"github.com/weaveworks/tf-controller/internal/informer/bbp"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -18,10 +19,11 @@ import (
 const DefaultPollingInterval = time.Second * 30
 
 type Server struct {
-	log             logr.Logger
-	clusterClient   client.Client
-	configMapRef    client.ObjectKey
-	pollingInterval time.Duration
+	log                   logr.Logger
+	clusterClient         client.Client
+	configMapRef          client.ObjectKey
+	pollingInterval       time.Duration
+	branchPollingInterval time.Duration
 }
 
 func New(options ...Option) (*Server, error) {
@@ -76,7 +78,7 @@ func (s *Server) poll(ctx context.Context, resource types.NamespacedName, secret
 		return fmt.Errorf("secret is not defined")
 	}
 
-	tf, err := s.getTerraform(ctx, resource)
+	tf, err := s.getTerraformObject(ctx, resource)
 	if err != nil {
 		return fmt.Errorf("failed to get Terraform object: %w", err)
 	}
@@ -105,8 +107,34 @@ func (s *Server) poll(ctx context.Context, resource types.NamespacedName, secret
 }
 
 func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, source *sourcev1.GitRepository, prs []provider.PullRequest) error {
-	for _, pr := range prs {
-		s.log.Info("pull request", "pr", pr)
+	// List Terraform objects, created by the branch planner.
+	tfList, err := s.listTerraformObjects(ctx, original, map[string]string{
+		bbp.LabelKey: bbp.LabelValue,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to list Terraform objects: %w", err)
 	}
+
+	// Create and delete objects based on the diff
+	// between PRs and Terraform objects.
+	prMap := map[string]provider.PullRequest{}
+	for _, pr := range prs {
+		prMap[fmt.Sprintf("%d", pr.Number)] = pr
+
+		if err = s.reconcileTerraform(ctx, original, source, pr.HeadBranch, fmt.Sprintf("%d", pr.Number), s.branchPollingInterval); err != nil {
+			s.log.Error(err, "failed to reconcile Terraform object")
+		}
+	}
+
+	for _, branchTf := range tfList {
+		prLabel := branchTf.Labels[bbp.LabelPRIDKey]
+
+		if _, ok := prMap[prLabel]; !ok {
+			if err = s.deleteTerraform(ctx, branchTf); err != nil {
+				s.log.Error(err, "failed to delete Terraform object")
+			}
+		}
+	}
+
 	return nil
 }
