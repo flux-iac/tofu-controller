@@ -3,7 +3,7 @@
 Drift detection is enabled by default. You can set `.spec.disableDriftDetection: true` to disable it.
 
 ```yaml hl_lines="8"
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld

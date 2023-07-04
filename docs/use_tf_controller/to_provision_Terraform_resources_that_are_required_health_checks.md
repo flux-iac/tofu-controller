@@ -25,7 +25,7 @@ We can use standard Go template expressions, like `${{ .rdsAddress }}`, to refer
 We support two types of health checks, `tcp` amd `http`. The `tcp` type allows us to verify a TCP connection, while the `http` type is for verify an HTTP URL. The default timeout of each health check is 20 seconds.
 
 ```yaml hl_lines="14-25"
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld

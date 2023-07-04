@@ -27,7 +27,7 @@ the `path` field specifies the location of the configuration files,
 and the `sourceRef` field points to the GitRepository object.
 
 ```yaml hl_lines="7"
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld
@@ -62,7 +62,7 @@ This process is known as the plan & manual approval workflow,
 as it involves generating a plan and requiring manual approval before the changes are applied.
 
 ```yaml hl_lines="7"
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: hello-world

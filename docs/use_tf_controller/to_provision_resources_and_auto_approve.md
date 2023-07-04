@@ -40,7 +40,7 @@ your infrastructure is properly managed and controlled.
 The following is an example of a `Terraform` object; we use the "auto-apply" mode:
 
 ```yaml hl_lines="8"
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld

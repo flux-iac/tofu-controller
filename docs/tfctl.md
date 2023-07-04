@@ -4,7 +4,13 @@
 
 ## Installation
 
-You can download the `tfctl` binary via the GitHub releases page: [https://github.com/weaveworks/tf-controller/releases](https://github.com/weaveworks/tf-controller/releases)
+To install `tfctl` via Homebrew, run the following command:
+
+```shell
+brew install weaveworks/tap/tfctl
+```
+
+You can also download the `tfctl` binary via the GitHub releases page: [https://github.com/weaveworks/tf-controller/releases](https://github.com/weaveworks/tf-controller/releases).
 
 ```
 Usage:
