@@ -31,7 +31,7 @@ Note that in the case of the same variable key being passed multiple times, the 
 the lattermost instance of the key passed to `varsFrom`.
 
 ```yaml hl_lines="15-20 22-28"
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld
@@ -77,7 +77,7 @@ variable "cluster_spec" {
 ```
 
 ```yaml hl_lines="17-20"
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld

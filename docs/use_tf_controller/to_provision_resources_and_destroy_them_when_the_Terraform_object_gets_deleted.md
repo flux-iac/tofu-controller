@@ -11,7 +11,7 @@ To enable destroy resources on object deletion, set `.spec.destroyResourcesOnDel
 ~> **WARNING:** This feature will destroy your resources on the cloud if the Terraform object gets deleted. Please use it with cautions.
 
 ```yaml hl_lines="8"
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld

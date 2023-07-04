@@ -1,0 +1,50 @@
+# Break the glass
+
+## What is break the glass?
+
+"Break the glass" refers to a troubleshooting mode specifically designed
+to provide a manual solution when the Terraform controller (TF-controller) 
+is not performing as expected. There are two primary methods of initiating this mode:
+ 
+1. Using the `tfctl` command-line tool.
+2. Setting the `spec.breakTheGlass` field to `true` in the Terraform object.
+
+## Using `tfctl` to Break the Glass
+
+To start a one-time troubleshooting session, you can use the `tfctl break-glass` command. For instance:
+
+```shell
+tfctl break-glass hello-world
+```
+
+This command initiates a session that allows you to execute any Terraform command
+to rectify the issues with your Terraform resources. It is noteworthy that this command
+does not require setting the `spec.breakTheGlass` field to `true` in the Terraform object.
+
+After resolving the issues, you can simply exit the shell. 
+GitOps will then continue to reconcile the Terraform object.
+
+## Break the glass with `spec.breakTheGlass` field
+
+This feature is particularly useful for troubleshooting Terraform objects at their initialization stage or in situations with unexpected errors.
+It is generally not recommended to use this mode routinely for fixing Terraform resources.
+
+You can enable the 'Break the Glass' feature for every reconciliation by setting the `breakTheGlass` field to `true` in the `spec` of the Terraform object.
+
+Here is a sample example:
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: hello-world
+  namespace: flux-system
+spec:
+  breakTheGlass: true
+  interval: 1m
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+```

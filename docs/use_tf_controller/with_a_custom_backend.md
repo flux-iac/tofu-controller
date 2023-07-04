@@ -7,7 +7,7 @@ The tfstate is stored in a secret named: `tfstate-${workspace}-${secretSuffix}`.
 If you wish to use a custom backend, you can configure it by defining the `.spec.backendConfig.customConfiguration` with one of the backends such as **GCS** or **S3**, for example:
 
 ```yaml hl_lines="9-21"
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld

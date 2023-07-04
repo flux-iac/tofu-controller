@@ -90,7 +90,7 @@ You can read more about the GitOps dependencies in the [GitOps dependencies](./w
 
 ```yaml
 ---
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: aws-s3-bucket
@@ -122,7 +122,7 @@ spec:
       - secretRef:
           name: aws-credentials
 ---
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: example-bucket-acl
