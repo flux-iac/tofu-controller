@@ -12,6 +12,7 @@
   - [Use TF-controller to provision Terraform resources that are required **health checks**](to_provision_Terraform_resources_that_are_required_health_checks.md)
   - [Use TF-controller to provision resources and **destroy them when the Terraform object gets deleted**](to_provision_resources_and_destroy_them_when_the_Terraform_object_gets_deleted.md)
   - [Use TF-controller to **force unlock** Terraform states](to_force_unlock_Terraform_states.md)
+  - [Use TF-controller with Terraform Runners enabled via Env Variables](with_tf_runner_logging.md)
   - [Use TF-controller to provision resources with **customized Runner Pods**](to_provision_resources_with_customized_Runner_Pods.md)
   - [Use TF-controller with **Terraform Enterprise**](with_Terraform_Enterprise.md)
   - [Use TF-controller with **primitive modules**](with_primitive_modules.md)
