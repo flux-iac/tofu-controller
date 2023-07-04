@@ -15,7 +15,7 @@ The recommended way is to do manual force unlock. To manually `force-unlock`, yo
 as the following example:
 
 ```yaml hl_lines="14-16"
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld

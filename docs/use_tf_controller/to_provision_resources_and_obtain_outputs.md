@@ -7,7 +7,7 @@ Outputs created by Terraform can be written to a secret using `.spec.writeOutput
 We can specify a target secret in `.spec.writeOutputsToSecret.name`, and the controller will write all outputs to the secret by default.
 
 ```yaml hl_lines="14-15"
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld
@@ -29,7 +29,7 @@ spec:
 We can choose only a subset of outputs by specify output names we'd like to write in the `.spec.writeOutputsToSecret.outputs` array.
 
 ```yaml hl_lines="16-18"
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld
@@ -59,7 +59,7 @@ TF-controller supports mapping output name using the `old_name:new_name` format.
 In the following example, we renamed `age_key` output as `age.agekey` entry for the `helloworld-output` Secret's data, so that other components in the GitOps pipeline could consume it.
 
 ```yaml hl_lines="16-17"
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld
@@ -84,7 +84,7 @@ As an example, operators such as [kubernetes-replicator](https://github.com/mitt
 allow replicating secrets from one namespace to another but use annotations to do so.
 
 ```yaml hl_lines="16-19"
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld

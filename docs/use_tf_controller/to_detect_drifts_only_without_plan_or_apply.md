@@ -3,7 +3,7 @@
 We can set `.spec.approvePlan` to `disable` to tell the controller to detect drifts of your Terraform resources only. Doing so will skip the `plan` and `apply` stages.
 
 ```yaml hl_lines="7"
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: hello-world

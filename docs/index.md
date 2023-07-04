@@ -56,7 +56,9 @@ To get started, follow the [getting started](./getting_started.md) guide.
 
 ## Support Matrix
 
-|   Version   | Terraform | Source Controller | Flux v2 |
-|:-----------:|:---------:|:-----------------:|:-------:|
-| **v0.13.1** |  v1.3.1   |      v0.31.0      | v0.36.x |
-|   v0.12.0   |  v1.1.9   |      v0.26.1      | v0.32.x |
+| Version | Terraform | Source Controller | Flux v2 |
+|:-------:|:---------:|:-----------------:|:-------:|
+|  v0.15  |  v1.3.9   |      v1.0.x       | v2.0.x  |
+|  v0.14  |  v1.3.9   |      v0.31.0      | v0.41.x |
+|  v0.13  |  v1.3.1   |      v0.31.0      | v0.36.x |
+|  v0.12  |  v1.1.9   |      v0.26.1      | v0.32.x |

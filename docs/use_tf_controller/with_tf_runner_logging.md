@@ -1,4 +1,4 @@
-# Logging Env Variables
+# Use TF-controller with Terraform Runners enabled via Env Variables 
 
 A Terraform Runner uses two environment variables, `DISABLE_TF_LOGS` and `ENABLE_SENSITIVE_TF_LOGS`, to control the logging behavior of the Terraform execution.
 
@@ -10,5 +10,12 @@ This can typically be done by adding them to the pod's environment variables in 
 such as secret variables, to the local log. However, it is important to note that for the `ENABLE_SENSITIVE_TF_LOGS` to take effect,
 the `DISABLE_TF_LOGS` variable must also be set to "1".
 
+## The Default Logging Behavior
+- By default, the logging level for the `tf-runner` is configured at the `info` level.
+- The `DISABLE_TF_LOGS` variable is not activated as part of the default settings.
+- The `ENABLE_SENSITIVE_TF_LOGS` variable remains inactive in the default configuration.
+- Calls to `ShowPlan` and `ShowPlanRaw` on the runner are not logged by default.
+- For `Plan` calls made on the runner, error messages are sanitized as a part of the default configuration.
+
 For more information on configuring the Terraform Runner and its environment variables,
-please consult the documentation on [customizing runners](https://github.com/weaveworks/tf-controller/blob/main/docs/use_tf_controller/to_provision_resources_with_customized_Runner_Pods.md) within the Weave TF-controller.
+please consult the documentation on [customizing runners](to_provision_resources_with_customized_Runner_Pods.md) within the Weave TF-controller.
