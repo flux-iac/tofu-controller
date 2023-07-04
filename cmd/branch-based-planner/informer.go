@@ -10,8 +10,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func startInformer(ctx context.Context, log logr.Logger, dynamicClient *dynamic.DynamicClient, clusterClient client.Client) error {
-	informer, err := bbp.NewInformer(log, dynamicClient, clusterClient)
+func startInformer(ctx context.Context, log logr.Logger, dynamicClient *dynamic.DynamicClient, clusterClient client.Client, opts *applicationOptions) error {
+	informer, err := bbp.NewInformer(
+		dynamicClient,
+		bbp.WithLogger(log),
+		bbp.WithClusterClient(clusterClient),
+		bbp.WithConfigMapRef(opts.pollingConfigMap),
+	)
 	if err != nil {
 		return fmt.Errorf("failed to create informer: %w", err)
 	}
