@@ -2,6 +2,16 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.15.0
+
+**Release date:** 2023-06-04
+
+This version is the first stable release of Terraform Controller to support Flux v2 GA.
+
+Bug Fixing:
+  * Add OIDC go-client plugin to `tfctl` (@chanwit)
+  * Update documents for v0.15.0 (@chanwit)
+
 # v0.15.0-rc.6
 
 **Release date:** 2023-06-01
