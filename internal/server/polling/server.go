@@ -128,7 +128,6 @@ func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, sou
 
 	for _, branchTf := range tfList {
 		prLabel := branchTf.Labels[bbp.LabelPRIDKey]
-
 		if _, ok := prMap[prLabel]; !ok {
 			if err = s.deleteTerraform(ctx, branchTf); err != nil {
 				s.log.Error(err, "failed to delete Terraform object")
