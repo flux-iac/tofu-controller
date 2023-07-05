@@ -23,21 +23,19 @@ kind: Terraform
 metadata:
   name: helloworld-tf
   namespace: flux-system
-  labels:
-    infra.weave.works/branch-based-planner: "true"
 spec:
   path: ./
   interval: 20s
-  approvePlan: auto
-  # planOnly: true
+  # approvePlan: auto
+  planOnly: true
   storeReadablePlan: human
   sourceRef:
     kind: GitRepository
     name: helloworld
     namespace: flux-system
-  # vars:
-  # - name: secret_subject
-  #   value: "test-"
+  vars:
+  - name: secret_subject
+    value: "test-"
   varsFrom:
   - kind: Secret
     name: helloworld-tf
