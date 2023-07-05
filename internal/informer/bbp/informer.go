@@ -3,13 +3,17 @@ package bbp
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
+	giturl "github.com/kubescape/go-git-url"
 	tfv1alpha2 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/internal/config"
 	"github.com/weaveworks/tf-controller/internal/git/provider"
+	"github.com/weaveworks/tf-controller/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -197,9 +201,63 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		return
 	}
 
+	fmt.Println("planOutput", string(planOutput))
+
+	tfplan, err := utils.GzipDecode(planOutput)
+	if err != nil {
+		i.log.Error(err, "unable to decode the plan")
+		return
+	}
+
+	fmt.Println("tfplan", string(tfplan))
+
 	i.log.Info("Updated plan", "pr-id", new.Labels[LabelPRIDKey])
 
-	i.gitProvider.AddCommentToPullRequest(ctx, provider.PullRequest{}, planOutput)
+	repo, err := i.getRepo(ctx, new)
+	if err != nil {
+		i.log.Error(err, "failed getting repository")
+		return
+	}
+
+	// convert a string to int
+	number, err := strconv.Atoi(new.Labels[LabelPRIDKey])
+	if err != nil {
+		i.log.Error(err, "failed converting PR id to integer", "pr-id", new.Labels[LabelPRIDKey], "namespace", new.Namespace, "name", new.Name)
+	}
+
+	pr := provider.PullRequest{
+		Repository: repo,
+		Number:     number,
+	}
+
+	if _, err := i.gitProvider.AddCommentToPullRequest(ctx, pr, tfplan); err != nil {
+		i.log.Error(err, "failed adding comment to pull request", "pr-id", new.Labels[LabelPRIDKey], "namespace", new.Namespace, "name", new.Name)
+	}
+}
+
+func (i *Informer) getRepo(ctx context.Context, tf *tfv1alpha2.Terraform) (provider.Repository, error) {
+	if tf.Spec.SourceRef.Kind != sourcev1b2.GitRepositoryKind {
+		return provider.Repository{}, fmt.Errorf("branch based planner does not support source kind: %s", tf.Spec.SourceRef.Kind)
+	}
+
+	ref := client.ObjectKey{
+		Namespace: tf.Spec.SourceRef.Namespace,
+		Name:      tf.Spec.SourceRef.Name,
+	}
+	obj := &sourcev1b2.GitRepository{}
+	if err := i.client.Get(ctx, ref, obj); err != nil {
+		return provider.Repository{}, fmt.Errorf("unable to get Source: %w", err)
+	}
+
+	gitURL, err := giturl.NewGitURL(obj.Spec.URL)
+	if err != nil {
+		return provider.Repository{}, fmt.Errorf("failed parsing repository url: %w", err)
+	}
+
+	return provider.Repository{
+		Org:  gitURL.GetOwnerName(),
+		Name: gitURL.GetRepoName(),
+	}, nil
 }
 
 func (i *Informer) deleteHandler(obj interface{}) {}
