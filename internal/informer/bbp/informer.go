@@ -1,10 +1,14 @@
 package bbp
 
 import (
+	"bytes"
 	"context"
+	_ "embed"
 	"fmt"
+	"log"
 	"strconv"
 	"sync"
+	"text/template"
 	"time"
 
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -13,8 +17,8 @@ import (
 	tfv1alpha2 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/internal/config"
 	"github.com/weaveworks/tf-controller/internal/git/provider"
-	"github.com/weaveworks/tf-controller/utils"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -24,6 +28,9 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+//go:embed comment.tpl
+var commentTemplate string
 
 type Informer struct {
 	sharedInformer cache.SharedIndexInformer
@@ -201,16 +208,6 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		return
 	}
 
-	fmt.Println("planOutput", string(planOutput))
-
-	tfplan, err := utils.GzipDecode(planOutput)
-	if err != nil {
-		i.log.Error(err, "unable to decode the plan")
-		return
-	}
-
-	fmt.Println("tfplan", string(tfplan))
-
 	i.log.Info("Updated plan", "pr-id", new.Labels[LabelPRIDKey])
 
 	repo, err := i.getRepo(ctx, new)
@@ -230,25 +227,32 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		Number:     number,
 	}
 
-	if _, err := i.gitProvider.AddCommentToPullRequest(ctx, pr, tfplan); err != nil {
+	if _, err := i.gitProvider.AddCommentToPullRequest(ctx, pr, formatPlanOutput(planOutput)); err != nil {
 		i.log.Error(err, "failed adding comment to pull request", "pr-id", new.Labels[LabelPRIDKey], "namespace", new.Namespace, "name", new.Name)
 	}
 }
 
 func (i *Informer) deleteHandler(obj interface{}) {}
 
-func (i *Informer) getPlan(ctx context.Context, obj *tfv1alpha2.Terraform) (*corev1.Secret, error) {
-	secretName := types.NamespacedName{Namespace: obj.GetNamespace(), Name: "tfplan-" + obj.WorkspaceName() + "-" + obj.GetName()}
+func (i *Informer) getPlan(ctx context.Context, obj *tfv1alpha2.Terraform) (*corev1.ConfigMap, error) {
+	fmt.Println("getPlan", "tfplan-"+obj.WorkspaceName()+"-"+obj.GetName())
+	cmName := types.NamespacedName{Namespace: obj.GetNamespace(), Name: "tfplan-" + obj.WorkspaceName() + "-" + obj.GetName()}
 
-	planSecret := &corev1.Secret{}
-	err := i.client.Get(ctx, secretName, planSecret)
+	tfplanCM := &corev1.ConfigMap{}
+	err := i.client.Get(ctx, cmName, tfplanCM)
 	if err != nil {
-		err = fmt.Errorf("error getting plan secret: %s", err)
+		if apierrors.IsNotFound(err) {
+			return &corev1.ConfigMap{
+				Data: map[string]string{
+					"tfplan": "Please set `Spec.storeReadablePlan` to `human` to view the plan",
+				},
+			}, nil
+		}
 
-		return nil, err
+		return nil, fmt.Errorf("error getting plan cm: %s", err)
 	}
 
-	return planSecret, nil
+	return tfplanCM, nil
 }
 
 func (i *Informer) isNewPlan(old, new *tfv1alpha2.Terraform) bool {
@@ -299,4 +303,26 @@ func (i *Informer) getRepo(ctx context.Context, tf *tfv1alpha2.Terraform) (provi
 		Org:  gitURL.GetOwnerName(),
 		Name: gitURL.GetRepoName(),
 	}, nil
+}
+
+func formatPlanOutput(planOutput string) []byte {
+	type Output struct {
+		PlanOutput string
+	}
+
+	data := Output{
+		PlanOutput: planOutput,
+	}
+
+	tmpl, err := template.New("comment").Parse(commentTemplate)
+	if err != nil {
+		log.Fatalf("Error while parsing the template: %v", err)
+	}
+
+	var tpl bytes.Buffer
+	if err := tmpl.Execute(&tpl, data); err != nil {
+		log.Fatalf("Error while executing the template: %v", err)
+	}
+
+	return tpl.Bytes()
 }
