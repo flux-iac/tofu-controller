@@ -10,6 +10,8 @@ WORKDIR /workspace
 COPY api/ api/
 # Copy tfctl and its Go module
 COPY tfctl/ tfctl/
+# Copy utils and its Go module
+COPY utils/ utils/
 
 # Copy the Go Modules manifests
 COPY go.mod go.mod
