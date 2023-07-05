@@ -3,7 +3,7 @@
 MANAGER_IMG ?= ghcr.io/weaveworks/tf-controller
 RUNNER_IMG  ?= ghcr.io/weaveworks/tf-runner
 RUNNER_AZURE_IMAGE ?= ghcr.io/weaveworks/tf-runner-azure
-BRANCH_BASED_PLANNER_IMAGE ?= ghcr.io/weaveworks/branch-based-planner
+BRANCH_BASED_PLANNER_IMAGE ?= ghcr.io/weaveworks/branch-planner
 TAG ?= latest
 BUILD_SHA ?= $(shell git rev-parse --short HEAD)
 BUILD_VERSION ?= $(shell git describe --tags $$(git rev-list --tags --max-count=1))

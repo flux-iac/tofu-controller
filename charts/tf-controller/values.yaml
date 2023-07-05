@@ -172,6 +172,6 @@ metrics:
 branchBasedPlanner:
   enabled: false
   image:
-    repository: ghcr.io/weaveworks/branch-based-planner
+    repository: ghcr.io/weaveworks/branch-planner
     pullPolicy: IfNotPresent
     tag: ""

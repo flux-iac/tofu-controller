@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/tf-controller/internal/git/provider"
-	"github.com/weaveworks/tf-controller/internal/informer/bbp"
+	planner "github.com/weaveworks/tf-controller/internal/informer/branch-planner"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -109,7 +109,7 @@ func (s *Server) poll(ctx context.Context, resource types.NamespacedName, secret
 func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, source *sourcev1.GitRepository, prs []provider.PullRequest) error {
 	// List Terraform objects, created by the branch planner.
 	tfList, err := s.listTerraformObjects(ctx, original, map[string]string{
-		bbp.LabelKey: bbp.LabelValue,
+		planner.LabelKey: planner.LabelValue,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to list Terraform objects: %w", err)
@@ -127,7 +127,7 @@ func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, sou
 	}
 
 	for _, branchTf := range tfList {
-		prLabel := branchTf.Labels[bbp.LabelPRIDKey]
+		prLabel := branchTf.Labels[planner.LabelPRIDKey]
 
 		if _, ok := prMap[prLabel]; !ok {
 			if err = s.deleteTerraform(ctx, branchTf); err != nil {
