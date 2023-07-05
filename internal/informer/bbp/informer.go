@@ -235,31 +235,6 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 	}
 }
 
-func (i *Informer) getRepo(ctx context.Context, tf *tfv1alpha2.Terraform) (provider.Repository, error) {
-	if tf.Spec.SourceRef.Kind != sourcev1b2.GitRepositoryKind {
-		return provider.Repository{}, fmt.Errorf("branch based planner does not support source kind: %s", tf.Spec.SourceRef.Kind)
-	}
-
-	ref := client.ObjectKey{
-		Namespace: tf.Spec.SourceRef.Namespace,
-		Name:      tf.Spec.SourceRef.Name,
-	}
-	obj := &sourcev1b2.GitRepository{}
-	if err := i.client.Get(ctx, ref, obj); err != nil {
-		return provider.Repository{}, fmt.Errorf("unable to get Source: %w", err)
-	}
-
-	gitURL, err := giturl.NewGitURL(obj.Spec.URL)
-	if err != nil {
-		return provider.Repository{}, fmt.Errorf("failed parsing repository url: %w", err)
-	}
-
-	return provider.Repository{
-		Org:  gitURL.GetOwnerName(),
-		Name: gitURL.GetRepoName(),
-	}, nil
-}
-
 func (i *Informer) deleteHandler(obj interface{}) {}
 
 func (i *Informer) getPlan(ctx context.Context, obj *tfv1alpha2.Terraform) (*corev1.Secret, error) {
@@ -299,4 +274,29 @@ func (i *Informer) getProviderSecret(ctx context.Context, ref client.ObjectKey) 
 	}
 
 	return obj, nil
+}
+
+func (i *Informer) getRepo(ctx context.Context, tf *tfv1alpha2.Terraform) (provider.Repository, error) {
+	if tf.Spec.SourceRef.Kind != sourcev1b2.GitRepositoryKind {
+		return provider.Repository{}, fmt.Errorf("branch based planner does not support source kind: %s", tf.Spec.SourceRef.Kind)
+	}
+
+	ref := client.ObjectKey{
+		Namespace: tf.Spec.SourceRef.Namespace,
+		Name:      tf.Spec.SourceRef.Name,
+	}
+	obj := &sourcev1b2.GitRepository{}
+	if err := i.client.Get(ctx, ref, obj); err != nil {
+		return provider.Repository{}, fmt.Errorf("unable to get Source: %w", err)
+	}
+
+	gitURL, err := giturl.NewGitURL(obj.Spec.URL)
+	if err != nil {
+		return provider.Repository{}, fmt.Errorf("failed parsing repository url: %w", err)
+	}
+
+	return provider.Repository{
+		Org:  gitURL.GetOwnerName(),
+		Name: gitURL.GetRepoName(),
+	}, nil
 }
