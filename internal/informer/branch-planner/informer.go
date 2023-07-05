@@ -1,4 +1,4 @@
-package bbp
+package branchplanner
 
 import (
 	"context"
@@ -90,7 +90,7 @@ func (i *Informer) SetDeleteHandler(fn func(interface{})) {
 }
 
 const (
-	LabelKey            = "infra.weave.works/branch-based-planner"
+	LabelKey            = "infra.weave.works/branch-planner"
 	LabelValue          = "true"
 	LabelPRIDKey string = "infra.weave.works/pr-id"
 )
