@@ -9,22 +9,18 @@ import (
 	"strconv"
 	"sync"
 	"text/template"
-	"time"
 
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	giturl "github.com/kubescape/go-git-url"
 	tfv1alpha2 "github.com/weaveworks/tf-controller/api/v1alpha2"
-	"github.com/weaveworks/tf-controller/internal/config"
 	"github.com/weaveworks/tf-controller/internal/git/provider"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -55,44 +51,8 @@ func NewInformer(dynamicClient dynamic.Interface, options ...Option) (*Informer,
 		}
 	}
 
-	restMapper := informer.client.RESTMapper()
-	mapping, err := restMapper.RESTMapping(tfv1alpha2.GroupVersion.WithKind(tfv1alpha2.TerraformKind).GroupKind())
-	if err != nil {
-		informer.log.Error(err, "failed to look up mapping for CRD")
-		return nil, err
-	}
-
-	tweakListOptionsFunc := func(options *metav1.ListOptions) {
-		options.LabelSelector = fmt.Sprintf("%s=%s", LabelKey, LabelValue)
-	}
-
-	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynamicClient, time.Minute, corev1.NamespaceAll, tweakListOptionsFunc)
-	sharedInformer := factory.ForResource(mapping.Resource).Informer()
-
-	informer.sharedInformer = sharedInformer
 	informer.mux = &sync.RWMutex{}
 	informer.synced = false
-
-	ctx := context.Background()
-	config, err := config.ReadConfig(ctx, informer.client, informer.configMapRef)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read config: %w", err)
-	}
-
-	secret, err := informer.getProviderSecret(ctx, client.ObjectKey{
-		Namespace: config.SecretNamespace,
-		Name:      config.SecretName,
-	})
-	if err != nil {
-		informer.log.Error(err, "failed to get secret")
-	}
-
-	gitProvider, err := provider.New(provider.ProviderGitHub, provider.WithToken("api-token", string(secret.Data["token"])))
-	if err != nil {
-		return nil, fmt.Errorf("unable to get provider: %w", err)
-	}
-
-	informer.gitProvider = gitProvider
 
 	return informer, nil
 }

@@ -5,6 +5,8 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/tf-controller/internal/config"
+	"github.com/weaveworks/tf-controller/internal/git/provider"
+	"k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -35,6 +37,23 @@ func WithConfigMapRef(configMapName string) Option {
 			Namespace: key.Namespace,
 			Name:      key.Name,
 		}
+
+		return nil
+	}
+}
+
+func WithGitProvider(provider provider.Provider) Option {
+	return func(i *Informer) error {
+		i.gitProvider = provider
+
+		return nil
+
+	}
+}
+
+func WithSharedInformer(informer cache.SharedIndexInformer) Option {
+	return func(i *Informer) error {
+		i.sharedInformer = informer
 
 		return nil
 	}
