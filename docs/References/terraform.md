@@ -1643,13 +1643,7 @@ string
 </td>
 <td>
 <em>(Optional)</em>
-<p>StoreReadablePlan enables storing the plan in a readable format. Defaults to 'none'.</p>
-<p>This is an Enum and has the expected values of:</p>
-<ul>
-<li>human</li>
-<li>json</li>
-<li>none</li>
-</ul>
+<p>StoreReadablePlan enables storing the plan in a readable format.</p>
 </td>
 </tr>
 <tr>
@@ -2171,13 +2165,7 @@ string
 </td>
 <td>
 <em>(Optional)</em>
-<p>StoreReadablePlan enables storing the plan in a readable format. Defaults to 'none'.</p>
-<p>This is an Enum and has the expected values of:</p>
-<ul>
-<li>human</li>
-<li>json</li>
-<li>none</li>
-</ul>
+<p>StoreReadablePlan enables storing the plan in a readable format.</p>
 </td>
 </tr>
 <tr>
@@ -2343,6 +2331,20 @@ string
 <em>(Optional)</em>
 <p>LastPlannedRevision is the revision used by the last planning process.
 The result could be either no plan change or a new plan generated.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>lastPlanAt</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#time-v1-meta">
+Kubernetes meta/v1.Time
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>LastPlanAt is the time when the last terraform plan was performed</p>
 </td>
 </tr>
 <tr>

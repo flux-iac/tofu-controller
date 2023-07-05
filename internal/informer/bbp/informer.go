@@ -57,6 +57,13 @@ func NewInformer(dynamicClient dynamic.Interface, options ...Option) (*Informer,
 	return informer, nil
 }
 
+func (i *Informer) HasSynced() bool {
+	i.mux.RLock()
+	defer i.mux.RUnlock()
+
+	return i.synced
+}
+
 func (i *Informer) Start(ctx context.Context) error {
 	if i.handlers.AddFunc == nil {
 		i.handlers.AddFunc = i.addHandler
@@ -176,7 +183,6 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		return
 	}
 
-	// convert a string to int
 	number, err := strconv.Atoi(new.Labels[LabelPRIDKey])
 	if err != nil {
 		i.log.Error(err, "failed converting PR id to integer", "pr-id", new.Labels[LabelPRIDKey], "namespace", new.Namespace, "name", new.Name)
@@ -195,7 +201,6 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 func (i *Informer) deleteHandler(obj interface{}) {}
 
 func (i *Informer) getPlan(ctx context.Context, obj *tfv1alpha2.Terraform) (*corev1.ConfigMap, error) {
-	fmt.Println("getPlan", "tfplan-"+obj.WorkspaceName()+"-"+obj.GetName())
 	cmName := types.NamespacedName{Namespace: obj.GetNamespace(), Name: "tfplan-" + obj.WorkspaceName() + "-" + obj.GetName()}
 
 	tfplanCM := &corev1.ConfigMap{}
