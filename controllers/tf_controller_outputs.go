@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
-
 	"github.com/hashicorp/terraform-exec/tfexec"
+	"github.com/weaveworks/tf-controller/api/typeinfo"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/runner"
 	"github.com/zclconf/go-cty/cty"
@@ -166,7 +166,7 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 			data[outputOrAlias] = []byte(cv.AsString())
 		} else {
 			data[outputOrAlias] = outputMeta.Value
-			data[outputOrAlias+"__type"] = outputMeta.Type
+			data[outputOrAlias+typeinfo.Suffix] = outputMeta.Type
 		}
 	}
 
