@@ -76,10 +76,6 @@ func expectToSucceed(g gomega.Gomega, arg interface{}) {
 	g.ExpectWithOffset(1, arg).To(gomega.Succeed())
 }
 
-func expectToEqual(g gomega.Gomega, arg interface{}, expect interface{}) {
-	g.ExpectWithOffset(1, arg).To(gomega.Equal(expect))
-}
-
 // Minimal test to check the scaffolding works.
 func Test_scaffold(t *testing.T) {
 	g := gomega.NewWithT(t)
