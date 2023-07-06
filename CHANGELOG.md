@@ -2,6 +2,16 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.15.1
+
+**Release date:** 2023-06-06
+
+This version is a bug fix release for v0.15.
+
+Bug Fixing:
+  * Fix type information suffix (@chanwit)
+  * Update gRPC dependency for CVE-2023-32731 (@chanwit)
+
 # v0.15.0
 
 **Release date:** 2023-06-04
