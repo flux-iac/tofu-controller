@@ -11,6 +11,7 @@ import (
 	"text/template"
 
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/tf-controller/api/typeinfo"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/utils"
 	"github.com/zclconf/go-cty/cty"
@@ -141,7 +142,7 @@ func ctyValueToGoValue(ctyValue cty.Value) (interface{}, error) {
 func convertSecretDataToInputs(log logr.Logger, secret *v1.Secret) (map[string]interface{}, error) {
 	var keys []string
 	for k := range secret.Data {
-		if strings.HasSuffix(k, ".type") {
+		if strings.HasSuffix(k, typeinfo.Suffix) {
 			continue
 		}
 		keys = append(keys, k)
@@ -149,7 +150,7 @@ func convertSecretDataToInputs(log logr.Logger, secret *v1.Secret) (map[string]i
 
 	data := map[string]interface{}{}
 	for _, key := range keys {
-		typeInfo, exist := secret.Data[key+".type"]
+		typeInfo, exist := secret.Data[key+typeinfo.Suffix]
 		if exist {
 			raw := secret.Data[key]
 			ct, err := json.UnmarshalType(typeInfo)
