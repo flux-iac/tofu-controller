@@ -30,7 +30,6 @@ func startInformer(ctx context.Context, log logr.Logger, dynamicClient *dynamic.
 	}
 
 	informer, err := bbp.NewInformer(
-		dynamicClient,
 		bbp.WithLogger(log),
 		bbp.WithClusterClient(clusterClient),
 		bbp.WithGitProvider(gitProvider),

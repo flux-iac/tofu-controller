@@ -86,7 +86,6 @@ func TestInformer(t *testing.T) {
 	log := logr.Discard()
 
 	informer, err := NewInformer(
-		dynamicClient,
 		WithLogger(log),
 		WithClusterClient(k8sClient),
 		WithGitProvider(gitProvider),
