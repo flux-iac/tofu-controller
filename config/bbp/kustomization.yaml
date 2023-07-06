@@ -8,4 +8,4 @@ generatorOptions:
 images:
   - name: weaveworks/branch-based-planner
     newName: ghcr.io/weaveworks/branch-based-planner
-    newTag: v0.15.0
+    newTag: v0.15.1
