@@ -20,7 +20,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -31,7 +30,6 @@ var commentTemplate string
 type Informer struct {
 	sharedInformer cache.SharedIndexInformer
 	handlers       cache.ResourceEventHandlerFuncs
-	configMapRef   client.ObjectKey
 	log            logr.Logger
 	client         client.Client
 	gitProvider    provider.Provider
@@ -42,7 +40,7 @@ type Informer struct {
 
 type Option func(s *Informer) error
 
-func NewInformer(dynamicClient dynamic.Interface, options ...Option) (*Informer, error) {
+func NewInformer(options ...Option) (*Informer, error) {
 	informer := &Informer{}
 
 	for _, opt := range options {
