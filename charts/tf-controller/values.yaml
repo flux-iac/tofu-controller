@@ -27,7 +27,7 @@ image:
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
   # @default -- `.Chart.AppVersion`
-  tag: "v0.15.1"
+  tag: "v0.15.2"
 # -- Controller image pull secret
 imagePullSecrets: []
 # -- Resource limits and requests
@@ -114,7 +114,7 @@ runner:
     repository: ghcr.io/weaveworks/tf-runner
     # -- Runner image tag
     # @default -- `.Chart.AppVersion`
-    tag: "v0.15.1"
+    tag: "v0.15.2"
   grpc:
     # -- Maximum GRPC message size (Controller)
     maxMessageSize: 4
@@ -168,8 +168,8 @@ metrics:
       metricRelabelings: []
       # -- Set relabelings for the endpoint of the serviceMonitor
       relabelings: []
-# -- Branch Based Planner-specific configurations
-branchBasedPlanner:
+# -- Branch Planner-specific configurations
+branchPlanner:
   enabled: false
   image:
     repository: ghcr.io/weaveworks/branch-planner

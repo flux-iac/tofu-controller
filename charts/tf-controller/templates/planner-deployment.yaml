@@ -1,4 +1,4 @@
-{{- if .Values.branchBasedPlanner.enabled }}
+{{- if .Values.branchPlanner.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -32,7 +32,7 @@ spec:
       - args: []
         env:
         # Update the env variables according to your new deployment
-        image: "{{ .Values.branchBasedPlanner.image.repository }}:{{ default .Chart.AppVersion .Values.branchBasedPlanner.image.tag }}"
+        image: "{{ .Values.branchPlanner.image.repository }}:{{ default .Chart.AppVersion .Values.branchPlanner.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         livenessProbe:
           httpGet:
