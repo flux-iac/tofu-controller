@@ -1,4 +1,4 @@
-# Branch-based planner development
+# Branch planner development
 
 ## How to run this
 
