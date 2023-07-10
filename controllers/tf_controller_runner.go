@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/fluxcd/pkg/runtime/logger"
-	errors2 "github.com/pkg/errors"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/mtls"
 	"github.com/weaveworks/tf-controller/runner"
@@ -484,7 +483,21 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 
 	result := <-trigger.Ready
 	if result.Err != nil {
-		return nil, errors2.Wrap(result.Err, "failed to get tls generation result")
+		return nil, result.Err
+	}
+
+	// Check if the secret already exists
+	secret := &v1.Secret{}
+	if err := r.Client.Get(ctx, types.NamespacedName{Name: result.Secret.Name, Namespace: terraform.Namespace}, secret); err != nil {
+		if errors.IsNotFound(err) {
+			// If secret does not exist, create it
+			if err := r.Client.Create(ctx, result.Secret); err != nil {
+				return nil, err
+			}
+		} else {
+			// For any other type of error, return it
+			return nil, err
+		}
 	}
 
 	return result.Secret, nil
