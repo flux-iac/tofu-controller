@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
-	tfv1alpha2 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -119,7 +118,7 @@ func TestInformer(t *testing.T) {
 
 func createSharedInformer(g *WithT, ctx context.Context, client client.Client, dynamicClient dynamic.Interface) cache.SharedIndexInformer {
 	restMapper := client.RESTMapper()
-	mapping, err := restMapper.RESTMapping(tfv1alpha2.GroupVersion.WithKind(tfv1alpha2.TerraformKind).GroupKind())
+	mapping, err := restMapper.RESTMapping(infrav1.GroupVersion.WithKind(infrav1.TerraformKind).GroupKind())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	tweakListOptionsFunc := func(options *metav1.ListOptions) {
