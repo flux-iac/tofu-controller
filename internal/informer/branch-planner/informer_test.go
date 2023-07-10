@@ -23,7 +23,8 @@ import (
 func TestInformer(t *testing.T) {
 	g := NewWithT(t)
 	ns := newNamespace(g)
-	ctx := context.Background()
+	ctx, ctxCancel := context.WithCancel(context.Background())
+	defer ctxCancel()
 
 	// Create a source for the Terraform object to point to
 	source := &sourcev1.GitRepository{
@@ -46,8 +47,8 @@ func TestInformer(t *testing.T) {
 			Name:      "helloworld",
 			Namespace: ns.Name,
 			Labels: map[string]string{
-				"infra.weave.works/branch-based-planner": "true",
-				"infra.weave.works/pr-id":                "1",
+				LabelKey:                  LabelValue,
+				"infra.weave.works/pr-id": "1",
 			},
 		},
 		Spec: infrav1.TerraformSpec{
