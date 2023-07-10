@@ -189,7 +189,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 	expectToEqual(g, tfList.Items[1].Spec.StoreReadablePlan, "human")
 	expectToEqual(g, tfList.Items[1].Spec.WriteOutputsToSecret.Name, "test-secret-test-branch-1-1")
 
-	expectToEqual(g, tfList.Items[3].Labels["infra.weave.works/branch-based-planner"], "true")
+	expectToEqual(g, tfList.Items[3].Labels["infra.weave.works/branch-planner"], "true")
 	expectToEqual(g, tfList.Items[3].Labels["infra.weave.works/pr-id"], "3")
 	expectToEqual(g, tfList.Items[3].Labels["test-label"], "abc")
 
@@ -205,7 +205,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 
 	expectToEqual(g, srcList.Items[1].Spec.Reference.Branch, "test-branch-1")
 
-	expectToEqual(g, srcList.Items[3].Labels["infra.weave.works/branch-based-planner"], "true")
+	expectToEqual(g, srcList.Items[3].Labels["infra.weave.works/branch-planner"], "true")
 	expectToEqual(g, srcList.Items[3].Labels["infra.weave.works/pr-id"], "3")
 	expectToEqual(g, srcList.Items[3].Labels["test-label"], "123")
 

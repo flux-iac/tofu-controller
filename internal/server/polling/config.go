@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const DefaultConfigMapName = "default/branch-based-planner"
+const DefaultConfigMapName = "default/branch-planner"
 
 // Example ConfigMap
 //
@@ -19,12 +19,12 @@ const DefaultConfigMapName = "default/branch-based-planner"
 // apiVersion: v1
 // kind: ConfigMap
 // metadata:
-//   name: branch-based-planner
+//   name: branch-planner
 // data:
 //   # Secret to use to use GitHub API.
 //   # Key in the secret: token
 //   secretNamespace: flux-system
-//   secretName: bbp-token
+//   secretName: branch-planner-token
 //   # List of Terraform resources
 //   resources: |-
 //     - namespace: default

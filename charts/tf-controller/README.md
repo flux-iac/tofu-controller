@@ -1,6 +1,6 @@
 # Weave GitOps Terraform Controller
 
-![Version: 0.15.1](https://img.shields.io/badge/Version-0.15.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.15.1](https://img.shields.io/badge/AppVersion-v0.15.1-informational?style=flat-square)
+![Version: 0.15.2](https://img.shields.io/badge/Version-0.15.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.15.2](https://img.shields.io/badge/AppVersion-v0.15.2-informational?style=flat-square)
 
 The Helm chart for Weave GitOps Terraform Controller
 
@@ -31,7 +31,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | awsPackage.install | bool | `true` |  |
 | awsPackage.repository | string | `"ghcr.io/tf-controller/aws-primitive-modules"` |  |
 | awsPackage.tag | string | `"v4.38.0-v1alpha11"` |  |
-| branchBasedPlanner | object | `{"enabled":false,"image":{"pullPolicy":"IfNotPresent","repository":"ghcr.io/weaveworks/branch-based-planner","tag":""}}` | Branch Based Planner-specific configurations |
+| branchPlanner | object | `{"enabled":false,"image":{"pullPolicy":"IfNotPresent","repository":"ghcr.io/weaveworks/branch-planner","tag":""}}` | Branch Planner-specific configurations |
 | caCertValidityDuration | string | `"168h0m"` | Argument for `--ca-cert-validity-duration` (Controller) |
 | certRotationCheckFrequency | string | `"30m0s"` | Argument for `--cert-rotation-check-frequency` (Controller) |
 | certValidityDuration | string | `"6h0m"` | Argument for `--cert-validity-duration` (Controller) |
@@ -72,7 +72,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | rbac.create | bool | `true` | If `true`, create and use RBAC resources |
 | replicaCount | int | `1` | Number of TF-Controller pods to deploy |
 | resources | object | `{"limits":{"cpu":"1000m","memory":"1Gi"},"requests":{"cpu":"200m","memory":"64Mi"}}` | Resource limits and requests |
-| runner | object | `{"creationTimeout":"5m0s","grpc":{"maxMessageSize":4},"image":{"repository":"ghcr.io/weaveworks/tf-runner","tag":"v0.15.1"},"serviceAccount":{"allowedNamespaces":[],"annotations":{},"create":true,"name":""}}` | Runner-specific configurations |
+| runner | object | `{"creationTimeout":"5m0s","grpc":{"maxMessageSize":4},"image":{"repository":"ghcr.io/weaveworks/tf-runner","tag":"v0.15.2"},"serviceAccount":{"allowedNamespaces":[],"annotations":{},"create":true,"name":""}}` | Runner-specific configurations |
 | runner.creationTimeout | string | `"5m0s"` | Timeout for runner-creation (Controller) |
 | runner.grpc.maxMessageSize | int | `4` | Maximum GRPC message size (Controller) |
 | runner.image.repository | string | `"ghcr.io/weaveworks/tf-runner"` | Runner image repository |
