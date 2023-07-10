@@ -58,7 +58,7 @@ func main() {
 
 	informerLog := log.WithName("informer")
 	informerLog.Info("Starting branch-based planner informer")
-	if err := startInformer(ctx, informerLog, dynamicClusterClient, clusterClient); err != nil {
+	if err := startInformer(ctx, informerLog, dynamicClusterClient, clusterClient, opts); err != nil {
 		informerLog.Error(err, "branch-based planner informer failed")
 	}
 	// once the informer exits, make sure the goroutine above is also

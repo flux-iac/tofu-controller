@@ -2335,6 +2335,20 @@ The result could be either no plan change or a new plan generated.</p>
 </tr>
 <tr>
 <td>
+<code>lastPlanAt</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#time-v1-meta">
+Kubernetes meta/v1.Time
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>LastPlanAt is the time when the last terraform plan was performed</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>lastDriftDetectedAt</code><br>
 <em>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#time-v1-meta">

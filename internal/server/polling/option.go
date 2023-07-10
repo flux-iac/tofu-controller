@@ -2,10 +2,10 @@ package polling
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/tf-controller/internal/config"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -29,28 +29,14 @@ func WithClusterClient(clusterClient client.Client) Option {
 
 func WithConfigMap(configMapName string) Option {
 	return func(s *Server) error {
-		namespace := "default"
-		name := ""
-		parts := strings.SplitN(configMapName, "/", 2)
-
-		if len(parts) < 1 {
-			return fmt.Errorf("invalid ConfigMap reference: %q", configMapName)
-		}
-
-		if len(parts) < 2 {
-			name = parts[0]
-		} else {
-			namespace = parts[0]
-			name = parts[1]
-		}
-
-		if name == "" || namespace == "" {
-			return fmt.Errorf("invalid ConfigMap reference: %q", configMapName)
+		key, err := config.ObjectKeyFromName(configMapName)
+		if err != nil {
+			return fmt.Errorf("failed getting object key from config map name: %w", err)
 		}
 
 		s.configMapRef = client.ObjectKey{
-			Namespace: namespace,
-			Name:      name,
+			Namespace: key.Namespace,
+			Name:      key.Name,
 		}
 
 		return nil

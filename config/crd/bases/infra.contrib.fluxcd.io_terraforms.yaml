@@ -9919,6 +9919,11 @@ spec:
                   reconcile request value, so a change of the annotation value can
                   be detected.
                 type: string
+              lastPlanAt:
+                description: LastPlanAt is the time when the last terraform plan was
+                  performed
+                format: date-time
+                type: string
               lastPlannedRevision:
                 description: LastPlannedRevision is the revision used by the last
                   planning process. The result could be either no plan change or a
