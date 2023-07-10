@@ -8,7 +8,7 @@ spec:
   interval: 30s
   url: https://github.com/tf-controller/helloworld
   ref:
-    branch: dev
+    branch: main
 ---
 apiVersion: v1
 kind: Secret
