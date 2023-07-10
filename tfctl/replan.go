@@ -36,7 +36,8 @@ func (c *CLI) Replan(out io.Writer, resource string) error {
 	}
 	fmt.Fprintf(out, " Replan requested for %s/%s\n", c.namespace, resource)
 
-	if err := wait.Poll(1*time.Second, 30*time.Second, func() (bool, error) {
+	// wait for the plan to be ready, 4 loops, 30 seconds each
+	if err := wait.Poll(1*time.Second, 120*time.Second, func() (bool, error) {
 		terraform := &infrav1.Terraform{}
 		if err := c.client.Get(context.TODO(), key, terraform); err != nil {
 			return false, err
