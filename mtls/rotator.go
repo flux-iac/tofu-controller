@@ -650,7 +650,7 @@ func (cr *CertRotator) generateNamespaceTLS(namespace string) (*corev1.Secret, e
 	}
 
 	name := fmt.Sprintf("%s-%d", infrav1.RunnerTLSSecretName, caArtifacts.validUntil.Unix())
-	trueVar := true
+	isImmutable := true
 	tlsCertSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -659,7 +659,7 @@ func (cr *CertRotator) generateNamespaceTLS(namespace string) (*corev1.Secret, e
 				infrav1.RunnerLabel: "true",
 			},
 		},
-		Immutable: &trueVar, // we set immutable to true to reduce loads on the ETCd server
+		Immutable: &isImmutable, // we set immutable to true to reduce loads on the ETCd server
 		Type:      corev1.SecretTypeTLS,
 		Data: map[string][]byte{
 			caCertName: caArtifacts.CertPEM,
