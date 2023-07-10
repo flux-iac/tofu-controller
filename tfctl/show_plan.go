@@ -69,7 +69,11 @@ func (c *CLI) ShowPlan(out io.Writer, resource string) error {
 		cond := apimeta.FindStatusCondition(terraform.Status.Conditions, meta.ReadyCondition)
 		if cond != nil {
 			fmt.Fprintln(out, cond.Message)
-			fmt.Fprintf(out, "To set the field, you can also run:\n\n  tfctl approve %s -f filename.yaml \n", resource)
+			if cond.Message == "Plan generated: This object is in the plan only mode." {
+				// do nothing
+			} else {
+				fmt.Fprintf(out, "To set the field, you can also run:\n\n  tfctl approve %s -f filename.yaml \n", resource)
+			}
 		}
 
 	} else if terraform.Spec.StoreReadablePlan == "json" {
