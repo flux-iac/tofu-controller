@@ -4,7 +4,7 @@ metadata:
   labels:
     app.kubernetes.io/name: tf-controller-planner
     app.kubernetes.io/instance: tf-controller
-  name: branch-based-planner
+  name: branch-planner
 spec:
   replicas: 1
   selector:
@@ -20,7 +20,7 @@ spec:
       containers:
       - args: []
         # Update the env variables according to your new deployment
-        image: "ghcr.io/weaveworks/branch-based-planner:v0.15.0-rc.5"
+        image: "ghcr.io/weaveworks/branch-planner:v0.15.0-rc.5"
         imagePullPolicy: IfNotPresent
         name: tf-controller
         ports:

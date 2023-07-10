@@ -1,4 +1,4 @@
-package bbp
+package branchplanner
 
 import (
 	"context"
