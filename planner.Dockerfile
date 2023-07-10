@@ -19,7 +19,7 @@ COPY go.sum go.sum
 RUN go mod download
 
 # Copy the go source
-COPY cmd/branch-based-planner cmd/branch-based-planner
+COPY cmd/branch-planner cmd/branch-planner
 COPY internal internal
 
 # Build
@@ -27,8 +27,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} \
   go build \
       -gcflags=all="-N -l" \
       -a \
-      -o branch-based-planner \
-      ./cmd/branch-based-planner
+      -o branch-planner \
+      ./cmd/branch-planner
 
 FROM alpine:3.18
 
@@ -42,7 +42,7 @@ RUN apk add --no-cache libcrypto3=3.1.1-r1 && \
     apk add --no-cache libretls && \
     apk add --no-cache busybox
 
-COPY --from=builder /workspace/branch-based-planner /usr/local/bin/
+COPY --from=builder /workspace/branch-planner /usr/local/bin/
 
 # Create minimal nsswitch.conf file to prioritize the usage of /etc/hosts over DNS queries.
 # https://github.com/gliderlabs/docker-alpine/issues/367#issuecomment-354316460
@@ -54,4 +54,4 @@ USER 65532:65532
 
 ENV GNUPGHOME=/tmp
 
-ENTRYPOINT [ "/sbin/tini", "--", "branch-based-planner" ]
+ENTRYPOINT [ "/sbin/tini", "--", "branch-planner" ]

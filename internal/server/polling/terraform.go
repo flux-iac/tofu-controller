@@ -7,7 +7,7 @@ import (
 
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
-	"github.com/weaveworks/tf-controller/internal/informer/bbp"
+	planner "github.com/weaveworks/tf-controller/internal/informer/branch-planner"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sLabels "k8s.io/apimachinery/pkg/labels"
@@ -146,8 +146,8 @@ func (s *Server) createLabels(labels map[string]string, branch string, prID stri
 		labels = make(map[string]string)
 	}
 
-	labels[bbp.LabelKey] = bbp.LabelValue
-	labels[bbp.LabelPRIDKey] = prID
+	labels[planner.LabelKey] = planner.LabelValue
+	labels[planner.LabelPRIDKey] = prID
 
 	return labels
 }

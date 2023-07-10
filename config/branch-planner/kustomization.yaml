@@ -6,6 +6,6 @@ resources:
 generatorOptions:
   disableNameSuffixHash: true
 images:
-  - name: weaveworks/branch-based-planner
-    newName: ghcr.io/weaveworks/branch-based-planner
-    newTag: v0.15.1
+  - name: weaveworks/branch-planner
+    newName: ghcr.io/weaveworks/branch-planner
+    newTag: v0.15.2
