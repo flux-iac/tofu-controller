@@ -208,6 +208,7 @@ tickerLoop:
 			if err := cr.refreshCACertsIfNeeded(); err != nil {
 				crLog.Error(err, "could not refresh cert")
 			}
+
 			// if no channel passing it, skip
 			if trigger.Ready != nil {
 				n := len(cr.artifactCaches)
@@ -649,6 +650,7 @@ func (cr *CertRotator) generateNamespaceTLS(namespace string) (*corev1.Secret, e
 	}
 
 	name := fmt.Sprintf("%s-%d", infrav1.RunnerTLSSecretName, caArtifacts.validUntil.Unix())
+	trueVar := true
 	tlsCertSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -657,7 +659,8 @@ func (cr *CertRotator) generateNamespaceTLS(namespace string) (*corev1.Secret, e
 				infrav1.RunnerLabel: "true",
 			},
 		},
-		Type: corev1.SecretTypeTLS,
+		Immutable: &trueVar, // we set immutable to true to reduce loads on the ETCd server
+		Type:      corev1.SecretTypeTLS,
 		Data: map[string][]byte{
 			caCertName: caArtifacts.CertPEM,
 			caKeyName:  caArtifacts.KeyPEM,
