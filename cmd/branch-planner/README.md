@@ -1,10 +1,10 @@
-# Branch-based planner development
+# Branch planner development
 
 ## How to run this
 
 You can run this with
 
-    go run ./cmd/branch-based-planner/
+    go run ./cmd/branch-planner/
 
 but it won't do much without a configuration. The configuration is in
 the form of a ConfigMap in your Kubernetes cluster (as accessed by
@@ -58,7 +58,7 @@ repos.
 Assuming you have put the token in an environment variable `GITHUB_TOKEN`:
 
 ```bash
-kubectl create secret generic bbp-token -n default --from-literal=token=$GITHUB_TOKEN
+kubectl create secret generic branch-planner-token -n default --from-literal=token=$GITHUB_TOKEN
 ```
 
 ## Create a config
@@ -77,10 +77,10 @@ kubectl apply -f- <<EOF
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: branch-based-planner
+  name: branch-planner
   namespace: default
 data:
-  secretName: bbp-token
+  secretName: branch-planner-token
   resources: |
     - namespace: default
       name: helloworld-tf

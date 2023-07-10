@@ -8,6 +8,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/hcl2/hcldec"
 	"github.com/hashicorp/hcl2/hclparse"
+	"github.com/weaveworks/tf-controller/api/typeinfo"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
@@ -72,7 +73,7 @@ j = { a = 1, b = 2, c = 3 }
 
 		tt, err := ctyjson.MarshalType(vv.Type())
 		g.Expect(err).To(BeNil())
-		data[k+".type"] = tt
+		data[k+typeinfo.Suffix] = tt
 		raw, err := ctyjson.Marshal(vv, vv.Type())
 		g.Expect(err).To(BeNil())
 		data[k] = raw

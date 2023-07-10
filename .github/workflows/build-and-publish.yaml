@@ -97,7 +97,7 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.version=${{ steps.prep.outputs.VERSION }}
             org.opencontainers.image.created=${{ steps.prep.outputs.BUILD_DATE }}
-      - name: Publish multi-arch branch-based-planner container image
+      - name: Publish multi-arch branch-planner container image
         uses: docker/build-push-action@v4
         with:
           push: true
@@ -106,7 +106,7 @@ jobs:
           file: ./planner.Dockerfile
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
-            ghcr.io/weaveworks/branch-based-planner:${{ steps.prep.outputs.VERSION }}
+            ghcr.io/weaveworks/branch-planner:${{ steps.prep.outputs.VERSION }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}

@@ -9,7 +9,7 @@ import (
 	tfv1alpha2 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/internal/config"
 	"github.com/weaveworks/tf-controller/internal/git/provider"
-	"github.com/weaveworks/tf-controller/internal/informer/bbp"
+	planner "github.com/weaveworks/tf-controller/internal/informer/branch-planner"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/dynamic"
@@ -29,11 +29,11 @@ func startInformer(ctx context.Context, log logr.Logger, dynamicClient *dynamic.
 		return fmt.Errorf("failed to create shared informer: %w", err)
 	}
 
-	informer, err := bbp.NewInformer(
-		bbp.WithLogger(log),
-		bbp.WithClusterClient(clusterClient),
-		bbp.WithGitProvider(gitProvider),
-		bbp.WithSharedInformer(sharedInformer),
+	informer, err := planner.NewInformer(
+		planner.WithLogger(log),
+		planner.WithClusterClient(clusterClient),
+		planner.WithGitProvider(gitProvider),
+		planner.WithSharedInformer(sharedInformer),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create informer: %w", err)
@@ -78,7 +78,7 @@ func createSharedInformer(ctx context.Context, client client.Client, dynamicClie
 	}
 
 	tweakListOptionsFunc := func(options *metav1.ListOptions) {
-		options.LabelSelector = fmt.Sprintf("%s=%s", bbp.LabelKey, bbp.LabelValue)
+		options.LabelSelector = fmt.Sprintf("%s=%s", planner.LabelKey, planner.LabelValue)
 	}
 
 	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynamicClient, time.Minute, corev1.NamespaceAll, tweakListOptionsFunc)
