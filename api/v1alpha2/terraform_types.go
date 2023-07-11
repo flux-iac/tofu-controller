@@ -552,7 +552,7 @@ func TerraformApplying(terraform Terraform, revision string, message string) Ter
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
 	if revision != "" {
-		(&terraform).Status.LastAttemptedRevision = revision
+		terraform.Status.LastAttemptedRevision = revision
 	}
 	return terraform
 }
@@ -565,7 +565,7 @@ func TerraformOutputsAvailable(terraform Terraform, availableOutputs []string, m
 		Message: trimString(message, MaxConditionMessageLength),
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
-	(&terraform).Status.AvailableOutputs = availableOutputs
+	terraform.Status.AvailableOutputs = availableOutputs
 	return terraform
 }
 
@@ -592,20 +592,20 @@ func TerraformApplied(terraform Terraform, revision string, message string, isDe
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
 
 	if terraform.Status.Plan.IsDriftDetectionPlan {
-		(&terraform).Status.LastAppliedByDriftDetectionAt = &metav1.Time{Time: time.Now()}
+		terraform.Status.LastAppliedByDriftDetectionAt = &metav1.Time{Time: time.Now()}
 	}
 
-	(&terraform).Status.Plan = PlanStatus{
+	terraform.Status.Plan = PlanStatus{
 		LastApplied:   terraform.Status.Plan.Pending,
 		Pending:       "",
 		IsDestroyPlan: isDestroyApply,
 	}
 	if revision != "" {
-		(&terraform).Status.LastAppliedRevision = revision
+		terraform.Status.LastAppliedRevision = revision
 	}
 
 	if len(entries) > 0 {
-		(&terraform).Status.Inventory = &ResourceInventory{Entries: entries}
+		terraform.Status.Inventory = &ResourceInventory{Entries: entries}
 	}
 
 	SetTerraformReadiness(&terraform, metav1.ConditionUnknown, TFExecApplySucceedReason, message+": "+revision, revision)
@@ -620,14 +620,14 @@ func TerraformPostPlanningWebhookFailed(terraform Terraform, revision string, me
 		Message: trimString(message, MaxConditionMessageLength),
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
-	(&terraform).Status.Plan = PlanStatus{
+	terraform.Status.Plan = PlanStatus{
 		LastApplied:   terraform.Status.Plan.LastApplied,
 		Pending:       "",
 		IsDestroyPlan: terraform.Spec.Destroy,
 	}
 	if revision != "" {
-		(&terraform).Status.LastAttemptedRevision = revision
-		(&terraform).Status.LastPlannedRevision = revision
+		terraform.Status.LastAttemptedRevision = revision
+		terraform.Status.LastPlannedRevision = revision
 	}
 
 	return terraform
@@ -644,18 +644,18 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, forceOrAu
 		Message: trimString(message, MaxConditionMessageLength),
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
-	(&terraform).Status.Plan = PlanStatus{
+	terraform.Status.Plan = PlanStatus{
 		LastApplied:          terraform.Status.Plan.LastApplied,
 		Pending:              planId, // pending plan id is always the short plan format.
 		IsDestroyPlan:        terraform.Spec.Destroy,
 		IsDriftDetectionPlan: terraform.HasDrift(),
 	}
 	if revision != "" {
-		(&terraform).Status.LastAttemptedRevision = revision
-		(&terraform).Status.LastPlannedRevision = revision
+		terraform.Status.LastAttemptedRevision = revision
+		terraform.Status.LastPlannedRevision = revision
 	}
 
-	(&terraform).Status.LastPlanAt = &metav1.Time{Time: time.Now()}
+	terraform.Status.LastPlanAt = &metav1.Time{Time: time.Now()}
 
 	// planOnly takes the highest precedence
 	if terraform.Spec.PlanOnly {
@@ -677,17 +677,17 @@ func TerraformPlannedNoChanges(terraform Terraform, revision string, message str
 		Message: trimString(message, MaxConditionMessageLength),
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
-	(&terraform).Status.Plan = PlanStatus{
+	terraform.Status.Plan = PlanStatus{
 		LastApplied:   terraform.Status.Plan.LastApplied,
 		Pending:       "",
 		IsDestroyPlan: terraform.Spec.Destroy,
 	}
 	if revision != "" {
-		(&terraform).Status.LastAttemptedRevision = revision
-		(&terraform).Status.LastPlannedRevision = revision
+		terraform.Status.LastAttemptedRevision = revision
+		terraform.Status.LastPlannedRevision = revision
 	}
 
-	(&terraform).Status.LastPlanAt = &metav1.Time{Time: time.Now()}
+	terraform.Status.LastPlanAt = &metav1.Time{Time: time.Now()}
 
 	SetTerraformReadiness(&terraform, metav1.ConditionTrue, PlannedNoChangesReason, message+": "+revision, revision)
 	return terraform
@@ -729,7 +729,7 @@ func TerraformAppliedFailResetPlanAndNotReady(terraform Terraform, revision, rea
 }
 
 func TerraformDriftDetected(terraform Terraform, revision, reason, message string) Terraform {
-	(&terraform).Status.LastDriftDetectedAt = &metav1.Time{Time: time.Now()}
+	terraform.Status.LastDriftDetectedAt = &metav1.Time{Time: time.Now()}
 
 	SetTerraformReadiness(&terraform, metav1.ConditionFalse, reason, trimString(message, MaxConditionMessageLength), revision)
 	return terraform
