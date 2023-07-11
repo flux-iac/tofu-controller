@@ -86,6 +86,8 @@ func (s *Server) reconcileTerraform(ctx context.Context, originalTF *infrav1.Ter
 		spec.PlanOnly = true
 		spec.StoreReadablePlan = "human"
 		spec.WriteOutputsToSecret.Name = branchSecretName
+		spec.ApprovePlan = ""
+		spec.Force = false
 
 		tf.Spec = *spec
 

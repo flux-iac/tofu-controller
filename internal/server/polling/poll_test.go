@@ -127,6 +127,8 @@ func Test_poll_reconcile_objects(t *testing.T) {
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
 				Name: "test-secret",
 			},
+			ApprovePlan: "should be cleared",
+			Force:       true, // should be set false on clone.
 		},
 	}
 	expectToSucceed(g, k8sClient.Create(context.TODO(), original))
@@ -188,6 +190,8 @@ func Test_poll_reconcile_objects(t *testing.T) {
 	expectToEqual(g, tfList.Items[1].Spec.PlanOnly, true)
 	expectToEqual(g, tfList.Items[1].Spec.StoreReadablePlan, "human")
 	expectToEqual(g, tfList.Items[1].Spec.WriteOutputsToSecret.Name, "test-secret-test-branch-1-1")
+	expectToEqual(g, tfList.Items[1].Spec.ApprovePlan, "")
+	expectToEqual(g, tfList.Items[1].Spec.Force, false)
 
 	expectToEqual(g, tfList.Items[3].Labels["infra.weave.works/branch-planner"], "true")
 	expectToEqual(g, tfList.Items[3].Labels["infra.weave.works/pr-id"], "3")
