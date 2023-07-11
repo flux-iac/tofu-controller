@@ -72,17 +72,16 @@ func ObjectKeyFromName(configMapName string) (client.ObjectKey, error) {
 	key := client.ObjectKey{}
 	namespace := "default"
 	name := ""
-	parts := strings.SplitN(configMapName, "/", 2)
+	parts := strings.Split(configMapName, "/")
 
-	if len(parts) < 1 {
-		return key, fmt.Errorf("invalid ConfigMap reference: %q", configMapName)
-	}
-
-	if len(parts) < 2 {
+	switch len(parts) {
+	case 1:
 		name = parts[0]
-	} else {
+	case 2:
 		namespace = parts[0]
 		name = parts[1]
+	default:
+		return key, fmt.Errorf("invalid ConfigMap reference: %q", configMapName)
 	}
 
 	if name == "" || namespace == "" {
