@@ -7,7 +7,7 @@ import (
 
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
-	planner "github.com/weaveworks/tf-controller/internal/informer/branch-planner"
+	bpconfig "github.com/weaveworks/tf-controller/internal/config"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sLabels "k8s.io/apimachinery/pkg/labels"
@@ -24,14 +24,14 @@ func (s *Server) getTerraformObject(ctx context.Context, ref client.ObjectKey) (
 	return obj, nil
 }
 
-func (s *Server) listTerraformObjects(ctx context.Context, tf *infrav1.Terraform, labels map[string]string) ([]*infrav1.Terraform, error) {
+func (s *Server) listTerraformObjects(ctx context.Context, namespace string, labels map[string]string) ([]*infrav1.Terraform, error) {
 	tfList := &infrav1.TerraformList{}
 
 	if err := s.clusterClient.List(ctx, tfList,
 		client.MatchingLabelsSelector{
 			Selector: k8sLabels.Set(labels).AsSelector(),
 		},
-		client.InNamespace(tf.Namespace),
+		client.InNamespace(namespace),
 	); err != nil {
 		return nil, fmt.Errorf("unable to list Terraform objects: %w", err)
 	}
@@ -148,8 +148,8 @@ func (s *Server) createLabels(labels map[string]string, branch string, prID stri
 		labels = make(map[string]string)
 	}
 
-	labels[planner.LabelKey] = planner.LabelValue
-	labels[planner.LabelPRIDKey] = prID
+	labels[bpconfig.LabelKey] = bpconfig.LabelValue
+	labels[bpconfig.LabelPRIDKey] = prID
 
 	return labels
 }
