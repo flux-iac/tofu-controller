@@ -114,7 +114,15 @@ install-cli:
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run cmd/manager/main.go
+	go run \
+		-ldflags "-X main.BuildSHA=$(BUILD_SHA) -X main.BuildVersion=$(BUILD_VERSION)" \
+		./cmd/manager/main.go
+
+.PHONY: run-planner
+run-planner: manifests generate fmt vet ## Run a branch planner from your host.
+	go run \
+		-ldflags "-X main.BuildSHA=$(BUILD_SHA) -X main.BuildVersion=$(BUILD_VERSION)" \
+		./cmd/branch-planner/
 
 .PHONY: docker-build
 docker-build: ## Build docker
