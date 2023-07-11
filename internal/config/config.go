@@ -27,7 +27,7 @@ import (
 //   secretName: bbp-token
 //   # List of Terraform resources
 //   resources: |-
-//     - namespace: default
+//     - namespace: flux-system
 //       name: tf1
 //     - namespace: default
 //       name: tf2
@@ -57,7 +57,7 @@ func ReadConfig(ctx context.Context, clusterClient client.Client, ref types.Name
 	resourceData := configMap.Data["resources"]
 
 	if config.SecretNamespace == "" {
-		config.SecretNamespace = "default"
+		config.SecretNamespace = "flux-system"
 	}
 
 	err = yaml.Unmarshal([]byte(resourceData), &config.Resources)
