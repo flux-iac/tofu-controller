@@ -70,7 +70,7 @@ func ReadConfig(ctx context.Context, clusterClient client.Client, ref types.Name
 
 func ObjectKeyFromName(configMapName string) (client.ObjectKey, error) {
 	key := client.ObjectKey{}
-	namespace := "default"
+	namespace := "flux-system"
 	name := ""
 	parts := strings.SplitN(configMapName, "/", 2)
 
