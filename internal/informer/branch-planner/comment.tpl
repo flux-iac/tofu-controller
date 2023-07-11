@@ -1,5 +1,5 @@
 tf-controller plan output:
 
-```diff
+```hcl
 {{.PlanOutput}}
 ```
