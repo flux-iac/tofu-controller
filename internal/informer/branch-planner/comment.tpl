@@ -1,9 +1,5 @@
 tf-controller plan output:
-<details>
-<summary>Show Output</summary>
 
-```diff
+```hcl
 {{.PlanOutput}}
 ```
-
-</details>
