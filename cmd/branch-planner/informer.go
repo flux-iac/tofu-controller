@@ -62,6 +62,9 @@ func createProvider(ctx context.Context, clusterClient client.Client, configMapN
 		return nil, fmt.Errorf("unable to get bbp config secret: %w", err)
 	}
 
+	if bbpProviderSecret.Data == nil || bbpProviderSecret.Data["token"] == nil {
+		return nil, fmt.Errorf("provider secret has no token")
+	}
 	gitProvider, err := provider.New(provider.ProviderGitHub, provider.WithToken("api-token", string(bbpProviderSecret.Data["token"])))
 	if err != nil {
 		return nil, fmt.Errorf("unable to get provider: %w", err)
