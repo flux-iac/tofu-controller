@@ -11,6 +11,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+const (
+	LabelKey            = "infra.weave.works/branch-planner"
+	LabelValue          = "true"
+	LabelPRIDKey string = "infra.weave.works/pr-id"
+)
+
 // Example ConfigMap
 //
 // The secret is a reference to a secret with a 'token' key.
