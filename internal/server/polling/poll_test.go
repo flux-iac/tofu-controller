@@ -2,6 +2,7 @@ package polling
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/onsi/gomega"
@@ -127,6 +128,8 @@ func Test_poll_reconcile_objects(t *testing.T) {
 			WriteOutputsToSecret: &infrav1.WriteOutputsToSecretSpec{
 				Name: "test-secret",
 			},
+			ApprovePlan: "should be cleared",
+			Force:       true, // should be set false on clone.
 		},
 	}
 	expectToSucceed(g, k8sClient.Create(context.TODO(), original))
@@ -180,18 +183,23 @@ func Test_poll_reconcile_objects(t *testing.T) {
 	}))
 
 	expectToEqual(g, len(tfList.Items), 4)
+	// The first one is the original Terraform object.
 	expectToEqual(g, tfList.Items[0].Name, original.Name)
-	expectToEqual(g, tfList.Items[2].Name, original.Name+"-test-branch-2-2")
 
-	expectToEqual(g, tfList.Items[1].Spec.SourceRef.Name, "original-source-test-branch-1-1")
-	expectToEqual(g, tfList.Items[1].Spec.SourceRef.Namespace, ns.Name)
-	expectToEqual(g, tfList.Items[1].Spec.PlanOnly, true)
-	expectToEqual(g, tfList.Items[1].Spec.StoreReadablePlan, "human")
-	expectToEqual(g, tfList.Items[1].Spec.WriteOutputsToSecret.Name, "test-secret-test-branch-1-1")
-
-	expectToEqual(g, tfList.Items[3].Labels["infra.weave.works/branch-planner"], "true")
-	expectToEqual(g, tfList.Items[3].Labels["infra.weave.works/pr-id"], "3")
-	expectToEqual(g, tfList.Items[3].Labels["test-label"], "abc")
+	// Ignore the first one as it's the original resource.
+	for idx, item := range tfList.Items[1:] {
+		expectToEqual(g, item.Name, fmt.Sprintf("%s-test-branch-%d-%d", original.Name, idx+1, idx+1))
+		expectToEqual(g, item.Spec.SourceRef.Name, fmt.Sprintf("%s-source-test-branch-%d-%d", original.Name, idx+1, idx+1))
+		expectToEqual(g, item.Spec.SourceRef.Namespace, ns.Name)
+		expectToEqual(g, item.Spec.PlanOnly, true)
+		expectToEqual(g, item.Spec.StoreReadablePlan, "human")
+		expectToEqual(g, item.Spec.ApprovePlan, "")
+		expectToEqual(g, item.Spec.Force, false)
+		expectToEqual(g, item.Spec.WriteOutputsToSecret.Name, fmt.Sprintf("test-secret-test-branch-%d-%d", idx+1, idx+1))
+		expectToEqual(g, item.Labels["infra.weave.works/branch-planner"], "true")
+		expectToEqual(g, item.Labels["test-label"], "abc")
+		expectToEqual(g, item.Labels["infra.weave.works/pr-id"], fmt.Sprint(idx+1))
+	}
 
 	// Check that the Source objects are created with all expected fields.
 	var srcList sourcev1.GitRepositoryList
@@ -200,19 +208,23 @@ func Test_poll_reconcile_objects(t *testing.T) {
 	}))
 
 	expectToEqual(g, len(srcList.Items), 4)
+	// The first one is the original Source object.
 	expectToEqual(g, srcList.Items[0].Name, source.Name)
-	expectToEqual(g, srcList.Items[2].Name, source.Name+"-test-branch-2-2")
 
-	expectToEqual(g, srcList.Items[1].Spec.Reference.Branch, "test-branch-1")
-
-	expectToEqual(g, srcList.Items[3].Labels["infra.weave.works/branch-planner"], "true")
-	expectToEqual(g, srcList.Items[3].Labels["infra.weave.works/pr-id"], "3")
-	expectToEqual(g, srcList.Items[3].Labels["test-label"], "123")
+	// Ignore the first one as it's the original resource.
+	for idx, item := range srcList.Items[1:] {
+		expectToEqual(g, item.Name, fmt.Sprintf("%s-test-branch-%d-%d", source.Name, idx+1, idx+1))
+		expectToEqual(g, item.Spec.Reference.Branch, fmt.Sprintf("test-branch-%d", idx+1))
+		expectToEqual(g, item.Labels["infra.weave.works/branch-planner"], "true")
+		expectToEqual(g, item.Labels["test-label"], "123")
+		expectToEqual(g, item.Labels["infra.weave.works/pr-id"], fmt.Sprint(idx+1))
+	}
 
 	// Check that branch Terraform objects are updated
 	// after the original Terraform object is updated.
+	secretName := "new-test-secret"
 	original.Labels["test-label"] = "xyz"
-	original.Spec.WriteOutputsToSecret.Name = "new-test-secret"
+	original.Spec.WriteOutputsToSecret.Name = secretName
 
 	expectToSucceed(g, k8sClient.Update(context.TODO(), original))
 	expectToSucceed(g, server.reconcile(ctx, original, source, prs))
@@ -223,13 +235,14 @@ func Test_poll_reconcile_objects(t *testing.T) {
 		Namespace: ns.Name,
 	}))
 
-	expectToEqual(g, tfList.Items[0].Name, original.Name)
-	expectToEqual(g, tfList.Items[0].Labels["test-label"], "xyz")
-	expectToEqual(g, tfList.Items[0].Spec.WriteOutputsToSecret.Name, "new-test-secret")
-
-	expectToEqual(g, tfList.Items[2].Name, original.Name+"-test-branch-2-2")
-	expectToEqual(g, tfList.Items[2].Labels["test-label"], "xyz")
-	expectToEqual(g, tfList.Items[2].Spec.WriteOutputsToSecret.Name, "new-test-secret-test-branch-2-2")
+	for idx, item := range tfList.Items {
+		expectedSecretName := fmt.Sprintf("%s-test-branch-%d-%d", secretName, idx, idx)
+		if idx == 0 {
+			expectedSecretName = secretName
+		}
+		expectToEqual(g, item.Labels["test-label"], "xyz")
+		expectToEqual(g, item.Spec.WriteOutputsToSecret.Name, expectedSecretName)
+	}
 
 	// Check that corresponding Terraform objects and Sources are deleted
 	// after PRs are deleted
