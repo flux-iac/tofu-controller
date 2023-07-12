@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -409,14 +408,19 @@ func (r *TerraformRunnerServer) LoadTFPlan(ctx context.Context, req *LoadTFPlanR
 		return nil, err
 	}
 
-	// this must be the short plan format: see api/planid/plan_id.go
-	pendingPlanId := req.PendingPlan
-	if tfplanSecret.Annotations[SavedPlanSecretAnnotation] != pendingPlanId {
-		err = fmt.Errorf("error pending plan and plan's name in the secret are not matched: %s != %s",
-			pendingPlanId,
-			tfplanSecret.Annotations[SavedPlanSecretAnnotation])
-		log.Error(err, "plan name mismatch")
-		return nil, err
+	if r.terraform.Spec.Force == true {
+		// skip the annotation check
+		log.Info("force mode, skipping the plan's annotation check")
+	} else {
+		// this must be the short plan format: see api/planid/plan_id.go
+		pendingPlanId := req.PendingPlan
+		if tfplanSecret.Annotations[SavedPlanSecretAnnotation] != pendingPlanId {
+			err = fmt.Errorf("error pending plan and plan's name in the secret are not matched: %s != %s",
+				pendingPlanId,
+				tfplanSecret.Annotations[SavedPlanSecretAnnotation])
+			log.Error(err, "plan name mismatch")
+			return nil, err
+		}
 	}
 
 	if req.BackendCompletelyDisable {
@@ -428,7 +432,7 @@ func (r *TerraformRunnerServer) LoadTFPlan(ctx context.Context, req *LoadTFPlanR
 			log.Error(err, "unable to decode the plan")
 			return nil, err
 		}
-		err = ioutil.WriteFile(filepath.Join(r.tf.WorkingDir(), TFPlanName), tfplan, 0644)
+		err = os.WriteFile(filepath.Join(r.tf.WorkingDir(), TFPlanName), tfplan, 0644)
 		if err != nil {
 			err = fmt.Errorf("error saving plan file to disk: %s", err)
 			log.Error(err, "unable to write the plan to disk")
