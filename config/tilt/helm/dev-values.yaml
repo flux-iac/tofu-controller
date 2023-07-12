@@ -1,0 +1,10 @@
+runner:
+  image:
+    repository: ghcr.io/weaveworks/tf-runner
+  serviceAccount:
+    allowedNamespaces:
+      - flux-system
+      - terraform
+
+branchPlanner:
+  enabled: true

@@ -127,3 +127,13 @@ Selector labels
 app.kubernetes.io/name: {{ include "planner.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Inject pod namespace
+*/}}
+{{- define "pod-namespace" }}
+- name: RUNTIME_NAMESPACE
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.namespace
+{{- end }}
