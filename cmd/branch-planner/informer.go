@@ -73,7 +73,7 @@ func createProvider(ctx context.Context, clusterClient client.Client, configMapN
 	return gitProvider, nil
 }
 
-func createSharedInformer(ctx context.Context, client client.Client, dynamicClient dynamic.Interface) (cache.SharedIndexInformer, error) {
+func createSharedInformer(_ context.Context, client client.Client, dynamicClient dynamic.Interface) (cache.SharedIndexInformer, error) {
 	restMapper := client.RESTMapper()
 	mapping, err := restMapper.RESTMapping(tfv1alpha2.GroupVersion.WithKind(tfv1alpha2.TerraformKind).GroupKind())
 	if err != nil {
@@ -81,7 +81,7 @@ func createSharedInformer(ctx context.Context, client client.Client, dynamicClie
 	}
 
 	tweakListOptionsFunc := func(options *metav1.ListOptions) {
-		options.LabelSelector = fmt.Sprintf("%s=%s", planner.LabelKey, planner.LabelValue)
+		options.LabelSelector = fmt.Sprintf("%s=%s", config.LabelKey, config.LabelValue)
 	}
 
 	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynamicClient, time.Minute, corev1.NamespaceAll, tweakListOptionsFunc)

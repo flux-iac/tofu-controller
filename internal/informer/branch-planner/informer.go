@@ -14,6 +14,7 @@ import (
 	"github.com/go-logr/logr"
 	giturl "github.com/kubescape/go-git-url"
 	tfv1alpha2 "github.com/weaveworks/tf-controller/api/v1alpha2"
+	"github.com/weaveworks/tf-controller/internal/config"
 	"github.com/weaveworks/tf-controller/internal/git/provider"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -104,12 +105,6 @@ func (i *Informer) SetDeleteHandler(fn func(interface{})) {
 	i.handlers.DeleteFunc = fn
 }
 
-const (
-	LabelKey            = "infra.weave.works/branch-planner"
-	LabelValue          = "true"
-	LabelPRIDKey string = "infra.weave.works/pr-id"
-)
-
 func (i *Informer) addHandler(obj interface{}) {}
 
 func (i *Informer) updateHandler(oldObj, newObj interface{}) {
@@ -145,14 +140,14 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		return
 	}
 
-	if new.Labels[LabelKey] != LabelValue {
+	if new.Labels[config.LabelKey] != config.LabelValue {
 		i.log.Info("Terraform object is not managed by the branch-based planner")
 
 		return
 	}
 
 	if !i.isNewPlan(old, new) {
-		i.log.Info("Plan not updated", "namespace", new.Namespace, "name", new.Name, "pr-id", new.Labels[LabelPRIDKey])
+		i.log.Info("Plan not updated", "namespace", new.Namespace, "name", new.Name, "pr-id", new.Labels[config.LabelPRIDKey])
 
 		return
 	}
@@ -173,7 +168,7 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		return
 	}
 
-	i.log.Info("Updated plan", "pr-id", new.Labels[LabelPRIDKey])
+	i.log.Info("Updated plan", "pr-id", new.Labels[config.LabelPRIDKey])
 
 	repo, err := i.getRepo(ctx, new)
 	if err != nil {
@@ -181,9 +176,9 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		return
 	}
 
-	number, err := strconv.Atoi(new.Labels[LabelPRIDKey])
+	number, err := strconv.Atoi(new.Labels[config.LabelPRIDKey])
 	if err != nil {
-		i.log.Error(err, "failed converting PR id to integer", "pr-id", new.Labels[LabelPRIDKey], "namespace", new.Namespace, "name", new.Name)
+		i.log.Error(err, "failed converting PR id to integer", "pr-id", new.Labels[config.LabelPRIDKey], "namespace", new.Namespace, "name", new.Name)
 	}
 
 	pr := provider.PullRequest{
@@ -192,7 +187,7 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 	}
 
 	if _, err := i.gitProvider.AddCommentToPullRequest(ctx, pr, formatPlanOutput(planOutput)); err != nil {
-		i.log.Error(err, "failed adding comment to pull request", "pr-id", new.Labels[LabelPRIDKey], "namespace", new.Namespace, "name", new.Name)
+		i.log.Error(err, "failed adding comment to pull request", "pr-id", new.Labels[config.LabelPRIDKey], "namespace", new.Namespace, "name", new.Name)
 	}
 }
 

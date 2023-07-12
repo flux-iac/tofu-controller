@@ -12,6 +12,7 @@ import (
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
+	"github.com/weaveworks/tf-controller/internal/config"
 	"github.com/weaveworks/tf-controller/internal/git/provider/providerfakes"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -47,7 +48,7 @@ func TestInformer(t *testing.T) {
 			Name:      "helloworld",
 			Namespace: ns.Name,
 			Labels: map[string]string{
-				LabelKey:                  LabelValue,
+				config.LabelKey:           config.LabelValue,
 				"infra.weave.works/pr-id": "1",
 			},
 		},
@@ -123,7 +124,7 @@ func createSharedInformer(g *WithT, ctx context.Context, client client.Client, d
 	g.Expect(err).NotTo(HaveOccurred())
 
 	tweakListOptionsFunc := func(options *metav1.ListOptions) {
-		options.LabelSelector = fmt.Sprintf("%s=%s", LabelKey, LabelValue)
+		options.LabelSelector = fmt.Sprintf("%s=%s", config.LabelKey, config.LabelValue)
 	}
 
 	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynamicClient, time.Minute, corev1.NamespaceAll, tweakListOptionsFunc)
