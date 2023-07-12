@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: tf-controller-planner
+    app.kubernetes.io/instance: tf-controller
+  name: branch-planner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tf-controller-planner
+      app.kubernetes.io/instance: tf-controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tf-controller-planner
+        app.kubernetes.io/instance: tf-controller
+    spec:
+      containers:
+      - args: []
+        # Update the env variables according to your new deployment
+        image: "ghcr.io/weaveworks/branch-planner:v0.15.0-rc.5"
+        imagePullPolicy: IfNotPresent
+        name: tf-controller
+        ports:
+        - containerPort: 8080
+          name: http-prom
+        - containerPort: 9440
+          name: healthz
+          protocol: TCP
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65532
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+          requests:
+            cpu: 200m
+            memory: 64Mi
+      securityContext:
+        fsGroup: 1337
+      serviceAccountName: tf-controller
+      terminationGracePeriodSeconds: 10
