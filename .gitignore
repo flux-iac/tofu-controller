@@ -42,3 +42,7 @@ example/
 
 # OS files
 **/.DS_Store
+
+# Local dev files
+Tiltfile.local
+/config/tilt/helm/dev-values-local.yaml

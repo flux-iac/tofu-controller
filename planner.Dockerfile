@@ -2,6 +2,8 @@
 FROM golang:1.20 as builder
 
 ARG TARGETARCH
+ARG BUILD_SHA
+ARG BUILD_VERSION
 
 RUN apt-get update && apt-get install -y unzip
 
@@ -28,6 +30,7 @@ COPY internal internal
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} \
   go build \
       -gcflags=all="-N -l" \
+      -ldflags "-X main.BuildSHA=${BUILD_SHA} -X main.BuildVersion=${BUILD_VERSION}" \
       -a \
       -o branch-planner \
       ./cmd/branch-planner
