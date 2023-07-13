@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	bpconfig "github.com/weaveworks/tf-controller/internal/config"
 	corev1 "k8s.io/api/core/v1"
@@ -27,13 +27,19 @@ func (s *Server) getTerraformObject(ctx context.Context, ref client.ObjectKey) (
 func (s *Server) listTerraformObjects(ctx context.Context, namespace string, labels map[string]string) ([]*infrav1.Terraform, error) {
 	tfList := &infrav1.TerraformList{}
 
-	if err := s.clusterClient.List(ctx, tfList,
-		client.MatchingLabelsSelector{
-			Selector: k8sLabels.Set(labels).AsSelector(),
-		},
-		client.InNamespace(namespace),
-	); err != nil {
-		return nil, fmt.Errorf("unable to list Terraform objects: %w", err)
+	if labels == nil {
+		if err := s.clusterClient.List(ctx, tfList, client.InNamespace(namespace)); err != nil {
+			return nil, fmt.Errorf("unable to list Terraform objects: %w", err)
+		}
+	} else {
+		if err := s.clusterClient.List(ctx, tfList,
+			client.MatchingLabelsSelector{
+				Selector: k8sLabels.Set(labels).AsSelector(),
+			},
+			client.InNamespace(namespace),
+		); err != nil {
+			return nil, fmt.Errorf("unable to list Terraform objects: %w", err)
+		}
 	}
 
 	result := make([]*infrav1.Terraform, len(tfList.Items))
@@ -44,8 +50,8 @@ func (s *Server) listTerraformObjects(ctx context.Context, namespace string, lab
 	return result, nil
 }
 
-func (s *Server) getSource(ctx context.Context, tf *infrav1.Terraform) (*sourcev1b2.GitRepository, error) {
-	if tf.Spec.SourceRef.Kind != sourcev1b2.GitRepositoryKind {
+func (s *Server) getSource(ctx context.Context, tf *infrav1.Terraform) (*sourcev1.GitRepository, error) {
+	if tf.Spec.SourceRef.Kind != sourcev1.GitRepositoryKind {
 		return nil, fmt.Errorf("branch based planner does not support source kind: %s", tf.Spec.SourceRef.Kind)
 	}
 
@@ -53,7 +59,7 @@ func (s *Server) getSource(ctx context.Context, tf *infrav1.Terraform) (*sourcev
 		Namespace: tf.Spec.SourceRef.Namespace,
 		Name:      tf.Spec.SourceRef.Name,
 	}
-	obj := &sourcev1b2.GitRepository{}
+	obj := &sourcev1.GitRepository{}
 	if err := s.clusterClient.Get(ctx, ref, obj); err != nil {
 		return nil, fmt.Errorf("unable to get Source: %w", err)
 	}
@@ -61,7 +67,7 @@ func (s *Server) getSource(ctx context.Context, tf *infrav1.Terraform) (*sourcev
 	return obj, nil
 }
 
-func (s *Server) reconcileTerraform(ctx context.Context, originalTF *infrav1.Terraform, originalSource *sourcev1b2.GitRepository, branch string, prID string, interval time.Duration) error {
+func (s *Server) reconcileTerraform(ctx context.Context, originalTF *infrav1.Terraform, originalSource *sourcev1.GitRepository, branch string, prID string, interval time.Duration) error {
 	tfName := s.createObjectName(originalTF.Name, branch, prID)
 	msg := fmt.Sprintf("Terraform object %s in the namespace %s", tfName, originalTF.Namespace)
 	source, err := s.reconcileSource(ctx, originalSource, branch, prID, interval)
@@ -104,10 +110,10 @@ func (s *Server) reconcileTerraform(ctx context.Context, originalTF *infrav1.Ter
 	return nil
 }
 
-func (s *Server) reconcileSource(ctx context.Context, originalSource *sourcev1b2.GitRepository, branch string, prID string, interval time.Duration) (*sourcev1b2.GitRepository, error) {
+func (s *Server) reconcileSource(ctx context.Context, originalSource *sourcev1.GitRepository, branch string, prID string, interval time.Duration) (*sourcev1.GitRepository, error) {
 	sourceName := s.createObjectName(originalSource.Name, branch, prID)
 	msg := fmt.Sprintf("Source %s in the namespace %s", sourceName, originalSource.Namespace)
-	source := &sourcev1b2.GitRepository{
+	source := &sourcev1.GitRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      sourceName,
 			Namespace: originalSource.Namespace,
