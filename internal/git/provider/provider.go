@@ -29,6 +29,7 @@ type Provider interface {
 	SetHostname(hostname string) error
 
 	Setup() error
+	GetLastComment(ctx context.Context, pr PullRequest) (*Comment, error)
 }
 
 func New(provider ProviderType, options ...ProviderOption) (Provider, error) {
