@@ -3,6 +3,7 @@ package polling
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/tf-controller/internal/git/provider/providerfakes"
 	"testing"
 
 	"github.com/onsi/gomega"
@@ -10,7 +11,7 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/internal/git/provider"
 )
@@ -63,7 +64,7 @@ func Test_poll_empty(t *testing.T) {
 	// we should be able to see what it did.
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
-	expectToSucceed(g, server.reconcile(ctx, original, source, prs))
+	expectToSucceed(g, server.reconcile(ctx, original, source, prs, &providerfakes.FakeProvider{}))
 
 	// We expect it to have done nothing! So, check it didn't create
 	// any more Terraform or source objects.
@@ -170,7 +171,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 	// we should be able to see what it did.
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
-	expectToSucceed(g, server.reconcile(ctx, original, source, prs))
+	expectToSucceed(g, server.reconcile(ctx, original, source, prs, &providerfakes.FakeProvider{}))
 
 	// We expect the branch TF objects and corresponding sources
 	// to be created for each PR
@@ -227,7 +228,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 	original.Spec.WriteOutputsToSecret.Name = secretName
 
 	expectToSucceed(g, k8sClient.Update(context.TODO(), original))
-	expectToSucceed(g, server.reconcile(ctx, original, source, prs))
+	expectToSucceed(g, server.reconcile(ctx, original, source, prs, &providerfakes.FakeProvider{}))
 
 	tfList.Items = nil
 
@@ -249,7 +250,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 	// and the original Terraform object and source are retained.
 	prs = prs[2:]
 
-	expectToSucceed(g, server.reconcile(ctx, original, source, prs))
+	expectToSucceed(g, server.reconcile(ctx, original, source, prs, &providerfakes.FakeProvider{}))
 
 	tfList.Items = nil
 
