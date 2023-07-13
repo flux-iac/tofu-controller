@@ -26,7 +26,7 @@ func parseFlags() *applicationOptions {
 
 	flag.StringVar(&opts.pollingConfigMap,
 		"polling-configmap", polling.DefaultConfigMapName,
-		"Namespace and name of the ConfigMap for the polling service.")
+		"\"Namespace/Name\" of the ConfigMap for the polling service. If Namespace is omitted, runtime namespace will be used.")
 
 	flag.DurationVar(&opts.pollingInterval,
 		"polling-interval", polling.DefaultPollingInterval,

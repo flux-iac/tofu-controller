@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"gopkg.in/yaml.v2"
@@ -12,10 +13,13 @@ import (
 )
 
 const (
-	LabelKey                      = "infra.weave.works/branch-planner"
-	LabelValue                    = "true"
-	LabelPRIDKey           string = "infra.weave.works/pr-id"
-	AnnotationCommentIDKey string = "infra.weave.works/comment-id"
+	LabelKey               = "infra.weave.works/branch-planner"
+	LabelValue             = "true"
+	LabelPRIDKey           = "infra.weave.works/pr-id"
+	AnnotationCommentIDKey = "infra.weave.works/comment-id"
+
+	// DefaultNamespace will be used if RUNTIME_NAMESPACE is not defined.
+	DefaultNamespace = "flux-system"
 )
 
 // Example ConfigMap
@@ -53,6 +57,10 @@ type Config struct {
 func ReadConfig(ctx context.Context, clusterClient client.Client, ref types.NamespacedName) (Config, error) {
 	config := Config{}
 
+	if ref.Namespace == "" {
+		ref.Namespace = RuntimeNamespace()
+	}
+
 	configMap := &corev1.ConfigMap{}
 	err := clusterClient.Get(ctx, ref, configMap)
 	if err != nil {
@@ -64,7 +72,7 @@ func ReadConfig(ctx context.Context, clusterClient client.Client, ref types.Name
 	resourceData := configMap.Data["resources"]
 
 	if config.SecretNamespace == "" {
-		config.SecretNamespace = "flux-system"
+		config.SecretNamespace = RuntimeNamespace()
 	}
 
 	err = yaml.Unmarshal([]byte(resourceData), &config.Resources)
@@ -72,12 +80,19 @@ func ReadConfig(ctx context.Context, clusterClient client.Client, ref types.Name
 		return config, fmt.Errorf("failed to parse resource list from ConfigMap: %w", err)
 	}
 
+	// Set namespace to default namespace if empty.
+	for idx := range config.Resources {
+		if config.Resources[idx].Namespace == "" {
+			config.Resources[idx].Namespace = RuntimeNamespace()
+		}
+	}
+
 	return config, nil
 }
 
 func ObjectKeyFromName(configMapName string) (client.ObjectKey, error) {
 	key := client.ObjectKey{}
-	namespace := "flux-system"
+	namespace := RuntimeNamespace()
 	name := ""
 	parts := strings.Split(configMapName, "/")
 
@@ -99,4 +114,12 @@ func ObjectKeyFromName(configMapName string) (client.ObjectKey, error) {
 	key.Name = name
 
 	return key, nil
+}
+
+func RuntimeNamespace() string {
+	if value := os.Getenv("RUNTIME_NAMESPACE"); value != "" {
+		return value
+	}
+
+	return DefaultNamespace
 }
