@@ -48,7 +48,7 @@ func loadTFPlan(
 		return nil, err
 	}
 
-	if terraform.Spec.Force == true {
+	if terraform.Spec.Force {
 		// skip the annotation check
 		log.Info("force mode, skipping the plan's annotation check")
 	} else {
