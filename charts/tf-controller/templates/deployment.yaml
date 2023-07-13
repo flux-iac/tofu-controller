@@ -49,10 +49,7 @@ spec:
         - --
         - tf-controller
         env:
-        - name: RUNTIME_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
+          {{- include "pod-namespace" . | indent 8 }}
         - name: RUNNER_POD_IMAGE
           value: "{{ .Values.runner.image.repository }}:{{ default .Chart.AppVersion .Values.runner.image.tag }}"
         {{- range $key, $value := .Values.extraEnv }}

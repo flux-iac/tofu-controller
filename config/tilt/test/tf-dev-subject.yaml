@@ -3,7 +3,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
   name: helloworld
-  namespace: flux-system
+  namespace: terraform
 spec:
   interval: 30s
   url: https://github.com/tf-controller/helloworld
@@ -14,7 +14,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: helloworld-tf
-  namespace: flux-system
+  namespace: terraform
 stringData:
   test-data: "test"
 ---
@@ -22,7 +22,7 @@ apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld-tf
-  namespace: flux-system
+  namespace: terraform
 spec:
   path: ./
   interval: 20s
@@ -32,7 +32,7 @@ spec:
   sourceRef:
     kind: GitRepository
     name: helloworld
-    namespace: flux-system
+    namespace: terraform
   vars:
   - name: secret_subject
     value: "test-"
@@ -48,8 +48,4 @@ spec:
       labels:
         instance: helloworld-tf # This is the name of the Terraform resource
     spec:
-      image: localhost:5000/weaveworks/tf-runner
-      hostAliases:
-      - hostnames:
-        - host.docker.internal
-        ip: 127.0.0.1
+      image: ghcr.io/weaveworks/tf-runner

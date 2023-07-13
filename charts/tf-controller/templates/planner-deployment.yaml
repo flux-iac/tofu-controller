@@ -31,24 +31,13 @@ spec:
       containers:
       - args: []
         env:
-        # Update the env variables according to your new deployment
+          {{- include "pod-namespace" . | indent 8 }}
         image: "{{ .Values.branchPlanner.image.repository }}:{{ default .Chart.AppVersion .Values.branchPlanner.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: healthz
         name: {{ .Chart.Name }}
         ports:
         - containerPort: 8080
           name: http-prom
-        - containerPort: 9440
-          name: healthz
-          protocol: TCP
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: healthz
         securityContext:
           {{- toYaml .Values.securityContext | nindent 10 }}
       securityContext:
