@@ -4,6 +4,7 @@ package providerfakes
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/tf-controller/internal/git/provider"
@@ -25,18 +26,19 @@ type FakeProvider struct {
 		result1 *provider.Comment
 		result2 error
 	}
-	GetLastCommentStub        func(context.Context, provider.PullRequest) (*provider.Comment, error)
-	getLastCommentMutex       sync.RWMutex
-	getLastCommentArgsForCall []struct {
+	GetLastCommentsStub        func(context.Context, provider.PullRequest, time.Time) ([]*provider.Comment, error)
+	getLastCommentsMutex       sync.RWMutex
+	getLastCommentsArgsForCall []struct {
 		arg1 context.Context
 		arg2 provider.PullRequest
+		arg3 time.Time
 	}
-	getLastCommentReturns struct {
-		result1 *provider.Comment
+	getLastCommentsReturns struct {
+		result1 []*provider.Comment
 		result2 error
 	}
-	getLastCommentReturnsOnCall map[int]struct {
-		result1 *provider.Comment
+	getLastCommentsReturnsOnCall map[int]struct {
+		result1 []*provider.Comment
 		result2 error
 	}
 	ListPullRequestsStub        func(context.Context, provider.Repository) ([]provider.PullRequest, error)
@@ -172,19 +174,20 @@ func (fake *FakeProvider) AddCommentToPullRequestReturnsOnCall(i int, result1 *p
 	}{result1, result2}
 }
 
-func (fake *FakeProvider) GetLastComment(arg1 context.Context, arg2 provider.PullRequest) (*provider.Comment, error) {
-	fake.getLastCommentMutex.Lock()
-	ret, specificReturn := fake.getLastCommentReturnsOnCall[len(fake.getLastCommentArgsForCall)]
-	fake.getLastCommentArgsForCall = append(fake.getLastCommentArgsForCall, struct {
+func (fake *FakeProvider) GetLastComments(arg1 context.Context, arg2 provider.PullRequest, arg3 time.Time) ([]*provider.Comment, error) {
+	fake.getLastCommentsMutex.Lock()
+	ret, specificReturn := fake.getLastCommentsReturnsOnCall[len(fake.getLastCommentsArgsForCall)]
+	fake.getLastCommentsArgsForCall = append(fake.getLastCommentsArgsForCall, struct {
 		arg1 context.Context
 		arg2 provider.PullRequest
-	}{arg1, arg2})
-	stub := fake.GetLastCommentStub
-	fakeReturns := fake.getLastCommentReturns
-	fake.recordInvocation("GetLastComment", []interface{}{arg1, arg2})
-	fake.getLastCommentMutex.Unlock()
+		arg3 time.Time
+	}{arg1, arg2, arg3})
+	stub := fake.GetLastCommentsStub
+	fakeReturns := fake.getLastCommentsReturns
+	fake.recordInvocation("GetLastComments", []interface{}{arg1, arg2, arg3})
+	fake.getLastCommentsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -192,47 +195,47 @@ func (fake *FakeProvider) GetLastComment(arg1 context.Context, arg2 provider.Pul
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeProvider) GetLastCommentCallCount() int {
-	fake.getLastCommentMutex.RLock()
-	defer fake.getLastCommentMutex.RUnlock()
-	return len(fake.getLastCommentArgsForCall)
+func (fake *FakeProvider) GetLastCommentsCallCount() int {
+	fake.getLastCommentsMutex.RLock()
+	defer fake.getLastCommentsMutex.RUnlock()
+	return len(fake.getLastCommentsArgsForCall)
 }
 
-func (fake *FakeProvider) GetLastCommentCalls(stub func(context.Context, provider.PullRequest) (*provider.Comment, error)) {
-	fake.getLastCommentMutex.Lock()
-	defer fake.getLastCommentMutex.Unlock()
-	fake.GetLastCommentStub = stub
+func (fake *FakeProvider) GetLastCommentsCalls(stub func(context.Context, provider.PullRequest, time.Time) ([]*provider.Comment, error)) {
+	fake.getLastCommentsMutex.Lock()
+	defer fake.getLastCommentsMutex.Unlock()
+	fake.GetLastCommentsStub = stub
 }
 
-func (fake *FakeProvider) GetLastCommentArgsForCall(i int) (context.Context, provider.PullRequest) {
-	fake.getLastCommentMutex.RLock()
-	defer fake.getLastCommentMutex.RUnlock()
-	argsForCall := fake.getLastCommentArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+func (fake *FakeProvider) GetLastCommentsArgsForCall(i int) (context.Context, provider.PullRequest, time.Time) {
+	fake.getLastCommentsMutex.RLock()
+	defer fake.getLastCommentsMutex.RUnlock()
+	argsForCall := fake.getLastCommentsArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeProvider) GetLastCommentReturns(result1 *provider.Comment, result2 error) {
-	fake.getLastCommentMutex.Lock()
-	defer fake.getLastCommentMutex.Unlock()
-	fake.GetLastCommentStub = nil
-	fake.getLastCommentReturns = struct {
-		result1 *provider.Comment
+func (fake *FakeProvider) GetLastCommentsReturns(result1 []*provider.Comment, result2 error) {
+	fake.getLastCommentsMutex.Lock()
+	defer fake.getLastCommentsMutex.Unlock()
+	fake.GetLastCommentsStub = nil
+	fake.getLastCommentsReturns = struct {
+		result1 []*provider.Comment
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeProvider) GetLastCommentReturnsOnCall(i int, result1 *provider.Comment, result2 error) {
-	fake.getLastCommentMutex.Lock()
-	defer fake.getLastCommentMutex.Unlock()
-	fake.GetLastCommentStub = nil
-	if fake.getLastCommentReturnsOnCall == nil {
-		fake.getLastCommentReturnsOnCall = make(map[int]struct {
-			result1 *provider.Comment
+func (fake *FakeProvider) GetLastCommentsReturnsOnCall(i int, result1 []*provider.Comment, result2 error) {
+	fake.getLastCommentsMutex.Lock()
+	defer fake.getLastCommentsMutex.Unlock()
+	fake.GetLastCommentsStub = nil
+	if fake.getLastCommentsReturnsOnCall == nil {
+		fake.getLastCommentsReturnsOnCall = make(map[int]struct {
+			result1 []*provider.Comment
 			result2 error
 		})
 	}
-	fake.getLastCommentReturnsOnCall[i] = struct {
-		result1 *provider.Comment
+	fake.getLastCommentsReturnsOnCall[i] = struct {
+		result1 []*provider.Comment
 		result2 error
 	}{result1, result2}
 }
@@ -544,8 +547,8 @@ func (fake *FakeProvider) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.addCommentToPullRequestMutex.RLock()
 	defer fake.addCommentToPullRequestMutex.RUnlock()
-	fake.getLastCommentMutex.RLock()
-	defer fake.getLastCommentMutex.RUnlock()
+	fake.getLastCommentsMutex.RLock()
+	defer fake.getLastCommentsMutex.RUnlock()
 	fake.listPullRequestsMutex.RLock()
 	defer fake.listPullRequestsMutex.RUnlock()
 	fake.setHostnameMutex.RLock()

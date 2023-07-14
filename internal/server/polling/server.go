@@ -200,28 +200,42 @@ func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, sou
 			} else {
 				s.log.Info("successfully deleted Terraform object", "name", tfPlannerObject.Name, "namespace", tfPlannerObject.Namespace, "PR ID", prId)
 			}
+
+			// If the PR does not exist, continue with the next Terraform object.
+			continue
+		}
+
+		lastPlanAt := time.Time{}
+		if tfPlannerObject.Status.LastPlanAt != nil {
+			lastPlanAt = tfPlannerObject.Status.LastPlanAt.Time
 		}
 
 		// check last comment, if it's "!replan" then trigger the replan action for the tfPlannerObject
 		s.log.Info("checking last comment...")
-		comment, err := gitProvider.GetLastComment(ctx, pr)
+		comments, err := gitProvider.GetLastComments(ctx, pr, lastPlanAt)
 		if err != nil {
 			s.log.Error(err, "failed to get last comment", "PR ID", prId)
 		}
 
-		if comment != nil && strings.Contains(comment.Body, "!replan") {
-			s.log.Info("last comment contains '!replan', triggering replan action...")
-			if err = s.replanTerraform(ctx, tfPlannerObject); err != nil {
-				s.log.Error(err, "failed to trigger replan")
-			} else {
-				s.log.Info("successfully triggered replan", "PR ID", prId)
-
-				_, err := gitProvider.AddCommentToPullRequest(ctx, pr, []byte("Planning in progress..."))
-				if err != nil {
-					s.log.Error(err, "failed to add comment to pull request", "PR ID", prId)
+		// it was sorted by created time desc
+		for _, comment := range comments {
+			if comment != nil && strings.Contains(comment.Body, "!replan") {
+				s.log.Info("last comment contains '!replan', triggering replan action...")
+				if err = s.replanTerraform(ctx, tfPlannerObject); err != nil {
+					s.log.Error(err, "failed to trigger replan")
 				} else {
-					s.log.Info("successfully added comment to pull request", "PR ID", prId)
+					s.log.Info("successfully triggered replan", "PR ID", prId)
+
+					_, err := gitProvider.AddCommentToPullRequest(ctx, pr, []byte("Planning in progress..."))
+					if err != nil {
+						s.log.Error(err, "failed to add comment to pull request", "PR ID", prId)
+					} else {
+						s.log.Info("successfully added comment to pull request", "PR ID", prId)
+					}
 				}
+
+				// found one comment with "!replan", no need to check the rest
+				break
 			}
 		}
 	}

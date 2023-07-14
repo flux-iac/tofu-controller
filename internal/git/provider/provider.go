@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/go-logr/logr"
 	giturl "github.com/kubescape/go-git-url"
@@ -29,7 +30,7 @@ type Provider interface {
 	SetHostname(hostname string) error
 
 	Setup() error
-	GetLastComment(ctx context.Context, pr PullRequest) (*Comment, error)
+	GetLastComments(ctx context.Context, pr PullRequest, since time.Time) ([]*Comment, error)
 }
 
 func New(provider ProviderType, options ...ProviderOption) (Provider, error) {
