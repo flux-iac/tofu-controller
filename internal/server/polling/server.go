@@ -6,6 +6,7 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strconv"
 	"strings"
 	"time"
 
@@ -221,17 +222,18 @@ func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, sou
 		for _, comment := range comments {
 			if comment != nil && strings.Contains(comment.Body, "!replan") {
 				s.log.Info("last comment contains '!replan', triggering replan action...")
-				if err = s.replanTerraform(ctx, tfPlannerObject); err != nil {
+
+				placeholderComment, err := gitProvider.AddCommentToPullRequest(ctx, pr, []byte("Planning in progress..."))
+				if err != nil {
+					s.log.Error(err, "failed to add comment to pull request", "PR ID", prId)
+				} else {
+					s.log.Info("successfully added comment to pull request", "PR ID", prId)
+				}
+
+				if err = s.replanTerraform(ctx, tfPlannerObject, placeholderComment.ID); err != nil {
 					s.log.Error(err, "failed to trigger replan")
 				} else {
 					s.log.Info("successfully triggered replan", "PR ID", prId)
-
-					_, err := gitProvider.AddCommentToPullRequest(ctx, pr, []byte("Planning in progress..."))
-					if err != nil {
-						s.log.Error(err, "failed to add comment to pull request", "PR ID", prId)
-					} else {
-						s.log.Info("successfully added comment to pull request", "PR ID", prId)
-					}
 				}
 
 				// found one comment with "!replan", no need to check the rest
@@ -245,7 +247,7 @@ func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, sou
 	return nil
 }
 
-func (s *Server) replanTerraform(ctx context.Context, object *infrav1.Terraform) error {
+func (s *Server) replanTerraform(ctx context.Context, object *infrav1.Terraform, commentId int) error {
 	terraform := &infrav1.Terraform{}
 	// TODO use better namespaced name
 	if err := s.clusterClient.Get(ctx, types.NamespacedName{Name: object.Name, Namespace: object.Namespace}, terraform); err != nil {
@@ -277,9 +279,11 @@ func (s *Server) replanTerraform(ctx context.Context, object *infrav1.Terraform)
 	if ann := terraform.GetAnnotations(); ann == nil {
 		terraform.SetAnnotations(map[string]string{
 			meta.ReconcileRequestAnnotation: time.Now().Format(time.RFC3339Nano),
+			bpconfig.AnnotationCommentIDKey: strconv.Itoa(commentId),
 		})
 	} else {
 		ann[meta.ReconcileRequestAnnotation] = time.Now().Format(time.RFC3339Nano)
+		ann[bpconfig.AnnotationCommentIDKey] = strconv.Itoa(commentId)
 		terraform.SetAnnotations(ann)
 	}
 
