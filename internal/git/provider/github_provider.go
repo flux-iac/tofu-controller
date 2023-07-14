@@ -1,7 +1,11 @@
 package provider
 
 import (
+	"errors"
 	"fmt"
+	"sort"
+	"strings"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/jenkins-x/go-scm/scm"
@@ -17,7 +21,7 @@ type GitHubProvider struct {
 	client   *scm.Client
 }
 
-func (p GitHubProvider) ListPullRequests(ctx context.Context, repo Repository) ([]PullRequest, error) {
+func (p *GitHubProvider) ListPullRequests(ctx context.Context, repo Repository) ([]PullRequest, error) {
 	prList, _, err := p.client.PullRequests.List(ctx, repo.String(), &scm.PullRequestListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list pull requests: %w", err)
@@ -33,13 +37,14 @@ func (p GitHubProvider) ListPullRequests(ctx context.Context, repo Repository) (
 			HeadBranch: pr.Head.Ref,
 			BaseSha:    pr.Base.Sha,
 			HeadSha:    pr.Head.Sha,
+			Closed:     pr.Closed,
 		})
 	}
 
 	return prs, nil
 }
 
-func (p GitHubProvider) AddCommentToPullRequest(ctx context.Context, pr PullRequest, body []byte) (*Comment, error) {
+func (p *GitHubProvider) AddCommentToPullRequest(ctx context.Context, pr PullRequest, body []byte) (*Comment, error) {
 	comment, _, err := p.client.Issues.CreateComment(ctx, pr.Repository.String(), pr.Number, &scm.CommentInput{
 		Body: string(body),
 	})
@@ -51,6 +56,68 @@ func (p GitHubProvider) AddCommentToPullRequest(ctx context.Context, pr PullRequ
 		ID:   comment.ID,
 		Link: comment.Link,
 	}, nil
+}
+
+func (p *GitHubProvider) GetLastComments(ctx context.Context, pr PullRequest, since time.Time) ([]*Comment, error) {
+	// TODO make sure that we get the last comment
+	comments, _, err := p.client.Issues.ListComments(ctx, pr.Repository.String(), pr.Number, &scm.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list pull requests: %w", err)
+	}
+
+	if len(comments) == 0 {
+		return nil, nil
+	}
+
+	sort.Slice(comments, func(i, j int) bool {
+		return comments[i].Created.After(comments[j].Created)
+	})
+
+	commentsSince := []*Comment{}
+	for _, comment := range comments {
+		if comment.Created.After(since) {
+			commentsSince = append(commentsSince, &Comment{
+				ID:   comment.ID,
+				Link: comment.Link,
+				Body: comment.Body,
+			})
+		}
+	}
+
+	return commentsSince, nil
+}
+
+func (p *GitHubProvider) UpdateCommentOfPullRequest(ctx context.Context, pr PullRequest, commentID int, body []byte) error {
+	// tf-controller plan output:
+	comment, _, err := p.client.Issues.FindComment(ctx, pr.Repository.String(), pr.Number, commentID)
+
+	// if comment not found, scm.ErrNotFound
+	if err != nil {
+		if errors.Is(err, scm.ErrNotFound) {
+			_, _, err = p.client.Issues.CreateComment(ctx, pr.Repository.String(), pr.Number, &scm.CommentInput{
+				Body: string(body),
+			})
+		}
+
+		return err
+	}
+
+	// if comment already contains hcl code block
+	if strings.Contains(comment.Body, "```hcl") {
+		// create new comment
+		_, _, err := p.client.Issues.CreateComment(ctx, pr.Repository.String(), pr.Number, &scm.CommentInput{
+			Body: string(body),
+		})
+
+		return err
+	}
+
+	// else update body to the placeholder comment
+	_, _, err = p.client.Issues.EditComment(ctx, pr.Repository.String(), pr.Number, commentID, &scm.CommentInput{
+		Body: string(body),
+	})
+
+	return err
 }
 
 func (p *GitHubProvider) SetLogger(log logr.Logger) error {

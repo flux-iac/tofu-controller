@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	LabelKey            = "infra.weave.works/branch-planner"
-	LabelValue          = "true"
-	LabelPRIDKey string = "infra.weave.works/pr-id"
+	LabelKey                      = "infra.weave.works/branch-planner"
+	LabelValue                    = "true"
+	LabelPRIDKey           string = "infra.weave.works/pr-id"
+	AnnotationCommentIDKey string = "infra.weave.works/comment-id"
 )
 
 // Example ConfigMap
