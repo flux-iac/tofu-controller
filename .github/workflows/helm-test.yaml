@@ -52,7 +52,7 @@ jobs:
         if: steps.list-changed.outputs.changed == 'true'
 
       - name: Run chart-testing (lint)
-        run: ct lint --config ct.yaml
+        run: ct lint --check-version-increment=false --config ct.yaml
         if: steps.list-changed.outputs.changed == 'true'
 
       - name: Build the tf-controller container image

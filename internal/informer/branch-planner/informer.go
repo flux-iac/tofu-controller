@@ -10,10 +10,10 @@ import (
 	"sync"
 	"text/template"
 
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/go-logr/logr"
 	giturl "github.com/kubescape/go-git-url"
-	tfv1alpha2 "github.com/weaveworks/tf-controller/api/v1alpha2"
+	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/internal/config"
 	"github.com/weaveworks/tf-controller/internal/git/provider"
 	corev1 "k8s.io/api/core/v1"
@@ -107,6 +107,8 @@ func (i *Informer) SetDeleteHandler(fn func(interface{})) {
 
 func (i *Informer) addHandler(obj interface{}) {}
 
+// updateHandler is called when a Terraform object is updated.
+// It checks if the plan has been updated and if so, it creates a new PR comment to show the plan diff.
 func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 	if !i.synced {
 		return
@@ -114,7 +116,7 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 	i.mux.RLock()
 	defer i.mux.RUnlock()
 
-	old := &tfv1alpha2.Terraform{}
+	old := &infrav1.Terraform{}
 	oldU, ok := oldObj.(*unstructured.Unstructured)
 	if !ok {
 		i.log.Info("previous object is not a unstructured.Unstructured object", "object", oldObj)
@@ -127,15 +129,14 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		return
 	}
 
-	new := &tfv1alpha2.Terraform{}
+	new := &infrav1.Terraform{}
 	newU, ok := newObj.(*unstructured.Unstructured)
 	if !ok {
 		i.log.Info("new object is not a unstructured.Unstructured object", "object", newObj)
 
 		return
 	}
-	err = runtime.DefaultUnstructuredConverter.FromUnstructured(newU.Object, new)
-	if err != nil {
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(newU.Object, new); err != nil {
 		i.log.Error(err, "failed to convert current object to Terraform object", "object", newObj)
 		return
 	}
@@ -176,24 +177,38 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		return
 	}
 
-	number, err := strconv.Atoi(new.Labels[config.LabelPRIDKey])
+	prId, err := strconv.Atoi(new.Labels[config.LabelPRIDKey])
 	if err != nil {
 		i.log.Error(err, "failed converting PR id to integer", "pr-id", new.Labels[config.LabelPRIDKey], "namespace", new.Namespace, "name", new.Name)
 	}
 
-	pr := provider.PullRequest{
-		Repository: repo,
-		Number:     number,
+	commentId, err := strconv.Atoi(new.Annotations[config.AnnotationCommentIDKey])
+	if err != nil {
+		i.log.Error(err, "failed converting comment id to integer", "comment-id", new.Annotations[config.AnnotationCommentIDKey], "namespace", new.Namespace, "name", new.Name)
+		commentId = 0
 	}
 
-	if _, err := i.gitProvider.AddCommentToPullRequest(ctx, pr, formatPlanOutput(planOutput)); err != nil {
-		i.log.Error(err, "failed adding comment to pull request", "pr-id", new.Labels[config.LabelPRIDKey], "namespace", new.Namespace, "name", new.Name)
+	pr := provider.PullRequest{
+		Repository: repo,
+		Number:     prId,
 	}
+
+	// If commentId is 0, it means that the comment has not been created yet.
+	if commentId == 0 {
+		if _, err := i.gitProvider.AddCommentToPullRequest(ctx, pr, formatPlanOutput(planOutput)); err != nil {
+			i.log.Error(err, "failed adding comment to pull request", "pr-id", new.Labels[config.LabelPRIDKey], "namespace", new.Namespace, "name", new.Name)
+		}
+	} else {
+		if err := i.gitProvider.UpdateCommentOfPullRequest(ctx, pr, commentId, formatPlanOutput(planOutput)); err != nil {
+			i.log.Error(err, "failed updating comment in pull request", "pr-id", new.Labels[config.LabelPRIDKey], "comment-id", commentId, "namespace", new.Namespace, "name", new.Name)
+		}
+	}
+
 }
 
 func (i *Informer) deleteHandler(obj interface{}) {}
 
-func (i *Informer) getPlan(ctx context.Context, obj *tfv1alpha2.Terraform) (*corev1.ConfigMap, error) {
+func (i *Informer) getPlan(ctx context.Context, obj *infrav1.Terraform) (*corev1.ConfigMap, error) {
 	cmName := types.NamespacedName{Namespace: obj.GetNamespace(), Name: "tfplan-" + obj.WorkspaceName() + "-" + obj.GetName()}
 
 	tfplanCM := &corev1.ConfigMap{}
@@ -202,7 +217,7 @@ func (i *Informer) getPlan(ctx context.Context, obj *tfv1alpha2.Terraform) (*cor
 		if apierrors.IsNotFound(err) {
 			return &corev1.ConfigMap{
 				Data: map[string]string{
-					"tfplan": "Please set `Spec.storeReadablePlan` to `human` to view the plan",
+					"tfplan": "Please set `spec.storeReadablePlan: human` to view the plan",
 				},
 			}, nil
 		}
@@ -213,7 +228,7 @@ func (i *Informer) getPlan(ctx context.Context, obj *tfv1alpha2.Terraform) (*cor
 	return tfplanCM, nil
 }
 
-func (i *Informer) isNewPlan(old, new *tfv1alpha2.Terraform) bool {
+func (i *Informer) isNewPlan(old, new *infrav1.Terraform) bool {
 	if new.Status.LastPlanAt == nil {
 		return false
 	}
@@ -238,8 +253,8 @@ func (i *Informer) getProviderSecret(ctx context.Context, ref client.ObjectKey) 
 	return obj, nil
 }
 
-func (i *Informer) getRepo(ctx context.Context, tf *tfv1alpha2.Terraform) (provider.Repository, error) {
-	if tf.Spec.SourceRef.Kind != sourcev1b2.GitRepositoryKind {
+func (i *Informer) getRepo(ctx context.Context, tf *infrav1.Terraform) (provider.Repository, error) {
+	if tf.Spec.SourceRef.Kind != sourcev1.GitRepositoryKind {
 		return provider.Repository{}, fmt.Errorf("branch based planner does not support source kind: %s", tf.Spec.SourceRef.Kind)
 	}
 
@@ -247,7 +262,7 @@ func (i *Informer) getRepo(ctx context.Context, tf *tfv1alpha2.Terraform) (provi
 		Namespace: tf.Spec.SourceRef.Namespace,
 		Name:      tf.Spec.SourceRef.Name,
 	}
-	obj := &sourcev1b2.GitRepository{}
+	obj := &sourcev1.GitRepository{}
 	if err := i.client.Get(ctx, ref, obj); err != nil {
 		return provider.Repository{}, fmt.Errorf("unable to get Source: %w", err)
 	}

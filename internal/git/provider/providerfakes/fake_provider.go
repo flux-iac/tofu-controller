@@ -4,6 +4,7 @@ package providerfakes
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/tf-controller/internal/git/provider"
@@ -23,6 +24,21 @@ type FakeProvider struct {
 	}
 	addCommentToPullRequestReturnsOnCall map[int]struct {
 		result1 *provider.Comment
+		result2 error
+	}
+	GetLastCommentsStub        func(context.Context, provider.PullRequest, time.Time) ([]*provider.Comment, error)
+	getLastCommentsMutex       sync.RWMutex
+	getLastCommentsArgsForCall []struct {
+		arg1 context.Context
+		arg2 provider.PullRequest
+		arg3 time.Time
+	}
+	getLastCommentsReturns struct {
+		result1 []*provider.Comment
+		result2 error
+	}
+	getLastCommentsReturnsOnCall map[int]struct {
+		result1 []*provider.Comment
 		result2 error
 	}
 	ListPullRequestsStub        func(context.Context, provider.Repository) ([]provider.PullRequest, error)
@@ -81,6 +97,20 @@ type FakeProvider struct {
 		result1 error
 	}
 	setupReturnsOnCall map[int]struct {
+		result1 error
+	}
+	UpdateCommentOfPullRequestStub        func(context.Context, provider.PullRequest, int, []byte) error
+	updateCommentOfPullRequestMutex       sync.RWMutex
+	updateCommentOfPullRequestArgsForCall []struct {
+		arg1 context.Context
+		arg2 provider.PullRequest
+		arg3 int
+		arg4 []byte
+	}
+	updateCommentOfPullRequestReturns struct {
+		result1 error
+	}
+	updateCommentOfPullRequestReturnsOnCall map[int]struct {
 		result1 error
 	}
 	invocations      map[string][][]interface{}
@@ -154,6 +184,72 @@ func (fake *FakeProvider) AddCommentToPullRequestReturnsOnCall(i int, result1 *p
 	}
 	fake.addCommentToPullRequestReturnsOnCall[i] = struct {
 		result1 *provider.Comment
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeProvider) GetLastComments(arg1 context.Context, arg2 provider.PullRequest, arg3 time.Time) ([]*provider.Comment, error) {
+	fake.getLastCommentsMutex.Lock()
+	ret, specificReturn := fake.getLastCommentsReturnsOnCall[len(fake.getLastCommentsArgsForCall)]
+	fake.getLastCommentsArgsForCall = append(fake.getLastCommentsArgsForCall, struct {
+		arg1 context.Context
+		arg2 provider.PullRequest
+		arg3 time.Time
+	}{arg1, arg2, arg3})
+	stub := fake.GetLastCommentsStub
+	fakeReturns := fake.getLastCommentsReturns
+	fake.recordInvocation("GetLastComments", []interface{}{arg1, arg2, arg3})
+	fake.getLastCommentsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeProvider) GetLastCommentsCallCount() int {
+	fake.getLastCommentsMutex.RLock()
+	defer fake.getLastCommentsMutex.RUnlock()
+	return len(fake.getLastCommentsArgsForCall)
+}
+
+func (fake *FakeProvider) GetLastCommentsCalls(stub func(context.Context, provider.PullRequest, time.Time) ([]*provider.Comment, error)) {
+	fake.getLastCommentsMutex.Lock()
+	defer fake.getLastCommentsMutex.Unlock()
+	fake.GetLastCommentsStub = stub
+}
+
+func (fake *FakeProvider) GetLastCommentsArgsForCall(i int) (context.Context, provider.PullRequest, time.Time) {
+	fake.getLastCommentsMutex.RLock()
+	defer fake.getLastCommentsMutex.RUnlock()
+	argsForCall := fake.getLastCommentsArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeProvider) GetLastCommentsReturns(result1 []*provider.Comment, result2 error) {
+	fake.getLastCommentsMutex.Lock()
+	defer fake.getLastCommentsMutex.Unlock()
+	fake.GetLastCommentsStub = nil
+	fake.getLastCommentsReturns = struct {
+		result1 []*provider.Comment
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeProvider) GetLastCommentsReturnsOnCall(i int, result1 []*provider.Comment, result2 error) {
+	fake.getLastCommentsMutex.Lock()
+	defer fake.getLastCommentsMutex.Unlock()
+	fake.GetLastCommentsStub = nil
+	if fake.getLastCommentsReturnsOnCall == nil {
+		fake.getLastCommentsReturnsOnCall = make(map[int]struct {
+			result1 []*provider.Comment
+			result2 error
+		})
+	}
+	fake.getLastCommentsReturnsOnCall[i] = struct {
+		result1 []*provider.Comment
 		result2 error
 	}{result1, result2}
 }
@@ -460,11 +556,82 @@ func (fake *FakeProvider) SetupReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeProvider) UpdateCommentOfPullRequest(arg1 context.Context, arg2 provider.PullRequest, arg3 int, arg4 []byte) error {
+	var arg4Copy []byte
+	if arg4 != nil {
+		arg4Copy = make([]byte, len(arg4))
+		copy(arg4Copy, arg4)
+	}
+	fake.updateCommentOfPullRequestMutex.Lock()
+	ret, specificReturn := fake.updateCommentOfPullRequestReturnsOnCall[len(fake.updateCommentOfPullRequestArgsForCall)]
+	fake.updateCommentOfPullRequestArgsForCall = append(fake.updateCommentOfPullRequestArgsForCall, struct {
+		arg1 context.Context
+		arg2 provider.PullRequest
+		arg3 int
+		arg4 []byte
+	}{arg1, arg2, arg3, arg4Copy})
+	stub := fake.UpdateCommentOfPullRequestStub
+	fakeReturns := fake.updateCommentOfPullRequestReturns
+	fake.recordInvocation("UpdateCommentOfPullRequest", []interface{}{arg1, arg2, arg3, arg4Copy})
+	fake.updateCommentOfPullRequestMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeProvider) UpdateCommentOfPullRequestCallCount() int {
+	fake.updateCommentOfPullRequestMutex.RLock()
+	defer fake.updateCommentOfPullRequestMutex.RUnlock()
+	return len(fake.updateCommentOfPullRequestArgsForCall)
+}
+
+func (fake *FakeProvider) UpdateCommentOfPullRequestCalls(stub func(context.Context, provider.PullRequest, int, []byte) error) {
+	fake.updateCommentOfPullRequestMutex.Lock()
+	defer fake.updateCommentOfPullRequestMutex.Unlock()
+	fake.UpdateCommentOfPullRequestStub = stub
+}
+
+func (fake *FakeProvider) UpdateCommentOfPullRequestArgsForCall(i int) (context.Context, provider.PullRequest, int, []byte) {
+	fake.updateCommentOfPullRequestMutex.RLock()
+	defer fake.updateCommentOfPullRequestMutex.RUnlock()
+	argsForCall := fake.updateCommentOfPullRequestArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeProvider) UpdateCommentOfPullRequestReturns(result1 error) {
+	fake.updateCommentOfPullRequestMutex.Lock()
+	defer fake.updateCommentOfPullRequestMutex.Unlock()
+	fake.UpdateCommentOfPullRequestStub = nil
+	fake.updateCommentOfPullRequestReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeProvider) UpdateCommentOfPullRequestReturnsOnCall(i int, result1 error) {
+	fake.updateCommentOfPullRequestMutex.Lock()
+	defer fake.updateCommentOfPullRequestMutex.Unlock()
+	fake.UpdateCommentOfPullRequestStub = nil
+	if fake.updateCommentOfPullRequestReturnsOnCall == nil {
+		fake.updateCommentOfPullRequestReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.updateCommentOfPullRequestReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeProvider) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.addCommentToPullRequestMutex.RLock()
 	defer fake.addCommentToPullRequestMutex.RUnlock()
+	fake.getLastCommentsMutex.RLock()
+	defer fake.getLastCommentsMutex.RUnlock()
 	fake.listPullRequestsMutex.RLock()
 	defer fake.listPullRequestsMutex.RUnlock()
 	fake.setHostnameMutex.RLock()
@@ -475,6 +642,8 @@ func (fake *FakeProvider) Invocations() map[string][][]interface{} {
 	defer fake.setTokenMutex.RUnlock()
 	fake.setupMutex.RLock()
 	defer fake.setupMutex.RUnlock()
+	fake.updateCommentOfPullRequestMutex.RLock()
+	defer fake.updateCommentOfPullRequestMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

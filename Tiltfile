@@ -39,7 +39,7 @@ k8s_yaml(helm(
 # Add Example
 k8s_yaml("./config/tilt/test/tf-dev-subject.yaml")
 k8s_resource(
-  objects=['helloworld:GitRepository:terraform','helloworld-tf:Secret:terraform'],
+  objects=['helloworld:GitRepository:terraform','helloworld-tf:Secret:terraform','helloworld-tf:Terraform:terraform'],
   extra_pod_selectors={'instance': 'helloworld-tf'},
   new_name="helloworld-tf",
   pod_readiness='ignore',
