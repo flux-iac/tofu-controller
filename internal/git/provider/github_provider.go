@@ -3,6 +3,7 @@ package provider
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/jenkins-x/go-scm/scm"
@@ -55,7 +56,7 @@ func (p *GitHubProvider) AddCommentToPullRequest(ctx context.Context, pr PullReq
 	}, nil
 }
 
-func (p *GitHubProvider) GetLastComment(ctx context.Context, pr PullRequest) (*Comment, error) {
+func (p *GitHubProvider) GetLastComments(ctx context.Context, pr PullRequest, since time.Time) ([]*Comment, error) {
 	// TODO make sure that we get the last comment
 	comments, _, err := p.client.Issues.ListComments(ctx, pr.Repository.String(), pr.Number, &scm.ListOptions{})
 	if err != nil {
@@ -70,12 +71,18 @@ func (p *GitHubProvider) GetLastComment(ctx context.Context, pr PullRequest) (*C
 		return comments[i].Created.After(comments[j].Created)
 	})
 
-	latestComment := comments[0]
-	return &Comment{
-		ID:   latestComment.ID,
-		Link: latestComment.Link,
-		Body: latestComment.Body,
-	}, nil
+	commentsSince := []*Comment{}
+	for _, comment := range comments {
+		if comment.Created.After(since) {
+			commentsSince = append(commentsSince, &Comment{
+				ID:   comment.ID,
+				Link: comment.Link,
+				Body: comment.Body,
+			})
+		}
+	}
+
+	return commentsSince, nil
 }
 
 func (p *GitHubProvider) SetLogger(log logr.Logger) error {
