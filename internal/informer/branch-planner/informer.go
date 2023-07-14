@@ -177,18 +177,31 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		return
 	}
 
-	number, err := strconv.Atoi(new.Labels[config.LabelPRIDKey])
+	prId, err := strconv.Atoi(new.Labels[config.LabelPRIDKey])
 	if err != nil {
 		i.log.Error(err, "failed converting PR id to integer", "pr-id", new.Labels[config.LabelPRIDKey], "namespace", new.Namespace, "name", new.Name)
 	}
 
-	pr := provider.PullRequest{
-		Repository: repo,
-		Number:     number,
+	commentId, err := strconv.Atoi(new.Annotations[config.AnnotationCommentIDKey])
+	if err != nil {
+		i.log.Error(err, "failed converting comment id to integer", "comment-id", new.Annotations[config.AnnotationCommentIDKey], "namespace", new.Namespace, "name", new.Name)
+		commentId = 0
 	}
 
-	if _, err := i.gitProvider.AddCommentToPullRequest(ctx, pr, formatPlanOutput(planOutput)); err != nil {
-		i.log.Error(err, "failed adding comment to pull request", "pr-id", new.Labels[config.LabelPRIDKey], "namespace", new.Namespace, "name", new.Name)
+	pr := provider.PullRequest{
+		Repository: repo,
+		Number:     prId,
+	}
+
+	// If commentId is 0, it means that the comment has not been created yet.
+	if commentId == 0 {
+		if _, err := i.gitProvider.AddCommentToPullRequest(ctx, pr, formatPlanOutput(planOutput)); err != nil {
+			i.log.Error(err, "failed adding comment to pull request", "pr-id", new.Labels[config.LabelPRIDKey], "namespace", new.Namespace, "name", new.Name)
+		}
+	} else {
+		if err := i.gitProvider.UpdateCommentOfPullRequest(ctx, pr, commentId, formatPlanOutput(planOutput)); err != nil {
+			i.log.Error(err, "failed updating comment in pull request", "pr-id", new.Labels[config.LabelPRIDKey], "comment-id", commentId, "namespace", new.Namespace, "name", new.Name)
+		}
 	}
 
 }
