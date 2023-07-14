@@ -163,14 +163,14 @@ func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, sou
 	for _, pr := range prs {
 		prId := fmt.Sprintf("%d", pr.Number)
 		prMap[prId] = pr
-		s.log.Info("mapping PR", "PR number", pr.Number)
+		s.log.Info("mapping PR", "PR ID", prId)
 
 		// Reconcile the Terraform objects related to each PR.
 		// If an error occurs, log it and continue with the next PR.
 		if err := s.reconcileTerraform(ctx, original, source, pr.HeadBranch, prId, s.branchPollingInterval); err != nil {
-			s.log.Error(err, "failed to reconcile Terraform object")
+			s.log.Error(err, "failed to reconcile Terraform object for PR", "PR ID", prId)
 		} else {
-			s.log.Info("successfully reconciled Terraform object for PR", "PR number", pr.Number)
+			s.log.Info("successfully reconciled Terraform object for PR", "PR ID", prId)
 		}
 	}
 
@@ -196,9 +196,9 @@ func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, sou
 		if !exist || pr.Closed {
 			s.log.Info("the PR either does not exist or has been closed, deleting corresponding Terraform object...", "PR ID", prId)
 			if err = s.deleteTerraform(ctx, tfPlannerObject); err != nil {
-				s.log.Error(err, "failed to delete Terraform object")
+				s.log.Error(err, "failed to delete Terraform object", "name", tfPlannerObject.Name, "namespace", tfPlannerObject.Namespace, "PR ID", prId)
 			} else {
-				s.log.Info("successfully deleted Terraform object", "PR ID", prId)
+				s.log.Info("successfully deleted Terraform object", "name", tfPlannerObject.Name, "namespace", tfPlannerObject.Namespace, "PR ID", prId)
 			}
 		}
 
@@ -206,7 +206,7 @@ func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, sou
 		s.log.Info("checking last comment...")
 		comment, err := gitProvider.GetLastComment(ctx, pr)
 		if err != nil {
-			s.log.Error(err, "failed to get last comment")
+			s.log.Error(err, "failed to get last comment", "PR ID", prId)
 		}
 
 		if comment != nil && strings.Contains(comment.Body, "!replan") {
@@ -218,7 +218,7 @@ func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, sou
 
 				_, err := gitProvider.AddCommentToPullRequest(ctx, pr, []byte("Planning in progress..."))
 				if err != nil {
-					s.log.Error(err, "failed to add comment to pull request")
+					s.log.Error(err, "failed to add comment to pull request", "PR ID", prId)
 				} else {
 					s.log.Info("successfully added comment to pull request", "PR ID", prId)
 				}
