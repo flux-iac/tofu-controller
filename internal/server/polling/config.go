@@ -7,7 +7,7 @@ import (
 	"github.com/weaveworks/tf-controller/internal/config"
 )
 
-const DefaultConfigMapName = "flux-system/branch-planner"
+const DefaultConfigMapName = "branch-planner"
 
 func (s *Server) readConfig(ctx context.Context) (*config.Config, error) {
 	configMap, err := config.ReadConfig(ctx, s.clusterClient, s.configMapRef)
