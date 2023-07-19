@@ -27,19 +27,16 @@ func (s *Server) getTerraformObject(ctx context.Context, ref client.ObjectKey) (
 func (s *Server) listTerraformObjects(ctx context.Context, namespace string, labels map[string]string) ([]*infrav1.Terraform, error) {
 	tfList := &infrav1.TerraformList{}
 
-	if labels == nil {
-		if err := s.clusterClient.List(ctx, tfList, client.InNamespace(namespace)); err != nil {
-			return nil, fmt.Errorf("unable to list Terraform objects: %w", err)
-		}
-	} else {
-		if err := s.clusterClient.List(ctx, tfList,
-			client.MatchingLabelsSelector{
-				Selector: k8sLabels.Set(labels).AsSelector(),
-			},
-			client.InNamespace(namespace),
-		); err != nil {
-			return nil, fmt.Errorf("unable to list Terraform objects: %w", err)
-		}
+	opts := []client.ListOption{client.InNamespace(namespace)}
+
+	if labels != nil {
+		opts = append(opts, client.MatchingLabelsSelector{
+			Selector: k8sLabels.Set(labels).AsSelector(),
+		})
+	}
+
+	if err := s.clusterClient.List(ctx, tfList, opts...); err != nil {
+		return nil, fmt.Errorf("unable to list Terraform objects: %w", err)
 	}
 
 	result := make([]*infrav1.Terraform, len(tfList.Items))
