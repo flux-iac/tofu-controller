@@ -52,7 +52,7 @@ require (
 	k8s.io/kubectl v0.27.4
 	sigs.k8s.io/cli-utils v0.34.0
 	sigs.k8s.io/controller-runtime v0.15.0
-	sigs.k8s.io/kustomize/kyaml v0.14.3
+	sigs.k8s.io/kustomize/kyaml v0.14.2
 )
 
 require (
@@ -108,7 +108,6 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/gnostic v0.6.9 // indirect
-	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
@@ -181,7 +180,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/component-base v0.27.4 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20230601164746-7562a1006961 // indirect
+	k8s.io/kube-openapi v0.0.0-20230525220651-2546d827e515 // indirect
 	k8s.io/utils v0.0.0-20230505201702-9f6742963106 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/kustomize/api v0.13.2 // indirect
@@ -190,9 +189,6 @@ require (
 )
 
 replace (
-	// Fix CVE-2022-1996
-	// xx github.com/emicklei/go-restful v2.9.5+incompatible => github.com/emicklei/go-restful/v3 v3.8.0
-
 	// v0.15.1-0.20220809152546-4850a69faedb is actually the v0.16.1a tag of the fork
 	github.com/hashicorp/terraform-exec v0.16.1 => github.com/tf-controller/terraform-exec v0.15.1-0.20220809152546-4850a69faedb
 
