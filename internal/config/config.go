@@ -16,6 +16,7 @@ const (
 	LabelKey               = "infra.weave.works/branch-planner"
 	LabelValue             = "true"
 	LabelPRIDKey           = "infra.weave.works/pr-id"
+	LabelOriginalNameKey   = "infra.weave.works/original-name"
 	AnnotationCommentIDKey = "infra.weave.works/comment-id"
 
 	// DefaultNamespace will be used if RUNTIME_NAMESPACE is not defined.

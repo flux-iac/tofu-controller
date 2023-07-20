@@ -78,7 +78,7 @@ func (s *Server) reconcileTerraform(ctx context.Context, originalTF *infrav1.Ter
 			Namespace: originalTF.Namespace,
 		},
 	}
-	branchLabels := s.createLabels(originalTF.Labels, branch, prID)
+	branchLabels := s.createLabels(originalTF.Labels, originalTF.Name, branch, prID)
 	branchSecretName := s.createObjectName(originalTF.Spec.WriteOutputsToSecret.Name, branch, prID)
 
 	op, err := controllerutil.CreateOrUpdate(ctx, s.clusterClient, tf, func() error {
@@ -117,7 +117,7 @@ func (s *Server) reconcileSource(ctx context.Context, originalSource *sourcev1.G
 		},
 		Spec: originalSource.Spec,
 	}
-	branchLabels := s.createLabels(originalSource.Labels, branch, prID)
+	branchLabels := s.createLabels(originalSource.Labels, originalSource.Name, branch, prID)
 
 	op, err := controllerutil.CreateOrUpdate(ctx, s.clusterClient, source, func() error {
 		source.SetLabels(branchLabels)
@@ -146,12 +146,13 @@ func (s *Server) createObjectName(name string, branch string, prID string) strin
 	return fmt.Sprintf("%s-%s-%s", name, branch, prID)
 }
 
-func (s *Server) createLabels(labels map[string]string, branch string, prID string) map[string]string {
+func (s *Server) createLabels(labels map[string]string, originalName string, branch string, prID string) map[string]string {
 	if labels == nil {
 		labels = make(map[string]string)
 	}
 
 	labels[bpconfig.LabelKey] = bpconfig.LabelValue
+	labels[bpconfig.LabelOriginalNameKey] = originalName
 	labels[bpconfig.LabelPRIDKey] = prID
 
 	return labels
