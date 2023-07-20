@@ -33,6 +33,7 @@ The ConfigMap has two fields:
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  namespace: flux-system
   name: branch-planner
 data:
   secretName: branch-planner-token
