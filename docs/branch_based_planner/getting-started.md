@@ -4,8 +4,8 @@ If the Branch Planner is enabled through Helm values, it will
 watch all configured Terraform resources, check their referenced Source, and
 poll for Pull Requests using GitHub's API plus the provided token.
 
-When an open Pull Request is detected, the Branch Planner creates a new or
-updates an existing Terraform object with Plan Only mode from the original
+When the Branch Planner detects an open Pull Request, it either creates a new Terraform object or
+updates an existing one, applying Plan Only mode based on the original
 Terraform object.
 
 When a Plan Output becomes available, the Branch Planner creates a new comment under
