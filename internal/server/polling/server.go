@@ -181,8 +181,8 @@ func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, sou
 	// List the Terraform planner objects in the namespace of the original object
 	log.Info("listing Terraform objects...")
 	tfPlannerObjects, err := s.listTerraformObjects(ctx, original.Namespace, map[string]string{
-		bpconfig.LabelKey:             bpconfig.LabelValue,
-		bpconfig.LabelOriginalNameKey: original.Name,
+		bpconfig.LabelKey:                bpconfig.LabelValue,
+		bpconfig.LabelPrimaryResourceKey: original.Name,
 	})
 
 	// If an error occurs, wrap it with context information and return it.

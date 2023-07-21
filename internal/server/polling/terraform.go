@@ -152,7 +152,7 @@ func (s *Server) createLabels(labels map[string]string, originalName string, bra
 	}
 
 	labels[bpconfig.LabelKey] = bpconfig.LabelValue
-	labels[bpconfig.LabelOriginalNameKey] = originalName
+	labels[bpconfig.LabelPrimaryResourceKey] = originalName
 	labels[bpconfig.LabelPRIDKey] = prID
 
 	return labels
