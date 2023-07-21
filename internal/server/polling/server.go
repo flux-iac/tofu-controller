@@ -3,12 +3,13 @@ package polling
 import (
 	"context"
 	"fmt"
-	"github.com/fluxcd/pkg/apis/meta"
-	apimeta "k8s.io/apimachinery/pkg/api/meta"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/fluxcd/pkg/apis/meta"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/go-logr/logr"
 	bpconfig "github.com/weaveworks/tf-controller/internal/config"
@@ -157,28 +158,31 @@ func (s *Server) poll(ctx context.Context, resource types.NamespacedName, secret
 }
 
 func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, source *sourcev1.GitRepository, prs []provider.PullRequest, gitProvider provider.Provider) error {
-	s.log.Info("starting reconciliation ...")
+	log := s.log.WithValues("terraform", original.Name, "namespace", original.Namespace, "source", source.Name)
+
+	log.Info("starting reconciliation ...")
 
 	// Create a map of pull requests, with the PR number as the key and the PR itself as the value.
 	prMap := map[string]provider.PullRequest{}
 	for _, pr := range prs {
 		prId := fmt.Sprintf("%d", pr.Number)
 		prMap[prId] = pr
-		s.log.Info("mapping PR", "PR ID", prId)
+		log.Info("mapping PR", "PR ID", prId)
 
 		// Reconcile the Terraform objects related to each PR.
 		// If an error occurs, log it and continue with the next PR.
 		if err := s.reconcileTerraform(ctx, original, source, pr.HeadBranch, prId, s.branchPollingInterval); err != nil {
-			s.log.Error(err, "failed to reconcile Terraform object for PR", "PR ID", prId)
+			log.Error(err, "failed to reconcile Terraform object for PR", "PR ID", prId)
 		} else {
-			s.log.Info("successfully reconciled Terraform object for PR", "PR ID", prId)
+			log.Info("successfully reconciled Terraform object for PR", "PR ID", prId)
 		}
 	}
 
 	// List the Terraform planner objects in the namespace of the original object
-	s.log.Info("listing Terraform objects...")
+	log.Info("listing Terraform objects...")
 	tfPlannerObjects, err := s.listTerraformObjects(ctx, original.Namespace, map[string]string{
-		bpconfig.LabelKey: bpconfig.LabelValue,
+		bpconfig.LabelKey:                bpconfig.LabelValue,
+		bpconfig.LabelPrimaryResourceKey: original.Name,
 	})
 
 	// If an error occurs, wrap it with context information and return it.
@@ -186,7 +190,7 @@ func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, sou
 		return fmt.Errorf("failed to list Terraform objects: %w", err)
 	}
 
-	s.log.Info("iterating over Terraform planner objects...")
+	log.Info("iterating over Terraform planner objects...")
 	// For each Terraform object created by the branch planner,
 	// check if there's a corresponding open PR. If not, delete the Terraform object.
 	for _, tfPlannerObject := range tfPlannerObjects {
@@ -195,11 +199,11 @@ func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, sou
 		// If the PR does not exist or has been closed, delete the related Terraform object.
 		// If an error occurs, log it.
 		if !exist || pr.Closed {
-			s.log.Info("the PR either does not exist or has been closed, deleting corresponding Terraform object...", "PR ID", prId)
+			log.Info("the PR either does not exist or has been closed, deleting corresponding Terraform object...", "PR ID", prId)
 			if err = s.deleteTerraform(ctx, tfPlannerObject); err != nil {
-				s.log.Error(err, "failed to delete Terraform object", "name", tfPlannerObject.Name, "namespace", tfPlannerObject.Namespace, "PR ID", prId)
+				log.Error(err, "failed to delete Terraform object", "name", tfPlannerObject.Name, "namespace", tfPlannerObject.Namespace, "PR ID", prId)
 			} else {
-				s.log.Info("successfully deleted Terraform object", "name", tfPlannerObject.Name, "namespace", tfPlannerObject.Namespace, "PR ID", prId)
+				log.Info("successfully deleted Terraform object", "name", tfPlannerObject.Name, "namespace", tfPlannerObject.Namespace, "PR ID", prId)
 			}
 
 			// If the PR does not exist, continue with the next Terraform object.
@@ -212,28 +216,28 @@ func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, sou
 		}
 
 		// check last comment, if it's "!replan" then trigger the replan action for the tfPlannerObject
-		s.log.Info("checking last comment...")
+		log.Info("checking last comment...")
 		comments, err := gitProvider.GetLastComments(ctx, pr, lastPlanAt)
 		if err != nil {
-			s.log.Error(err, "failed to get last comment", "PR ID", prId)
+			log.Error(err, "failed to get last comment", "PR ID", prId)
 		}
 
 		// it was sorted by created time desc
 		for _, comment := range comments {
 			if comment != nil && strings.Contains(comment.Body, "!replan") {
-				s.log.Info("last comment contains '!replan', triggering replan action...")
+				log.Info("last comment contains '!replan', triggering replan action...")
 
 				placeholderComment, err := gitProvider.AddCommentToPullRequest(ctx, pr, []byte("Planning in progress..."))
 				if err != nil {
-					s.log.Error(err, "failed to add comment to pull request", "PR ID", prId)
+					log.Error(err, "failed to add comment to pull request", "PR ID", prId)
 				} else {
-					s.log.Info("successfully added comment to pull request", "PR ID", prId)
+					log.Info("successfully added comment to pull request", "PR ID", prId)
 				}
 
 				if err = s.replanTerraform(ctx, tfPlannerObject, placeholderComment.ID); err != nil {
-					s.log.Error(err, "failed to trigger replan")
+					log.Error(err, "failed to trigger replan")
 				} else {
-					s.log.Info("successfully triggered replan", "PR ID", prId)
+					log.Info("successfully triggered replan", "PR ID", prId)
 				}
 
 				// found one comment with "!replan", no need to check the rest
@@ -243,7 +247,7 @@ func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, sou
 	}
 
 	// If everything went well, return nil to indicate no errors occurred.
-	s.log.Info("reconciliation process completed. Next run after: " + time.Now().Add(s.pollingInterval).Format(time.RFC3339))
+	log.Info("reconciliation process completed. Next run after: " + time.Now().Add(s.pollingInterval).Format(time.RFC3339))
 	return nil
 }
 

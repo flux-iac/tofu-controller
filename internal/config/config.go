@@ -13,10 +13,11 @@ import (
 )
 
 const (
-	LabelKey               = "infra.weave.works/branch-planner"
-	LabelValue             = "true"
-	LabelPRIDKey           = "infra.weave.works/pr-id"
-	AnnotationCommentIDKey = "infra.weave.works/comment-id"
+	LabelKey                = "infra.weave.works/branch-planner"
+	LabelValue              = "true"
+	LabelPRIDKey            = "infra.weave.works/pr-id"
+	LabelPrimaryResourceKey = "infra.weave.works/primary-resource"
+	AnnotationCommentIDKey  = "infra.weave.works/comment-id"
 
 	// DefaultNamespace will be used if RUNTIME_NAMESPACE is not defined.
 	DefaultNamespace = "flux-system"

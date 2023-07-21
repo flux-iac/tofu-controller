@@ -27,19 +27,16 @@ func (s *Server) getTerraformObject(ctx context.Context, ref client.ObjectKey) (
 func (s *Server) listTerraformObjects(ctx context.Context, namespace string, labels map[string]string) ([]*infrav1.Terraform, error) {
 	tfList := &infrav1.TerraformList{}
 
-	if labels == nil {
-		if err := s.clusterClient.List(ctx, tfList, client.InNamespace(namespace)); err != nil {
-			return nil, fmt.Errorf("unable to list Terraform objects: %w", err)
-		}
-	} else {
-		if err := s.clusterClient.List(ctx, tfList,
-			client.MatchingLabelsSelector{
-				Selector: k8sLabels.Set(labels).AsSelector(),
-			},
-			client.InNamespace(namespace),
-		); err != nil {
-			return nil, fmt.Errorf("unable to list Terraform objects: %w", err)
-		}
+	opts := []client.ListOption{client.InNamespace(namespace)}
+
+	if labels != nil {
+		opts = append(opts, client.MatchingLabelsSelector{
+			Selector: k8sLabels.Set(labels).AsSelector(),
+		})
+	}
+
+	if err := s.clusterClient.List(ctx, tfList, opts...); err != nil {
+		return nil, fmt.Errorf("unable to list Terraform objects: %w", err)
 	}
 
 	result := make([]*infrav1.Terraform, len(tfList.Items))
@@ -81,7 +78,7 @@ func (s *Server) reconcileTerraform(ctx context.Context, originalTF *infrav1.Ter
 			Namespace: originalTF.Namespace,
 		},
 	}
-	branchLabels := s.createLabels(originalTF.Labels, branch, prID)
+	branchLabels := s.createLabels(originalTF.Labels, originalTF.Name, branch, prID)
 	branchSecretName := s.createObjectName(originalTF.Spec.WriteOutputsToSecret.Name, branch, prID)
 
 	op, err := controllerutil.CreateOrUpdate(ctx, s.clusterClient, tf, func() error {
@@ -120,7 +117,7 @@ func (s *Server) reconcileSource(ctx context.Context, originalSource *sourcev1.G
 		},
 		Spec: originalSource.Spec,
 	}
-	branchLabels := s.createLabels(originalSource.Labels, branch, prID)
+	branchLabels := s.createLabels(originalSource.Labels, originalSource.Name, branch, prID)
 
 	op, err := controllerutil.CreateOrUpdate(ctx, s.clusterClient, source, func() error {
 		source.SetLabels(branchLabels)
@@ -149,12 +146,13 @@ func (s *Server) createObjectName(name string, branch string, prID string) strin
 	return fmt.Sprintf("%s-%s-%s", name, branch, prID)
 }
 
-func (s *Server) createLabels(labels map[string]string, branch string, prID string) map[string]string {
+func (s *Server) createLabels(labels map[string]string, originalName string, branch string, prID string) map[string]string {
 	if labels == nil {
 		labels = make(map[string]string)
 	}
 
 	labels[bpconfig.LabelKey] = bpconfig.LabelValue
+	labels[bpconfig.LabelPrimaryResourceKey] = originalName
 	labels[bpconfig.LabelPRIDKey] = prID
 
 	return labels
