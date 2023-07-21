@@ -1,4 +1,6 @@
 # Weave GitOps Terraform Controller
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fweaveworks%2Ftf-controller.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fweaveworks%2Ftf-controller?ref=badge_shield)
+
 
 **Weave GitOps Terraform Controller** (aka Weave TF-controller) is a controller for [Flux](https://fluxcd.io) to reconcile Terraform resources
 in the GitOps way.
@@ -46,3 +48,7 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) and [
 
 ### Q1 2024
   * [ ] `v1beta2` API
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fweaveworks%2Ftf-controller.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fweaveworks%2Ftf-controller?ref=badge_large)
