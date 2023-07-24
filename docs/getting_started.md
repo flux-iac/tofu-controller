@@ -44,7 +44,7 @@ please see [chart readme](https://github.com/weaveworks/tf-controller/tree/main/
 Alternatively, you can install TF-controller via `kubectl`:
 
 ```shell
-export TF_CON_VER=v0.15.0
+export TF_CON_VER=v0.15.1
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
 kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
@@ -59,7 +59,7 @@ Here's a simple example of how to GitOps your Terraform resources with TF-contro
 First, we need to define a Source controller's source (`GitRepository`, `Bucket`, `OCIRepository`), for example:
 
 ```yaml
-apiVersion: source.toolkit.fluxcd.io/v1beta2
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
   name: helloworld
@@ -77,7 +77,7 @@ The GitOps automation mode could be enabled by setting `.spec.approvePlan=auto`.
 and automatically applied for you.
 
 ```yaml
-apiVersion: infra.contrib.fluxcd.io/v1alpha2
+apiVersion: infra.contrib.fluxcd.io/v1
 kind: Terraform
 metadata:
   name: helloworld
@@ -93,6 +93,27 @@ spec:
 ```
 
 For a full list of features and how to use them, please follow the [Use TF-controller](use_tf_controller/index.md) guide.
+
+## PlanOnly mode
+
+If `planOnly` is set to `true`, the controller will skip the apply part and runs
+only `terraform plan` and saves the output.
+
+```
+apiVersion: infra.contrib.fluxcd.io/v1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  interval: 1m
+  planOnly: true
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+```
 
 ## Other Examples
   * A Terraform GitOps with Flux to automatically reconcile your [AWS IAM Policies](https://github.com/tf-controller/aws-iam-policies).
