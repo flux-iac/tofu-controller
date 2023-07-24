@@ -29,7 +29,12 @@ spec:
       {{- end }}
       {{- end }}
       containers:
-      - args: []
+      - args:
+        - --log-encoding={{ .Values.logEncoding }}
+        - --log-level={{ .Values.logLevel }}
+        - --branch-polling-interval={{ .Values.branchPlanner.sourceInterval }}
+        - --polling-configmap={{ .Values.branchPlanner.configMap }}
+        - --polling-interval={{ .Values.branchPlanner.pollingInterval }}
         env:
           {{- include "pod-namespace" . | indent 8 }}
         image: "{{ .Values.branchPlanner.image.repository }}:{{ default .Chart.AppVersion .Values.branchPlanner.image.tag }}"
