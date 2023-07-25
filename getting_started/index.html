@@ -332,6 +332,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#planonly-mode" class="md-nav__link">
+    PlanOnly mode
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#other-examples" class="md-nav__link">
     Other Examples
   </a>
@@ -474,6 +481,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#planonly-mode" class="md-nav__link">
+    PlanOnly mode
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#other-examples" class="md-nav__link">
     Other Examples
   </a>
@@ -531,7 +545,7 @@ After that you can install TF-controller with Flux HelmRelease by:</p>
 <p>For details on configurable parameters of the TF-controller chart,
 please see <a href="https://github.com/weaveworks/tf-controller/tree/main/charts/tf-controller#tf-controller-for-flux">chart readme</a>.</p>
 <p>Alternatively, you can install TF-controller via <code>kubectl</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">TF_CON_VER</span><span class="o">=</span>v0.15.0
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">TF_CON_VER</span><span class="o">=</span>v0.15.1
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://github.com/weaveworks/tf-controller/releases/download/<span class="si">${</span><span class="nv">TF_CON_VER</span><span class="si">}</span>/tf-controller.crds.yaml
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://github.com/weaveworks/tf-controller/releases/download/<span class="si">${</span><span class="nv">TF_CON_VER</span><span class="si">}</span>/tf-controller.rbac.yaml
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://github.com/weaveworks/tf-controller/releases/download/<span class="si">${</span><span class="nv">TF_CON_VER</span><span class="si">}</span>/tf-controller.deployment.yaml
@@ -540,7 +554,7 @@ please see <a href="https://github.com/weaveworks/tf-controller/tree/main/charts
 <p>Here's a simple example of how to GitOps your Terraform resources with TF-controller and Flux.</p>
 <h3 id="define-source">Define source</h3>
 <p>First, we need to define a Source controller's source (<code>GitRepository</code>, <code>Bucket</code>, <code>OCIRepository</code>), for example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">source.toolkit.fluxcd.io/v1beta2</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">source.toolkit.fluxcd.io/v1</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GitRepository</span>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nt">metadata</span><span class="p">:</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">helloworld</span>
@@ -554,7 +568,7 @@ please see <a href="https://github.com/weaveworks/tf-controller/tree/main/charts
 <h3 id="the-gitops-automation-mode">The GitOps Automation mode</h3>
 <p>The GitOps automation mode could be enabled by setting <code>.spec.approvePlan=auto</code>. In this mode, Terraform resources will be planned,
 and automatically applied for you.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha2</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Terraform</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nt">metadata</span><span class="p">:</span>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">helloworld</span>
@@ -569,6 +583,23 @@ and automatically applied for you.</p>
 <a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">    </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-system</span>
 </code></pre></div>
 <p>For a full list of features and how to use them, please follow the <a href="../use_tf_controller/">Use TF-controller</a> guide.</p>
+<h2 id="planonly-mode">PlanOnly mode</h2>
+<p>If <code>planOnly</code> is set to <code>true</code>, the controller will skip the apply part and runs
+only <code>terraform plan</code> and saves the output.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>apiVersion: infra.contrib.fluxcd.io/v1
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>kind: Terraform
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>metadata:
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  name: helloworld
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>  namespace: flux-system
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>spec:
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>  interval: 1m
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>  planOnly: true
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>  path: ./
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>  sourceRef:
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>    kind: GitRepository
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>    name: helloworld
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>    namespace: flux-system
+</code></pre></div>
 <h2 id="other-examples">Other Examples</h2>
 <ul>
 <li>A Terraform GitOps with Flux to automatically reconcile your <a href="https://github.com/tf-controller/aws-iam-policies">AWS IAM Policies</a>.</li>
