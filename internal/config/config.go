@@ -18,6 +18,7 @@ const (
 	LabelPRIDKey            = "infra.weave.works/pr-id"
 	LabelPrimaryResourceKey = "infra.weave.works/primary-resource"
 	AnnotationCommentIDKey  = "infra.weave.works/comment-id"
+	AnnotationErrorRevision = "infra.weave.works/error-revision"
 
 	// DefaultNamespace will be used if RUNTIME_NAMESPACE is not defined.
 	DefaultNamespace = "flux-system"
