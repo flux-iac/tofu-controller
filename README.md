@@ -1,8 +1,6 @@
-# Weave GitOps Terraform Controller
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fweaveworks%2Ftf-controller.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fweaveworks%2Ftf-controller?ref=badge_shield)
+# Weave GitOps' Terraform Controller
 
-
-**Weave GitOps Terraform Controller** (aka Weave TF-controller) is a controller for [Flux](https://fluxcd.io) to reconcile Terraform resources
+Weave GitOps' **Terraform Controller** (aka Weave TF-Controller) is a controller for [Flux](https://fluxcd.io) to reconcile Terraform resources
 in the GitOps way.
 With the power of Flux together with Terraform, TF-controller allows you to GitOps-ify infrastructure,
 and application resources, in the Kubernetes and Terraform universe, at your own pace.
@@ -24,31 +22,29 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) and [
 
 ## Roadmap
 
-### Q2 2023
-  * [x] Selectable Terraform versions
-  * [ ] Flux v2.0.0 GA support
-  * [x] Break-the-glass feature
-  * [ ] Enhanced security (the lockdown mode)
-  * [x] Containerd compatibility verification 
-
 ### Q3 2023
+  * [ ] Enhanced security (the lockdown mode)
   * [ ] Write back and show plan in PRs (Atlantis-like experience)
   * [ ] CLI to GitOpsify existing Terraform workflows (UX improvement for CLI) 
   * [ ] Type safety for custom backends
+
+### Q4 2023
   * [ ] Improvement GitOps dependency management 
   * [ ] External drift detector
   * [ ] Cloud cost estimation 
 
-### Q4 2023
+### Q1 2024
   * [ ] Observability - logging from the different stages of the runner
-  * [ ] `v1beta1` API (stabilization) 
+  * [ ] `v1alpha3` API  
   * [ ] Azure package for TF-controller (e.g. AKS, CosmosDB, etc.)
   * [ ] GCP package for TF-controller (e.g. GKE, CloudSQL, etc.) 
   * [ ] ARM64 & Gravitron support
 
-### Q1 2024
-  * [ ] `v1beta2` API
+### Q2 2024
+  * [ ] `v1beta1` API (stabilization)
 
+### Q3 2024
+  * [ ] `v1beta2` API
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fweaveworks%2Ftf-controller.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fweaveworks%2Ftf-controller?ref=badge_large)
