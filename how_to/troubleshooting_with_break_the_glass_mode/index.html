@@ -389,7 +389,9 @@
 <h2 id="what-is-break-the-glass">What is break the glass?</h2>
 <p>"Break the glass" refers to a troubleshooting mode specifically designed
 to provide a manual solution when the Terraform controller (TF-controller) 
-is not performing as expected. There are two primary methods of initiating this mode:</p>
+is not performing as expected. This feature is available in the Terraform controller <em>v0.15.0</em> and above.</p>
+<p>~&gt; <strong>WARNING:</strong> Please note that you cannot use this feature to fix the Terraform resources with <code>v1alpha1</code> version of the Terraform CRD.  It works only with <code>v1alpha2</code> version of the Terraform CRD.</p>
+<p>There are two primary methods of initiating this mode:</p>
 <ol>
 <li>Using the <code>tfctl</code> command-line tool.</li>
 <li>Setting the <code>spec.breakTheGlass</code> field to <code>true</code> in the Terraform object.</li>
