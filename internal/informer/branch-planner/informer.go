@@ -25,8 +25,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-//go:embed comment.tpl
-var commentTemplate string
+var (
+	//go:embed plan-comment.tpl
+	planCommentTemplate string
+
+	//go:embed error-comment.tpl
+	errorCommentTemplate string
+)
 
 type Informer struct {
 	sharedInformer cache.SharedIndexInformer
@@ -141,6 +146,32 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		return
 	}
 
+	ctx := context.Background()
+
+	for _, condition := range new.Status.Conditions {
+		if condition.Reason == infrav1.TFExecInitFailedReason {
+			if ann := new.GetAnnotations(); ann != nil && ann[config.AnnotationErrorRevision] == new.Status.LastAttemptedRevision {
+				break
+			}
+
+			i.log.Info("new error detected", "condition", condition, "name", new.Name)
+
+			if err := i.addErrorAnnotation(ctx, new); err != nil {
+				i.log.Error(err, "unable to add error annotation", "name", new.Name)
+
+				// Do not create a comment if we couldn't add annotation. It's better to
+				// not send the error and let the user debug (and be a bit angry), than
+				// sending out 20 comments under a pull request with the same error
+				// message.
+				return
+			}
+
+			i.addCommentToPullRequest(ctx, new, formatErrorOutput(condition.Message))
+
+			return
+		}
+	}
+
 	if new.Labels[config.LabelKey] != config.LabelValue {
 		i.log.Info("Terraform object is not managed by the branch-based planner")
 
@@ -152,8 +183,6 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 
 		return
 	}
-
-	ctx := context.Background()
 
 	plan, err := i.getPlan(ctx, new)
 	if err != nil {
@@ -171,20 +200,26 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 
 	i.log.Info("Updated plan", "pr-id", new.Labels[config.LabelPRIDKey])
 
-	repo, err := i.getRepo(ctx, new)
+	i.addCommentToPullRequest(ctx, new, formatPlanOutput(planOutput))
+}
+
+func (i *Informer) deleteHandler(obj interface{}) {}
+
+func (i *Informer) addCommentToPullRequest(ctx context.Context, tf *infrav1.Terraform, content []byte) {
+	repo, err := i.getRepo(ctx, tf)
 	if err != nil {
 		i.log.Error(err, "failed getting repository")
 		return
 	}
 
-	prId, err := strconv.Atoi(new.Labels[config.LabelPRIDKey])
+	prId, err := strconv.Atoi(tf.Labels[config.LabelPRIDKey])
 	if err != nil {
-		i.log.Error(err, "failed converting PR id to integer", "pr-id", new.Labels[config.LabelPRIDKey], "namespace", new.Namespace, "name", new.Name)
+		i.log.Error(err, "failed converting PR id to integer", "pr-id", tf.Labels[config.LabelPRIDKey], "namespace", tf.Namespace, "name", tf.Name)
 	}
 
-	commentId, err := strconv.Atoi(new.Annotations[config.AnnotationCommentIDKey])
+	commentId, err := strconv.Atoi(tf.Annotations[config.AnnotationCommentIDKey])
 	if err != nil {
-		i.log.Error(err, "failed converting comment id to integer", "comment-id", new.Annotations[config.AnnotationCommentIDKey], "namespace", new.Namespace, "name", new.Name)
+		i.log.Error(err, "failed converting comment id to integer", "comment-id", tf.Annotations[config.AnnotationCommentIDKey], "namespace", tf.Namespace, "name", tf.Name)
 		commentId = 0
 	}
 
@@ -195,18 +230,29 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 
 	// If commentId is 0, it means that the comment has not been created yet.
 	if commentId == 0 {
-		if _, err := i.gitProvider.AddCommentToPullRequest(ctx, pr, formatPlanOutput(planOutput)); err != nil {
-			i.log.Error(err, "failed adding comment to pull request", "pr-id", new.Labels[config.LabelPRIDKey], "namespace", new.Namespace, "name", new.Name)
+		if _, err := i.gitProvider.AddCommentToPullRequest(ctx, pr, content); err != nil {
+			i.log.Error(err, "failed adding comment to pull request", "pr-id", tf.Labels[config.LabelPRIDKey], "namespace", tf.Namespace, "name", tf.Name)
 		}
 	} else {
-		if err := i.gitProvider.UpdateCommentOfPullRequest(ctx, pr, commentId, formatPlanOutput(planOutput)); err != nil {
-			i.log.Error(err, "failed updating comment in pull request", "pr-id", new.Labels[config.LabelPRIDKey], "comment-id", commentId, "namespace", new.Namespace, "name", new.Name)
+		if err := i.gitProvider.UpdateCommentOfPullRequest(ctx, pr, commentId, content); err != nil {
+			i.log.Error(err, "failed updating comment in pull request", "pr-id", tf.Labels[config.LabelPRIDKey], "comment-id", commentId, "namespace", tf.Namespace, "name", tf.Name)
 		}
 	}
-
 }
 
-func (i *Informer) deleteHandler(obj interface{}) {}
+func (i *Informer) addErrorAnnotation(ctx context.Context, tf *infrav1.Terraform) error {
+	patch := client.MergeFrom(tf.DeepCopy())
+	if ann := tf.GetAnnotations(); ann == nil {
+		tf.SetAnnotations(map[string]string{
+			config.AnnotationErrorRevision: tf.Status.LastAttemptedRevision,
+		})
+	} else {
+		ann[config.AnnotationErrorRevision] = tf.Status.LastAttemptedRevision
+		tf.SetAnnotations(ann)
+	}
+
+	return i.client.Patch(ctx, tf, patch)
+}
 
 func (i *Informer) getPlan(ctx context.Context, obj *infrav1.Terraform) (*corev1.ConfigMap, error) {
 	cmName := types.NamespacedName{Namespace: obj.GetNamespace(), Name: "tfplan-" + obj.WorkspaceName() + "-" + obj.GetName()}
@@ -287,7 +333,29 @@ func formatPlanOutput(planOutput string) []byte {
 		PlanOutput: planOutput,
 	}
 
-	tmpl, err := template.New("comment").Parse(commentTemplate)
+	tmpl, err := template.New("plan-comment").Parse(planCommentTemplate)
+	if err != nil {
+		log.Fatalf("Error while parsing the template: %v", err)
+	}
+
+	var tpl bytes.Buffer
+	if err := tmpl.Execute(&tpl, data); err != nil {
+		log.Fatalf("Error while executing the template: %v", err)
+	}
+
+	return tpl.Bytes()
+}
+
+func formatErrorOutput(message string) []byte {
+	type Output struct {
+		ErrorMessage string
+	}
+
+	data := Output{
+		ErrorMessage: message,
+	}
+
+	tmpl, err := template.New("error-comment").Parse(errorCommentTemplate)
 	if err != nil {
 		log.Fatalf("Error while parsing the template: %v", err)
 	}
