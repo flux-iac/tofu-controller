@@ -199,4 +199,7 @@ replace (
 
 	// Fix CVE-2023-32731
 	google.golang.org/grpc => google.golang.org/grpc v1.53.0
+
+	// Lock down k8s.io/kube-openapi to a specific commit
+	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20230525220651-2546d827e515
 )
