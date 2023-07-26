@@ -58,3 +58,10 @@ func WithBranchPollingInterval(interval time.Duration) Option {
 		return nil
 	}
 }
+
+func WithNoCrossNamespaceRefs(deny bool) Option {
+	return func(s *Server) error {
+		s.noCrossNamespaceRefs = deny
+		return nil
+	}
+}
