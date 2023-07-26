@@ -45,6 +45,3 @@ Check out the [documentation](https://weaveworks.github.io/tf-controller/) and [
 
 ### Q3 2024
   * [ ] `v1beta2` API
-
-## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fweaveworks%2Ftf-controller.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fweaveworks%2Ftf-controller?ref=badge_large)
