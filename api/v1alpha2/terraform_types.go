@@ -834,6 +834,13 @@ func (in *Terraform) GetStatusConditions() *[]metav1.Condition {
 	return &in.Status.Conditions
 }
 
+// GetConditions returns a pointer to the Status.Conditions slice.
+// pretty much the same as GetStatusConditions but to comply with flux conditions.Getter interface
+// it needs to return a copy of the conditions slice
+func (in Terraform) GetConditions() []metav1.Condition {
+	return in.Status.Conditions
+}
+
 func (in *Terraform) WorkspaceName() string {
 	if in.Spec.Workspace != "" {
 		return in.Spec.Workspace
