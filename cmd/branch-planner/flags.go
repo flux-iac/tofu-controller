@@ -4,8 +4,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/fluxcd/pkg/runtime/acl"
 	"github.com/fluxcd/pkg/runtime/logger"
 	flag "github.com/spf13/pflag"
+
 	"github.com/weaveworks/tf-controller/internal/server/polling"
 )
 
@@ -15,6 +17,7 @@ type applicationOptions struct {
 	branchPollingInterval time.Duration
 
 	logOptions logger.Options
+	aclOptions acl.Options
 
 	runtimeNamespace   string
 	watchAllNamespaces bool
@@ -37,6 +40,7 @@ func parseFlags() *applicationOptions {
 		"Interval to use for PR branch sources (default is to use the value of --polling-interval).")
 
 	opts.logOptions.BindFlags(flag.CommandLine)
+	opts.aclOptions.BindFlags(flag.CommandLine)
 
 	flag.Parse()
 

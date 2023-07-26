@@ -30,6 +30,7 @@ type Server struct {
 	configMapRef          client.ObjectKey
 	pollingInterval       time.Duration
 	branchPollingInterval time.Duration
+	noCrossNamespaceRefs  bool
 }
 
 func New(options ...Option) (*Server, error) {
