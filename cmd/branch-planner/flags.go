@@ -16,6 +16,8 @@ type applicationOptions struct {
 	pollingInterval       time.Duration
 	branchPollingInterval time.Duration
 
+	allowedNamespaces []string
+
 	logOptions logger.Options
 	aclOptions acl.Options
 
@@ -38,6 +40,11 @@ func parseFlags() *applicationOptions {
 	flag.DurationVar(&opts.branchPollingInterval,
 		"branch-polling-interval", 0,
 		"Interval to use for PR branch sources (default is to use the value of --polling-interval).")
+
+	flag.StringSliceVar(&opts.allowedNamespaces,
+		"allowed-namespaces",
+		[]string{},
+		"Allowed namespaced. If it's empty, all namespaces are allowed for the planner. If it's not empty, only resources in the defined namespaces are allowed.")
 
 	opts.logOptions.BindFlags(flag.CommandLine)
 	opts.aclOptions.BindFlags(flag.CommandLine)

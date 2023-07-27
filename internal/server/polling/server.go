@@ -30,6 +30,7 @@ type Server struct {
 	configMapRef          client.ObjectKey
 	pollingInterval       time.Duration
 	branchPollingInterval time.Duration
+	allowedNamespaces     []string
 	noCrossNamespaceRefs  bool
 }
 
@@ -72,6 +73,14 @@ func (s *Server) Start(ctx context.Context) error {
 			}
 
 			for _, resource := range config.Resources {
+				if resource.Namespace == "" {
+					resource.Namespace = bpconfig.RuntimeNamespace()
+				}
+
+				if s.isNamespaceAllowed(resource.Namespace) {
+					s.log.Info("skip resource because namespace is not allowed", "namespace", resource.Namespace)
+				}
+
 				if resource.Name != "" {
 					if err := s.poll(ctx, resource, secret); err != nil {
 						s.log.Error(err, "failed to check pull request")
@@ -293,4 +302,18 @@ func (s *Server) replanTerraform(ctx context.Context, object *infrav1.Terraform,
 	}
 
 	return s.clusterClient.Patch(ctx, terraform, patch)
+}
+
+func (s *Server) isNamespaceAllowed(name string) bool {
+	if len(s.allowedNamespaces) == 0 {
+		return true
+	}
+
+	for _, ns := range s.allowedNamespaces {
+		if ns == name {
+			return true
+		}
+	}
+
+	return false
 }
