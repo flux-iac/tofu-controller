@@ -80,7 +80,7 @@ func (s *Server) Start(ctx context.Context) error {
 					continue
 				}
 
-				s.log.Info("checking all Terrafrom objects in namespace", "namespace", resource.Namespace)
+				s.log.Info("checking all Terraform objects in namespace", "namespace", resource.Namespace)
 
 				resources, err := s.listTerraformObjects(ctx, resource.Namespace, nil)
 				if err != nil {
