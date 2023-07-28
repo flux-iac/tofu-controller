@@ -41,13 +41,12 @@ spec:
         image: "{{ .Values.branchPlanner.image.repository }}:{{ default .Chart.AppVersion .Values.branchPlanner.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         name: {{ .Chart.Name }}
-        ports:
-        - containerPort: 8080
-          name: http-prom
+        resources:
+          {{- toYaml .Values.branchPlanner.resources | nindent 10 }}
         securityContext:
-          {{- toYaml .Values.securityContext | nindent 10 }}
+          {{- toYaml .Values.branchPlanner.securityContext | nindent 10 }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.branchPlanner.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "tf-controller.serviceAccountName" . }}
       terminationGracePeriodSeconds: 10
       {{- with .Values.nodeSelector }}

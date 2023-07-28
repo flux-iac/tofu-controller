@@ -31,7 +31,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | awsPackage.install | bool | `true` |  |
 | awsPackage.repository | string | `"ghcr.io/tf-controller/aws-primitive-modules"` |  |
 | awsPackage.tag | string | `"v4.38.0-v1alpha11"` |  |
-| branchPlanner | object | `{"configMap":"branch-planner","enabled":false,"image":{"pullPolicy":"IfNotPresent","repository":"ghcr.io/weaveworks/branch-planner","tag":""},"pollingInterval":"30s","sourceInterval":"30s"}` | Branch Planner-specific configurations |
+| branchPlanner | object | `{"configMap":"branch-planner","enabled":false,"image":{"pullPolicy":"IfNotPresent","repository":"ghcr.io/weaveworks/branch-planner","tag":""},"podSecurityContext":{"fsGroup":1337},"pollingInterval":"30s","resources":{"limits":{"cpu":"1000m","memory":"1Gi"},"requests":{"cpu":"200m","memory":"64Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"runAsUser":65532,"seccompProfile":{"type":"RuntimeDefault"}},"sourceInterval":"30s"}` | Branch Planner-specific configurations |
 | caCertValidityDuration | string | `"168h0m"` | Argument for `--ca-cert-validity-duration` (Controller) |
 | certRotationCheckFrequency | string | `"30m0s"` | Argument for `--cert-rotation-check-frequency` (Controller) |
 | certValidityDuration | string | `"6h0m"` | Argument for `--cert-validity-duration` (Controller) |
