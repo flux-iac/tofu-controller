@@ -3,8 +3,9 @@ package controllers
 import (
 	"context"
 	"fmt"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/fluxcd/pkg/runtime/logger"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
@@ -143,7 +144,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 
 	// Record deleted status
 	traceLog.Info("Record the deleted status")
-	r.recordReadinessMetric(ctx, terraform)
+	r.RecordReadiness(ctx, &terraform)
 
 	traceLog.Info("Get the Terraform resource")
 	if err := r.Get(ctx, objectKey, &terraform); err != nil {
