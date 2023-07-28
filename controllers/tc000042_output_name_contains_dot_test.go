@@ -23,7 +23,7 @@ func Test_000042_output_name_contains_dot_test(t *testing.T) {
 	const (
 		sourceName        = "gr-output-name-contains-dot"
 		terraformName     = "tf-output-name-contains-dot"
-		OutputNameMapping = "age_agekey:age.agekey"
+		OutputNameMapping = "age_agekey:age.agekey" // This is the mapping that will be used to rename the output
 		MappedName        = "age.agekey"
 	)
 	g := NewWithT(t)
