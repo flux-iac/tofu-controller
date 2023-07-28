@@ -45,7 +45,7 @@ RUN apk add --no-cache libcrypto3=3.1.1-r3 && \
     apk add --no-cache busybox
 
 # Install az cli
-ARG AZCLI_VERSION=2.40.0
+ARG AZCLI_VERSION=2.50.0
 RUN apk add --no-cache py3-pip && \
     apk add --no-cache gcc musl-dev python3-dev libffi-dev openssl-dev
 RUN pip install --upgrade pip && \

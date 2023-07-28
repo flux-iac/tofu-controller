@@ -179,3 +179,25 @@ branchPlanner:
   pollingInterval: 30s
   # Interval value to use for Source objects for branch planner Terraform objects.
   sourceInterval: 30s
+  # Pod-level security context
+  podSecurityContext:
+    fsGroup: 1337
+  # Container-level security context
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 65532
+    seccompProfile:
+      type: RuntimeDefault
+  # Resource limits and requests
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 64Mi
