@@ -27,7 +27,24 @@ For the most recent release candidate of TF-controller, please use [rc.yaml](htt
 kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/rc.yaml
 ```
 
-or manually with Helm by:
+### With Branch Planner
+
+```shell
+kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch_planner/release.yaml
+```
+
+For the most recent release candidate of TF-controller with Branch Planner, please use [branch_planner/rc.yaml](https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch_planner/rc.yaml).
+
+```shell
+kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch_planner/rc.yaml
+```
+
+For more details about the Branch Planner, please visit the
+[Branch Planner documentation](https://github.com/weaveworks/tf-controller/blob/main/docs/branch_based_planner/getting-started.md).
+
+### Manual installation
+
+With Helm by:
 
 ```shell
 # Add tf-controller helm repository
