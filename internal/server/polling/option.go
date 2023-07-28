@@ -65,3 +65,10 @@ func WithNoCrossNamespaceRefs(deny bool) Option {
 		return nil
 	}
 }
+
+func WithAllowedNamespaces(namespaces []string) Option {
+	return func(s *Server) error {
+		s.allowedNamespaces = namespaces
+		return nil
+	}
+}
