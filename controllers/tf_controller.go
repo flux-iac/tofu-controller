@@ -48,7 +48,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	kuberecorder "k8s.io/client-go/tools/record"
-	"k8s.io/client-go/tools/reference"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -127,9 +126,12 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 	log.Info(fmt.Sprintf(">> Started Generation: %d", terraform.GetGeneration()))
 
-	// Record suspended status metric
-	traceLog.Info("Defer metrics for suspended records")
-	defer r.recordSuspensionMetric(ctx, terraform)
+	defer func() {
+		// Record Prometheus metrics.
+		r.Metrics.RecordReadiness(ctx, &terraform)
+		r.Metrics.RecordSuspend(ctx, &terraform, terraform.Spec.Suspend)
+		r.Metrics.RecordDuration(ctx, &terraform, reconcileStart)
+	}()
 
 	// Add our finalizer if it does not exist
 	traceLog.Info("Check Terraform resource for a finalizer")
@@ -187,7 +189,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				log.Error(err, "unable to update status for source not found")
 				return ctrl.Result{Requeue: true}, err
 			}
-			r.recordReadinessMetric(ctx, terraform)
+			r.RecordReadiness(ctx, &terraform)
 			log.Info(msg)
 			// do not requeue immediately, when the source is created the watcher should trigger a reconciliation
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
@@ -200,7 +202,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				log.Error(err, "unable to update status for source access denied")
 				return ctrl.Result{Requeue: true}, err
 			}
-			r.recordReadinessMetric(ctx, terraform)
+			r.RecordReadiness(ctx, &terraform)
 			log.Info(msg)
 			// don't requeue to retry; it won't succeed unless the sourceRef changes
 			return ctrl.Result{}, nil
@@ -221,7 +223,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			log.Error(err, "unable to update status for artifact not found")
 			return ctrl.Result{Requeue: true}, err
 		}
-		r.recordReadinessMetric(ctx, terraform)
+		r.RecordReadiness(ctx, &terraform)
 		log.Info(msg)
 		// do not requeue immediately, when the artifact is created the watcher should trigger a reconciliation
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
@@ -242,7 +244,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			msg := fmt.Sprintf("Dependencies do not meet ready condition, retrying in %s", terraform.GetRetryInterval().String())
 			log.Info(msg)
 			r.event(ctx, terraform, sourceObj.GetArtifact().Revision, eventv1.EventSeverityInfo, msg, nil)
-			r.recordReadinessMetric(ctx, terraform)
+			r.RecordReadiness(ctx, &terraform)
 
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 		}
@@ -267,7 +269,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			return ctrl.Result{Requeue: true}, err
 		}
 		log.Info("before lookup runner: updated status", "ready", ready)
-		r.recordReadinessMetric(ctx, terraform)
+		r.RecordReadiness(ctx, &terraform)
 	}
 
 	if !isBeingDeleted(terraform) {
@@ -411,7 +413,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	traceLog.Info("Record the readiness metrics")
-	r.recordReadinessMetric(ctx, *reconciledTerraform)
+	r.RecordReadiness(ctx, &*reconciledTerraform)
 
 	traceLog.Info("Check for reconciliation errors")
 	if reconcileErr != nil && reconcileErr.Error() == infrav1.DriftDetectedReason {
@@ -708,52 +710,6 @@ func (r *TerraformReconciler) downloadAsBytes(artifact *sourcev1.Artifact) (*byt
 	}
 
 	return bytes.NewBuffer(buf), nil
-}
-
-func (r *TerraformReconciler) recordReadinessMetric(ctx context.Context, terraform infrav1.Terraform) {
-	if r.MetricsRecorder == nil {
-		return
-	}
-	log := ctrl.LoggerFrom(ctx)
-
-	objRef, err := reference.GetReference(r.Scheme, &terraform)
-	if err != nil {
-		log.Error(err, "unable to record readiness metric")
-		return
-	}
-	if rc := apimeta.FindStatusCondition(terraform.Status.Conditions, meta.ReadyCondition); rc != nil {
-		r.MetricsRecorder.RecordCondition(*objRef, *rc,
-			!terraform.DeletionTimestamp.IsZero())
-	} else {
-		r.MetricsRecorder.RecordCondition(*objRef, metav1.Condition{
-			Type:   meta.ReadyCondition,
-			Status: metav1.ConditionUnknown,
-		}, !terraform.DeletionTimestamp.IsZero())
-	}
-}
-
-func (r *TerraformReconciler) recordSuspensionMetric(ctx context.Context, terraform infrav1.Terraform) {
-	if r.MetricsRecorder == nil {
-		return
-	}
-	log := ctrl.LoggerFrom(ctx)
-	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.recordSuspensionMetric")
-
-	traceLog.Info("Get reference info for Terraform resource")
-	objRef, err := reference.GetReference(r.Scheme, &terraform)
-	if err != nil {
-		log.Error(err, "unable to record suspended metric")
-		return
-	}
-
-	traceLog.Info("Check if resource is due for deletion")
-	if !terraform.DeletionTimestamp.IsZero() {
-		traceLog.Info("Due for deletion, set to false")
-		r.MetricsRecorder.RecordSuspend(*objRef, false)
-	} else {
-		traceLog.Info("Not due for deletion use Suspend data from the resource")
-		r.MetricsRecorder.RecordSuspend(*objRef, terraform.Spec.Suspend)
-	}
 }
 
 func (r *TerraformReconciler) patchStatus(ctx context.Context, objectKey types.NamespacedName, newStatus infrav1.TerraformStatus) error {
