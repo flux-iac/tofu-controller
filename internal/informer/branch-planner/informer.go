@@ -217,10 +217,10 @@ func (i *Informer) addCommentToPullRequest(ctx context.Context, tf *infrav1.Terr
 		i.log.Error(err, "failed converting PR id to integer", "pr-id", tf.Labels[config.LabelPRIDKey], "namespace", tf.Namespace, "name", tf.Name)
 	}
 
-	commentId, err := strconv.Atoi(tf.Annotations[config.AnnotationCommentIDKey])
+	commentID, err := strconv.Atoi(tf.Annotations[config.AnnotationCommentIDKey])
 	if err != nil {
 		i.log.Error(err, "failed converting comment id to integer", "comment-id", tf.Annotations[config.AnnotationCommentIDKey], "namespace", tf.Namespace, "name", tf.Name)
-		commentId = 0
+		commentID = 0
 	}
 
 	pr := provider.PullRequest{
@@ -228,28 +228,50 @@ func (i *Informer) addCommentToPullRequest(ctx context.Context, tf *infrav1.Terr
 		Number:     prId,
 	}
 
-	// If commentId is 0, it means that the comment has not been created yet.
-	if commentId == 0 {
+	// If commentID is 0, it means that the comment has not been created yet.
+	if commentID == 0 {
 		if _, err := i.gitProvider.AddCommentToPullRequest(ctx, pr, content); err != nil {
 			i.log.Error(err, "failed adding comment to pull request", "pr-id", tf.Labels[config.LabelPRIDKey], "namespace", tf.Namespace, "name", tf.Name)
 		}
-	} else {
-		if err := i.gitProvider.UpdateCommentOfPullRequest(ctx, pr, commentId, content); err != nil {
-			i.log.Error(err, "failed updating comment in pull request", "pr-id", tf.Labels[config.LabelPRIDKey], "comment-id", commentId, "namespace", tf.Namespace, "name", tf.Name)
-		}
+		return
+	}
+
+	if err := i.gitProvider.UpdateCommentOfPullRequest(ctx, pr, commentID, content); err != nil {
+		i.log.Error(err, "failed updating comment in pull request", "pr-id", tf.Labels[config.LabelPRIDKey], "comment-id", commentID, "namespace", tf.Namespace, "name", tf.Name)
+
+		return
+	}
+
+	if err := i.removeCommentIDAnnotation(ctx, tf, commentID); err != nil {
+		i.log.Error(err, "failed removing comment id from object", "pr-id", tf.Labels[config.LabelPRIDKey], "comment-id", commentID, "namespace", tf.Namespace, "name", tf.Name)
 	}
 }
 
 func (i *Informer) addErrorAnnotation(ctx context.Context, tf *infrav1.Terraform) error {
 	patch := client.MergeFrom(tf.DeepCopy())
-	if ann := tf.GetAnnotations(); ann == nil {
+
+	if annotations := tf.GetAnnotations(); annotations == nil {
 		tf.SetAnnotations(map[string]string{
 			config.AnnotationErrorRevision: tf.Status.LastAttemptedRevision,
 		})
 	} else {
-		ann[config.AnnotationErrorRevision] = tf.Status.LastAttemptedRevision
-		tf.SetAnnotations(ann)
+		annotations[config.AnnotationErrorRevision] = tf.Status.LastAttemptedRevision
+		tf.SetAnnotations(annotations)
 	}
+
+	return i.client.Patch(ctx, tf, patch)
+}
+
+func (i *Informer) removeCommentIDAnnotation(ctx context.Context, tf *infrav1.Terraform, commentID int) error {
+	patch := client.MergeFrom(tf.DeepCopy())
+
+	annotations := tf.GetAnnotations()
+	if annotations == nil {
+		return nil
+	}
+
+	delete(annotations, config.AnnotationCommentIDKey)
+	tf.SetAnnotations(annotations)
 
 	return i.client.Patch(ctx, tf, patch)
 }
