@@ -152,3 +152,32 @@ spec:
       - secretRef:
           name: aws-credentials
 ```
+
+### Rename input secrets
+
+The `spec.readInputsFromSecrets` field allows you to reference the Terraform outputs from other Terraform objects.
+In the context of this field, renaming makes it easier to reference the secrets in the `spec.values` field.
+
+To rename a secret, you need to use the `as` key in the `spec.readInputsFromSecrets` field.
+The `name` key corresponds to the original name of the secret, 
+while the `as` key represents the new name that you want to use to reference the secret.
+
+In the example below, we can reference the bucket value 
+from our `aws_s3_bucket` secret using ${{ .aws_s3_bucket.bucket }} instead of using the original secret name, which is `aws-s3-bucket-outputs`.
+
+```yaml hl_lines="9-10 13"
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: example-bucket-acl
+  namespace: flux-system
+spec:
+  # ...
+  readInputsFromSecrets:
+  - name: aws-s3-bucket-outputs
+    as: aws_s3_bucket
+  values:
+    acl: private
+    bucket: ${{ .aws_s3_bucket.bucket }}
+  # ...
+```

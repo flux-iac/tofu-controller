@@ -98,3 +98,52 @@ spec:
       node_count: 10
       public: false
 ```
+
+## Rename variables in varsFrom
+
+To rename a variable, you can use the varsKeys key within the varsFrom field. 
+Here's the basic structure:
+
+```yaml hl_lines="5"
+spec:
+  varsFrom:
+  - kind: Secret
+    name: <secret_name>
+    varsKeys:
+    - <original_variable_name>:<new_variable_name>
+```
+`original_variable_name` corresponds to the initial name of the variable in the referenced secret,
+while `new_variable_name` represents the alias you want to use within the Terraform code.
+
+Consider this example below, where we rename `nodeCount` to `node_count` 
+and `instanceType` to `instance_type`:
+
+```yaml hl_lines="18-19"
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: auto
+  interval: 1m
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  varsFrom:
+  - kind: Secret
+    name: cluster-config
+    varsKeys:
+    - nodeCount:node_count
+    - instanceType:instance_type
+```
+
+## Rename output variables
+
+See [Rename outputs](to_provision_resources_and_obtain_outputs.md#rename-outputs) for more details.
+
+## Rename input secrets
+
+See [Rename input secrets](with_the_ready_to_use_AWS_package.md#rename-input-secrets) for more details.
