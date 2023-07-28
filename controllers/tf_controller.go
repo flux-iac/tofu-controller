@@ -232,6 +232,21 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	// check dependencies, if not being deleted
 	if len(terraform.Spec.DependsOn) > 0 && !isBeingDeleted(terraform) {
 		if err := r.checkDependencies(sourceObj, terraform); err != nil {
+			if acl.IsAccessDenied(err) {
+				traceLog.Info("The cross-namespace dependency was denied by reconciler.NoCrossNamespaceRefs")
+
+				terraform = infrav1.TerraformNotReady(terraform, sourceObj.GetArtifact().Revision, infrav1.ArtifactFailedReason, err.Error())
+				if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+					log.Error(err, "unable to update status for source access denied")
+					return ctrl.Result{Requeue: true}, err
+				}
+
+				r.RecordReadiness(ctx, &terraform)
+
+				// don't requeue to retry; it won't succeed unless the dependsOn changes
+				return ctrl.Result{}, nil
+			}
+
 			terraform = infrav1.TerraformNotReady(
 				terraform, sourceObj.GetArtifact().Revision, infrav1.DependencyNotReadyReason, err.Error())
 
@@ -518,6 +533,12 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 func (r *TerraformReconciler) checkDependencies(source sourcev1.Source, terraform infrav1.Terraform) error {
 	dependantFinalizer := infrav1.TFDependencyOfPrefix + terraform.GetName()
 	for _, d := range terraform.Spec.DependsOn {
+		if r.NoCrossNamespaceRefs && d.Namespace != terraform.GetNamespace() {
+			return acl.AccessDeniedError(
+				fmt.Sprintf("cannot access %s/%s, cross-namespace references have been disabled", d.Namespace, d.Name),
+			)
+		}
+
 		if d.Namespace == "" {
 			d.Namespace = terraform.GetNamespace()
 		}
