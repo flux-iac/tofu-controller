@@ -6,7 +6,8 @@ metadata:
     {{- include "planner.labels" . | nindent 4 }}
   name: {{ include "planner.fullname" . }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  # Planner can't be scaled yet.
+  replicas: 1
   selector:
     matchLabels:
       {{- include "planner.selectorLabels" . | nindent 6 }}
