@@ -14,7 +14,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.20.3
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.37.1
 	github.com/cyphar/filepath-securejoin v0.2.3
-	github.com/elgohr/go-localstack v1.0.14
+	github.com/elgohr/go-localstack v1.0.16
 	github.com/fluxcd/pkg/apis/event v0.5.1
 	github.com/fluxcd/pkg/apis/meta v1.1.1
 	github.com/fluxcd/pkg/runtime v0.40.0
@@ -86,7 +86,7 @@ require (
 	github.com/chai2010/gettext-go v1.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect
-	github.com/docker/docker v24.0.4+incompatible // indirect
+	github.com/docker/docker v24.0.5+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.10.0 // indirect
@@ -132,7 +132,7 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
-	github.com/moby/moby v24.0.4+incompatible // indirect
+	github.com/moby/moby v24.0.5+incompatible // indirect
 	github.com/moby/spdystream v0.2.0 // indirect
 	github.com/moby/term v0.0.0-20221205130635-1aeaba878587 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
