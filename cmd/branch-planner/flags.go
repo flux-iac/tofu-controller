@@ -19,11 +19,12 @@ type applicationOptions struct {
 	allowedNamespaces []string
 
 	logOptions logger.Options
-	aclOptions acl.Options
 
 	runtimeNamespace   string
 	watchAllNamespaces bool
 	watchNamespace     string
+
+	noCrossNamespaceRefs bool
 }
 
 func parseFlags() *applicationOptions {
@@ -47,7 +48,13 @@ func parseFlags() *applicationOptions {
 		"Allowed namespaced. If it's empty, all namespaces are allowed for the planner. If it's not empty, only resources in the defined namespaces are allowed.")
 
 	opts.logOptions.BindFlags(flag.CommandLine)
-	opts.aclOptions.BindFlags(flag.CommandLine)
+
+	aclOptions := &acl.Options{}
+	aclOptions.BindFlags(flag.CommandLine)
+	// this flag exists so that the default is to _disallow_ cross-namespace refs. If supplied, it'll override `--no-cross-namespace-refs`; in other words, you can supply `--allow-cross-namespace-refs` with or without a value, and it will be observed.
+	var allowCrossNamespaceRefs bool
+	flag.BoolVar(&allowCrossNamespaceRefs, "allow-cross-namespace-refs", false,
+		"Enable following cross-namespace references. Overrides --no-cross-namespace-refs")
 
 	flag.Parse()
 
@@ -59,6 +66,13 @@ func parseFlags() *applicationOptions {
 
 	if !opts.watchAllNamespaces {
 		opts.watchNamespace = opts.runtimeNamespace
+	}
+
+	// as in ../manager/main.go, this is the case where --no-cross-namespace-refs can be different and not overridden.
+	if !flag.CommandLine.Changed("allow-cross-namespace-refs") && flag.CommandLine.Changed("no-cross-namespace-refs") {
+		opts.noCrossNamespaceRefs = aclOptions.NoCrossNamespaceRefs
+	} else {
+		opts.noCrossNamespaceRefs = !allowCrossNamespaceRefs
 	}
 
 	return opts
