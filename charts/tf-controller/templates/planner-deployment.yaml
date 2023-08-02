@@ -34,7 +34,7 @@ spec:
         - --log-encoding={{ .Values.logEncoding }}
         - --log-level={{ .Values.logLevel }}
         - --branch-polling-interval={{ .Values.branchPlanner.sourceInterval }}
-        - --polling-configmap={{ .Values.branchPlanner.configMap }}
+        - --polling-configmap={{ .Values.branchPlanner.configMap.name }}
         - --polling-interval={{ .Values.branchPlanner.pollingInterval }}
         - --allowed-namespaces={{ include "tf-controller.runner.allowedNamespaces" . | fromJsonArray | join "," }}
         env:
