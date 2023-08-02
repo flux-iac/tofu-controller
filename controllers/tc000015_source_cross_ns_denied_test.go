@@ -75,7 +75,7 @@ func Test_000015_cross_namespace_source_denied_test(t *testing.T) {
 	t.Cleanup(func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) })
 
 	It("should be access denied error.")
-	By("checking that the Ready's reason of the TF resource become `ArtifactFailed`.")
+	By("checking that the Ready's reason of the TF resource become `AccessDenied`.")
 
 	helloWorldTFKey := client.ObjectKeyFromObject(&helloWorldTF)
 	var readyCondition *metav1.Condition
@@ -90,7 +90,7 @@ func Test_000015_cross_namespace_source_denied_test(t *testing.T) {
 	g.Expect(*readyCondition).To(
 		gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{
 			"Type":    Equal("Ready"),
-			"Reason":  Equal(infrav1.ArtifactFailedReason),
+			"Reason":  Equal(infrav1.AccessDeniedReason),
 			"Message": Equal("Source 'GitRepository/flux-system/gr-source' access denied"),
 		}))
 }

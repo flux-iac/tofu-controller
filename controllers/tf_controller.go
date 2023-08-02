@@ -196,7 +196,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		} else if acl.IsAccessDenied(err) {
 			traceLog.Info("The cross-namespace Source was denied by reconciler.NoCrossNamespaceRefs")
 			msg := fmt.Sprintf("Source '%s' access denied", terraform.Spec.SourceRef.String())
-			terraform = infrav1.TerraformNotReady(terraform, "", infrav1.ArtifactFailedReason, msg)
+			terraform = infrav1.TerraformNotReady(terraform, "", infrav1.AccessDeniedReason, msg)
 			traceLog.Info("Patch the Terraform resource Status with NotReady")
 			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
 				log.Error(err, "unable to update status for source access denied")
@@ -235,7 +235,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			if acl.IsAccessDenied(err) {
 				traceLog.Info("The cross-namespace dependency was denied by reconciler.NoCrossNamespaceRefs")
 
-				terraform = infrav1.TerraformNotReady(terraform, sourceObj.GetArtifact().Revision, infrav1.ArtifactFailedReason, err.Error())
+				terraform = infrav1.TerraformNotReady(terraform, sourceObj.GetArtifact().Revision, infrav1.AccessDeniedReason, err.Error())
 				if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
 					log.Error(err, "unable to update status for source access denied")
 					return ctrl.Result{Requeue: true}, err
@@ -533,19 +533,21 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 func (r *TerraformReconciler) checkDependencies(source sourcev1.Source, terraform infrav1.Terraform) error {
 	dependantFinalizer := infrav1.TFDependencyOfPrefix + terraform.GetName()
 	for _, d := range terraform.Spec.DependsOn {
-		if r.NoCrossNamespaceRefs && d.Namespace != terraform.GetNamespace() {
+		dName := types.NamespacedName{
+			Namespace: d.Namespace,
+			Name:      d.Name,
+		}
+
+		if dName.Namespace == "" {
+			dName.Namespace = terraform.GetNamespace()
+		}
+
+		if r.NoCrossNamespaceRefs && dName.Namespace != terraform.GetNamespace() {
 			return acl.AccessDeniedError(
 				fmt.Sprintf("cannot access %s/%s, cross-namespace references have been disabled", d.Namespace, d.Name),
 			)
 		}
 
-		if d.Namespace == "" {
-			d.Namespace = terraform.GetNamespace()
-		}
-		dName := types.NamespacedName{
-			Namespace: d.Namespace,
-			Name:      d.Name,
-		}
 		var tf infrav1.Terraform
 		err := r.Get(context.Background(), dName, &tf)
 		if err != nil {
