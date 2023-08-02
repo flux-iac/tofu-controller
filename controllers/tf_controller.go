@@ -237,7 +237,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 				terraform = infrav1.TerraformNotReady(terraform, sourceObj.GetArtifact().Revision, infrav1.ArtifactFailedReason, err.Error())
 				if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
-					log.Error(err, "unable to update status for source access denied")
+					log.Error(err, "unable to update status for dependsOn access denied")
 					return ctrl.Result{Requeue: true}, err
 				}
 
