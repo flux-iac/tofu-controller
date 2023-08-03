@@ -167,8 +167,42 @@ func (s *Server) poll(ctx context.Context, resource types.NamespacedName, secret
 	return s.reconcile(ctx, tf, source, prs, gitProvider)
 }
 
+func (s *Server) filterPullRequestsByPath(ctx context.Context, tf *infrav1.Terraform, gitProvider provider.Provider, prs []provider.PullRequest) []provider.PullRequest {
+	if tf.Spec.BranchPlanner == nil || !tf.Spec.BranchPlanner.EnablePathScope {
+		return prs
+	}
+
+	prefix := strings.TrimLeft(tf.Spec.Path, "./")
+	if prefix == "" {
+		return prs
+	}
+
+	filteredPRs := []provider.PullRequest{}
+
+	for _, pr := range prs {
+		changes, err := gitProvider.ListPullRequestChanges(ctx, pr)
+		if err != nil {
+			s.log.Error(err, "can't list pull request changes")
+		}
+
+		for _, change := range changes {
+			if strings.HasPrefix(change.Path, prefix) {
+				s.log.Info("has terraform changed", "path", change.Path)
+
+				filteredPRs = append(filteredPRs, pr)
+
+				break
+			}
+		}
+	}
+
+	return filteredPRs
+}
+
 func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, source *sourcev1.GitRepository, prs []provider.PullRequest, gitProvider provider.Provider) error {
 	log := s.log.WithValues("terraform", original.Name, "namespace", original.Namespace, "source", source.Name)
+
+	prs = s.filterPullRequestsByPath(ctx, original, gitProvider, prs)
 
 	log.Info("starting reconciliation ...")
 

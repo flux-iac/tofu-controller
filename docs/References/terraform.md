@@ -165,6 +165,40 @@ transient error will still result in a reconciliation failure.</p>
 </table>
 </div>
 </div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.BranchPlanner">BranchPlanner
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>enablePathScope</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>EnablePathScope specifies if the Branch Planner should or shouldn&rsquo;t check
+if a Pull Request has changes under <code>.spec.path</code>. If enabled extra
+resources will be created only if there are any changes in terraform files.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="infra.contrib.fluxcd.io/v1alpha2.CloudSpec">CloudSpec
 </h3>
 <p>
@@ -1712,6 +1746,19 @@ bool
 and allow interactive shell in case of emergency.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>branchPlanner</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha2.BranchPlanner">
+BranchPlanner
+</a>
+</em>
+</td>
+<td>
+<p>BarnchPlanner configuration.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -2232,6 +2279,19 @@ bool
 <em>(Optional)</em>
 <p>BreakTheGlass specifies if the reconciliation should stop
 and allow interactive shell in case of emergency.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>branchPlanner</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha2.BranchPlanner">
+BranchPlanner
+</a>
+</em>
+</td>
+<td>
+<p>BarnchPlanner configuration.</p>
 </td>
 </tr>
 </tbody>
