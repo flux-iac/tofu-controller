@@ -91,9 +91,8 @@ func (s *Server) reconcileTerraform(ctx context.Context, originalTF *infrav1.Ter
 			Namespace: originalTF.Namespace,
 		},
 	}
-	branchLabels := s.createLabels(originalTF.Labels, originalTF.Name, branch, prID)
-	branchSecretName := s.createObjectName(originalTF.Spec.WriteOutputsToSecret.Name, branch, prID)
 
+	branchLabels := s.createLabels(originalTF.Labels, originalTF.Name, branch, prID)
 	op, err := controllerutil.CreateOrUpdate(ctx, s.clusterClient, tf, func() error {
 		spec := originalTF.Spec.DeepCopy()
 
@@ -101,7 +100,10 @@ func (s *Server) reconcileTerraform(ctx context.Context, originalTF *infrav1.Ter
 		spec.SourceRef.Namespace = source.Namespace
 		spec.PlanOnly = true
 		spec.StoreReadablePlan = "human"
-		spec.WriteOutputsToSecret.Name = branchSecretName
+		// relocate the output secret, so it's not shared between branches
+		if spec.WriteOutputsToSecret != nil && originalTF.Spec.WriteOutputsToSecret != nil {
+			spec.WriteOutputsToSecret.Name = s.createObjectName(originalTF.Spec.WriteOutputsToSecret.Name, branch, prID)
+		}
 		spec.ApprovePlan = ""
 		spec.Force = false
 
