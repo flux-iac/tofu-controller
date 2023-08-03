@@ -87,7 +87,7 @@ Create a unique list of runner allowed namespaces
 Expand the name of the chart.
 */}}
 {{- define "planner.name" -}}
-{{- printf "%s-planner" (default .Chart.Name .Values.nameOverride) | trunc 63 | trimSuffix "-" }}
+{{ include "tf-controller.name" . }}-branch-planner
 {{- end }}
 
 {{/*
