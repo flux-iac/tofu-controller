@@ -56,6 +56,3 @@ spec:
       enabled: true
       image:
         tag: v0.16.0-rc.2
-      configMap:
-        name: branch-planner
-        create: true
