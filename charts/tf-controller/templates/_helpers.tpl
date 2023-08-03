@@ -96,7 +96,7 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 If release name contains chart name it will be used as a full name.
 */}}
 {{- define "planner.fullname" -}}
-{{ include "tf-controller.fullname" . }}-planner
+{{ include "tf-controller.fullname" . }}-branch-planner
 {{- end }}
 
 {{/*
