@@ -8,6 +8,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -21,7 +22,8 @@ const (
 	AnnotationErrorRevision = "infra.weave.works/error-revision"
 
 	// DefaultNamespace will be used if RUNTIME_NAMESPACE is not defined.
-	DefaultNamespace = "flux-system"
+	DefaultNamespace       = "flux-system"
+	DefaultTokenSecretName = "branch-planner-token"
 )
 
 // Example ConfigMap
@@ -34,7 +36,7 @@ const (
 // metadata:
 //   name: branch-based-planner
 // data:
-//   # Secret to use to use GitHub API.
+//   # Secret to use GitHub API.
 //   # Key in the secret: token
 //   secretNamespace: flux-system
 //   secretName: bbp-token
@@ -56,23 +58,39 @@ type Config struct {
 	Labels          map[string]string
 }
 
-func ReadConfig(ctx context.Context, clusterClient client.Client, ref types.NamespacedName) (Config, error) {
-	config := Config{}
-
-	if ref.Namespace == "" {
-		ref.Namespace = RuntimeNamespace()
+func ReadConfig(ctx context.Context, clusterClient client.Client, configMapObjectKey types.NamespacedName) (Config, error) {
+	if configMapObjectKey.Namespace == "" {
+		configMapObjectKey.Namespace = RuntimeNamespace()
 	}
-
 	configMap := &corev1.ConfigMap{}
-	err := clusterClient.Get(ctx, ref, configMap)
+	err := clusterClient.Get(ctx, configMapObjectKey, configMap)
 	if err != nil {
+		defaultConfig := Config{
+			SecretName:      DefaultTokenSecretName,
+			SecretNamespace: RuntimeNamespace(),
+			Resources: []client.ObjectKey{
+				{Namespace: RuntimeNamespace()},
+			},
+		}
+
+		// Check for not found error, it's ok to not have a ConfigMap
+		if errors.IsNotFound(err) {
+			return defaultConfig, nil
+		}
+
+		// Check for permission error, it's ok to not have access to the ConfigMap
+		if errors.IsForbidden(err) {
+			return defaultConfig, nil
+		}
+
+		// Return a generic error for other cases
 		return Config{}, fmt.Errorf("unable to get ConfigMap: %w", err)
 	}
 
+	config := Config{}
 	config.SecretNamespace = configMap.Data["secretNamespace"]
 	config.SecretName = configMap.Data["secretName"]
 	resourceData := configMap.Data["resources"]
-
 	if config.SecretNamespace == "" {
 		config.SecretNamespace = RuntimeNamespace()
 	}
