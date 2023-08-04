@@ -168,7 +168,7 @@ func buildSuspendCmd(app *tfctl.CLI) *cobra.Command {
 		},
 	}
 
-	suspend.Flags().BoolP("all", "A", true, "Suspend reconciliation for all resources")
+	suspend.Flags().BoolP("all", "A", false, "Suspend reconciliation for all resources")
 	viper.BindPFlags(suspend.Flags())
 
 	return suspend
