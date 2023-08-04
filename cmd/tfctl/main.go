@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"strings"
 
@@ -149,15 +150,28 @@ var suspendExamples = `
 `
 
 func buildSuspendCmd(app *tfctl.CLI) *cobra.Command {
-	return &cobra.Command{
+	suspend := &cobra.Command{
 		Use:     "suspend NAME",
 		Short:   "Suspend reconciliation for the provided resource",
 		Example: strings.Trim(suspendExamples, "\n"),
-		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Suspend(os.Stdout, args[0])
+			resource := ""
+			if !viper.GetBool("all") {
+				if len(args) == 0 {
+					return errors.New("resource name required")
+				}
+
+				resource = args[0]
+			}
+
+			return app.Suspend(os.Stdout, resource)
 		},
 	}
+
+	suspend.Flags().BoolP("all", "A", true, "Suspend reconciliation for all resources")
+	viper.BindPFlags(suspend.Flags())
+
+	return suspend
 }
 
 var resumeExamples = `
@@ -336,7 +350,7 @@ func buildForceUnlockCmd(app *tfctl.CLI) *cobra.Command {
 
 var replanExamples = `
 	# Replan a Terraform resource
-	tfctl -n default replan my-resource 
+	tfctl -n default replan my-resource
 `
 
 func buildReplanCmd(app *tfctl.CLI) *cobra.Command {
