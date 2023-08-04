@@ -90,9 +90,8 @@ func Test_000015_cross_namespace_depends_on_denied_test(t *testing.T) {
 			ApprovePlan: "auto",
 			Path:        "./terraform-hello-world-example",
 			SourceRef: infrav1.CrossNamespaceSourceReference{
-				Kind:      "GitRepository",
-				Name:      testRepo.Name,
-				Namespace: testRepo.Namespace,
+				Kind: "GitRepository",
+				Name: testRepo.Name,
 			},
 			Interval: metav1.Duration{Duration: time.Second * 10},
 			DependsOn: []fluxmeta.NamespacedObjectReference{
