@@ -13,6 +13,16 @@ import (
 
 // Resume sets the resume field to true on the given Terraform resource.
 func (c *CLI) Resume(out io.Writer, resource string) error {
+	if resource == "" {
+		if err := resumeAllReconciliation(context.TODO(), c.client); err != nil {
+			return fmt.Errorf("failed to resume reconciliation for all Terraform resources: %w", err)
+		}
+
+		fmt.Fprint(out, " Reconciliation resumed for all Terraform resources\n")
+
+		return nil
+	}
+
 	key := types.NamespacedName{
 		Name:      resource,
 		Namespace: c.namespace,
@@ -25,6 +35,25 @@ func (c *CLI) Resume(out io.Writer, resource string) error {
 
 	fmt.Fprintf(out, " Reconciliation resumed for %s/%s\n", c.namespace, resource)
 
+	return nil
+}
+
+func resumeAllReconciliation(ctx context.Context, kubeClient client.Client) error {
+	terraformList := &infrav1.TerraformList{}
+	if err := kubeClient.List(ctx, terraformList); err != nil {
+		return err
+	}
+
+	for _, terraform := range terraformList.Items {
+		key := types.NamespacedName{
+			Name:      terraform.Name,
+			Namespace: terraform.Namespace,
+		}
+
+		if err := resumeReconciliation(ctx, kubeClient, key); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

@@ -147,6 +147,9 @@ func buildReconcileCmd(app *tfctl.CLI) *cobra.Command {
 var suspendExamples = `
   # Suspend reconciliation for a Terraform resource
   tfctl suspend my-resource
+
+  # Suspend reconciliation for all Terraform resources
+  tfctl suspend --all
 `
 
 func buildSuspendCmd(app *tfctl.CLI) *cobra.Command {
@@ -155,8 +158,13 @@ func buildSuspendCmd(app *tfctl.CLI) *cobra.Command {
 		Short:   "Suspend reconciliation for the provided resource",
 		Example: strings.Trim(suspendExamples, "\n"),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			all, err := cmd.Flags().GetBool("all")
+			if err != nil {
+				return err
+			}
+
 			resource := ""
-			if !viper.GetBool("all") {
+			if !all {
 				if len(args) == 0 {
 					return errors.New("resource name required")
 				}
@@ -169,7 +177,6 @@ func buildSuspendCmd(app *tfctl.CLI) *cobra.Command {
 	}
 
 	suspend.Flags().BoolP("all", "A", false, "Suspend reconciliation for all resources")
-	viper.BindPFlags(suspend.Flags())
 
 	return suspend
 }
@@ -177,18 +184,38 @@ func buildSuspendCmd(app *tfctl.CLI) *cobra.Command {
 var resumeExamples = `
   # Resume reconciliation for a Terraform resource
   tfctl resume my-resource
+
+  # Resume reconciliation for all Terraform resources
+  tfctl resume --all
 `
 
 func buildResumeCmd(app *tfctl.CLI) *cobra.Command {
-	return &cobra.Command{
+	resume := &cobra.Command{
 		Use:     "resume NAME",
 		Short:   "Resume reconciliation for the provided resource",
-		Args:    cobra.ExactArgs(1),
 		Example: strings.Trim(resumeExamples, "\n"),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Resume(os.Stdout, args[0])
+			all, err := cmd.Flags().GetBool("all")
+			if err != nil {
+				return err
+			}
+
+			resource := ""
+			if !all {
+				if len(args) == 0 {
+					return errors.New("resource name required")
+				}
+
+				resource = args[0]
+			}
+
+			return app.Resume(os.Stdout, resource)
 		},
 	}
+
+	resume.Flags().BoolP("all", "A", false, "Resume reconciliation for all resources")
+
+	return resume
 }
 
 func buildShowGroup(app *tfctl.CLI) *cobra.Command {
