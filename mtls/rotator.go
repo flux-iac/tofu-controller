@@ -455,7 +455,7 @@ func (cr *CertRotator) refreshCertsInMemory() error {
 	}
 
 	// create controller-side certificate
-	cert, key, err := cr.createCertPEM(caArtifacts, cr.DNSName, begin, end)
+	cert, key, err := cr.createCertPEM(caArtifacts, []string{cr.DNSName}, begin, end)
 	if err != nil {
 		return err
 	}
@@ -571,8 +571,8 @@ func (cr *CertRotator) createCACert(begin, end time.Time) (*KeyPairArtifacts, er
 
 // createCertPEM takes the results of createCACert and uses it to create the
 // PEM-encoded public certificate and private key, respectively.
-func (cr *CertRotator) createCertPEM(ca *KeyPairArtifacts, hostname string, begin, end time.Time) ([]byte, []byte, error) {
-	dnsNames := []string{hostname}
+func (cr *CertRotator) createCertPEM(ca *KeyPairArtifacts, hostnames []string, begin, end time.Time) ([]byte, []byte, error) {
+	dnsNames := hostnames
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
 		dnsNames = append(dnsNames, "localhost")
 	}
@@ -643,8 +643,11 @@ func (cr *CertRotator) generateNamespaceTLS(namespace string) (*corev1.Secret, e
 	artifactCache := cr.artifactCaches[n-1]
 	caArtifacts := artifactCache.ca
 
-	hostname := fmt.Sprintf("*.%s.pod.%s", namespace, cr.ClusterDomain)
-	cert, key, err := cr.createCertPEM(caArtifacts, hostname, time.Now().Add(-1*time.Hour), caArtifacts.validUntil)
+	hostnames := []string{
+		fmt.Sprintf("*.%s.pod.%s", namespace, cr.ClusterDomain),
+		fmt.Sprintf("*.tf-runner.%s.svc.%s", namespace, cr.ClusterDomain),
+	}
+	cert, key, err := cr.createCertPEM(caArtifacts, hostnames, time.Now().Add(-1*time.Hour), caArtifacts.validUntil)
 	if err != nil {
 		return nil, err
 	}

@@ -19,6 +19,7 @@ package v1alpha2
 import (
 	"bytes"
 	"fmt"
+	"net"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -880,9 +881,13 @@ func (in *Terraform) FromBytes(b []byte, scheme *runtime.Scheme) error {
 		), b, in)
 }
 
-func (in *Terraform) GetRunnerHostname(ip string, clusterDomain string) string {
-	prefix := strings.ReplaceAll(ip, ".", "-")
-	return fmt.Sprintf("%s.%s.pod.%s", prefix, in.Namespace, clusterDomain)
+func (in *Terraform) GetRunnerHostname(target string, clusterDomain string) string {
+	if net.ParseIP(target) != nil {
+		prefix := strings.ReplaceAll(target, ".", "-")
+		return fmt.Sprintf("%s.%s.pod.%s", prefix, in.Namespace, clusterDomain)
+	} else {
+		return fmt.Sprintf("%s.tf-runner.%s.svc.%s", target, in.Namespace, clusterDomain)
+	}
 }
 
 func (in *TerraformSpec) GetAlwaysCleanupRunnerPod() bool {
