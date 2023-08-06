@@ -1,0 +1,16 @@
+{{- range include "tf-controller.runner.allowedNamespaces" . | fromJsonArray }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tf-runner
+  namespace: {{ . }}
+spec:
+  clusterIP: None
+  ports:
+  - name: grpc
+    port: 30000
+  selector:
+    app.kubernetes.io/created-by: tf-controller
+		app.kubernetes.io/name: tf-runner
+{{- end }}

@@ -94,8 +94,9 @@ func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terrafor
 			traceLog.Error(err, "Hit an error")
 			return nil, nil, err
 		}
-		traceLog.Info("Get pod hostname", "pod-ip", podIP)
-		hostname = terraform.GetRunnerHostname(podIP, r.ClusterDomain)
+		traceLog.Info("Get pod ip", "pod-ip", podIP)
+		traceLog.Info("Get pod hostname", "pod-hostname", terraform.Name)
+		hostname = terraform.GetRunnerHostname(terraform.Name, r.ClusterDomain)
 	}
 
 	traceLog.Info("Pod hostname set", "hostname", hostname)
@@ -255,6 +256,8 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 	}
 
 	return v1.PodSpec{
+		Hostname:                      terraform.Name,
+		Subdomain:                     "tf-runner",
 		TerminationGracePeriodSeconds: gracefulTermPeriod,
 		InitContainers:                terraform.Spec.RunnerPodTemplate.Spec.InitContainers,
 		Containers: []v1.Container{
