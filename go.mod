@@ -14,10 +14,10 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.21.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.38.1
 	github.com/cyphar/filepath-securejoin v0.2.3
-	github.com/elgohr/go-localstack v1.0.16
-	github.com/fluxcd/pkg/apis/event v0.5.1
-	github.com/fluxcd/pkg/apis/meta v1.1.1
-	github.com/fluxcd/pkg/runtime v0.40.0
+	github.com/elgohr/go-localstack v1.0.17
+	github.com/fluxcd/pkg/apis/event v0.5.2
+	github.com/fluxcd/pkg/apis/meta v1.1.2
+	github.com/fluxcd/pkg/runtime v0.41.0
 	github.com/fluxcd/pkg/untar v0.3.0
 	github.com/fluxcd/source-controller/api v1.0.1
 	github.com/go-logr/logr v1.2.4
@@ -40,7 +40,7 @@ require (
 	github.com/weaveworks/tf-controller/api v0.0.0-00010101000000-000000000000
 	github.com/weaveworks/tf-controller/tfctl v0.0.0-00010101000000-000000000000
 	github.com/zclconf/go-cty v1.13.2
-	golang.org/x/net v0.12.0
+	golang.org/x/net v0.13.0
 	google.golang.org/grpc v1.55.0
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -51,7 +51,7 @@ require (
 	k8s.io/client-go v0.27.4
 	k8s.io/kubectl v0.27.4
 	sigs.k8s.io/cli-utils v0.35.0
-	sigs.k8s.io/controller-runtime v0.15.0
+	sigs.k8s.io/controller-runtime v0.15.1
 	sigs.k8s.io/kustomize/kyaml v0.14.3
 )
 
@@ -162,14 +162,13 @@ require (
 	github.com/whilp/git-urls v1.0.0 // indirect
 	github.com/xlab/treeprint v1.2.0 // indirect
 	go.starlark.net v0.0.0-20221028183056-acb66ad56dd2 // indirect
-	go.uber.org/atomic v1.10.0 // indirect
-	go.uber.org/multierr v1.8.0 // indirect
-	go.uber.org/zap v1.24.0 // indirect
+	go.uber.org/multierr v1.10.0 // indirect
+	go.uber.org/zap v1.25.0 // indirect
 	golang.org/x/crypto v0.10.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/oauth2 v0.9.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
-	golang.org/x/term v0.9.0 // indirect
+	golang.org/x/term v0.10.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.11.0 // indirect
