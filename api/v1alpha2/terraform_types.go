@@ -257,7 +257,7 @@ type TerraformSpec struct {
 	// +optional
 	BreakTheGlass bool `json:"breakTheGlass,omitempty"`
 
-	// BarnchPlanner configuration.
+	// BranchPlanner configuration.
 	// +optional
 	BranchPlanner *BranchPlanner `json:"branchPlanner,omitempty"`
 }
