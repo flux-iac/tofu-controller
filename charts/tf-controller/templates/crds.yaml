@@ -5064,6 +5064,16 @@ spec:
                   - name
                   type: object
                 type: array
+              branchPlanner:
+                description: BarnchPlanner configuration.
+                properties:
+                  enablePathScope:
+                    description: EnablePathScope specifies if the Branch Planner should
+                      or shouldn't check if a Pull Request has changes under `.spec.path`.
+                      If enabled extra resources will be created only if there are
+                      any changes in terraform files.
+                    type: boolean
+                type: object
               breakTheGlass:
                 description: BreakTheGlass specifies if the reconciliation should
                   stop and allow interactive shell in case of emergency.
