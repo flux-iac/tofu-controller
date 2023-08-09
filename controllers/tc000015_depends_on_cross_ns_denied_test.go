@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gstruct"
 
+	fluxmeta "github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -15,9 +16,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func Test_000015_cross_namespace_source_denied_test(t *testing.T) {
-	Spec("This spec describes the behaviour of a Terraform resource when source is in another namespace and cross-namespace refs are not allowed.")
-	It("should be reconciled to have a Source error.")
+func Test_000015_cross_namespace_depends_on_denied_test(t *testing.T) {
+	Spec("This spec describes the behaviour of a Terraform resource when dependsOn is in another namespace and cross-namespace refs are not allowed.")
+	It("should be reconciled to have a dependsOn error.")
 
 	By("setting the reconciler to disallow cross-namespace refs")
 	defer func(original bool) {
@@ -52,22 +53,50 @@ func Test_000015_cross_namespace_source_denied_test(t *testing.T) {
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
 	t.Cleanup(func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) })
 
-	Given("a Terraform resource, attached to a GitRepository resource in another namespace.")
+	Given("the GitRepository's reconciled status.")
+	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
+	updatedTime := time.Now()
+	testRepo.Status = sourcev1.GitRepositoryStatus{
+		ObservedGeneration: int64(1),
+		Conditions: []metav1.Condition{
+			{
+				Type:               "Ready",
+				Status:             metav1.ConditionTrue,
+				LastTransitionTime: metav1.Time{Time: updatedTime},
+				Reason:             "GitOperationSucceed",
+				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+			},
+		},
+		Artifact: &sourcev1.Artifact{
+			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			URL:            server.URL() + "/file.tar.gz",
+			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+			Digest:         "sha256:80ddfd18eb96f7d31cadc1a8a5171c6e2d95df3f6c23b0ed9cd8dddf6dba1406",
+			LastUpdateTime: metav1.Time{Time: updatedTime},
+		},
+	}
+
+	It("should be updated successfully.")
+	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
+
+	Given("a Terraform resource")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
 	helloWorldTF := infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
-			Namespace: "default",
+			Namespace: "flux-system",
 		},
 		Spec: infrav1.TerraformSpec{
 			ApprovePlan: "auto",
 			Path:        "./terraform-hello-world-example",
 			SourceRef: infrav1.CrossNamespaceSourceReference{
-				Kind:      "GitRepository",
-				Name:      sourceName,
-				Namespace: "flux-system",
+				Kind: "GitRepository",
+				Name: testRepo.Name,
 			},
 			Interval: metav1.Duration{Duration: time.Second * 10},
+			DependsOn: []fluxmeta.NamespacedObjectReference{
+				{Name: "gr-source", Namespace: "other-ns"},
+			},
 		},
 	}
 	It("should be created and attached successfully.")
@@ -91,6 +120,6 @@ func Test_000015_cross_namespace_source_denied_test(t *testing.T) {
 		gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{
 			"Type":    Equal("Ready"),
 			"Reason":  Equal(infrav1.AccessDeniedReason),
-			"Message": Equal("Source 'GitRepository/flux-system/gr-source' access denied"),
+			"Message": Equal("cannot access other-ns/gr-source, cross-namespace references have been disabled"),
 		}))
 }
