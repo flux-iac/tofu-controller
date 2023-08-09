@@ -47,10 +47,6 @@ RUN apk add --no-cache libcrypto3=3.1.2-r0 && \
 COPY --from=builder /workspace/tf-runner /usr/local/bin/
 COPY --from=builder /workspace/terraform /usr/local/bin/
 
-# Create minimal nsswitch.conf file to prioritize the usage of /etc/hosts over DNS queries.
-# https://github.com/gliderlabs/docker-alpine/issues/367#issuecomment-354316460
-RUN echo 'hosts: files dns' > /etc/nsswitch.conf
-
 RUN addgroup --gid 65532 -S runner && adduser --uid 65532 -S runner -G runner && chmod +x /usr/local/bin/terraform
 
 USER 65532:65532
