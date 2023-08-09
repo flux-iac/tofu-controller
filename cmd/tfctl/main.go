@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"strings"
 
@@ -146,35 +147,75 @@ func buildReconcileCmd(app *tfctl.CLI) *cobra.Command {
 var suspendExamples = `
   # Suspend reconciliation for a Terraform resource
   tfctl suspend my-resource
+
+  # Suspend reconciliation for all Terraform resources
+  tfctl suspend --all
 `
 
 func buildSuspendCmd(app *tfctl.CLI) *cobra.Command {
-	return &cobra.Command{
+	suspend := &cobra.Command{
 		Use:     "suspend NAME",
 		Short:   "Suspend reconciliation for the provided resource",
 		Example: strings.Trim(suspendExamples, "\n"),
-		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Suspend(os.Stdout, args[0])
+			all, err := cmd.Flags().GetBool("all")
+			if err != nil {
+				return err
+			}
+
+			resource := ""
+			if !all {
+				if len(args) == 0 {
+					return errors.New("resource name required")
+				}
+
+				resource = args[0]
+			}
+
+			return app.Suspend(os.Stdout, resource)
 		},
 	}
+
+	suspend.Flags().BoolP("all", "A", false, "Suspend reconciliation for all resources")
+
+	return suspend
 }
 
 var resumeExamples = `
   # Resume reconciliation for a Terraform resource
   tfctl resume my-resource
+
+  # Resume reconciliation for all Terraform resources
+  tfctl resume --all
 `
 
 func buildResumeCmd(app *tfctl.CLI) *cobra.Command {
-	return &cobra.Command{
+	resume := &cobra.Command{
 		Use:     "resume NAME",
 		Short:   "Resume reconciliation for the provided resource",
-		Args:    cobra.ExactArgs(1),
 		Example: strings.Trim(resumeExamples, "\n"),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Resume(os.Stdout, args[0])
+			all, err := cmd.Flags().GetBool("all")
+			if err != nil {
+				return err
+			}
+
+			resource := ""
+			if !all {
+				if len(args) == 0 {
+					return errors.New("resource name required")
+				}
+
+				resource = args[0]
+			}
+
+			return app.Resume(os.Stdout, resource)
 		},
 	}
+
+	resume.Flags().BoolP("all", "A", false, "Resume reconciliation for all resources")
+
+	return resume
 }
 
 func buildShowGroup(app *tfctl.CLI) *cobra.Command {
@@ -336,7 +377,7 @@ func buildForceUnlockCmd(app *tfctl.CLI) *cobra.Command {
 
 var replanExamples = `
 	# Replan a Terraform resource
-	tfctl -n default replan my-resource 
+	tfctl -n default replan my-resource
 `
 
 func buildReplanCmd(app *tfctl.CLI) *cobra.Command {

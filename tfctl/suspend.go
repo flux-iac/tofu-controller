@@ -13,6 +13,16 @@ import (
 
 // Suspend sets the suspend field to true on the given Terraform resource.
 func (c *CLI) Suspend(out io.Writer, resource string) error {
+	if resource == "" {
+		if err := suspendAllReconciliation(context.TODO(), c.client); err != nil {
+			return fmt.Errorf("failed to suspend reconciliation for all Terraform resources: %w", err)
+		}
+
+		fmt.Fprint(out, " Reconciliation suspended for all Terraform resources\n")
+
+		return nil
+	}
+
 	key := types.NamespacedName{
 		Name:      resource,
 		Namespace: c.namespace,
@@ -25,6 +35,25 @@ func (c *CLI) Suspend(out io.Writer, resource string) error {
 
 	fmt.Fprintf(out, " Reconciliation suspended for %s/%s\n", c.namespace, resource)
 
+	return nil
+}
+
+func suspendAllReconciliation(ctx context.Context, kubeClient client.Client) error {
+	terraformList := &infrav1.TerraformList{}
+	if err := kubeClient.List(ctx, terraformList); err != nil {
+		return err
+	}
+
+	for _, terraform := range terraformList.Items {
+		key := types.NamespacedName{
+			Name:      terraform.Name,
+			Namespace: terraform.Namespace,
+		}
+
+		if err := suspendReconciliation(ctx, kubeClient, key); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
