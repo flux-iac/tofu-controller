@@ -182,7 +182,7 @@ func (s *Server) filterPullRequestsByPath(ctx context.Context, tf *infrav1.Terra
 	for _, pr := range prs {
 		changes, err := gitProvider.ListPullRequestChanges(ctx, pr)
 		if err != nil {
-			s.log.Error(err, "can't list pull request changes")
+			s.log.Error(err, "can't list pull request changes", "PR IR", pr.Number, "name", tf.Name, "namespace", tf.Namespace)
 		}
 
 		for _, change := range changes {
