@@ -488,6 +488,7 @@ const (
 // The potential reasons that are associated with condition types
 const (
 	ArtifactFailedReason            = "ArtifactFailed"
+	AccessDeniedReason              = "AccessDenied"
 	DeletionBlockedByDependants     = "DeletionBlockedByDependantsReason"
 	DependencyNotReadyReason        = "DependencyNotReady"
 	DriftDetectedReason             = "DriftDetected"
