@@ -111,6 +111,10 @@ spec:
                   - name
                   type: object
                 type: array
+              breakTheGlass:
+                description: BreakTheGlass specifies if the reconciliation should
+                  stop and allow interactive shell in case of emergency.
+                type: boolean
               cliConfigSecretRef:
                 description: SecretReference represents a Secret Reference. It has
                   enough information to retrieve secret in any namespace
@@ -296,8 +300,7 @@ spec:
                 type: boolean
               retryInterval:
                 description: The interval at which to retry a previously failed reconciliation.
-                  When not specified, the controller uses the TerraformSpec.Interval
-                  value to retry failures.
+                  The default value is 15 when not specified.
                 type: string
               runnerPodTemplate:
                 properties:
@@ -5025,6 +5028,10 @@ spec:
                   - name
                   type: object
                 type: array
+              breakTheGlass:
+                description: BreakTheGlass specifies if the reconciliation should
+                  stop and allow interactive shell in case of emergency.
+                type: boolean
               cliConfigSecretRef:
                 description: SecretReference represents a Secret Reference. It has
                   enough information to retrieve secret in any namespace

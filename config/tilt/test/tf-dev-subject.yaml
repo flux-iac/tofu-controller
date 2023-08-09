@@ -1,0 +1,49 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: helloworld
+  namespace: terraform
+spec:
+  interval: 30s
+  url: https://github.com/tf-controller/helloworld
+  ref:
+    branch: main
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: helloworld-tf
+  namespace: terraform
+stringData:
+  test-data: "test"
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld-tf
+  namespace: terraform
+spec:
+  path: ./
+  interval: 20s
+  approvePlan: auto
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: terraform
+  vars:
+  - name: secret_subject
+    value: "test-"
+  varsFrom:
+  - kind: Secret
+    name: helloworld-tf
+    varsKeys:
+    - test-data:subject
+  writeOutputsToSecret:
+    name: helloworld-tf-outputs
+  runnerPodTemplate:
+    metadata:
+      labels:
+        instance: helloworld-tf # This is the name of the Terraform resource
+    spec:
+      image: ghcr.io/weaveworks/tf-runner
