@@ -13,6 +13,74 @@ When a Plan Output becomes available, the Branch Planner creates a new comment u
 2. A GitHub [API token](./least-required-permissions.md).
 3. Knowledge about GitOps Terraform Controller [(see docs)](https://weaveworks.github.io/tf-controller/).
 
+## Quick Start Guide
+
+This section describe how to install Branch Planner using HelmRelease object in the `flux-system` namespace with minimum configuration on a KinD cluster.
+
+1. Create a KinD cluster.
+```
+kind create cluster
+```
+
+2. Install Flux. Please make sure you have the latest version of Flux (v2 GA).
+```
+flux install
+```
+
+3. Create a Secret that contains GitHub API token. If you do not use `gh` cli, please feel free to copy and paste the token from GitHub's website.
+```
+export GITHUB_TOKEN=$(gh auth token)
+
+kubectl create secret generic branch-planner-token \
+    --namespace=flux-system \
+    --from-literal="token=${GITHUB_TOKEN}"
+```
+
+4. Install Branch Planner from a HelmRelease provided by the TF-controller repository. Please make sure that you use TF Controller v0.16.0-rc.2 or later.
+
+```
+kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch_planner/release.yaml
+```
+
+5. Create a Terraform object with a Source pointing to a repository.
+
+You repository must contain a Terraform file, for example `main.tf`.
+Please take a look at https://github.com/tf-controller/branch-planner-demo for an example.
+
+```bash
+export GITHUB_USER=<your user>
+export GITHUB_REPO=<your repo>
+
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: branch-planner-demo
+  namespace: flux-system
+spec:
+  interval: 30s
+  url: https://github.com/${GITHUB_USER}/${GITHUB_REPO}
+  ref:
+    branch: main
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: branch-planner-demo
+  namespace: flux-system
+spec:
+  approvePlan: auto
+  path: ./
+  interval: 1m
+  sourceRef:
+    kind: GitRepository
+    name: branch-planner-demo
+    namespace: flux-system
+EOF
+```
+6. Now you can go to your GitHub repo and create a Pull Request. The Branch Planner will create a new Terraform object with Plan Only mode enabled, and generate a new plan for you.
+
 ## Configure Branch Planner
 
 Branch Planner uses a ConfigMap as configuration. That ConfigMap is optional to use but useful for fine-tuning Branch Planner.

@@ -40,7 +40,7 @@ kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main
 ```
 
 For more details about the Branch Planner, please visit the
-[Branch Planner documentation](https://github.com/weaveworks/tf-controller/blob/main/docs/branch_based_planner/getting-started.md).
+[Branch Planner documentation](./branch_planner/getting-started.md).
 
 ### Manual installation
 
@@ -110,27 +110,6 @@ spec:
 ```
 
 For a full list of features and how to use them, please follow the [Use TF-controller](use_tf_controller/index.md) guide.
-
-## PlanOnly mode
-
-If `planOnly` is set to `true`, the controller will skip the apply part and runs
-only `terraform plan` and saves the output.
-
-```
-apiVersion: infra.contrib.fluxcd.io/v1
-kind: Terraform
-metadata:
-  name: helloworld
-  namespace: flux-system
-spec:
-  interval: 1m
-  planOnly: true
-  path: ./
-  sourceRef:
-    kind: GitRepository
-    name: helloworld
-    namespace: flux-system
-```
 
 ## Other Examples
   * A Terraform GitOps with Flux to automatically reconcile your [AWS IAM Policies](https://github.com/tf-controller/aws-iam-policies).
