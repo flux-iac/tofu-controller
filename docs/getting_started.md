@@ -111,27 +111,6 @@ spec:
 
 For a full list of features and how to use them, please follow the [Use TF-controller](use_tf_controller/index.md) guide.
 
-## PlanOnly mode
-
-If `planOnly` is set to `true`, the controller will skip the apply part and runs
-only `terraform plan` and saves the output.
-
-```
-apiVersion: infra.contrib.fluxcd.io/v1
-kind: Terraform
-metadata:
-  name: helloworld
-  namespace: flux-system
-spec:
-  interval: 1m
-  planOnly: true
-  path: ./
-  sourceRef:
-    kind: GitRepository
-    name: helloworld
-    namespace: flux-system
-```
-
 ## Other Examples
   * A Terraform GitOps with Flux to automatically reconcile your [AWS IAM Policies](https://github.com/tf-controller/aws-iam-policies).
   * GitOps an existing EKS cluster, by partially import its nodegroup and manage it with TF-controller: [An EKS scaling example](https://github.com/tf-controller/eks-scaling).
