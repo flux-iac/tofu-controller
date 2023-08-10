@@ -1,6 +1,6 @@
 # Weave GitOps Terraform Controller
 
-![Version: 0.11.4-lts](https://img.shields.io/badge/Version-0.11.4--lts-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.14.4](https://img.shields.io/badge/AppVersion-v0.14.4-informational?style=flat-square)
+![Version: 0.11.6-lts](https://img.shields.io/badge/Version-0.11.6--lts-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.14.6](https://img.shields.io/badge/AppVersion-v0.14.6-informational?style=flat-square)
 
 The Helm chart for Weave GitOps Terraform Controller
 
@@ -27,6 +27,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` | Affinity properties for the TF-Controller deployment |
+| allowBreakTheGlass | bool | `false` | Argument for `--allow-break-the-glass` (Controller).  AllowBreakTheGlass allows the controller to break the glass and modify Terraform states when the sync loop is broken. |
 | awsPackage.install | bool | `true` |  |
 | awsPackage.repository | string | `"ghcr.io/tf-controller/aws-primitive-modules"` |  |
 | awsPackage.tag | string | `"v4.38.0-v1alpha11"` |  |
@@ -69,7 +70,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | rbac.create | bool | `true` | If `true`, create and use RBAC resources |
 | replicaCount | int | `1` | Number of TF-Controller pods to deploy |
 | resources | object | `{"limits":{"cpu":"1000m","memory":"1Gi"},"requests":{"cpu":"200m","memory":"64Mi"}}` | Resource limits and requests |
-| runner | object | `{"creationTimeout":"5m0s","grpc":{"maxMessageSize":4},"image":{"repository":"ghcr.io/weaveworks/tf-runner","tag":"v0.14.4"},"serviceAccount":{"allowedNamespaces":[],"annotations":{},"create":true,"name":""}}` | Runner-specific configurations |
+| runner | object | `{"creationTimeout":"5m0s","grpc":{"maxMessageSize":4},"image":{"repository":"ghcr.io/weaveworks/tf-runner","tag":"v0.14.6"},"serviceAccount":{"allowedNamespaces":[],"annotations":{},"create":true,"name":""}}` | Runner-specific configurations |
 | runner.creationTimeout | string | `"5m0s"` | Timeout for runner-creation (Controller) |
 | runner.grpc.maxMessageSize | int | `4` | Maximum GRPC message size (Controller) |
 | runner.image.repository | string | `"ghcr.io/weaveworks/tf-runner"` | Runner image repository |
