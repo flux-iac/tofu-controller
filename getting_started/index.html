@@ -352,13 +352,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#planonly-mode" class="md-nav__link">
-    PlanOnly mode
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#other-examples" class="md-nav__link">
     Other Examples
   </a>
@@ -536,13 +529,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#planonly-mode" class="md-nav__link">
-    PlanOnly mode
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#other-examples" class="md-nav__link">
     Other Examples
   </a>
@@ -596,7 +582,7 @@ After that you can install TF-controller with Flux HelmRelease by:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch_planner/rc.yaml
 </code></pre></div>
 <p>For more details about the Branch Planner, please visit the
-<a href="https://github.com/weaveworks/tf-controller/blob/main/docs/branch_based_planner/getting-started.md">Branch Planner documentation</a>.</p>
+<a href="../branch_planner/getting-started/">Branch Planner documentation</a>.</p>
 <h3 id="manual-installation">Manual installation</h3>
 <p>With Helm by:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Add tf-controller helm repository</span>
@@ -647,23 +633,6 @@ and automatically applied for you.</p>
 <a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">    </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-system</span>
 </code></pre></div>
 <p>For a full list of features and how to use them, please follow the <a href="../use_tf_controller/">Use TF-controller</a> guide.</p>
-<h2 id="planonly-mode">PlanOnly mode</h2>
-<p>If <code>planOnly</code> is set to <code>true</code>, the controller will skip the apply part and runs
-only <code>terraform plan</code> and saves the output.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>apiVersion: infra.contrib.fluxcd.io/v1
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>kind: Terraform
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>metadata:
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>  name: helloworld
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>  namespace: flux-system
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>spec:
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>  interval: 1m
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>  planOnly: true
-<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>  path: ./
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>  sourceRef:
-<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>    kind: GitRepository
-<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>    name: helloworld
-<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>    namespace: flux-system
-</code></pre></div>
 <h2 id="other-examples">Other Examples</h2>
 <ul>
 <li>A Terraform GitOps with Flux to automatically reconcile your <a href="https://github.com/tf-controller/aws-iam-policies">AWS IAM Policies</a>.</li>
