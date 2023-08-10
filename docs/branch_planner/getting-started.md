@@ -44,7 +44,6 @@ kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main
 5. Create a Terraform object with a Source pointing to a repository.
 You repository must contain a Terraform file, for example `main.tf`.
 Please take a look at [https://github.com/tf-controller/branch-planner-demo](https://github.com/tf-controller/branch-planner-demo) for an example.
-
 ```bash
 export GITHUB_USER=<your user>
 export GITHUB_REPO=<your repo>
