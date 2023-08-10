@@ -283,6 +283,21 @@
   
   
     <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        Branch Planner
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../how_to/" class="md-nav__link">
         How to
       </a>
@@ -362,6 +377,14 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#custom-configuration" class="md-nav__link">
+    Custom Configuration
+  </a>
+  
+    <nav class="md-nav" aria-label="Custom Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#secret" class="md-nav__link">
     Secret
   </a>
@@ -371,6 +394,18 @@
           <li class="md-nav__item">
   <a href="#resources" class="md-nav__link">
     Resources
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#default-configuration" class="md-nav__link">
+    Default Configuration
   </a>
   
 </li>
@@ -406,14 +441,10 @@
 
 
 <h1 id="getting-started-with-branch-planner">Getting Started With Branch Planner</h1>
-<p>If the Branch Planner is enabled through Helm values, it will
-watch all configured Terraform resources, check their referenced Source, and
-poll for Pull Requests using GitHub's API plus the provided token.</p>
-<p>When the Branch Planner detects an open Pull Request, it either creates a new Terraform object or
-updates an existing one, applying Plan Only mode based on the original
+<p>When the Branch Planner is enabled through Helm values, it will watch all configured Terraform resources, check their referenced Source, and poll for Pull Requests using GitHub's API plus the provided token.</p>
+<p>When the Branch Planner detects an open Pull Request, it either creates a new Terraform object or updates an existing one, applying Plan Only mode based on the original
 Terraform object.</p>
-<p>When a Plan Output becomes available, the Branch Planner creates a new comment under
-the Pull Request with the content of the Plan Output included.</p>
+<p>When a Plan Output becomes available, the Branch Planner creates a new comment under the Pull Request with the content of the Plan Output included.</p>
 <h2 id="prerequisites">Prerequisites</h2>
 <ol>
 <li>Flux is installed on the cluster.</li>
@@ -421,9 +452,9 @@ the Pull Request with the content of the Plan Output included.</p>
 <li>Knowledge about GitOps Terraform Controller <a href="https://weaveworks.github.io/tf-controller/">(see docs)</a>.</li>
 </ol>
 <h2 id="configure-branch-planner">Configure Branch Planner</h2>
-<p>Branch Planner uses a ConfigMap as configuration. By default it's looking for a
-<code>branch-planner</code> ConfigMap in the same namespace as where the <code>tf-controller</code> is
-installed.</p>
+<p>Branch Planner uses a ConfigMap as configuration. That ConfigMap is optional to use but useful for fine-tuning Branch Planner.</p>
+<h3 id="custom-configuration">Custom Configuration</h3>
+<p>By default Branch Planner will look for a <code>branch-planner</code> ConfigMap in the same namespace as where the <code>tf-controller</code> is installed. That ConfigMap allows users to precisely specify which Terraform resources in a cluster should be monitored by Branch Planner.</p>
 <p>The ConfigMap has two fields:</p>
 <ol>
 <li><code>secretName</code>, which contains the API token to access GitHub.</li>
@@ -440,14 +471,14 @@ installed.</p>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="nt">resources</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|-</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="no">- namespace: terraform</span>
 </code></pre></div>
-<h3 id="secret">Secret</h3>
+<h4 id="secret">Secret</h4>
 <p>Branch Planner uses the referenced Secret with a <code>token</code> field that acquires the
 API token to fetch Pull Request information.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>branch-planner-token<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span>--namespace<span class="o">=</span>flux-system<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">&quot;token=</span><span class="si">${</span><span class="nv">GITHUB_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span>
 </code></pre></div>
-<h3 id="resources">Resources</h3>
+<h4 id="resources">Resources</h4>
 <p>If the <code>resources</code> list is empty, nothing will be watched. The resource definition
 can be exact or namespace-wide.</p>
 <p>With the following configuration file, the Branch Planner will watch all Terraform objects in
@@ -459,6 +490,8 @@ the <code>terraform</code> namespace, and the <code>exact-terraform-object</code
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">exact-terraform-object</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">terraform</span>
 </code></pre></div>
+<h3 id="default-configuration">Default Configuration</h3>
+<p>If a ConfigMap is not found, it will watch the <code>flux-system</code> namespace for any Terraform resources and expect to find a GitHub token in a secret named <code>branch-planner-token</code> in the <code>flux-system</code> namespace. Note that supplying a secret with a token is a necessary task, otherwise Branch Planner will not be able to interact with the GitHub API. </p>
 <h2 id="enable-branch-planner">Enable Branch Planner</h2>
 <p>To enable branch planner, set the <code>branchPlanner.enabled</code> to <code>true</code> in the Helm
 values files.</p>
