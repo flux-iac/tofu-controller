@@ -488,10 +488,8 @@ Terraform object.</p>
 <li>
 <p>Create a Terraform object with a Source pointing to a repository.
 You repository must contain a Terraform file, for example <code>main.tf</code>.
-Please take a look at <a href="https://github.com/tf-controller/branch-planner-demo">https://github.com/tf-controller/branch-planner-demo</a> for an example.</p>
-</li>
-</ol>
-<p><div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">GITHUB_USER</span><span class="o">=</span>&lt;your<span class="w"> </span>user&gt;
+Please take a look at <a href="https://github.com/tf-controller/branch-planner-demo">https://github.com/tf-controller/branch-planner-demo</a> for an example.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">GITHUB_USER</span><span class="o">=</span>&lt;your<span class="w"> </span>user&gt;
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">GITHUB_REPO</span><span class="o">=</span>&lt;your<span class="w"> </span>repo&gt;
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>cat<span class="w"> </span><span class="s">&lt;&lt;EOF | kubectl apply -f -</span>
@@ -521,8 +519,10 @@ Please take a look at <a href="https://github.com/tf-controller/branch-planner-d
 <a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="s">    name: branch-planner-demo</span>
 <a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="s">    namespace: flux-system</span>
 <a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="s">EOF</span>
-</code></pre></div>
-6. Now you can go to your GitHub repo and create a Pull Request. The Branch Planner will create a new Terraform object with Plan Only mode enabled, and generate a new plan for you.</p>
+</code></pre></div></p>
+</li>
+<li>Now you can go to your GitHub repo and create a Pull Request. The Branch Planner will create a new Terraform object with Plan Only mode enabled, and generate a new plan for you.</li>
+</ol>
 <h2 id="configure-branch-planner">Configure Branch Planner</h2>
 <p>Branch Planner uses a ConfigMap as configuration. That ConfigMap is optional to use but useful for fine-tuning Branch Planner.</p>
 <h3 id="custom-configuration">Custom Configuration</h3>
