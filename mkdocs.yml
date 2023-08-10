@@ -29,6 +29,7 @@ nav:
   - Overview: 'index.md'
   - Getting Started: 'getting_started.md'
   - Use TF-controller: 'use_tf_controller/index.md'
+  - Branch Planner: 'branch_planner/index.md'
   - How to: 'how_to/index.md'
   - API References: 'References/terraform.md'
   - CLI References: 'tfctl.md'
