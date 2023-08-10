@@ -40,7 +40,7 @@ kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main
 ```
 
 For more details about the Branch Planner, please visit the
-[Branch Planner documentation](https://github.com/weaveworks/tf-controller/blob/main/docs/branch_based_planner/getting-started.md).
+[Branch Planner documentation](./branch_planner/getting-started.md).
 
 ### Manual installation
 
