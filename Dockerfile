@@ -34,8 +34,8 @@ LABEL org.opencontainers.image.source="https://github.com/weaveworks/tf-controll
 
 RUN apk update
 
-RUN apk add --no-cache libcrypto3=3.1.1-r1 && \
-    apk add --no-cache libssl3=3.1.1-r1 && \
+RUN apk add --no-cache libcrypto3=3.1.2-r0 && \
+    apk add --no-cache libssl3=3.1.2-r0 && \
     apk add --no-cache ca-certificates tini git openssh-client gnupg && \
     apk add --no-cache libretls && \
     apk add --no-cache busybox
