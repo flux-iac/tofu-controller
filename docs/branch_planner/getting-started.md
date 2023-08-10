@@ -37,15 +37,13 @@ kubectl create secret generic branch-planner-token \
 ```
 
 4. Install Branch Planner from a HelmRelease provided by the TF-controller repository. Please make sure that you use TF Controller v0.16.0-rc.2 or later.
-
 ```
 kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch_planner/release.yaml
 ```
 
 5. Create a Terraform object with a Source pointing to a repository.
-
 You repository must contain a Terraform file, for example `main.tf`.
-Please take a look at https://github.com/tf-controller/branch-planner-demo for an example.
+Please take a look at [https://github.com/tf-controller/branch-planner-demo](https://github.com/tf-controller/branch-planner-demo) for an example.
 
 ```bash
 export GITHUB_USER=<your user>
