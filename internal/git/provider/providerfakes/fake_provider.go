@@ -41,6 +41,20 @@ type FakeProvider struct {
 		result1 []*provider.Comment
 		result2 error
 	}
+	ListPullRequestChangesStub        func(context.Context, provider.PullRequest) ([]provider.Change, error)
+	listPullRequestChangesMutex       sync.RWMutex
+	listPullRequestChangesArgsForCall []struct {
+		arg1 context.Context
+		arg2 provider.PullRequest
+	}
+	listPullRequestChangesReturns struct {
+		result1 []provider.Change
+		result2 error
+	}
+	listPullRequestChangesReturnsOnCall map[int]struct {
+		result1 []provider.Change
+		result2 error
+	}
 	ListPullRequestsStub        func(context.Context, provider.Repository) ([]provider.PullRequest, error)
 	listPullRequestsMutex       sync.RWMutex
 	listPullRequestsArgsForCall []struct {
@@ -250,6 +264,71 @@ func (fake *FakeProvider) GetLastCommentsReturnsOnCall(i int, result1 []*provide
 	}
 	fake.getLastCommentsReturnsOnCall[i] = struct {
 		result1 []*provider.Comment
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeProvider) ListPullRequestChanges(arg1 context.Context, arg2 provider.PullRequest) ([]provider.Change, error) {
+	fake.listPullRequestChangesMutex.Lock()
+	ret, specificReturn := fake.listPullRequestChangesReturnsOnCall[len(fake.listPullRequestChangesArgsForCall)]
+	fake.listPullRequestChangesArgsForCall = append(fake.listPullRequestChangesArgsForCall, struct {
+		arg1 context.Context
+		arg2 provider.PullRequest
+	}{arg1, arg2})
+	stub := fake.ListPullRequestChangesStub
+	fakeReturns := fake.listPullRequestChangesReturns
+	fake.recordInvocation("ListPullRequestChanges", []interface{}{arg1, arg2})
+	fake.listPullRequestChangesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeProvider) ListPullRequestChangesCallCount() int {
+	fake.listPullRequestChangesMutex.RLock()
+	defer fake.listPullRequestChangesMutex.RUnlock()
+	return len(fake.listPullRequestChangesArgsForCall)
+}
+
+func (fake *FakeProvider) ListPullRequestChangesCalls(stub func(context.Context, provider.PullRequest) ([]provider.Change, error)) {
+	fake.listPullRequestChangesMutex.Lock()
+	defer fake.listPullRequestChangesMutex.Unlock()
+	fake.ListPullRequestChangesStub = stub
+}
+
+func (fake *FakeProvider) ListPullRequestChangesArgsForCall(i int) (context.Context, provider.PullRequest) {
+	fake.listPullRequestChangesMutex.RLock()
+	defer fake.listPullRequestChangesMutex.RUnlock()
+	argsForCall := fake.listPullRequestChangesArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeProvider) ListPullRequestChangesReturns(result1 []provider.Change, result2 error) {
+	fake.listPullRequestChangesMutex.Lock()
+	defer fake.listPullRequestChangesMutex.Unlock()
+	fake.ListPullRequestChangesStub = nil
+	fake.listPullRequestChangesReturns = struct {
+		result1 []provider.Change
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeProvider) ListPullRequestChangesReturnsOnCall(i int, result1 []provider.Change, result2 error) {
+	fake.listPullRequestChangesMutex.Lock()
+	defer fake.listPullRequestChangesMutex.Unlock()
+	fake.ListPullRequestChangesStub = nil
+	if fake.listPullRequestChangesReturnsOnCall == nil {
+		fake.listPullRequestChangesReturnsOnCall = make(map[int]struct {
+			result1 []provider.Change
+			result2 error
+		})
+	}
+	fake.listPullRequestChangesReturnsOnCall[i] = struct {
+		result1 []provider.Change
 		result2 error
 	}{result1, result2}
 }
@@ -632,6 +711,8 @@ func (fake *FakeProvider) Invocations() map[string][][]interface{} {
 	defer fake.addCommentToPullRequestMutex.RUnlock()
 	fake.getLastCommentsMutex.RLock()
 	defer fake.getLastCommentsMutex.RUnlock()
+	fake.listPullRequestChangesMutex.RLock()
+	defer fake.listPullRequestChangesMutex.RUnlock()
 	fake.listPullRequestsMutex.RLock()
 	defer fake.listPullRequestsMutex.RUnlock()
 	fake.setHostnameMutex.RLock()

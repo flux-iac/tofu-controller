@@ -2,11 +2,12 @@ package provider
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/go-logr/logr"
 	giturl "github.com/kubescape/go-git-url"
 	giturlapis "github.com/kubescape/go-git-url/apis"
 	"golang.org/x/net/context"
-	"time"
 )
 
 type ProviderType string
@@ -25,6 +26,7 @@ type Provider interface {
 	AddCommentToPullRequest(ctx context.Context, repo PullRequest, body []byte) (*Comment, error)
 	GetLastComments(ctx context.Context, pr PullRequest, since time.Time) ([]*Comment, error)
 	UpdateCommentOfPullRequest(ctx context.Context, pr PullRequest, commentID int, body []byte) error
+	ListPullRequestChanges(ctx context.Context, pr PullRequest) ([]Change, error)
 
 	SetLogger(logr.Logger) error
 	SetToken(tokenType, token string) error

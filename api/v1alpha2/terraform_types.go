@@ -256,6 +256,18 @@ type TerraformSpec struct {
 	// and allow interactive shell in case of emergency.
 	// +optional
 	BreakTheGlass bool `json:"breakTheGlass,omitempty"`
+
+	// BranchPlanner configuration.
+	// +optional
+	BranchPlanner *BranchPlanner `json:"branchPlanner,omitempty"`
+}
+
+type BranchPlanner struct {
+	// EnablePathScope specifies if the Branch Planner should or shouldn't check
+	// if a Pull Request has changes under `.spec.path`. If enabled extra
+	// resources will be created only if there are any changes in terraform files.
+	// +optional
+	EnablePathScope bool `json:"enablePathScope"`
 }
 
 type CloudSpec struct {

@@ -21,6 +21,32 @@ type GitHubProvider struct {
 	client   *scm.Client
 }
 
+func (p *GitHubProvider) ListPullRequestChanges(ctx context.Context, pr PullRequest) ([]Change, error) {
+	changes := []Change{}
+
+	changeList, _, err := p.client.PullRequests.ListChanges(ctx, pr.Repository.String(), pr.Number, &scm.ListOptions{})
+	if err != nil {
+		return changes, fmt.Errorf("unable to list pull request changes: %w", err)
+	}
+
+	for _, change := range changeList {
+		changes = append(changes, Change{
+			Path:         change.Path,
+			PreviousPath: change.PreviousPath,
+			Patch:        change.Patch,
+			Sha:          change.Sha,
+			Additions:    change.Additions,
+			Deletions:    change.Deletions,
+			Changes:      change.Changes,
+			Added:        change.Added,
+			Renamed:      change.Renamed,
+			Deleted:      change.Deleted,
+		})
+	}
+
+	return changes, nil
+}
+
 func (p *GitHubProvider) ListPullRequests(ctx context.Context, repo Repository) ([]PullRequest, error) {
 	prList, _, err := p.client.PullRequests.List(ctx, repo.String(), &scm.PullRequestListOptions{})
 	if err != nil {
