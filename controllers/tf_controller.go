@@ -30,9 +30,11 @@ import (
 	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/fluxcd/pkg/runtime/acl"
+	"github.com/fluxcd/pkg/runtime/conditions"
 	runtimeCtrl "github.com/fluxcd/pkg/runtime/controller"
 	"github.com/fluxcd/pkg/runtime/dependency"
 	"github.com/fluxcd/pkg/runtime/logger"
+	"github.com/fluxcd/pkg/runtime/patch"
 	"github.com/fluxcd/pkg/runtime/predicates"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -46,6 +48,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
 	kuberecorder "k8s.io/client-go/tools/record"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
@@ -97,7 +100,7 @@ type TerraformReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
-func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (result ctrl.Result, retErr error) {
 	reconcileStart := time.Now()
 	reconciliationLoopID := uuid.New().String()
 	log := ctrl.LoggerFrom(ctx, "reconciliation-loop-id", reconciliationLoopID, "start-time", reconcileStart)
@@ -126,7 +129,14 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 	log.Info(fmt.Sprintf(">> Started Generation: %d", terraform.GetGeneration()))
 
+	// Initialize the runtime patcher with the current version of the object.
+	patcher := patch.NewSerialPatcher(&terraform, r.Client)
+
 	defer func() {
+		if err := r.finalizeStatus(ctx, &terraform, patcher); err != nil {
+			retErr = kerrors.NewAggregate([]error{retErr, err})
+		}
+
 		// Record Prometheus metrics.
 		r.Metrics.RecordReadiness(ctx, &terraform)
 		r.Metrics.RecordSuspend(ctx, &terraform, terraform.Spec.Suspend)
@@ -806,4 +816,24 @@ func (r *TerraformReconciler) event(ctx context.Context, terraform infrav1.Terra
 
 	traceLog.Info("Add new annotated event")
 	r.EventRecorder.AnnotatedEventf(&terraform, metadata, eventType, reason, msg)
+}
+
+func (r *TerraformReconciler) finalizeStatus(ctx context.Context, obj *infrav1.Terraform, patcher *patch.SerialPatcher) error {
+	if v, ok := meta.ReconcileAnnotationValue(obj.GetAnnotations()); ok {
+		obj.Status.LastHandledReconcileAt = v
+	}
+
+	if conditions.IsTrue(obj, meta.ReadyCondition) {
+		obj.Status.ObservedGeneration = obj.Generation
+	}
+
+	if err := patcher.Patch(ctx, obj); err != nil {
+		if !obj.GetDeletionTimestamp().IsZero() {
+			err = kerrors.FilterOut(err, func(e error) bool { return apierrors.IsNotFound(e) })
+		}
+
+		return err
+	}
+
+	return nil
 }
