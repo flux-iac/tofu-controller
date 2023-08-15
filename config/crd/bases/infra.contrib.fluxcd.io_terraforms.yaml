@@ -9807,6 +9807,8 @@ spec:
             - sourceRef
             type: object
           status:
+            default:
+              observedGeneration: -1
             description: TerraformStatus defines the observed state of Terraform
             properties:
               availableOutputs:
