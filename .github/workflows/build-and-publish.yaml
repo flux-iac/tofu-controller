@@ -24,7 +24,7 @@ jobs:
           go-version: 1.19.x
       - name: Setup Terraform
         run: |
-          export TF_VERSION=1.3.7
+          export TF_VERSION=1.3.9
           wget https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
           unzip -q terraform_${TF_VERSION}_linux_amd64.zip
           mv terraform $(which terraform)
@@ -80,6 +80,23 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.version=${{ steps.prep.outputs.VERSION }}
             org.opencontainers.image.created=${{ steps.prep.outputs.BUILD_DATE }}
+      - name: Build multi-arch tf-runner base image
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          builder: ${{ steps.buildx.outputs.name }}
+          context: .
+          file: ./runner-base.Dockerfile
+          platforms: linux/amd64,linux/arm64 #,linux/arm/v7
+          tags: |
+            ghcr.io/weaveworks/tf-runner:${{ steps.prep.outputs.VERSION }}-base
+          labels: |
+            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.prep.outputs.VERSION }}
+            org.opencontainers.image.created=${{ steps.prep.outputs.BUILD_DATE }}
       - name: Publish multi-arch tf-runner container image
         uses: docker/build-push-action@v4
         with:
@@ -88,6 +105,8 @@ jobs:
           context: .
           file: ./runner.Dockerfile
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
+          build-args: |
+            BASE_IMAGE=ghcr.io/weaveworks/tf-runner:${{ steps.prep.outputs.VERSION }}-base
           tags: |
             ghcr.io/weaveworks/tf-runner:${{ steps.prep.outputs.VERSION }}
           labels: |
