@@ -9,6 +9,7 @@ import (
 
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -16,8 +17,8 @@ func Test_000016_default_observed_generation(t *testing.T) {
 	Spec("This spec describes default value of a Terraform resource")
 	It("should set the observedGeneration to -1 when the resource is created")
 
-	const (
-		terraformName = "tf-cross-ns"
+	var (
+		terraformName = "tf-" + rand.String(6)
 	)
 	g := NewWithT(t)
 	ctx := context.Background()
