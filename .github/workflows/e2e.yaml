@@ -66,13 +66,6 @@ jobs:
           VERSION="e2e-${GITHUB_SHA::8}"
           docker buildx use default
           make docker-buildx MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION
-      - # Temp fix
-        # https://github.com/docker/build-push-action/issues/252
-        # https://github.com/moby/buildkit/issues/1896
-        name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
       - name: Load test images into KIND
         run: |
           VERSION="e2e-${GITHUB_SHA::8}"
