@@ -11,6 +11,7 @@ import (
 
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -18,9 +19,9 @@ func Test_000016_finalize_status(t *testing.T) {
 	Spec("This spec describes the behaviour of the Terraform controller when finalizing the status of a Terraform resource")
 	It("should set the observedGeneration and LastHandledReconcileAt after reconcile")
 
-	const (
+	var (
 		sourceName    = "test-finalize-status"
-		terraformName = "tf-cross-ns"
+		terraformName = "tf-" + rand.String(6)
 	)
 	g := NewWithT(t)
 	ctx := context.Background()
