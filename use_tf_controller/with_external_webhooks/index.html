@@ -9,24 +9,20 @@
       
       
       
-        <link rel="prev" href="../getting_started/">
       
-      
-        <link rel="next" href="../branch_planner/">
-      
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.1.21">
     
     
       
-        <title>Use TF-controller - Weave GitOps Terraform Controller</title>
+        <title>Use TF-Controller with an External Webhooks - Weave GitOps Terraform Controller</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.eebd395e.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.eebd395e.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -42,7 +38,7 @@
       
     
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -71,7 +67,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#use-tf-controller" class="md-skip">
+        <a href="#use-tf-controller-with-an-external-webhooks" class="md-skip">
           Skip to content
         </a>
       
@@ -87,7 +83,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Weave GitOps Terraform Controller" class="md-header__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
+    <a href="../.." title="Weave GitOps Terraform Controller" class="md-header__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -106,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Use TF-controller
+              Use TF-Controller with an External Webhooks
             
           </span>
         </div>
@@ -211,7 +207,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Weave GitOps Terraform Controller" class="md-nav__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
+    <a href="../.." title="Weave GitOps Terraform Controller" class="md-nav__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -242,7 +238,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         Overview
       </a>
     </li>
@@ -257,7 +253,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting_started/" class="md-nav__link">
+      <a href="../../getting_started/" class="md-nav__link">
         Getting Started
       </a>
     </li>
@@ -270,21 +266,11 @@
 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
         Use TF-controller
       </a>
-      
     </li>
   
 
@@ -297,7 +283,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../branch_planner/" class="md-nav__link">
+      <a href="../../branch_planner/" class="md-nav__link">
         Branch Planner
       </a>
     </li>
@@ -312,7 +298,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../how_to/" class="md-nav__link">
+      <a href="../../how_to/" class="md-nav__link">
         How to
       </a>
     </li>
@@ -327,7 +313,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../References/terraform/" class="md-nav__link">
+      <a href="../../References/terraform/" class="md-nav__link">
         API References
       </a>
     </li>
@@ -342,7 +328,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tfctl/" class="md-nav__link">
+      <a href="../../tfctl/" class="md-nav__link">
         CLI References
       </a>
     </li>
@@ -369,6 +355,28 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-the-webhook" class="md-nav__link">
+    Setting up the Webhook
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-example" class="md-nav__link">
+    Configuration Example
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -385,29 +393,54 @@
   
 
 
-<h1 id="use-tf-controller">Use TF-controller</h1>
+<h1 id="use-tf-controller-with-an-external-webhooks">Use TF-Controller with an External Webhooks</h1>
+<p>The TF-Controller provides a way to integrate with webhooks to further validate Terraform plans and manage the Terraform execution process. 
+With the webhook feature, you can implement custom policy checks, validations, and other logic to determine if the Terraform process should proceed.</p>
+<h2 id="setting-up-the-webhook">Setting up the Webhook</h2>
+<ol>
+<li><strong>Webhook URL:</strong> Specify the URL of your webhook, ensuring it points to a valid HTTPS endpoint.</li>
+<li><strong>Expected Return:</strong> The webhook should return a valid JSON object. For instance:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span><span class="nt">&quot;passed&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
+</code></pre></div></li>
+<li><strong>Accepted True Values:</strong> The true values can be <code>true</code>, <code>"true"</code>, and <code>"yes"</code>.</li>
+<li><strong>Accepted False Values:</strong> The false values can be <code>flse</code>, <code>"false"</code>, and <code>"no"</code>.</li>
+</ol>
+<p>Below is a breakdown of the relevant parts of the configuration:</p>
+<ol>
+<li><code>webhooks:</code> This is the section where you specify all webhook related configurations.</li>
+<li><code>stage:</code> Define at which stage the webhook will be triggered. Currenly, we support only the <code>post-planning</code> stage.</li>
+<li><code>url:</code> The URL pointing to your webhook endpoint.</li>
+<li><code>testExpression:</code> This expression is used to evaluate the response from the webhook. If it evaluates to true, the controller proceeds with the operation. In the example, the expression checks for the passed value from the webhook's JSON response.</li>
+<li><code>errorMessageTemplate:</code> If testExpression evaluates to false, this template is used to extract the error message from the webhook's JSON response. This message will be displayed to the user.</li>
+</ol>
+<h2 id="configuration-example">Configuration Example</h2>
+<p>Here's a configuration example on how to use the webhook feature to integrate with Weave Policy Engine.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha2</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Terraform</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">helloworld-tf</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./terraform</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="nt">approvePlan</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;auto&quot;</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1m</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nt">storeReadablePlan</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">human</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="nt">sourceRef</span><span class="p">:</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GitRepository</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">helloworld-tf</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="nt">webhooks</span><span class="p">:</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">stage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">post-planning</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://policy-agent.policy-system.svc/terraform/admission</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">    </span><span class="nt">testExpression</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;${{</span><span class="nv"> </span><span class="s">.passed</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="nt">errorMessageTemplate</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Violation:</span><span class="nv"> </span><span class="s">${{</span><span class="nv"> </span><span class="s">(index</span><span class="nv"> </span><span class="s">(index</span><span class="nv"> </span><span class="s">.violations</span><span class="nv"> </span><span class="s">0).occurrences</span><span class="nv"> </span><span class="s">0).message</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">  </span><span class="nt">writeOutputsToSecret</span><span class="p">:</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">helloworld-outputs</span>
+</code></pre></div></p>
+<p>Important Considerations:</p>
 <ul>
-<li><a href="to_provision_resources_and_auto_approve/">Use TF-controller to provision resources and <strong>auto approve</strong></a></li>
-<li><a href="to_plan_and_manually_apply_Terraform_resources/">Use TF-controller to <strong>plan and manually apply</strong> Terraform resources</a></li>
-<li><a href="to_provision_resources_and_obtain_outputs/">Use TF-controller to provision resources and <strong>obtain outputs</strong></a></li>
-<li><a href="to_detect_drifts_only_without_plan_or_apply/">Use TF-controller to <strong>detect drifts only</strong> without plan or apply</a></li>
-<li><a href="with_drift_detection_disabled/">Use TF-controller with <strong>drift detection disabled</strong></a></li>
-<li><a href="with_AWS_EKS_IRSA/">Use TF-controller with <strong>AWS EKS IRSA</strong></a></li>
-<li><a href="to_set_variables_for_Terraform_resources/">Use TF-controller to <strong>set variables</strong> for Terraform resources</a></li>
-<li><a href="with_a_custom_backend/">Use TF-controller with a <strong>custom backend</strong></a></li>
-<li><a href="with_an_OCI_Artifact_as_Source/">Use TF-controller with an <strong>OCI Artifact as Source</strong></a></li>
-<li><a href="to_provision_Terraform_resources_that_are_required_health_checks/">Use TF-controller to provision Terraform resources that are required <strong>health checks</strong></a></li>
-<li><a href="to_provision_resources_and_destroy_them_when_the_Terraform_object_gets_deleted/">Use TF-controller to provision resources and <strong>destroy them when the Terraform object gets deleted</strong></a></li>
-<li><a href="to_force_unlock_Terraform_states/">Use TF-controller to <strong>force unlock</strong> Terraform states</a></li>
-<li><a href="with_tf_runner_logging/">Use TF-controller with Terraform Runners enabled via Env Variables</a></li>
-<li><a href="to_provision_resources_with_customized_Runner_Pods/">Use TF-controller to provision resources with <strong>customized Runner Pods</strong></a></li>
-<li><a href="with_Terraform_Enterprise/">Use TF-controller with <strong>Terraform Enterprise</strong></a></li>
-<li><a href="with_primitive_modules/">Use TF-controller with <strong>primitive modules</strong></a></li>
-<li><a href="with_GitOps_dependency_management/">Use TF-controller with <strong>GitOps dependency management</strong></a></li>
-<li><a href="with_the_ready_to_use_AWS_package/">Use TF-controller with <strong>the ready-to-use AWS package</strong></a></li>
-<li><a href="with_plan_only_mode/">User TF-controller with <strong>plan-only mode</strong></a></li>
-<li><a href="with_external_webhooks/">Use TF-controller with <strong>external webhooks</strong></a></li>
+<li>Ensure that your webhook endpoint is secure, as the TF-Controller will be sending potentially sensitive Terraform plan data to it.</li>
+<li>Test your webhook implementation thoroughly before deploying to production, as any issues could interrupt or halt your Terraform process.</li>
 </ul>
+<p>With the webhook feature, you can create a more robust and flexible GitOps Terraform pipeline that respects custom organizational policies and other requirements.</p>
 
 
 
@@ -445,10 +478,10 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate"], "search": "../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.annotate"], "search": "../../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.220ee61c.min.js"></script>
+      <script src="../../assets/javascripts/bundle.220ee61c.min.js"></script>
       
     
   </body>
