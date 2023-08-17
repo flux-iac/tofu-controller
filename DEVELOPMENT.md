@@ -6,6 +6,10 @@ We follow the Flux development best practices.
 > to find out about how to contribute to Flux and how to interact with the
 > Flux Development team.
 
+## Developer Certificate of Origin
+
+By submitting any contributions to this repository as an individual or on behalf of a corporation, you agree to the [Developer Certificate of Origin](DCO).
+
 ## Code Reviews
 
 Although you are a contributor with the write access to this repository,
