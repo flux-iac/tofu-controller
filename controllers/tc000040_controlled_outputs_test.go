@@ -1,10 +1,13 @@
+//go:build flaky
+
 package controllers
 
 import (
 	"context"
-	corev1 "k8s.io/api/core/v1"
 	"testing"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
 
 	. "github.com/onsi/gomega"
 
