@@ -100,12 +100,20 @@ func (s *Server) reconcileTerraform(ctx context.Context, originalTF *infrav1.Ter
 		spec.SourceRef.Namespace = source.Namespace
 		spec.PlanOnly = true
 		spec.StoreReadablePlan = "human"
-		// relocate the output secret, so it's not shared between branches
+
+		// Relocate the output secret, so it's not shared between branches
 		if spec.WriteOutputsToSecret != nil && originalTF.Spec.WriteOutputsToSecret != nil {
 			spec.WriteOutputsToSecret.Name = s.createObjectName(originalTF.Spec.WriteOutputsToSecret.Name, branch, prID)
 		}
 		spec.ApprovePlan = ""
 		spec.Force = false
+
+		// Support branch planning for Terraform Cloud
+		// By using local state and a local backend for the branch plan object
+		if spec.Cloud != nil || spec.CliConfigSecretRef != nil {
+			spec.Cloud = nil
+			spec.CliConfigSecretRef = nil
+		}
 
 		tf.Spec = *spec
 
