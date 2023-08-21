@@ -84,7 +84,7 @@ Branch Planner uses a ConfigMap as configuration. That ConfigMap is optional to 
 
 ### Custom Configuration
 
-By default Branch Planner will look for a `branch-planner` ConfigMap in the same namespace as where the `tf-controller` is installed. That ConfigMap allows users to precisely specify which Terraform resources in a cluster should be monitored by Branch Planner.
+By default, Branch Planner will look for the `branch-planner` ConfigMap in the same namespace as where the `tf-controller` is installed. That ConfigMap allows users to precisely specify which Terraform resources in a cluster should be monitored by Branch Planner.
 
 The ConfigMap has two fields:
 
