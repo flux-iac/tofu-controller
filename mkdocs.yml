@@ -14,6 +14,7 @@ theme:
         name: Switch to light mode
   features:
     - content.code.annotate
+    - content.code.copy
 
 repo_url: https://github.com/weaveworks/tf-controller
 repo_name: weaveworks/tf-controller
@@ -28,8 +29,12 @@ markdown_extensions:
 nav:
   - Overview: 'index.md'
   - Getting Started: 'getting_started.md'
-  - Use TF-controller: 'use_tf_controller/index.md'
-  - Branch Planner: 'branch_planner/index.md'
+  - Use TF-Controller: 'use_tf_controller/index.md'
+  - Branch Planner:
+    - User Guide: 'branch_planner/index.md'
+    - Getting Started: 'branch_planner/getting-started.md'
+    - Least Required Permissions: 'branch_planner/least-required-permissions.md'
+    - Terraform Cloud Integration: 'branch_planner/tfc-integration.md'
   - How to: 'how_to/index.md'
   - API References: 'References/terraform.md'
   - CLI References: 'tfctl.md'
