@@ -111,6 +111,10 @@ spec:
                   - name
                   type: object
                 type: array
+              breakTheGlass:
+                description: BreakTheGlass specifies if the reconciliation should
+                  stop and allow interactive shell in case of emergency.
+                type: boolean
               cliConfigSecretRef:
                 description: SecretReference represents a Secret Reference. It has
                   enough information to retrieve secret in any namespace
@@ -5063,7 +5067,7 @@ spec:
                   type: object
                 type: array
               branchPlanner:
-                description: BarnchPlanner configuration.
+                description: BranchPlanner configuration.
                 properties:
                   enablePathScope:
                     description: EnablePathScope specifies if the Branch Planner should
