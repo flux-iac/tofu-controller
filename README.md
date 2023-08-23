@@ -1,5 +1,7 @@
 # Weave GitOps' Terraform Controller
 
+[![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/7761/badge)](https://bestpractices.coreinfrastructure.org/projects/7761)
+
 Weave GitOps' **Terraform Controller** (aka Weave TF-Controller) is a controller for [Flux](https://fluxcd.io) to reconcile Terraform resources
 in the GitOps way.
 With the power of Flux together with Terraform, TF-controller allows you to GitOps-ify infrastructure,
