@@ -156,7 +156,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	metricsH := runtimeCtrl.MustMakeMetrics(mgr)
+	metricsH := runtimeCtrl.NewMetrics(mgr, metrics.MustMakeRecorder(), infrav1.TerraformFinalizer)
 
 	signalHandlerContext := ctrl.SetupSignalHandler()
 
