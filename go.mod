@@ -44,11 +44,11 @@ require (
 	google.golang.org/grpc v1.55.0
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.27.4
+	k8s.io/api v0.28.0
 	k8s.io/apiextensions-apiserver v0.27.4
-	k8s.io/apimachinery v0.27.4
+	k8s.io/apimachinery v0.28.0
 	k8s.io/cli-runtime v0.27.4
-	k8s.io/client-go v0.27.4
+	k8s.io/client-go v0.28.0
 	k8s.io/kubectl v0.27.4
 	sigs.k8s.io/cli-utils v0.35.0
 	sigs.k8s.io/controller-runtime v0.15.1
@@ -108,7 +108,6 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/gnostic v0.6.9 // indirect
-	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
@@ -166,10 +165,8 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.25.0 // indirect
 	golang.org/x/crypto v0.11.0 // indirect
-	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/oauth2 v0.9.0 // indirect
-	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
 	golang.org/x/term v0.10.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
@@ -200,6 +197,10 @@ replace (
 
 	// Fix CVE-2023-32731
 	google.golang.org/grpc => google.golang.org/grpc v1.53.0
+
+	k8s.io/api => k8s.io/api v0.27.4
+	k8s.io/apimachinery => k8s.io/apimachinery v0.27.4
+	k8s.io/client-go => k8s.io/client-go v0.27.4
 
 	// Lock down k8s.io/kube-openapi to a specific commit
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20230525220651-2546d827e515
