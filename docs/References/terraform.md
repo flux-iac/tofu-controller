@@ -1756,7 +1756,8 @@ BranchPlanner
 </em>
 </td>
 <td>
-<p>BarnchPlanner configuration.</p>
+<em>(Optional)</em>
+<p>BranchPlanner configuration.</p>
 </td>
 </tr>
 </table>
@@ -2291,7 +2292,8 @@ BranchPlanner
 </em>
 </td>
 <td>
-<p>BarnchPlanner configuration.</p>
+<em>(Optional)</em>
+<p>BranchPlanner configuration.</p>
 </td>
 </tr>
 </tbody>
