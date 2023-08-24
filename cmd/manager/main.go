@@ -29,6 +29,7 @@ import (
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/fluxcd/pkg/runtime/leaderelection"
 	"github.com/fluxcd/pkg/runtime/logger"
+	"github.com/fluxcd/pkg/runtime/metrics"
 	"github.com/fluxcd/pkg/runtime/pprof"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -156,7 +157,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	metricsH := runtimeCtrl.MustMakeMetrics(mgr)
+	metricsH := runtimeCtrl.NewMetrics(mgr, metrics.MustMakeRecorder(), infrav1.TerraformFinalizer)
 
 	signalHandlerContext := ctrl.SetupSignalHandler()
 
