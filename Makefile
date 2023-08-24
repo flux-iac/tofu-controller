@@ -69,6 +69,14 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
+.PHONY: verify
+verify: fmt vet manifests api-docs
+	@if [ ! "$$(git status --porcelain --untracked-files=no)" = "" ]; then \
+		echo "working directory is dirty:"; \
+		git --no-pager diff; \
+		exit 1; \
+	fi
+
 download-crd-deps:
 	curl -s https://raw.githubusercontent.com/fluxcd/source-controller/${SOURCE_VER}/config/crd/bases/source.toolkit.fluxcd.io_gitrepositories.yaml > config/crd/bases/gitrepositories.yaml
 	curl -s https://raw.githubusercontent.com/fluxcd/source-controller/${SOURCE_VER}/config/crd/bases/source.toolkit.fluxcd.io_buckets.yaml > config/crd/bases/buckets.yaml

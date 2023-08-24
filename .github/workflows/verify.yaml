@@ -1,0 +1,31 @@
+name: verify
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - 'README.md'
+      - 'MAINTAINERS'
+  push:
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+permissions:
+  contents: read # for actions/checkout to fetch code
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.19.x
+          cache-dependency-path: |
+            **/go.sum
+            **/go.mod
+      - name: Verify
+        run: make verify
