@@ -46,9 +46,8 @@ func Test_000016_default_observed_generation(t *testing.T) {
 
 	It("should have observedGeneration set to -1")
 	helloWorldTFKey := client.ObjectKeyFromObject(&helloWorldTF)
-	g.Eventually(func() int64 {
-		var createdHelloWorldTF infrav1.Terraform
-		g.Expect(k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)).To(Succeed())
-		return createdHelloWorldTF.Status.ObservedGeneration
-	}, timeout, interval).Should(Equal(int64(-1)))
+	var createdHelloWorldTF infrav1.Terraform
+	g.Expect(k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)).To(Succeed())
+
+	g.Expect(createdHelloWorldTF.Status.ObservedGeneration).Should(Equal(int64(-1)))
 }
