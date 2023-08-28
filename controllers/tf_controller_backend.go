@@ -214,7 +214,7 @@ terraform {
 	tfInstance = newTerraformReply.Id
 	envs := map[string]string{}
 
-	for _, env := range terraform.Spec.RunnerPodTemplate.Spec.Env {
+	for _, env := range getEnv(terraform) {
 		if env.ValueFrom != nil {
 			var err error
 
@@ -428,4 +428,14 @@ func getLabelsAsHCL(labels map[string]string, indent int) string {
 	}
 
 	return strings.TrimSpace(result)
+}
+
+func getEnv(terraform infrav1.Terraform) []corev1.EnvVar {
+	for _, c := range terraform.Spec.RunnerPodTemplate.Spec.Containers {
+		if c.Name == tfRunnerContainerName {
+			return c.Env
+		}
+	}
+
+	return []corev1.EnvVar{}
 }

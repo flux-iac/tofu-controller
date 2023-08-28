@@ -126,7 +126,8 @@ spec:
 	By("checking that there is an init container defined")
 	runnerPod := corev1.PodSpec{}
 	g.Eventually(func() map[string]string {
-		runnerPod = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		runnerPod, err = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		g.Expect(err).ToNot(HaveOccurred())
 		return map[string]string{
 			"name":  runnerPod.InitContainers[0].Name,
 			"image": runnerPod.InitContainers[0].Image,

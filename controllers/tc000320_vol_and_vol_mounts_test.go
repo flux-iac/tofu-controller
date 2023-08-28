@@ -118,7 +118,8 @@ spec:
 	By("checking that there is a default vols defined")
 	runnerPod := corev1.PodSpec{}
 	g.Eventually(func() []corev1.Volume {
-		runnerPod = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		runnerPod, err = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		g.Expect(err).ToNot(HaveOccurred())
 		return runnerPod.Volumes
 	}, timeout, interval).Should(Equal([]corev1.Volume{
 		{
@@ -237,7 +238,8 @@ spec:
 	By("checking that there is a default vol mounts defined")
 	runnerPod := corev1.PodSpec{}
 	g.Eventually(func() []corev1.VolumeMount {
-		runnerPod = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		runnerPod, err = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		g.Expect(err).ToNot(HaveOccurred())
 		return runnerPod.Containers[0].VolumeMounts
 	}, timeout, interval).Should(Equal([]corev1.VolumeMount{
 		{
@@ -357,7 +359,8 @@ spec:
 	By("checking that there is additional vols defined")
 	runnerPod := corev1.PodSpec{}
 	g.Eventually(func() []corev1.Volume {
-		runnerPod = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		runnerPod, err = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		g.Expect(err).ToNot(HaveOccurred())
 		return runnerPod.Volumes
 	}, timeout, interval).Should(Equal([]corev1.Volume{
 		{
@@ -487,7 +490,8 @@ spec:
 	By("checking that there is vol mounts defined")
 	runnerPod := corev1.PodSpec{}
 	g.Eventually(func() []corev1.VolumeMount {
-		runnerPod = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		runnerPod, err = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		g.Expect(err).ToNot(HaveOccurred())
 		return runnerPod.Containers[0].VolumeMounts
 	}, timeout, interval).Should(Equal([]corev1.VolumeMount{
 		{

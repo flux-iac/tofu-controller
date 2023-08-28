@@ -122,7 +122,8 @@ spec:
 	By("checking that there is a node selector defined")
 	runnerPod := corev1.PodSpec{}
 	g.Eventually(func() map[string]string {
-		runnerPod = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		runnerPod, err = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		g.Expect(err).ToNot(HaveOccurred())
 		return runnerPod.NodeSelector
 	}, timeout, interval).Should(Equal(map[string]string{
 		"node.io/selector": "testing",
@@ -241,7 +242,8 @@ spec:
 	By("checking that there is a node selector term defined")
 	runnerPod := corev1.PodSpec{}
 	g.Eventually(func() *corev1.Affinity {
-		runnerPod = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		runnerPod, err = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		g.Expect(err).ToNot(HaveOccurred())
 		return runnerPod.Affinity
 	}, timeout*3, interval).Should(Equal(&corev1.Affinity{
 		NodeAffinity: &corev1.NodeAffinity{
@@ -371,7 +373,8 @@ spec:
 	By("checking that there is a node selector term defined")
 	runnerPod := corev1.PodSpec{}
 	g.Eventually(func() []corev1.Toleration {
-		runnerPod = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		runnerPod, err = reconciler.runnerPodSpec(createdHelloWorldTF, "tlsSecret")
+		g.Expect(err).ToNot(HaveOccurred())
 		return runnerPod.Tolerations
 	}, timeout*3, interval).Should(Equal([]corev1.Toleration{
 		corev1.Toleration{

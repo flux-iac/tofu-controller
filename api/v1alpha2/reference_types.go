@@ -143,7 +143,7 @@ type RunnerPodTemplate struct {
 	Metadata RunnerPodMetadata `json:"metadata,omitempty"`
 
 	// +optional
-	Spec RunnerPodSpec `json:"spec,omitempty"`
+	Spec corev1.PodSpec `json:"spec,omitempty"`
 }
 
 type RunnerPodMetadata struct {

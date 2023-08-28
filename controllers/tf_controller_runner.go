@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
 	"github.com/fluxcd/pkg/runtime/logger"
+	"github.com/imdario/mergo"
+	"github.com/presslabs/controller-util/pkg/mergo/transformers"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/mtls"
 	"github.com/weaveworks/tf-controller/runner"
@@ -22,15 +25,23 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+const (
+	tfRunnerContainerName = "tf-runner"
+)
+
+func init() {
+	transformers.PodSpec[reflect.TypeOf([]v1.Volume{})] = transformers.PodSpec.MergeListByKey("Name", mergo.WithOverride, mergo.WithAppendSlice)
+	transformers.PodSpec[reflect.TypeOf([]v1.VolumeMount{})] = transformers.PodSpec.MergeListByKey("Name", mergo.WithOverride, mergo.WithAppendSlice)
+	transformers.PodSpec[reflect.TypeOf([]v1.ContainerPort{})] = transformers.PodSpec.MergeListByKey("ContainerPort", mergo.WithOverride, mergo.WithAppendSlice)
+	transformers.PodSpec[reflect.TypeOf([]v1.EnvVar{})] = transformers.PodSpec.MergeListByKey("Name", mergo.WithOverride, mergo.WithAppendSlice)
+}
+
 func getRunnerPodObjectKey(terraform infrav1.Terraform) types.NamespacedName {
 	return types.NamespacedName{Namespace: terraform.Namespace, Name: fmt.Sprintf("%s-tf-runner", terraform.Name)}
 }
 
-func getRunnerPodImage(image string) string {
-	runnerPodImage := image
-	if runnerPodImage == "" {
-		runnerPodImage = os.Getenv("RUNNER_POD_IMAGE")
-	}
+func getRunnerPodImage() string {
+	runnerPodImage := os.Getenv("RUNNER_POD_IMAGE")
 	if runnerPodImage == "" {
 		runnerPodImage = "ghcr.io/weaveworks/tf-runner:latest"
 	}
@@ -153,16 +164,15 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret
 	)
 }
 
-func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecretName string) v1.PodSpec {
+func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecretName string) (v1.PodSpec, error) {
 	serviceAccountName := terraform.Spec.ServiceAccountName
 	if serviceAccountName == "" {
 		serviceAccountName = "tf-runner"
 	}
 
 	gracefulTermPeriod := terraform.Spec.RunnerTerminationGracePeriodSeconds
-	envvars := []v1.EnvVar{}
-	envvarsMap := map[string]v1.EnvVar{
-		"POD_NAME": {
+	defaultEnvVars := []v1.EnvVar{
+		{
 			Name: "POD_NAME",
 			ValueFrom: &v1.EnvVarSource{
 				FieldRef: &v1.ObjectFieldSelector{
@@ -170,7 +180,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 				},
 			},
 		},
-		"POD_NAMESPACE": {
+		{
 			Name: "POD_NAMESPACE",
 			ValueFrom: &v1.EnvVarSource{
 				FieldRef: &v1.ObjectFieldSelector{
@@ -182,26 +192,18 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 
 	for _, envName := range []string{"HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"} {
 		if envValue := os.Getenv(envName); envValue != "" {
-			envvarsMap[envName] = v1.EnvVar{
+			defaultEnvVars = append(defaultEnvVars, v1.EnvVar{
 				Name:  envName,
 				Value: envValue,
-			}
+			})
 		}
-	}
-
-	for _, env := range terraform.Spec.RunnerPodTemplate.Spec.Env {
-		envvarsMap[env.Name] = env
-	}
-
-	for _, env := range envvarsMap {
-		envvars = append(envvars, env)
 	}
 
 	vFalse := false
 	vTrue := true
 	vUser := int64(65532)
 
-	podVolumes := []v1.Volume{
+	defaultPodVolumes := []v1.Volume{
 		{
 			Name: "temp",
 			VolumeSource: v1.VolumeSource{
@@ -215,10 +217,8 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 			},
 		},
 	}
-	if len(terraform.Spec.RunnerPodTemplate.Spec.Volumes) != 0 {
-		podVolumes = append(podVolumes, terraform.Spec.RunnerPodTemplate.Spec.Volumes...)
-	}
-	podVolumeMounts := []v1.VolumeMount{
+
+	defaultPodVolumeMounts := []v1.VolumeMount{
 		{
 			Name:      "temp",
 			MountPath: "/tmp",
@@ -228,22 +228,19 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 			MountPath: "/home/runner",
 		},
 	}
-	if len(terraform.Spec.RunnerPodTemplate.Spec.VolumeMounts) != 0 {
-		podVolumeMounts = append(podVolumeMounts, terraform.Spec.RunnerPodTemplate.Spec.VolumeMounts...)
-	}
 
-	return v1.PodSpec{
+	podSpec := v1.PodSpec{
 		TerminationGracePeriodSeconds: gracefulTermPeriod,
 		InitContainers:                terraform.Spec.RunnerPodTemplate.Spec.InitContainers,
 		Containers: []v1.Container{
 			{
-				Name: "tf-runner",
+				Name: tfRunnerContainerName,
 				Args: []string{
 					"--grpc-port", fmt.Sprintf("%d", r.RunnerGRPCPort),
 					"--tls-secret-name", tlsSecretName,
 					"--grpc-max-message-size", fmt.Sprintf("%d", r.RunnerGRPCMaxMessageSize),
 				},
-				Image:           getRunnerPodImage(terraform.Spec.RunnerPodTemplate.Spec.Image),
+				Image:           getRunnerPodImage(),
 				ImagePullPolicy: v1.PullIfNotPresent,
 				Ports: []v1.ContainerPort{
 					{
@@ -251,10 +248,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 						ContainerPort: int32(r.RunnerGRPCPort),
 					},
 				},
-				Env:     envvars,
-				EnvFrom: terraform.Spec.RunnerPodTemplate.Spec.EnvFrom,
-				// TODO: this security context might break OpenShift because of SCC. We need verification.
-				// TODO how to support it via Spec or Helm Chart
+				Env: defaultEnvVars,
 				SecurityContext: &v1.SecurityContext{
 					Capabilities: &v1.Capabilities{
 						Drop: []v1.Capability{"ALL"},
@@ -267,16 +261,18 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 					},
 					ReadOnlyRootFilesystem: &vTrue,
 				},
-				VolumeMounts: podVolumeMounts,
+				VolumeMounts: defaultPodVolumeMounts,
 			},
 		},
-		Volumes:            podVolumes,
+		Volumes:            defaultPodVolumes,
 		ServiceAccountName: serviceAccountName,
-		NodeSelector:       terraform.Spec.RunnerPodTemplate.Spec.NodeSelector,
-		Affinity:           terraform.Spec.RunnerPodTemplate.Spec.Affinity,
-		Tolerations:        terraform.Spec.RunnerPodTemplate.Spec.Tolerations,
-		HostAliases:        terraform.Spec.RunnerPodTemplate.Spec.HostAliases,
 	}
+
+	if err := mergo.Merge(&podSpec, terraform.Spec.RunnerPodTemplate.Spec, mergo.WithOverride, mergo.WithTransformers(transformers.PodSpec)); err != nil {
+		return v1.PodSpec{}, fmt.Errorf("failed to merge RunnerPodTemplate.Spec into default PodSpec: %w", err)
+	}
+
+	return podSpec, nil
 }
 
 func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform, tlsSecret *v1.Secret, revision string) (string, error) {
@@ -307,7 +303,10 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		}
 
 		newRunnerPod := *runnerPodTemplate.DeepCopy()
-		newRunnerPod.Spec = r.runnerPodSpec(terraform, tlsSecretName)
+		newRunnerPod.Spec, err = r.runnerPodSpec(terraform, tlsSecretName)
+		if err != nil {
+			return err
+		}
 		if err := r.Create(ctx, &newRunnerPod); err != nil {
 			return err
 		}
