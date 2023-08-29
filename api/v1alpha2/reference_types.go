@@ -206,6 +206,18 @@ type RunnerPodSpec struct {
 	// Set host aliases for the Runner Pod
 	// +optional
 	HostAliases []corev1.HostAlias `json:"hostAliases,omitempty"`
+
+	// Set PriorityClassName for the Runner Pod container
+	// +optional
+	PriorityClassName string `json:"priorityClassName,omitempty"`
+
+	// Set SecurityContext for the Runner Pod container
+	// +optional
+	SecurityContext *corev1.SecurityContext `json:"securityContext,omitempty"`
+
+	// Set Resources for the Runner Pod container
+	// +optional
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 func (in HealthCheck) GetTimeout() time.Duration {
