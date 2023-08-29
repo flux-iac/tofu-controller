@@ -47,13 +47,16 @@ func (c *CLI) Install(out io.Writer, version string, export bool) (err error) {
 		spinner.Start()
 	}
 
-	for _, k := range []string{"crds", "rbac", "deployment"} {
+	for i, k := range []string{"crds", "rbac", "deployment"} {
 		data, err := download(version, k)
 		if err != nil {
 			return err
 		}
 
 		if export {
+			if i > 0 {
+				fmt.Fprintln(out, "---")
+			}
 			fmt.Fprintln(out, string(data))
 			continue
 		}
