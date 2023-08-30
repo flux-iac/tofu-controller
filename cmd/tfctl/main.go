@@ -33,7 +33,7 @@ func newRootCommand() *cobra.Command {
 
 	rootCmd := &cobra.Command{
 		Use:           "tfctl",
-		SilenceErrors: false,
+		SilenceErrors: true,
 		SilenceUsage:  true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			k8sConfig, err := kubeconfigArgs.ToRESTConfig()
@@ -67,6 +67,8 @@ func newRootCommand() *cobra.Command {
 
 	rootCmd.AddCommand(buildGetGroup(app))
 	rootCmd.AddCommand(buildShowGroup(app))
+
+	rootCmd.AddCommand(buildBreakTheGlassCmd(app))
 
 	return rootCmd
 }
@@ -348,6 +350,20 @@ func buildReplanCmd(app *tfctl.CLI) *cobra.Command {
 		},
 	}
 	return replan
+}
+
+func buildBreakTheGlassCmd(app *tfctl.CLI) *cobra.Command {
+	breakTheGlass := &cobra.Command{
+		Use:     "break-glass",
+		Aliases: []string{"break-the-glass", "bg", "btg"},
+		Short:   "Break the glass",
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return app.BreakTheGlass(os.Stdout, args[0])
+		},
+	}
+
+	return breakTheGlass
 }
 
 func configureDefaultNamespace() {

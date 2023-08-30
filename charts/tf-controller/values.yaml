@@ -27,7 +27,7 @@ image:
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
   # @default -- `.Chart.AppVersion`
-  tag: "v0.14.5"
+  tag: "v0.14.6"
 # -- Controller image pull secret
 imagePullSecrets: []
 # -- Resource limits and requests
@@ -97,6 +97,9 @@ kubeAPIQPS: 50
 # -- Argument for `--kube-api-burst` (Controller).
 #  Burst indicates the maximum burst queries-per-second of requests sent to the Kubernetes API, defaults to 100.
 kubeAPIBurst: 100
+# -- Argument for `--allow-break-the-glass` (Controller).
+#  AllowBreakTheGlass allows the controller to break the glass and modify Terraform states when the sync loop is broken.
+allowBreakTheGlass: false
 awsPackage:
   install: true
   tag: v4.38.0-v1alpha11
@@ -108,7 +111,7 @@ runner:
     repository: ghcr.io/weaveworks/tf-runner
     # -- Runner image tag
     # @default -- `.Chart.AppVersion`
-    tag: "v0.14.5"
+    tag: "v0.14.6"
   grpc:
     # -- Maximum GRPC message size (Controller)
     maxMessageSize: 4
