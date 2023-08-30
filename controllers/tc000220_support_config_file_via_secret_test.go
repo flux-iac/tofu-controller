@@ -17,6 +17,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
@@ -25,9 +26,9 @@ func Test_000220_support_config_file_via_secret_test(t *testing.T) {
 	Spec("This spec describes the behaviour of a Terraform resource that has a config file attached.")
 	It("should generate the .tfrc file, and point the environment to that file so that the terraform binary could pick the correct configuration.")
 
-	const (
+	var (
 		sourceName    = "tfrc-gitrepo-no-output"
-		terraformName = "tfrc-helloworld-no-outputs"
+		terraformName = "tfrc-helloworld-no-outputs" + rand.String(6)
 	)
 
 	const (

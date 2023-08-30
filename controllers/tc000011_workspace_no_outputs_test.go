@@ -16,6 +16,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
@@ -24,9 +25,9 @@ func Test_000011_workspace_no_outputs_test(t *testing.T) {
 	Spec("This spec describes the behaviour of a Terraform resource with no backend, and `auto` approve.")
 	It("should be reconciled to have available outputs.")
 
-	const (
+	var (
 		sourceName    = "test-tf-controller-no-output"
-		terraformName = "helloworld-no-outputs"
+		terraformName = "helloworld-no-outputs-" + rand.String(6)
 	)
 	g := NewWithT(t)
 	ctx := context.Background()
@@ -213,7 +214,7 @@ spec:
 				return err.Error()
 			}
 			return tfStateSecret.Name
-		}, timeout, interval).Should(Equal("secrets \"tfstate-custom-helloworld-no-outputs\" not found"))
+		}, timeout, interval).Should(Equal(fmt.Sprintf("secrets \"tfstate-custom-%s\" not found", terraformName)))
 	} else {
 		// TODO there's must be the default tfstate secret
 	}
