@@ -1,5 +1,3 @@
-//go:build flaky
-
 package controllers
 
 import (
@@ -16,7 +14,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
@@ -25,9 +22,9 @@ func Test_000011_workspace_no_outputs_test(t *testing.T) {
 	Spec("This spec describes the behaviour of a Terraform resource with no backend, and `auto` approve.")
 	It("should be reconciled to have available outputs.")
 
-	var (
-		sourceName    = "test-tf-controller-no-output"
-		terraformName = "helloworld-no-outputs-" + rand.String(6)
+	const (
+		sourceName    = "test-tf-controller-ws-no-output"
+		terraformName = "helloworld-ws-no-outputs"
 	)
 	g := NewWithT(t)
 	ctx := context.Background()
@@ -51,7 +48,14 @@ func Test_000011_workspace_no_outputs_test(t *testing.T) {
 	By("creating the GitRepository resource in the cluster.")
 	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer func() {
+		g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed())
+		waitResourceToBeDelete(g, resourceToBeDeleted{
+			Namespace: "flux-system",
+			Name:      sourceName,
+			Object:    &sourcev1.GitRepository{},
+		})
+	}()
 
 	Given("the GitRepository's reconciled status.")
 	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
@@ -102,7 +106,14 @@ spec:
 
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+	defer func() {
+		g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed())
+		waitResourceToBeDelete(g, resourceToBeDeleted{
+			Namespace: "flux-system",
+			Name:      terraformName,
+			Object:    &infrav1.Terraform{},
+		})
+	}()
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
