@@ -49,14 +49,7 @@ func Test_000020_with_workspace_no_outputs_test(t *testing.T) {
 	By("creating the GitRepository resource in the cluster.")
 	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() {
-		g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed())
-		waitResourceToBeDelete(g, resourceToBeDeleted{
-			Namespace: "flux-system",
-			Name:      sourceName,
-			Object:    &sourcev1.GitRepository{},
-		})
-	}()
+	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
 
 	Given("the GitRepository's reconciled status.")
 	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
@@ -115,14 +108,7 @@ func Test_000020_with_workspace_no_outputs_test(t *testing.T) {
 	}
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() {
-		g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed())
-		waitResourceToBeDelete(g, resourceToBeDeleted{
-			Namespace: "flux-system",
-			Name:      terraformName,
-			Object:    &infrav1.Terraform{},
-		})
-	}()
+	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
