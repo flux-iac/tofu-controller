@@ -71,14 +71,7 @@ func Test_000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 	}
 	It("should be updated successfully.")
 	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
-	defer func() {
-		g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed())
-		waitResourceToBeDelete(g, resourceToBeDeleted{
-			Namespace: "flux-system",
-			Name:      sourceName,
-			Object:    &sourcev1.GitRepository{},
-		})
-	}()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	Given("a Terraform object with auto approve, and attaching it to the bad GitRepository resource.")
 	By("creating a new TF resource and attaching to the bad repo via `sourceRef`.")
@@ -102,14 +95,7 @@ spec:
 
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() {
-		g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed())
-		waitResourceToBeDelete(g, resourceToBeDeleted{
-			Namespace: "flux-system",
-			Name:      terraformName,
-			Object:    &infrav1.Terraform{},
-		})
-	}()
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
