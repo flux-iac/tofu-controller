@@ -103,6 +103,9 @@ allowBreakTheGlass: false
 # -- Argument for `--cluster-domain` (Controller).
 #  ClusterDomain indicates the cluster domain, defaults to cluster.local.
 clusterDomain: cluster.local
+# -- Argument for `--use-pod-subdomain-resolution` (Controller).
+#  UsePodSubdomainResolution allow pod hostname/subdomain DNS resolution for the pod runner instead of IP based DNS resolution.
+usePodSubdomainResolution: false 
 awsPackage:
   install: true
   tag: v4.38.0-v1alpha11
