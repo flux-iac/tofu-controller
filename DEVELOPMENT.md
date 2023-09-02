@@ -110,10 +110,10 @@ make run
 Set the name of the container image to be created from the source code. This will be used when building, pushing and referring to the image on YAML files:
 
 ```sh
-export IMG=registry-path/tf-controller:latest
+export MANAGER_IMG=registry-path/tf-controller
 ```
 
-Build the container image, tagging it as `$IMG`:
+Build the container image, tagging it as `$MANAGER_IMG:latest`:
 
 ```sh
 make docker-build

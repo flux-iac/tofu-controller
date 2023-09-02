@@ -20,3 +20,4 @@
   - [Use TF-controller with **the ready-to-use AWS package**](with_the_ready_to_use_AWS_package.md)
   - [User TF-controller with **plan-only mode**](with_plan_only_mode.md)
   - [Use TF-controller with **external webhooks**](with_external_webhooks.md)
+  - [Use TF-controller with Terraform Runners **exposed via hostname/subdomain**](with_tf_runner_exposed_using_hostname_subdomain.md)

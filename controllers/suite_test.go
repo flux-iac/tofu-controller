@@ -176,6 +176,7 @@ func TestMain(m *testing.M) {
 		TriggerCARotation:             make(chan mtls.Trigger),
 		TriggerNamespaceTLSGeneration: make(chan mtls.Trigger),
 		ClusterDomain:                 "cluster.local",
+		UsePodSubdomainResolution:     false,
 	}
 
 	if err := mtls.AddRotator(ctx, k8sManager, rotator); err != nil {
@@ -183,14 +184,15 @@ func TestMain(m *testing.M) {
 	}
 
 	reconciler = &TerraformReconciler{
-		Client:                   k8sManager.GetClient(),
-		Scheme:                   k8sManager.GetScheme(),
-		EventRecorder:            k8sManager.GetEventRecorderFor("tf-controller"),
-		StatusPoller:             polling.NewStatusPoller(k8sManager.GetClient(), k8sManager.GetRESTMapper(), polling.Options{}),
-		CertRotator:              rotator,
-		RunnerGRPCPort:           30000,
-		RunnerCreationTimeout:    120 * time.Second,
-		RunnerGRPCMaxMessageSize: 4,
+		Client:                    k8sManager.GetClient(),
+		Scheme:                    k8sManager.GetScheme(),
+		EventRecorder:             k8sManager.GetEventRecorderFor("tf-controller"),
+		StatusPoller:              polling.NewStatusPoller(k8sManager.GetClient(), k8sManager.GetRESTMapper(), polling.Options{}),
+		CertRotator:               rotator,
+		RunnerGRPCPort:            30000,
+		RunnerCreationTimeout:     120 * time.Second,
+		RunnerGRPCMaxMessageSize:  4,
+		UsePodSubdomainResolution: false,
 	}
 
 	// We use 1 concurrent and 10s httpRetry in the test

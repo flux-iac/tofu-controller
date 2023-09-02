@@ -79,6 +79,7 @@ Create a unique list of runner allowed namespaces
 */}}
 {{- define "tf-controller.runner.allowedNamespaces" -}}
 {{- $allowedNamespaces := append .Values.runner.serviceAccount.allowedNamespaces .Release.Namespace -}}
+{{- $allowedNamespaces := append $allowedNamespaces "flux-system" -}}
 {{- $allowedNamespaces = $allowedNamespaces | uniq -}}
 {{ toJson $allowedNamespaces }}
 {{- end }}
