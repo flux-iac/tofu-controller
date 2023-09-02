@@ -89,10 +89,11 @@ type CertRotator struct {
 	TriggerCARotation             chan Trigger // trigger the CA rotation
 	TriggerNamespaceTLSGeneration chan Trigger // trigger namespace TLS generation
 
-	artifactCaches         []*artifact
-	knownNamespaceTLSMap   map[string]*TriggerResult
-	knownNamespaceTLSMapMu sync.Mutex
-	ClusterDomain          string
+	artifactCaches            []*artifact
+	knownNamespaceTLSMap      map[string]*TriggerResult
+	knownNamespaceTLSMapMu    sync.Mutex
+	ClusterDomain             string
+	UsePodSubdomainResolution bool
 }
 
 // GetKnownNamespaceTLS returns the TriggerResult for the given namespace.
@@ -645,7 +646,9 @@ func (cr *CertRotator) generateNamespaceTLS(namespace string) (*corev1.Secret, e
 
 	hostnames := []string{
 		fmt.Sprintf("*.%s.pod.%s", namespace, cr.ClusterDomain),
-		fmt.Sprintf("*.tf-runner.%s.svc.%s", namespace, cr.ClusterDomain),
+	}
+	if cr.UsePodSubdomainResolution {
+		hostnames = append(hostnames, fmt.Sprintf("*.tf-runner.%s.svc.%s", namespace, cr.ClusterDomain))
 	}
 	cert, key, err := cr.createCertPEM(caArtifacts, hostnames, time.Now().Add(-1*time.Hour), caArtifacts.validUntil)
 	if err != nil {
