@@ -36,7 +36,6 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | certRotationCheckFrequency | string | `"30m0s"` | Argument for `--cert-rotation-check-frequency` (Controller) |
 | certValidityDuration | string | `"6h0m"` | Argument for `--cert-validity-duration` (Controller) |
 | clusterDomain | string | `"cluster.local"` | Argument for `--cluster-domain` (Controller).  ClusterDomain indicates the cluster domain, defaults to cluster.local. |
-| usePodSubdomainResolution | bool | `false` | Argument for `--use-pod-subdomain-resolution` (Controller).  UsePodSubdomainResolution allow pod hostname/subdomain DNS resolution for the pod runner instead of IP based DNS resolution. |
 | concurrency | int | `24` | Concurrency of the controller (Controller) |
 | eksSecurityGroupPolicy | object | `{"create":false,"ids":[]}` | Create an AWS EKS Security Group Policy with the supplied Security Group IDs [See](https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html#deploy-securitygrouppolicy) |
 | eksSecurityGroupPolicy.create | bool | `false` | Create the EKS SecurityGroupPolicy |
@@ -87,6 +86,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | serviceAccount.create | bool | `true` | If `true`, create a new service account |
 | serviceAccount.name | string | tf-controller | Service account to be used |
 | tolerations | list | `[]` | Tolerations properties for the TF-Controller deployment |
+| usePodSubdomainResolution | bool | `false` | Argument for `--use-pod-subdomain-resolution` (Controller).  UsePodSubdomainResolution allow pod hostname/subdomain DNS resolution for the pod runner instead of IP based DNS resolution. |
 | volumeMounts | list | `[]` | Volume mounts properties for the TF-Controller deployment |
 | volumes | list | `[]` | Volumes properties for the TF-Controller deployment |
 
