@@ -27,7 +27,7 @@ cluster.local {
 
 The default configuration described above works for standard Kubernetes deployments. It does not work however when the cluster DNS provider do not support `IP-based pod DNS resolution`. This is the case for `GCP Cloud DNS` for example.
 
-For such setup, you can switch the DNS resolution mode to [Hostname/Subdomain](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-hostname-and-subdomain-fields). Enabling, this option will :
+For such setup, you can switch the DNS resolution mode to [Hostname/Subdomain](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-hostname-and-subdomain-fields). Enabling this option will :
 
 - Create a `Headless service` named `tf-runner` in each allowed namespace
 
