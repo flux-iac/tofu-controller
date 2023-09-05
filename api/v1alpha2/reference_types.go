@@ -217,7 +217,7 @@ type RunnerPodSpec struct {
 
 	// Set Resources for the Runner Pod container
 	// +optional
-	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 func (in HealthCheck) GetTimeout() time.Duration {
