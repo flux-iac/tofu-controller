@@ -48,7 +48,7 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 	By("creating the Bucket resource in the cluster.")
 	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testBucket)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testBucket)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testBucket)
 
 	Given("the Bucket's reconciled status.")
 	By("setting the Bucket's status, with the downloadable BLOB's URL, and the correct checksum.")
@@ -96,7 +96,7 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 	}
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
