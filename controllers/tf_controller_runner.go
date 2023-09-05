@@ -249,6 +249,11 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 		securityContext = terraform.Spec.RunnerPodTemplate.Spec.SecurityContext
 	}
 
+	resources := v1.ResourceRequirements{}
+	if terraform.Spec.RunnerPodTemplate.Spec.Resources != nil {
+		resources = *terraform.Spec.RunnerPodTemplate.Spec.Resources
+	}
+
 	return v1.PodSpec{
 		TerminationGracePeriodSeconds: gracefulTermPeriod,
 		InitContainers:                terraform.Spec.RunnerPodTemplate.Spec.InitContainers,
@@ -272,7 +277,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 				EnvFrom:         terraform.Spec.RunnerPodTemplate.Spec.EnvFrom,
 				SecurityContext: securityContext,
 				VolumeMounts:    podVolumeMounts,
-				Resources:       *terraform.Spec.RunnerPodTemplate.Spec.Resources,
+				Resources:       resources,
 			},
 		},
 		Volumes:            podVolumes,
