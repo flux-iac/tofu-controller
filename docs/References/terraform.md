@@ -962,6 +962,46 @@ Kubernetes core/v1.Affinity
 <p>Set host aliases for the Runner Pod</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>priorityClassName</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set PriorityClassName for the Runner Pod container</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>securityContext</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#securitycontext-v1-core">
+Kubernetes core/v1.SecurityContext
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set SecurityContext for the Runner Pod container</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>resources</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#resourcerequirements-v1-core">
+Kubernetes core/v1.ResourceRequirements
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set Resources for the Runner Pod container</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1149,6 +1189,46 @@ Kubernetes core/v1.Affinity
 <td>
 <em>(Optional)</em>
 <p>Set host aliases for the Runner Pod</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>priorityClassName</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set PriorityClassName for the Runner Pod container</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>securityContext</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#securitycontext-v1-core">
+Kubernetes core/v1.SecurityContext
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set SecurityContext for the Runner Pod container</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>resources</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#resourcerequirements-v1-core">
+Kubernetes core/v1.ResourceRequirements
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Set Resources for the Runner Pod container</p>
 </td>
 </tr>
 </table>
