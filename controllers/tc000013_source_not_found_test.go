@@ -45,7 +45,7 @@ func Test_000013_source_not_found_test(t *testing.T) {
 	}
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
