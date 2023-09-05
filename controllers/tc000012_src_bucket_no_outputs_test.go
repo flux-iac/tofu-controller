@@ -15,6 +15,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
@@ -23,9 +24,9 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 	Spec("This spec describes the behaviour of a Terraform resource which is stored in an S3-compatible bucket. There is no backend and auto-approve is enabled.")
 	It("should be reconciled to have available outputs.")
 
-	const (
+	var (
 		sourceName    = "test-tf-controller-src-bucket-no-output"
-		terraformName = "src-bucket-helloworld-no-outputs"
+		terraformName = "src-bucket-helloworld-no-outputs-" + rand.String(6)
 	)
 	g := NewWithT(t)
 	ctx := context.Background()
@@ -207,7 +208,7 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 				return err.Error()
 			}
 			return tfStateSecret.Name
-		}, timeout, interval).Should(Equal("secrets \"tfstate-default-src-bucket-helloworld-no-outputs\" not found"))
+		}, timeout, interval).Should(Equal(fmt.Sprintf("secrets \"tfstate-default-%s\" not found", terraformName)))
 	} else {
 		// TODO there's must be the default tfstate secret
 	}
