@@ -272,7 +272,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 				EnvFrom:         terraform.Spec.RunnerPodTemplate.Spec.EnvFrom,
 				SecurityContext: securityContext,
 				VolumeMounts:    podVolumeMounts,
-				Resources:       terraform.Spec.RunnerPodTemplate.Spec.Resources,
+				Resources:       *terraform.Spec.RunnerPodTemplate.Spec.Resources,
 			},
 		},
 		Volumes:            podVolumes,
