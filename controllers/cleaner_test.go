@@ -8,6 +8,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+const cleanupTimeoutSeconds = 90
+
 func waitResourceToBeDelete(g gomega.Gomega, resource client.Object) {
 	ctx := context.Background()
 	key := types.NamespacedName{Namespace: resource.GetNamespace(), Name: resource.GetName()}
@@ -15,5 +17,5 @@ func waitResourceToBeDelete(g gomega.Gomega, resource client.Object) {
 	g.Expect(k8sClient.Delete(ctx, resource)).Should(gomega.Succeed())
 	g.Eventually(func() error {
 		return k8sClient.Get(ctx, key, resource)
-	}, timeout, interval).ShouldNot(gomega.Succeed())
+	}, cleanupTimeoutSeconds, interval).ShouldNot(gomega.Succeed())
 }
