@@ -141,3 +141,40 @@ Running the above will also deploy `source-controller` and its CRDs to the clust
 ### Debug
 
 `sudo dlv --listen=:2345 --headless=true --api-version=2 attach $(pgrep tf-controller)`
+
+## Communications
+
+For realtime communications we use Slack: To join the conversation, simply join the [Weave Users](https://weave-community.slack.com/) Slack workspace and use the [#tf-controller](https://weave-community.slack.com/messages/tf-controller/) channel.
+
+To discuss ideas and specifications we use [Github Discussions](https://github.com/weaveworks/tf-controller/discussions).
+
+## Acceptance policy
+
+These things will make a PR more likely to be accepted:
+
+- a well-described requirement
+- tests for new code
+- tests for old code!
+- new code and tests follow the conventions in old code and tests
+- a good commit message (see below)
+- all code must abide [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
+- names should abide [What's in a name](https://talks.golang.org/2014/names.slide#1)
+- code must build on both Linux and Darwin, via plain `go build`
+- code should have appropriate test coverage and tests should be written
+  to work with `go test`
+
+In general, we will merge a PR once one maintainer has endorsed it.
+For substantial changes, more people may become involved, and you might
+get asked to resubmit the PR or divide the changes into more than one PR.
+
+### Format of the Commit Message
+
+We prefer the following rules for good commit messages:
+
+- Limit the subject to 50 characters and write as the continuation
+  of the sentence "If applied, this commit will ..."
+- Explain what and why in the body, if more than a trivial change;
+  wrap it at 72 characters.
+
+The [following article](https://chris.beams.io/posts/git-commit/#seven-rules)
+has some more helpful advice on documenting your work.
