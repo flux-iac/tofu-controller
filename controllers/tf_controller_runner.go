@@ -236,6 +236,28 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 		podVolumeMounts = append(podVolumeMounts, terraform.Spec.RunnerPodTemplate.Spec.VolumeMounts...)
 	}
 
+	securityContext := &v1.SecurityContext{
+		Capabilities: &v1.Capabilities{
+			Drop: []v1.Capability{"ALL"},
+		},
+		AllowPrivilegeEscalation: &vFalse,
+		RunAsNonRoot:             &vTrue,
+		RunAsUser:                &vUser,
+		SeccompProfile: &v1.SeccompProfile{
+			Type: v1.SeccompProfileTypeRuntimeDefault,
+		},
+		ReadOnlyRootFilesystem: &vTrue,
+	}
+
+	if terraform.Spec.RunnerPodTemplate.Spec.SecurityContext != nil {
+		securityContext = terraform.Spec.RunnerPodTemplate.Spec.SecurityContext
+	}
+
+	resources := v1.ResourceRequirements{}
+	if terraform.Spec.RunnerPodTemplate.Spec.Resources != nil {
+		resources = *terraform.Spec.RunnerPodTemplate.Spec.Resources
+	}
+
 	podSpec := v1.PodSpec{
 		TerminationGracePeriodSeconds: gracefulTermPeriod,
 		InitContainers:                terraform.Spec.RunnerPodTemplate.Spec.InitContainers,
@@ -255,23 +277,11 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 						ContainerPort: int32(r.RunnerGRPCPort),
 					},
 				},
-				Env:     envvars,
-				EnvFrom: terraform.Spec.RunnerPodTemplate.Spec.EnvFrom,
-				// TODO: this security context might break OpenShift because of SCC. We need verification.
-				// TODO how to support it via Spec or Helm Chart
-				SecurityContext: &v1.SecurityContext{
-					Capabilities: &v1.Capabilities{
-						Drop: []v1.Capability{"ALL"},
-					},
-					AllowPrivilegeEscalation: &vFalse,
-					RunAsNonRoot:             &vTrue,
-					RunAsUser:                &vUser,
-					SeccompProfile: &v1.SeccompProfile{
-						Type: v1.SeccompProfileTypeRuntimeDefault,
-					},
-					ReadOnlyRootFilesystem: &vTrue,
-				},
-				VolumeMounts: podVolumeMounts,
+				Env:             envvars,
+				EnvFrom:         terraform.Spec.RunnerPodTemplate.Spec.EnvFrom,
+				SecurityContext: securityContext,
+				VolumeMounts:    podVolumeMounts,
+				Resources:       resources,
 			},
 		},
 		Volumes:            podVolumes,
@@ -280,6 +290,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 		Affinity:           terraform.Spec.RunnerPodTemplate.Spec.Affinity,
 		Tolerations:        terraform.Spec.RunnerPodTemplate.Spec.Tolerations,
 		HostAliases:        terraform.Spec.RunnerPodTemplate.Spec.HostAliases,
+		PriorityClassName:  terraform.Spec.RunnerPodTemplate.Spec.PriorityClassName,
 	}
 
 	if r.UsePodSubdomainResolution {
