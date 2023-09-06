@@ -205,7 +205,7 @@ func main() {
 	//     -                |  f   |   t*  |  f |
 	//
 	// '-' means "not supplied"
-	// * is the only place the value of `allowCrossNamespaceRefs` (as defaulted or set by the flag) needs adjusting.
+	// * is the only place the value of `--no-cross-namespace-refs` is used, so check for this case.
 	if !flag.CommandLine.Changed("allow-cross-namespace-refs") && flag.CommandLine.Changed("no-cross-namespace-refs") {
 		allowCrossNamespaceRefs = !aclOptions.NoCrossNamespaceRefs
 	}

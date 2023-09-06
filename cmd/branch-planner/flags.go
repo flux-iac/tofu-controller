@@ -68,7 +68,7 @@ func parseFlags() *applicationOptions {
 		opts.watchNamespace = opts.runtimeNamespace
 	}
 
-	// as in ../manager/main.go, this is the case where --no-cross-namespace-refs can be different and not overridden.
+	// as in ../manager/main.go, this checks for the case where the --no-cross-namespace-refs value is used.
 	if !flag.CommandLine.Changed("allow-cross-namespace-refs") && flag.CommandLine.Changed("no-cross-namespace-refs") {
 		opts.noCrossNamespaceRefs = aclOptions.NoCrossNamespaceRefs
 	} else {
