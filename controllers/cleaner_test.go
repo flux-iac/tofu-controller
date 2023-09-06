@@ -8,7 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const cleanupTimeoutSeconds = 90
+const cleanupTimeoutSeconds = 60
 
 func waitResourceToBeDelete(g gomega.Gomega, resource client.Object) {
 	ctx := context.Background()
