@@ -72,15 +72,16 @@ type TerraformReconciler struct {
 	statusManager     string
 	requeueDependency time.Duration
 
-	StatusPoller             *polling.StatusPoller
-	Scheme                   *runtime.Scheme
-	CertRotator              *mtls.CertRotator
-	RunnerGRPCPort           int
-	RunnerCreationTimeout    time.Duration
-	RunnerGRPCMaxMessageSize int
-	AllowBreakTheGlass       bool
-	ClusterDomain            string
-	NoCrossNamespaceRefs     bool
+	StatusPoller              *polling.StatusPoller
+	Scheme                    *runtime.Scheme
+	CertRotator               *mtls.CertRotator
+	RunnerGRPCPort            int
+	RunnerCreationTimeout     time.Duration
+	RunnerGRPCMaxMessageSize  int
+	AllowBreakTheGlass        bool
+	ClusterDomain             string
+	NoCrossNamespaceRefs      bool
+	UsePodSubdomainResolution bool
 }
 
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete

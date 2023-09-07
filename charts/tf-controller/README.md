@@ -86,6 +86,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | serviceAccount.create | bool | `true` | If `true`, create a new service account |
 | serviceAccount.name | string | tf-controller | Service account to be used |
 | tolerations | list | `[]` | Tolerations properties for the TF-Controller deployment |
+| usePodSubdomainResolution | bool | `false` | Argument for `--use-pod-subdomain-resolution` (Controller).  UsePodSubdomainResolution allow pod hostname/subdomain DNS resolution for the pod runner instead of IP based DNS resolution. |
 | volumeMounts | list | `[]` | Volume mounts properties for the TF-Controller deployment |
 | volumes | list | `[]` | Volumes properties for the TF-Controller deployment |
 
