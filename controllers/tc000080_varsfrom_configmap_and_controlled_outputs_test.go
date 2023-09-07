@@ -6,6 +6,7 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gstruct"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
@@ -127,6 +128,23 @@ func Test_000080_varsfrom_configmap_and_controlled_outputs_test(t *testing.T) {
 		}
 		return true
 	}, timeout, interval).Should(BeTrue())
+
+	By("checking that the plan was applied successfully")
+	g.Eventually(func() metav1.Condition {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return metav1.Condition{}
+		}
+		for _, c := range createdHelloWorldTF.Status.Conditions {
+			if c.Type == "Apply" {
+				return c
+			}
+		}
+		return metav1.Condition{}
+	}, timeout, interval).Should(gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{
+		"Type":   Equal(infrav1.ConditionTypeApply),
+		"Reason": Equal(infrav1.TFExecApplySucceedReason),
+	}))
 
 	By("checking that the TF output secret contains a binary data")
 	outputKey := types.NamespacedName{Namespace: "flux-system", Name: "tf-output-" + terraformName}
