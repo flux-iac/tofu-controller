@@ -29,6 +29,7 @@ spec:
       {{- end }}
       containers:
       - args:
+        - --allow-cross-namespace-refs={{ .Values.allowCrossNamespaceRefs }}
         - --watch-all-namespaces
         - --log-level={{ .Values.logLevel }}
         - --log-encoding={{ .Values.logEncoding }}
