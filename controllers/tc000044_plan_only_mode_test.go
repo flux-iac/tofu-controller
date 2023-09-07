@@ -1,9 +1,8 @@
-//go:build flaky
-
 package controllers
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -52,7 +51,7 @@ func Test_000044_plan_only_mode_test(t *testing.T) {
 	By("creating the GitRepository resource in the cluster.")
 	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	Given("the GitRepository's reconciled status")
 	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
@@ -110,7 +109,7 @@ func Test_000044_plan_only_mode_test(t *testing.T) {
 	}
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
@@ -128,11 +127,13 @@ func Test_000044_plan_only_mode_test(t *testing.T) {
 		}
 		return len(planOutput.Data), nil
 	}, timeout, interval).Should(Equal(1))
+	defer waitResourceToBeDelete(g, &planOutput)
 
 	By("checking that the output ConfigMap contains the correct output data, provisioned by the TF resource.")
 
 	g.Expect(planOutput.Name).To(Equal("tfplan-default-" + terraformName))
 	g.Expect(planOutput.Namespace).To(Equal("flux-system"))
+	fmt.Printf(" --- %s\n", createdHelloWorldTF.UID)
 	g.Expect(string(planOutput.OwnerReferences[0].UID)).To(Equal(string(createdHelloWorldTF.UID)))
 	g.Expect(string(planOutput.Data["tfplan"])).To(ContainSubstring(`+ hello_world = "Hello, World!"`))
 
