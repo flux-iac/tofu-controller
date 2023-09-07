@@ -9,25 +9,21 @@
       
       
       
-        <link rel="prev" href="../getting_started/">
       
       
-        <link rel="next" href="../branch_planner/">
-      
-      
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.2.8">
     
     
       
-        <title>Use TF-Controller - Weave GitOps Terraform Controller</title>
+        <title>Use TF-controller with Terraform Runners exposed via hostname/subdomain - Weave GitOps Terraform Controller</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.046329b4.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.046329b4.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.85d0ee34.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.85d0ee34.min.css">
       
       
 
@@ -46,7 +42,7 @@
       
     
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -75,7 +71,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#use-tf-controller" class="md-skip">
+        <a href="#use-tf-controller-with-terraform-runners-exposed-via-hostnamesubdomain" class="md-skip">
           Skip to content
         </a>
       
@@ -91,7 +87,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Weave GitOps Terraform Controller" class="md-header__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
+    <a href="../.." title="Weave GitOps Terraform Controller" class="md-header__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -111,7 +107,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Use TF-Controller
+              Use TF-controller with Terraform Runners exposed via hostname/subdomain
             
           </span>
         </div>
@@ -221,7 +217,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Weave GitOps Terraform Controller" class="md-nav__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
+    <a href="../.." title="Weave GitOps Terraform Controller" class="md-nav__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -250,7 +246,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -269,7 +265,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting_started/" class="md-nav__link">
+      <a href="../../getting_started/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -286,18 +282,9 @@
       
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -306,7 +293,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -351,7 +337,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../branch_planner/" class="md-nav__link">
+      <a href="../../branch_planner/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -371,7 +357,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../branch_planner/getting-started/" class="md-nav__link">
+      <a href="../../branch_planner/getting-started/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -391,7 +377,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../branch_planner/least-required-permissions/" class="md-nav__link">
+      <a href="../../branch_planner/least-required-permissions/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -411,7 +397,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../branch_planner/tfc-integration/" class="md-nav__link">
+      <a href="../../branch_planner/tfc-integration/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -438,7 +424,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../how_to/" class="md-nav__link">
+      <a href="../../how_to/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -457,7 +443,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../References/terraform/" class="md-nav__link">
+      <a href="../../References/terraform/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -476,7 +462,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tfctl/" class="md-nav__link">
+      <a href="../../tfctl/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -509,6 +495,28 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-default-runner-dns-resolution" class="md-nav__link">
+    The Default Runner DNS resolution
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hostnamesubdomain-runner-dns-resolution" class="md-nav__link">
+    Hostname/Subdomain Runner DNS resolution
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -525,30 +533,101 @@
   
 
 
-<h1 id="use-tf-controller">Use TF-controller</h1>
+<h1 id="use-tf-controller-with-terraform-runners-exposed-via-hostnamesubdomain">Use TF-controller with Terraform Runners <strong>exposed via hostname/subdomain</strong></h1>
+<p>TF-controller uses <strong>the Controller/Runner architecture</strong>. The Controller acts as a client, and talks to each Runner's Pod via gRPC over <strong>port 30000</strong>.</p>
+<p>TF-controller must thus be able to reliably connect to each Runner's pod regardless of the cluster network topology.</p>
+<h2 id="the-default-runner-dns-resolution">The Default Runner DNS resolution</h2>
+<p>By default, TF-controller fetches the Runner's pod IP address after it is instantiated (e.g. <code>1.2.3.4</code>).</p>
+<p>It then transforms the IP address into its <code>IP-based pod DNS A record</code> (e.g. <code>1.2.3.4.&lt;namespace&gt;.pod.&lt;cluster-domain&gt;</code>) which is used to connect to the Runner pod using gRPC protocol.</p>
+<p>In standard Kubernetes cluster deployment, <code>IP-based pod DNS resolution</code> is usually provided by <a href="https://coredns.io/">Coredns</a> and especially the <code>pods</code> option of the <a href="https://coredns.io/plugins/kubernetes/#syntax">Kubernetes plugin</a>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cluster.local {
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    kubernetes {
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        pods verified
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    }
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>}
+</code></pre></div>
+<blockquote>
+<p>[!IMPORTANT]
+The gRPC communication between TF-controller and Runner's pod is secured with mTLS. TF-controller generates a valid wildcard TLS certificate for <code>*.&lt;namespace&gt;.pod.&lt;cluster-domain&gt;</code> hosts on the Runner's namespace. The Runner's pod present this certificate during TLS handshake with TF-controller. </p>
+</blockquote>
+<h2 id="hostnamesubdomain-runner-dns-resolution">Hostname/Subdomain Runner DNS resolution</h2>
+<p>The default configuration described above works for standard Kubernetes deployments. It does not work however when the cluster DNS provider do not support <code>IP-based pod DNS resolution</code>. This is the case for <code>GCP Cloud DNS</code> for example.</p>
+<p>For such setup, you can switch the DNS resolution mode to <a href="https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-hostname-and-subdomain-fields">Hostname/Subdomain</a>. Enabling this option will :</p>
 <ul>
-<li><a href="to_provision_resources_and_auto_approve/">Use TF-controller to provision resources and <strong>auto approve</strong></a></li>
-<li><a href="to_plan_and_manually_apply_Terraform_resources/">Use TF-controller to <strong>plan and manually apply</strong> Terraform resources</a></li>
-<li><a href="to_provision_resources_and_obtain_outputs/">Use TF-controller to provision resources and <strong>obtain outputs</strong></a></li>
-<li><a href="to_detect_drifts_only_without_plan_or_apply/">Use TF-controller to <strong>detect drifts only</strong> without plan or apply</a></li>
-<li><a href="with_drift_detection_disabled/">Use TF-controller with <strong>drift detection disabled</strong></a></li>
-<li><a href="with_AWS_EKS_IRSA/">Use TF-controller with <strong>AWS EKS IRSA</strong></a></li>
-<li><a href="to_set_variables_for_Terraform_resources/">Use TF-controller to <strong>set variables</strong> for Terraform resources</a></li>
-<li><a href="with_a_custom_backend/">Use TF-controller with a <strong>custom backend</strong></a></li>
-<li><a href="with_an_OCI_Artifact_as_Source/">Use TF-controller with an <strong>OCI Artifact as Source</strong></a></li>
-<li><a href="to_provision_Terraform_resources_that_are_required_health_checks/">Use TF-controller to provision Terraform resources that are required <strong>health checks</strong></a></li>
-<li><a href="to_provision_resources_and_destroy_them_when_the_Terraform_object_gets_deleted/">Use TF-controller to provision resources and <strong>destroy them when the Terraform object gets deleted</strong></a></li>
-<li><a href="to_force_unlock_Terraform_states/">Use TF-controller to <strong>force unlock</strong> Terraform states</a></li>
-<li><a href="with_tf_runner_logging/">Use TF-controller with Terraform Runners enabled via Env Variables</a></li>
-<li><a href="to_provision_resources_with_customized_Runner_Pods/">Use TF-controller to provision resources with <strong>customized Runner Pods</strong></a></li>
-<li><a href="with_Terraform_Enterprise/">Use TF-controller with <strong>Terraform Enterprise</strong></a></li>
-<li><a href="with_primitive_modules/">Use TF-controller with <strong>primitive modules</strong></a></li>
-<li><a href="with_GitOps_dependency_management/">Use TF-controller with <strong>GitOps dependency management</strong></a></li>
-<li><a href="with_the_ready_to_use_AWS_package/">Use TF-controller with <strong>the ready-to-use AWS package</strong></a></li>
-<li><a href="with_plan_only_mode/">User TF-controller with <strong>plan-only mode</strong></a></li>
-<li><a href="with_external_webhooks/">Use TF-controller with <strong>external webhooks</strong></a></li>
-<li><a href="with_tf_runner_exposed_using_hostname_subdomain/">Use TF-controller with Terraform Runners <strong>exposed via hostname/subdomain</strong></a></li>
+<li>Create a <code>Headless service</code> named <code>tf-runner</code> in each allowed namespace</li>
 </ul>
+<p>```yaml hl_lines="4-5,8-10"
+apiVersion: v1
+kind: Service
+metadata:
+  name: tf-runner
+  namespace: hello-world
+spec:
+  clusterIP: None
+  ports:
+  - name: grpc
+    port: 30000
+  selector:
+    app.kubernetes.io/created-by: tf-controller
+    app.kubernetes.io/name: tf-runner
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>- Set Runner&#39;s pod spec with `hostname: &lt;terraform_object_name&gt;` and `subdomain: tf-runner`
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>```yaml hl_lines=&quot;12-13&quot;
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>apiVersion: v1
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>kind: Pod
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  labels:
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    app.kubernetes.io/created-by: tf-controller
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    app.kubernetes.io/instance: tf-runner-3ac83e0f
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    app.kubernetes.io/name: tf-runner
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    infra.contrib.fluxcd.io/terraform: hello-world
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    tf.weave.works/tls-secret-name: terraform-runner.tls-1693866794
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>  name: helloworld-tf-runner
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>  namespace: hello-world
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>spec:
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>  hostname: helloworld
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>  subdomain: tf-runner
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>  containers:
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>  - args:
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>    - --grpc-port
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>    - &quot;30000&quot;
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>    - --tls-secret-name
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>    - terraform-runner.tls-1693866794
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>    - --grpc-max-message-size
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>    - &quot;4&quot;
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>    image: ghcr.io/weaveworks/tf-runner:v0.16.0-rc.2
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>    name: tf-runner
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>    ports:
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>    - containerPort: 30000
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>      name: grpc
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>    resources:
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>      limits:
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>        cpu: 500m
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>        ephemeral-storage: 1Gi
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>        memory: 2Gi
+<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>    securityContext:
+<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>      allowPrivilegeEscalation: false
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>      capabilities:
+<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>        drop:
+<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>        - ALL
+<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>      readOnlyRootFilesystem: true
+<a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>      runAsNonRoot: true
+<a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>      runAsUser: 65532
+<a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>      seccompProfile:
+<a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a>        type: RuntimeDefault
+<a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a>  preemptionPolicy: PreemptLowerPriority
+<a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>  priority: 0
+<a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a>  schedulerName: gke.io/optimize-utilization-scheduler
+<a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>  securityContext:
+<a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a>    seccompProfile:
+<a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a>      type: RuntimeDefault
+<a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a>  serviceAccountName: tf-runner
+</code></pre></div></p>
+<p>The Runner's pod can then be targeted by TF-controller using <code>&lt;terraform_object_name&gt;.tf-runner.&lt;namespace&gt;.svc.&lt;cluster-domain&gt; (helloworld.tf-runner.hello-world.svc.cluster.local)</code> as per Kubernetes specification instead of <code>IP-based pod DNS resolution</code>.</p>
+<p>The switch is performed by setting the following <em>Helm value</em> <code>usePodSubdomainResolution: true</code> or running directly TF-controller with the option <code>--use-pod-subdomain-resolution=true</code></p>
+<blockquote>
+<p>[!IMPORTANT]
+The gRPC communication between TF-controller and Runner's pod is secured with mTLS. TF-controller generates a valid wildcard TLS certificate for <code>*.&lt;namespace&gt;.pod.&lt;cluster-domain&gt;</code> and <code>*.tf-runner.&lt;namespace&gt;.svc.&lt;cluster-domain&gt;</code> hosts on the Runner's namespace. The Runner's pod present this certificate during TLS handshake with TF-controller. </p>
+</blockquote>
 
 
 
@@ -586,10 +665,10 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate", "content.code.copy"], "search": "../assets/javascripts/workers/search.dfff1995.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.dfff1995.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.dff1b7c8.min.js"></script>
+      <script src="../../assets/javascripts/bundle.dff1b7c8.min.js"></script>
       
     
   </body>
