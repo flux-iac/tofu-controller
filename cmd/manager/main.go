@@ -74,25 +74,26 @@ func init() {
 
 func main() {
 	var (
-		metricsAddr              string
-		eventsAddr               string
-		healthAddr               string
-		concurrent               int
-		requeueDependency        time.Duration
-		clientOptions            client.Options
-		logOptions               logger.Options
-		leaderElectionOptions    leaderelection.Options
-		watchAllNamespaces       bool
-		httpRetry                int
-		caValidityDuration       time.Duration
-		certValidityDuration     time.Duration
-		rotationCheckFrequency   time.Duration
-		runnerGRPCPort           int
-		runnerCreationTimeout    time.Duration
-		runnerGRPCMaxMessageSize int
-		allowBreakTheGlass       bool
-		clusterDomain            string
-		aclOptions               acl.Options
+		metricsAddr               string
+		eventsAddr                string
+		healthAddr                string
+		concurrent                int
+		requeueDependency         time.Duration
+		clientOptions             client.Options
+		logOptions                logger.Options
+		leaderElectionOptions     leaderelection.Options
+		watchAllNamespaces        bool
+		httpRetry                 int
+		caValidityDuration        time.Duration
+		certValidityDuration      time.Duration
+		rotationCheckFrequency    time.Duration
+		runnerGRPCPort            int
+		runnerCreationTimeout     time.Duration
+		runnerGRPCMaxMessageSize  int
+		allowBreakTheGlass        bool
+		clusterDomain             string
+		aclOptions                acl.Options
+		usePodSubdomainResolution bool
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
@@ -114,6 +115,7 @@ func main() {
 	flag.IntVar(&runnerGRPCMaxMessageSize, "runner-grpc-max-message-size", 4, "The maximum message size for gRPC connections in MiB.")
 	flag.BoolVar(&allowBreakTheGlass, "allow-break-the-glass", false, "Allow break the glass mode.")
 	flag.StringVar(&clusterDomain, "cluster-domain", "cluster.local", "The cluster domain used by the cluster.")
+	flag.BoolVar(&usePodSubdomainResolution, "use-pod-subdomain-resolution", false, "Allow to use pod hostname/subdomain DNS resolution instead of IP based")
 
 	clientOptions.BindFlags(flag.CommandLine)
 	logOptions.BindFlags(flag.CommandLine)
@@ -173,6 +175,7 @@ func main() {
 		TriggerCARotation:             make(chan mtls.Trigger),
 		TriggerNamespaceTLSGeneration: make(chan mtls.Trigger),
 		ClusterDomain:                 clusterDomain,
+		UsePodSubdomainResolution:     usePodSubdomainResolution,
 	}
 
 	const localHost = "localhost"
@@ -188,18 +191,19 @@ func main() {
 	}
 
 	reconciler := &controllers.TerraformReconciler{
-		Client:                   mgr.GetClient(),
-		Scheme:                   mgr.GetScheme(),
-		EventRecorder:            eventRecorder,
-		Metrics:                  metricsH,
-		StatusPoller:             polling.NewStatusPoller(mgr.GetClient(), mgr.GetRESTMapper(), polling.Options{}),
-		CertRotator:              rotator,
-		RunnerGRPCPort:           runnerGRPCPort,
-		RunnerCreationTimeout:    runnerCreationTimeout,
-		RunnerGRPCMaxMessageSize: runnerGRPCMaxMessageSize,
-		AllowBreakTheGlass:       allowBreakTheGlass,
-		ClusterDomain:            clusterDomain,
-		NoCrossNamespaceRefs:     aclOptions.NoCrossNamespaceRefs,
+		Client:                    mgr.GetClient(),
+		Scheme:                    mgr.GetScheme(),
+		EventRecorder:             eventRecorder,
+		Metrics:                   metricsH,
+		StatusPoller:              polling.NewStatusPoller(mgr.GetClient(), mgr.GetRESTMapper(), polling.Options{}),
+		CertRotator:               rotator,
+		RunnerGRPCPort:            runnerGRPCPort,
+		RunnerCreationTimeout:     runnerCreationTimeout,
+		RunnerGRPCMaxMessageSize:  runnerGRPCMaxMessageSize,
+		AllowBreakTheGlass:        allowBreakTheGlass,
+		ClusterDomain:             clusterDomain,
+		NoCrossNamespaceRefs:      aclOptions.NoCrossNamespaceRefs,
+		UsePodSubdomainResolution: usePodSubdomainResolution,
 	}
 
 	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {
