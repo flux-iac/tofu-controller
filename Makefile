@@ -89,7 +89,7 @@ test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests
 	$(TEST_SETTINGS) go test ./controllers -coverprofile cover.out -v
 
 .PHONY: test-flaky
-test-flaky:
+test-flaky: manifests generate download-crd-deps fmt vet envtest api-docs ## Run flaky tests
 	$(TEST_SETTINGS) go test ./controllers -coverprofile cover.out -v -tags flaky
 
 # usage: make TARGET=250 target-test
