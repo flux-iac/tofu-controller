@@ -513,6 +513,10 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 	if err := r.Client.Get(ctx, types.NamespacedName{Name: result.Secret.Name, Namespace: terraform.Namespace}, secret); err != nil {
 		if errors.IsNotFound(err) {
 			// If secret does not exist, create it
+			result.Secret.SetResourceVersion("")
+			result.Secret.SetUID("")
+			result.Secret.SetGeneration(0)
+
 			if err := r.Client.Create(ctx, result.Secret); err != nil {
 				return nil, err
 			}
