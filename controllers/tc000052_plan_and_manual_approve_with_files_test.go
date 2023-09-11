@@ -1,5 +1,3 @@
-//go:build disabled
-
 package controllers
 
 import (
@@ -219,6 +217,7 @@ func Test_000052_plan_and_manual_approve_with_files_test(t *testing.T) {
 		"TFPlanEmpty":           false,
 		"HasEncodingAnnotation": true,
 	}))
+	defer waitResourceToBeDelete(g, &tfplanSecret)
 
 	time.Sleep(10 * time.Second)
 
