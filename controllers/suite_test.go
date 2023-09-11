@@ -17,9 +17,9 @@ limitations under the License.
 package controllers
 
 import (
+	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -46,7 +46,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	//+kubebuilder:scaffold:imports
 )
@@ -73,20 +72,15 @@ var (
 )
 
 var (
-	ctx    context.Context
-	cancel context.CancelFunc
+	ctx       context.Context
+	cancel    context.CancelFunc
+	logBuffer bytes.Buffer
 )
 
 func TestMain(m *testing.M) {
 	var err error
-	var logSink io.Writer
 
-	logSink = os.Stderr
-	if os.Getenv("DISABLE_K8S_LOGS") == "1" {
-		logSink = io.Discard
-	}
-
-	logf.SetLogger(zap.New(zap.WriteTo(logSink), zap.UseDevMode(false)))
+	ctrl.SetLogger(zap.New(zap.WriteTo(&logBuffer)))
 
 	ctx, cancel = context.WithCancel(context.TODO())
 	// "bootstrapping test environment"
@@ -231,6 +225,12 @@ func TestMain(m *testing.M) {
 	err = testEnv.Stop()
 	if err != nil {
 		fmt.Println(err.Error())
+	}
+
+	if os.Getenv("DISABLE_K8S_LOGS") != "1" {
+		if code > 0 {
+			fmt.Println(logBuffer.String())
+		}
 	}
 
 	os.Exit(code)
