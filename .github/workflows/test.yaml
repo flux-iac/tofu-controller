@@ -15,35 +15,7 @@ on:
       - main
 
 jobs:
-  test-1x-2x:
-    uses: ./.github/workflows/targeted-test.yaml
-    with:
-      pattern: "^Test_0000[12]"
-  test-3x-5x:
-    uses: ./.github/workflows/targeted-test.yaml
-    with:
-      pattern: "^Test_0000[345]"
-  test-6x-9x:
-    uses: ./.github/workflows/targeted-test.yaml
-    with:
-      pattern: "^Test_0000[6789]"
-  test-1xx:
-    uses: ./.github/workflows/targeted-test.yaml
-    with:
-      pattern: "^Test_0001"
-  test-2xx:
-    uses: ./.github/workflows/targeted-test.yaml
-    with:
-      pattern: "^Test_0002"
-  test-3xx:
-    uses: ./.github/workflows/targeted-test.yaml
-    with:
-      pattern: "^Test_0003"
-  test-99xx:
-    uses: ./.github/workflows/targeted-test.yaml
-    with:
-      pattern: "^Test_0099"
-  internal:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -72,4 +44,8 @@ jobs:
       - name: Run tests
         run: |
           make install-envtest
+          make TARGET="^Test_0000"     target-test
+          make TARGET="^Test_000[12]"  target-test
+          make TARGET="^Test_0003"     target-test
+          make TARGET="^Test_0099"     target-test
           make test-internal
