@@ -13,7 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.35
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.21.5
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.38.5
-	github.com/cyphar/filepath-securejoin v0.2.3
+	github.com/cyphar/filepath-securejoin v0.2.4
 	github.com/elgohr/go-localstack v1.0.20
 	github.com/fluxcd/pkg/apis/event v0.5.2
 	github.com/fluxcd/pkg/apis/meta v1.1.2
