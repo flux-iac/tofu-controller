@@ -1,5 +1,3 @@
-//go:build disabled
-
 package controllers
 
 import (
@@ -195,6 +193,7 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 		"TFPlanEmpty":           false,
 		"HasEncodingAnnotation": true,
 	}))
+	defer waitResourceToBeDelete(g, &tfplanSecret)
 
 	By("changing source to a new revision")
 	testRepo.Status = sourcev1.GitRepositoryStatus{
