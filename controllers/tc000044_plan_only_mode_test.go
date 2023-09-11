@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -133,7 +132,6 @@ func Test_000044_plan_only_mode_test(t *testing.T) {
 
 	g.Expect(planOutput.Name).To(Equal("tfplan-default-" + terraformName))
 	g.Expect(planOutput.Namespace).To(Equal("flux-system"))
-	fmt.Printf(" --- %s\n", createdHelloWorldTF.UID)
 	g.Expect(string(planOutput.OwnerReferences[0].UID)).To(Equal(string(createdHelloWorldTF.UID)))
 	g.Expect(string(planOutput.Data["tfplan"])).To(ContainSubstring(`+ hello_world = "Hello, World!"`))
 
