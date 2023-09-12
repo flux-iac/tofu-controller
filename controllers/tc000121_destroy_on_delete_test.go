@@ -1,5 +1,3 @@
-//go:build flaky
-
 package controllers
 
 import (
@@ -51,7 +49,7 @@ func Test_000121_destroy_on_delete_test(t *testing.T) {
 	}
 	By("creating the GitRepository object")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	Given("that the GitRepository got reconciled")
 	By("setting the GitRepository's status, with the BLOB's URL, and the correct checksum")
@@ -120,6 +118,7 @@ func Test_000121_destroy_on_delete_test(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	It("should be created")
 	By("checking that the TF got created")
