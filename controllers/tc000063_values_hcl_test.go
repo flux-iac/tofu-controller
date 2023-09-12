@@ -1,5 +1,3 @@
-//go:build flaky
-
 package controllers
 
 import (
@@ -46,7 +44,7 @@ func Test_000063_values_hcl_test(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	By("setting the git repo status object, the URL, and the correct checksum")
 	testRepo.Status = sourcev1.GitRepositoryStatus{

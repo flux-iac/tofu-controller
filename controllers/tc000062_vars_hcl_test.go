@@ -1,5 +1,3 @@
-//go:build flaky
-
 package controllers
 
 import (
@@ -47,7 +45,7 @@ func Test_000062_vars_hcl_test(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	By("setting the git repo status object, the URL, and the correct checksum")
 	testRepo.Status = sourcev1.GitRepositoryStatus{
@@ -97,7 +95,7 @@ func Test_000062_vars_hcl_test(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &varsSecret)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &varsSecret)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &varsSecret)
 
 	By("creating a new TF and attaching to the repo")
 	helloWorldTF := infrav1.Terraform{
