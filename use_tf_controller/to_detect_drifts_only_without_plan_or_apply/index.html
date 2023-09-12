@@ -12,7 +12,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.2.8">
+      <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.3.1">
     
     
       
@@ -506,6 +506,26 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    Troubleshooting
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#when-terraform-resource-detects-drift-but-no-plan-is-generated-for-approval" class="md-nav__link">
+    When Terraform resource detects drift, but no plan is generated for approval
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -542,6 +562,10 @@
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">helloworld</span>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-system</span>
 </code></pre></div>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="when-terraform-resource-detects-drift-but-no-plan-is-generated-for-approval">When Terraform resource detects drift, but no plan is generated for approval</h3>
+<p>In this situation, you may not have <code>spec.approvePlan</code> set to <code>disable</code>. Try setting <code>spec.approvePlan: auto</code> and using <code>tfctl replan</code> to trigger a replan.
+After the drift disappears, you can set the <code>spec.approvePlan: ""</code> to get into the manual mode again.</p>
 
 
 
