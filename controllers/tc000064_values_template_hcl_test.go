@@ -1,5 +1,3 @@
-//go:build flaky
-
 package controllers
 
 import (
@@ -46,7 +44,7 @@ func Test_000064_values_template_hcl_test(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	By("setting the git repo status object, the URL, and the correct checksum")
 	testRepo.Status = sourcev1.GitRepositoryStatus{
@@ -111,7 +109,7 @@ spec:
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	By("checking that the hello world TF got created")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}

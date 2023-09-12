@@ -130,11 +130,8 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 	log.Info(fmt.Sprintf(">> Started Generation: %d", terraform.GetGeneration()))
 
-	// Initialize the runtime patcher with the current version of the object.
-	patcher := patch.NewSerialPatcher(&terraform, r.Client)
-
 	defer func() {
-		if err := r.finalizeStatus(ctx, &terraform, patcher); err != nil {
+		if err := r.finalizeStatus(ctx, &terraform); err != nil {
 			retErr = kerrors.NewAggregate([]error{retErr, err})
 		}
 
@@ -819,7 +816,10 @@ func (r *TerraformReconciler) event(ctx context.Context, terraform infrav1.Terra
 	r.EventRecorder.AnnotatedEventf(&terraform, metadata, eventType, reason, msg)
 }
 
-func (r *TerraformReconciler) finalizeStatus(ctx context.Context, obj *infrav1.Terraform, patcher *patch.SerialPatcher) error {
+func (r *TerraformReconciler) finalizeStatus(ctx context.Context, obj *infrav1.Terraform) error {
+	// Initialize the runtime patcher with the current version of the object.
+	patcher := patch.NewSerialPatcher(obj, r.Client)
+
 	if v, ok := meta.ReconcileAnnotationValue(obj.GetAnnotations()); ok {
 		obj.Status.LastHandledReconcileAt = v
 	}
