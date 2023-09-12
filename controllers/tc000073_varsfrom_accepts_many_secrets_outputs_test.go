@@ -1,5 +1,3 @@
-//go:build flaky
-
 package controllers
 
 import (
@@ -42,7 +40,7 @@ func Test_000073_varsfrom_accepts_many_secrets(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	By("setting the git repo status object, the URL, and the correct checksum")
 	testRepo.Status = sourcev1.GitRepositoryStatus{
@@ -99,7 +97,7 @@ func Test_000073_varsfrom_accepts_many_secrets(t *testing.T) {
 			StringData: s.data,
 		}
 		g.Expect(k8sClient.Create(ctx, secret)).Should(Succeed())
-		defer func() { g.Expect(k8sClient.Delete(ctx, secret)).Should(Succeed()) }()
+		defer waitResourceToBeDelete(g, secret)
 	}
 
 	By("creating a new TF and attaching to the repo")
@@ -137,7 +135,7 @@ func Test_000073_varsfrom_accepts_many_secrets(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &testTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testTF)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testTF)
 
 	By("checking that the terraform resource got created")
 	testTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
