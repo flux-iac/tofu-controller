@@ -1,5 +1,3 @@
-//go:build flaky
-
 package controllers
 
 import (
@@ -41,7 +39,7 @@ func Test_000072_varsfrom_optional_secret_and_controlled_outputs_test(t *testing
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	By("setting the git repo status object, the URL, and the correct checksum")
 	testRepo.Status = sourcev1.GitRepositoryStatus{
@@ -101,7 +99,7 @@ func Test_000072_varsfrom_optional_secret_and_controlled_outputs_test(t *testing
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
 	It("should have an error")
@@ -174,7 +172,7 @@ func Test_000072_varsfrom_optional_secret_and_controlled_outputs_test(t *testing
 		Type: corev1.SecretTypeOpaque,
 	}
 	g.Expect(k8sClient.Create(ctx, &myVars)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &myVars)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &myVars)
 
 	g.Expect(k8sClient.Get(ctx, helloWorldTFKey, &helloWorldTF)).Should(Succeed())
 	helloWorldTF.Spec.Force = true
