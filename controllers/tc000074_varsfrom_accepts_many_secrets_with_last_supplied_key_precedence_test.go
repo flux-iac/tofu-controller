@@ -60,6 +60,7 @@ func Test_000074_varsfrom_accepts_many_secrets_with_last_supplied_key_precedence
 			StringData: secret.data,
 		}
 		g.Expect(k8sClient.Create(ctx, secret)).Should(Succeed())
+		defer waitResourceToBeDelete(g, secret)
 	}
 
 	By("creating a temporary working directory")
