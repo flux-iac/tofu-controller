@@ -1,5 +1,3 @@
-//go:build flaky
-
 package controllers
 
 import (
@@ -53,7 +51,7 @@ func Test_000130_destroy_no_outputs_test(t *testing.T) {
 
 	By("creating the GitRepository object")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	Given("that the GitRepository got reconciled")
 	By("setting the GitRepository's status, with the BLOB's URL, and the correct checksum")
@@ -122,7 +120,6 @@ func Test_000130_destroy_no_outputs_test(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
 
 	It("should be created")
 	By("checking that the hello world TF got created")
@@ -297,6 +294,20 @@ func Test_000130_destroy_no_outputs_test(t *testing.T) {
 
 	g.Eventually(func() bool {
 		err := k8sClient.Get(ctx, cmPayloadKey, &cmPayload)
+		if apierrors.IsNotFound(err) {
+			return true
+		}
+		return false
+	}, timeout, interval).Should(BeTrue())
+
+	It("should delete the TF object")
+	By("deleting the TF object")
+	g.Expect(k8sClient.Delete(ctx, &createdHelloWorldTF)).Should(Succeed())
+
+	It("should not have the TF object anymore")
+	By("checking that the hello world TF got deleted")
+	g.Eventually(func() bool {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &helloWorldTF)
 		if apierrors.IsNotFound(err) {
 			return true
 		}

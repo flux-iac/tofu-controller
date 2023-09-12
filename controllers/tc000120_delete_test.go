@@ -1,12 +1,11 @@
-//go:build flaky
-
 package controllers
 
 import (
 	"context"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"testing"
 	"time"
+
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	. "github.com/onsi/gomega"
 
@@ -43,6 +42,7 @@ func Test_000120_delete_test(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	By("setting the git repo status object, the URL, and the correct checksum")
 	testRepo.Status = sourcev1.GitRepositoryStatus{
@@ -96,6 +96,7 @@ func Test_000120_delete_test(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	By("checking that the hello world TF got created")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
