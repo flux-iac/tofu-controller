@@ -1,5 +1,3 @@
-//go:build flaky
-
 package controllers
 
 import (
@@ -55,7 +53,7 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 	By("creating the GitRepository resource in the cluster.")
 	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	Given("the GitRepository's reconciled status.")
 	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
@@ -129,7 +127,7 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 	}
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
 	createdHelloWorldTF := infrav1.Terraform{}

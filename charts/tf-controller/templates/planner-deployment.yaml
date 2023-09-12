@@ -37,6 +37,7 @@ spec:
         - --polling-configmap={{ .Values.branchPlanner.configMap }}
         - --polling-interval={{ .Values.branchPlanner.pollingInterval }}
         - --allowed-namespaces={{ include "tf-controller.runner.allowedNamespaces" . | fromJsonArray | join "," }}
+        - --allow-cross-namespace-refs={{ .Values.allowCrossNamespaceRefs }}
         env:
           {{- include "pod-namespace" . | indent 8 }}
         image: "{{ .Values.branchPlanner.image.repository }}:{{ default .Chart.AppVersion .Values.branchPlanner.image.tag }}"

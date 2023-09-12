@@ -1,5 +1,3 @@
-//go:build flaky
-
 package controllers
 
 import (
@@ -52,7 +50,7 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 	By("creating the GitRepository resource in the cluster.")
 	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	Given("the GitRepository's reconciled status")
 	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
@@ -105,7 +103,7 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 	}
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
@@ -195,6 +193,7 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 		"TFPlanEmpty":           false,
 		"HasEncodingAnnotation": true,
 	}))
+	defer waitResourceToBeDelete(g, &tfplanSecret)
 
 	By("changing source to a new revision")
 	testRepo.Status = sourcev1.GitRepositoryStatus{
@@ -257,7 +256,7 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Apply" {
+			if c.Type == infrav1.ConditionTypeApply {
 				return map[string]interface{}{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
