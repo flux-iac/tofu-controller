@@ -29,7 +29,7 @@ func waitResourceToBeDelete(g gomega.Gomega, resource client.Object) {
 		return k8sClient.Get(ctx, key, resource)
 	}, cleanupTimeoutSeconds, interval).ShouldNot(gomega.Succeed())
 
-	if resource.GetObjectKind().GroupVersionKind().Kind == infrav1.TerraformKind {
+	if _, ok := resource.(*infrav1.Terraform); ok {
 		waitDefaultSecretsToBeDeletedForTerraform(g, resource)
 	}
 }
