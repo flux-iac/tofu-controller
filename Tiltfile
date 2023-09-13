@@ -22,7 +22,7 @@ k8s_resource('chart-tf-controller',
   labels=["deployments"],
   new_name='controller')
 
-k8s_resource('chart-tf-controller-planner',
+k8s_resource('chart-tf-controller-branch-planner',
   labels=["deployments"],
   new_name='branch-planner')
 
