@@ -1,5 +1,3 @@
-//go:build flaky
-
 package controllers
 
 import (
@@ -48,6 +46,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	By("setting the git repo status object, the URL, and the correct checksum")
 	testRepo.Status = sourcev1.GitRepositoryStatus{
@@ -119,6 +118,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &healthCheckTF)).Should(Succeed())
+	defer waitResourceToBeDelete(g, &healthCheckTF)
 
 	By("checking that the health check example TF gets created")
 	healthCheckTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
