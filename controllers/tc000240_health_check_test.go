@@ -30,7 +30,7 @@ func Test_000240_health_check_test(t *testing.T) {
 		},
 		{
 			name:    "testTCPInvalidPort",
-			address: "weave.works:81",
+			address: "localhost:81",
 			timeout: time.Second * 10,
 			wantErr: true,
 		},
