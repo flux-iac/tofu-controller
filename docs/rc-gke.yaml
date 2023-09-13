@@ -1,0 +1,49 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: tf-controller
+  namespace: flux-system
+spec:
+  interval: 1h0s
+  type: oci
+  url: oci://ghcr.io/weaveworks/charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: tf-controller
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: tf-controller
+      sourceRef:
+        kind: HelmRepository
+        name: tf-controller
+      version: '=0.16.0-rc.3'
+  interval: 1h0s
+  releaseName: tf-controller
+  targetNamespace: flux-system
+  install:
+    crds: Create
+  upgrade:
+    crds: CreateReplace
+  values:
+    replicaCount: 1
+    concurrency: 24
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 400m
+        memory: 64Mi
+    caCertValidityDuration: 24h
+    certRotationCheckFrequency: 30m
+    usePodSubdomainResolution: true
+    image:
+      tag: v0.16.0-rc.3
+    runner:
+      image:
+        tag: v0.16.0-rc.3
