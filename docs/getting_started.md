@@ -27,6 +27,35 @@ For the most recent release candidate of TF-controller, please use [rc.yaml](htt
 kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/rc.yaml
 ```
 
+### Installation on GKE
+
+As of September 2023, GKE Autopilot clusters will use Cloud DNS for internal DNS resolution.
+This means that the default DNS resolution method used by TF-controller will not work.
+To use TF-controller on GKE Autopilot, you must set flag `--use-pod-subdomain-resolution=true` on the TF-controller deployment.
+This flag can be set by adding the following to the TF-controller HelmRelease:
+
+```yaml
+spec:
+  values:
+    usePodSubdomainResolution: true
+    runner:
+      allowedNamespaces:
+      - flux-system
+      - dev-team
+```
+
+Enabling this value will cause TF-controller to use the Pod's subdomain for DNS resolution instead of the default Pod resolution method.
+Pod's subdomain resolution requires a Service to be created for the Pod.
+The HelmRelease above will create a Service named `tf-runner` in each namespace specified by the `runner.allowedNamespaces` value.
+
+We have provided a HelmRelease to install TF-controller on GKE Autopilot with Pod's subdomain resolution enabled here.
+
+```shell
+kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/rc-gke.yaml
+```
+
+Tested with GKE Autopilot v1.27.3-gke.100.
+
 ### With Branch Planner
 
 ```shell
