@@ -18,6 +18,10 @@ helm upgrade -i tf-controller tf-controller/tf-controller \
     --namespace flux-system
 ```
 
+### Using cross-namespace references
+
+The Terraform CRD for TF-controller includes references to other objects, for example to a Flux source, which can be in a different namespace to the Terraform. However, being able to access objects in another namespace is usually considered a security risk, so references crossing namespaces are (since version 0.16.0) disallowed by default. If you want to allow them, set the Helm chart value `allowCrossNamespaceRefs: true` (see the table below).
+
 ## Configuration
 
 The following table lists the configurable parameters of the TF-controller chart and their default values.
