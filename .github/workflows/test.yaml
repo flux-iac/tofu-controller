@@ -16,34 +16,42 @@ on:
 
 jobs:
   test-1x-2x:
+    name: "Controller Tests: 10->29"
     uses: ./.github/workflows/targeted-test.yaml
     with:
       pattern: "^Test_0000[12]"
   test-3x-5x:
+    name: "Controller Tests: 30->59"
     uses: ./.github/workflows/targeted-test.yaml
     with:
       pattern: "^Test_0000[345]"
   test-6x-9x:
+    name: "Controller Tests: 60->99"
     uses: ./.github/workflows/targeted-test.yaml
     with:
       pattern: "^Test_0000[6789]"
   test-1xx:
+    name: "Controller Tests: 1xx"
     uses: ./.github/workflows/targeted-test.yaml
     with:
       pattern: "^Test_0001"
   test-2xx:
+    name: "Controller Tests: 2xx"
     uses: ./.github/workflows/targeted-test.yaml
     with:
       pattern: "^Test_0002"
   test-3xx:
+    name: "Controller Tests: 3xx"
     uses: ./.github/workflows/targeted-test.yaml
     with:
       pattern: "^Test_0003"
   test-99xx:
+    name: "Controller Tests: 99xx"
     uses: ./.github/workflows/targeted-test.yaml
     with:
       pattern: "^Test_0099"
-  internal:
+  non-numbered:
+    name: "Controller Tests: Non-numbered"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -58,7 +66,38 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.19.x
+          go-version: 1.20.x
+      - name: Setup Terraform
+        run: |
+          export TF_VERSION=1.3.9
+          wget https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
+          unzip -q terraform_${TF_VERSION}_linux_amd64.zip
+          mv terraform $(which terraform)
+          terraform --version
+      - name: Setup Kustomize
+        if: "!github.event.pull_request.head.repo.fork"
+        uses: fluxcd/pkg/actions/kustomize@main
+      - name: Run tests
+        run: |
+          make install-envtest
+          make normal-controller-test
+  internal:
+    name: "Internal Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Restore Go cache
+        uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.20.x
       - name: Setup Terraform
         run: |
           export TF_VERSION=1.3.9
