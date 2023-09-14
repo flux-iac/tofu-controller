@@ -62,7 +62,16 @@ kubectl -n tf-system delete -f ./config/testdata/always-clean-pod
 echo "==================== Run drift detection tests"
 
 kubectl -n tf-system apply -f ./config/testdata/drift-detection
-kubectl -n tf-system wait terraform/helloworld-drift-detection --for=condition=ready=unknown --timeout=4m
+
+# apply should be true first
+kubectl -n tf-system wait terraform/helloworld-drift-detection --for=condition=apply=true --timeout=4m
+
+# patch .spec.approvePlan to "disable"
+kubectl -n tf-system patch terraform/helloworld-drift-detection -p '{"spec":{"approvePlan":"disable"}}' --type=merge
+kubectl -n tf-system wait  terraform/helloworld-drift-detection --for=condition=ready=true  --timeout=4m
+
+# disable drift detection
+# the object should work correctly
 kubectl -n tf-system wait terraform/helloworld-drift-detection-disable --for=condition=ready --timeout=4m
 
 # delete after tests
