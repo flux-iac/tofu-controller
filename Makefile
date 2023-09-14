@@ -205,6 +205,9 @@ dev-cleanup: manifests kustomize
 	$(KUSTOMIZE) build config/dev | kubectl delete --server-side -f -
 	rm -rf config/dev
 
+.PHONY: tools
+tools: kustomize protoc protoc-gen-go protoc-gen-go-grpc controller-gen envtest ## Install tools required for development.
+
 KUSTOMIZE = $(shell pwd)/bin/kustomize
 .PHONY: kustomize
 kustomize: ## Download kustomize locally if necessary.
@@ -212,11 +215,11 @@ kustomize: ## Download kustomize locally if necessary.
 
 PROTOC = $(PROJECT_DIR)/protoc
 .PHONY: protoc
-protoc:
+protoc: ## Download protoc locally if necessary.
 	# download and unzip protoc
 	mkdir -p $(PROJECT_DIR)
 	curl -qLO https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-	unzip -q -o protoc-3.19.4-linux-x86_64.zip -d $(PROJECT_DIR)
+	unzip -q -o protoc-3.19.4-linux-x86_64.zip bin/protoc -d $(PROJECT_DIR)
 	rm protoc-3.19.4-linux-x86_64.zip
 
 # Find or download controller-gen
