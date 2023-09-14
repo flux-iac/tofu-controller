@@ -4,7 +4,7 @@ metadata:
   name: helloworld-drift-detection
 spec:
   interval: 10s
-  approvePlan: "disable"
+  approvePlan: "auto" # first it must be auto, then use kubectl to patch this to "disable"
   path: ./
   sourceRef:
     kind: GitRepository
