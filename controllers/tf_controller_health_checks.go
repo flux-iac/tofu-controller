@@ -3,15 +3,19 @@ package controllers
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
-	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
+	"strings"
 	"text/template"
 	"time"
+	"unicode"
 
+	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"github.com/fluxcd/pkg/runtime/logger"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/runner"
@@ -143,13 +147,58 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 	return terraform, nil
 }
 
+// isValidLabel checks if a given label is valid as per RFC 952, updated by RFC 1152.
+func isValidLabel(label string) bool {
+	if len(label) == 0 || len(label) > 63 {
+		return false
+	}
+	if label[0] == '-' || label[len(label)-1] == '-' {
+		return false
+	}
+	for _, ch := range label {
+		if !unicode.IsLetter(ch) && !unicode.IsDigit(ch) && ch != '-' {
+			return false
+		}
+	}
+	return true
+}
+
+// validateTCPAddress validates the provided address as a valid TCP address format.
+func validateTCPAddress(address string) error {
+	if strings.Contains(address, "://") {
+		return errors.New("URL schemas are not allowed")
+	}
+
+	host, port, err := net.SplitHostPort(address)
+	if err != nil {
+		return err
+	}
+
+	// Check if host is a valid IP address or conforms to RFC 952, updated by RFC 1152.
+	if net.ParseIP(host) == nil {
+		labels := strings.Split(host, ".")
+		for _, label := range labels {
+			if !isValidLabel(label) {
+				return errors.New("invalid host format")
+			}
+		}
+	}
+
+	// Check if the port is numeric and within the valid range.
+	portInt, err := strconv.Atoi(port)
+	if err != nil || portInt <= 0 || portInt > 65535 {
+		return errors.New("invalid port number")
+	}
+
+	return nil
+}
+
 func (r *TerraformReconciler) doTCPHealthCheck(ctx context.Context, name string, address string, timeout time.Duration) error {
 	log := ctrl.LoggerFrom(ctx)
 
 	// validate tcp address
-	_, err := url.ParseRequestURI(address)
-	if err != nil {
-		return fmt.Errorf("invalid url for http health check: %s, %s", address, err)
+	if err := validateTCPAddress(address); err != nil {
+		return fmt.Errorf("invalid address for tcp health check: %s, %s", address, err)
 	}
 
 	conn, err := net.DialTimeout("tcp", address, timeout)
