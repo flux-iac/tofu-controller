@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/fluxcd/pkg/runtime/acl"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/runner"
@@ -152,6 +153,12 @@ terraform {
 		cliConfigSecretRef := *(terraform.Spec.CliConfigSecretRef.DeepCopy())
 		if cliConfigSecretRef.Namespace == "" {
 			cliConfigSecretRef.Namespace = terraform.Namespace
+		}
+
+		if r.NoCrossNamespaceRefs && cliConfigSecretRef.Namespace != terraform.GetNamespace() {
+			msg := fmt.Sprintf("cannot access secret %s/%s, cross-namespace references have been disabled", cliConfigSecretRef.Namespace, cliConfigSecretRef.Name)
+			terraform = infrav1.TerraformNotReady(terraform, revision, infrav1.AccessDeniedReason, msg)
+			return terraform, tfInstance, tmpDir, acl.AccessDeniedError(msg)
 		}
 
 		processCliConfigReply, err := runnerClient.ProcessCliConfig(ctx, &runner.ProcessCliConfigRequest{
