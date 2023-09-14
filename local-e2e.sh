@@ -1,3 +1,8 @@
+#!/bin/bash
+
+# Exit the script if any command fails
+set -e
+
 VERSION=e2e-$(git rev-parse --short HEAD)-$(if [[ $(git diff --stat) != '' ]]; then echo 'dirty'; else echo 'clean'; fi)
 
 kind create cluster
