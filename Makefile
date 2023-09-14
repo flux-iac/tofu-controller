@@ -97,6 +97,10 @@ test-flaky: manifests generate download-crd-deps fmt vet envtest api-docs ## Run
 target-test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests. e.g make TARGET=250 target-test
 	$(TEST_SETTINGS) go test ./controllers -coverprofile cover.out -v -run $(TARGET)
 
+.PHONY: normal-controller-test
+normal-controller-test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run non numbered controller tests.
+	$(TEST_SETTINGS) go test ./controllers -coverprofile cover.out -v -skip "Test_0"
+
 .PHONY: test-internal
 test-internal: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests in the internal directory.
 	$(TEST_SETTINGS) go test ./internal/... -coverprofile cover.out -v
