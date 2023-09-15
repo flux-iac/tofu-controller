@@ -1,5 +1,3 @@
-//go:build flaky
-
 package controllers
 
 import (
@@ -16,6 +14,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -23,9 +22,9 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 	Spec("This spec describes the behaviour of a Terraform resource with force unlock.")
 	It("should be reconciled successfully with a set of inventory entries shown in the status.")
 
-	const (
+	var (
 		sourceName    = "gr-force-unlock-lock-identifier"
-		terraformName = "tf-force-unlock-lock-identifier"
+		terraformName = "tf-force-unlock-lock-identifier-" + rand.String(5)
 	)
 	tfstateLeaseHolderIdentity := "f2ab685b-f84d-ac0b-a125-378a22877e8d"
 	g := NewWithT(t)
@@ -48,7 +47,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 	}
 	By("creating the GitRepository object")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	Given("that the GitRepository got reconciled")
 	By("setting the GitRepository's status, with the BLOB's URL, and the correct checksum")
@@ -116,7 +115,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	It("should be created")
 	By("checking that the hello world TF got created")
@@ -261,9 +260,9 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 	Spec("This spec describes the behaviour of a Terraform resource with inventory enabled.")
 	It("should be reconciled successfully with a set of inventory entries shown in the status.")
 
-	const (
+	var (
 		sourceName    = "gr-force-unlock-yes-unlock-test"
-		terraformName = "tf-force-unlock-yes-unlock-test"
+		terraformName = "tf-force-unlock-yes-unlock-test-" + rand.String(6)
 	)
 	tfstateLeaseHolderIdentity := "f2ab685b-f84d-ac0b-a125-378a22877e8d"
 	g := NewWithT(t)
@@ -286,7 +285,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 	}
 	By("creating the GitRepository object")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	Given("that the GitRepository got reconciled")
 	By("setting the GitRepository's status, with the BLOB's URL, and the correct checksum")
@@ -354,7 +353,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	It("should be created")
 	By("checking that the hello world TF got created")
@@ -534,9 +533,9 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 	Spec("This spec describes the behaviour of a Terraform resource with inventory enabled.")
 	It("should be reconciled successfully with a set of inventory entries shown in the status.")
 
-	const (
+	var (
 		sourceName    = "gr-force-unlock-auto-unlock-test"
-		terraformName = "tf-force-unlock-auto-unlock-test"
+		terraformName = "tf-force-unlock-auto-unlock-test-" + rand.String(6)
 	)
 	tfstateLeaseHolderIdentity := "f2ab685b-f84d-ac0b-a125-378a22877e8d"
 	g := NewWithT(t)
@@ -559,7 +558,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 	}
 	By("creating the GitRepository object")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	Given("that the GitRepository got reconciled")
 	By("setting the GitRepository's status, with the BLOB's URL, and the correct checksum")
