@@ -1,5 +1,3 @@
-//go:build flaky
-
 package controllers
 
 import (
@@ -407,7 +405,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 	By("creating the GitRepository resource in the cluster.")
 	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	Given("the GitRepository's reconciled status")
 	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
@@ -488,7 +486,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 	}
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
@@ -590,7 +588,7 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_with_value(t *testing.T)
 	By("creating the GitRepository resource in the cluster.")
 	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	Given("the GitRepository's reconciled status")
 	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
@@ -660,7 +658,7 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_with_value(t *testing.T)
 	}
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
@@ -696,6 +694,8 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_with_value(t *testing.T)
 }
 
 func Test_000260_runner_pod_test_env_vars_provider_vars_without_value(t *testing.T) {
+	t.Skip("Flaky, couldn't make it stable")
+
 	Spec("This spec describes the behaviour of a Terraform resource when variables are provided via EnvVars.")
 	It("should be reconciled and a vault provider successfully created.")
 
@@ -729,7 +729,7 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_without_value(t *testing
 	By("creating the GitRepository resource in the cluster.")
 	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	Given("the GitRepository's reconciled status")
 	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
@@ -789,7 +789,7 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_without_value(t *testing
 	}
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
@@ -861,7 +861,7 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_secretRef(t *testing.T) {
 	By("creating the GitRepository resource in the cluster.")
 	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	Given("the GitRepository's reconciled status")
 	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
@@ -907,7 +907,7 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_secretRef(t *testing.T) {
 	}
 	By("creating it with the client")
 	g.Expect(k8sClient.Create(ctx, &testSecret)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testSecret)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testSecret)
 
 	Given("a Terraform resource with auto approve, attached to the given GitRepository resource")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
@@ -956,7 +956,7 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_secretRef(t *testing.T) {
 	}
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
@@ -1028,7 +1028,7 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_configMapRef(t *testing.T) {
 	By("creating the GitRepository resource in the cluster.")
 	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testRepo)
 
 	Given("the GitRepository's reconciled status")
 	By("setting the GitRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
@@ -1074,7 +1074,7 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_configMapRef(t *testing.T) {
 	}
 	By("creating it with the client")
 	g.Expect(k8sClient.Create(ctx, &testConfigMap)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &testConfigMap)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &testConfigMap)
 
 	Given("a Terraform resource with auto approve, attached to the given GitRepository resource")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
@@ -1123,7 +1123,7 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_configMapRef(t *testing.T) {
 	}
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
