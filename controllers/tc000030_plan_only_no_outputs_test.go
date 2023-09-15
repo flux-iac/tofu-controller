@@ -1,5 +1,3 @@
-//go:build flaky
-
 package controllers
 
 import (
@@ -190,5 +188,5 @@ func Test_000030_plan_only_no_outputs_test(t *testing.T) {
 		"TFPlanEmpty":           false,
 		"HasEncodingAnnotation": true,
 	}))
-
+	defer waitResourceToBeDelete(g, &tfplanSecret)
 }
