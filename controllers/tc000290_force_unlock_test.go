@@ -768,5 +768,5 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 		"ForceUnlock":    infrav1.ForceUnlockEnumAuto,
 	}))
 
-	defer func() { g.Expect(k8sClient.Delete(ctx, &createdHelloWorldTF)).Should(Succeed()) }()
+	defer waitResourceToBeDelete(g, &createdHelloWorldTF)
 }
