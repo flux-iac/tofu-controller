@@ -88,10 +88,6 @@ TEST_SETTINGS=INSECURE_LOCAL_RUNNER=1 DISABLE_K8S_LOGS=1 DISABLE_TF_LOGS=1 DISAB
 test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests.
 	$(TEST_SETTINGS) go test ./controllers -coverprofile cover.out -v
 
-.PHONY: test-flaky
-test-flaky: manifests generate download-crd-deps fmt vet envtest api-docs ## Run flaky tests
-	$(TEST_SETTINGS) go test ./controllers -coverprofile cover.out -v -tags flaky
-
 # usage: make TARGET=250 target-test
 .PHONY: target-test
 target-test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests. e.g make TARGET=250 target-test
