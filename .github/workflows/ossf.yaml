@@ -44,6 +44,6 @@ jobs:
 
       # required for Code scanning alerts
       - name: "Upload SARIF results to code scanning"
-        uses: github/codeql-action/upload-sarif@e4262713b504983e61c7728f5452be240d9385a7 # v2.14.3
+        uses: github/codeql-action/upload-sarif@04daf014b50eaf774287bf3f0f1869d4b4c4b913 # v2.21.7
         with:
           sarif_file: results.sarif
