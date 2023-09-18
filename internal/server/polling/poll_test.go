@@ -197,7 +197,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 		expectToEqual(g, item.Spec.StoreReadablePlan, "human")
 		expectToEqual(g, item.Spec.ApprovePlan, "")
 		expectToEqual(g, item.Spec.Force, false)
-		expectToEqual(g, item.Spec.WriteOutputsToSecret.Name, fmt.Sprintf("test-secret-%d", idx+1))
+		expectToEqual(g, item.Spec.WriteOutputsToSecret, nil) // we don't need to use the output Secret of the plan
 		expectToEqual(g, item.Labels["infra.weave.works/branch-planner"], "true")
 		expectToEqual(g, item.Labels["test-label"], "abc")
 		expectToEqual(g, item.Labels["infra.weave.works/pr-id"], fmt.Sprint(idx+1))
