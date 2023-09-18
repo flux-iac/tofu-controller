@@ -190,14 +190,14 @@ func Test_poll_reconcile_objects(t *testing.T) {
 
 	// Ignore the first one as it's the original resource.
 	for idx, item := range tfList.Items[1:] {
-		expectToEqual(g, item.Name, fmt.Sprintf("%s-test-branch-%d-%d", original.Name, idx+1, idx+1))
-		expectToEqual(g, item.Spec.SourceRef.Name, fmt.Sprintf("%s-source-test-branch-%d-%d", original.Name, idx+1, idx+1))
+		expectToEqual(g, item.Name, fmt.Sprintf("%s-%d", original.Name, idx+1))
+		expectToEqual(g, item.Spec.SourceRef.Name, fmt.Sprintf("%s-source-%d", original.Name, idx+1))
 		expectToEqual(g, item.Spec.SourceRef.Namespace, ns.Name)
 		expectToEqual(g, item.Spec.PlanOnly, true)
 		expectToEqual(g, item.Spec.StoreReadablePlan, "human")
 		expectToEqual(g, item.Spec.ApprovePlan, "")
 		expectToEqual(g, item.Spec.Force, false)
-		expectToEqual(g, item.Spec.WriteOutputsToSecret.Name, fmt.Sprintf("test-secret-test-branch-%d-%d", idx+1, idx+1))
+		expectToEqual(g, item.Spec.WriteOutputsToSecret.Name, fmt.Sprintf("test-secret-%d", idx+1))
 		expectToEqual(g, item.Labels["infra.weave.works/branch-planner"], "true")
 		expectToEqual(g, item.Labels["test-label"], "abc")
 		expectToEqual(g, item.Labels["infra.weave.works/pr-id"], fmt.Sprint(idx+1))
@@ -215,7 +215,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 
 	// Ignore the first one as it's the original resource.
 	for idx, item := range srcList.Items[1:] {
-		expectToEqual(g, item.Name, fmt.Sprintf("%s-test-branch-%d-%d", source.Name, idx+1, idx+1))
+		expectToEqual(g, item.Name, fmt.Sprintf("%s-%d", source.Name, idx+1))
 		expectToEqual(g, item.Spec.Reference.Branch, fmt.Sprintf("test-branch-%d", idx+1))
 		expectToEqual(g, item.Labels["infra.weave.works/branch-planner"], "true")
 		expectToEqual(g, item.Labels["test-label"], "123")
@@ -238,7 +238,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 	}))
 
 	for idx, item := range tfList.Items {
-		expectedSecretName := fmt.Sprintf("%s-test-branch-%d-%d", secretName, idx, idx)
+		expectedSecretName := fmt.Sprintf("%s-%d", secretName, idx)
 		if idx == 0 {
 			expectedSecretName = secretName
 		}
@@ -261,7 +261,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 
 	expectToEqual(g, len(tfList.Items), 2)
 	expectToEqual(g, tfList.Items[0].Name, original.Name)
-	expectToEqual(g, tfList.Items[1].Name, original.Name+"-test-branch-3-3")
+	expectToEqual(g, tfList.Items[1].Name, original.Name+"-3")
 
 	srcList.Items = nil
 
@@ -271,7 +271,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 
 	expectToEqual(g, len(srcList.Items), 2)
 	expectToEqual(g, srcList.Items[0].Name, source.Name)
-	expectToEqual(g, srcList.Items[1].Name, source.Name+"-test-branch-3-3")
+	expectToEqual(g, srcList.Items[1].Name, source.Name+"-3")
 
 	t.Cleanup(func() { expectToSucceed(g, k8sClient.Delete(context.TODO(), ns)) })
 }
