@@ -49,7 +49,7 @@ jobs:
         run: |
           make docker-buildx
       - name: Run Trivy vulnerability scanner on controller image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@fbd16365eb88e12433951383f5e99bd901fc618f # v0.12.0
         with:
           image-ref: 'ghcr.io/weaveworks/tf-controller:latest'
           format: 'table'
@@ -58,7 +58,7 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
       - name: Run Trivy vulnerability scanner on runner image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@fbd16365eb88e12433951383f5e99bd901fc618f # v0.12.0
         with:
           image-ref: 'ghcr.io/weaveworks/tf-runner:latest'
           format: 'table'
@@ -68,7 +68,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
           skip-files: '/usr/local/bin/terraform' # false positive
       - name: Run Trivy vulnerability scanner on runner image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@fbd16365eb88e12433951383f5e99bd901fc618f # v0.12.0
         with:
           image-ref: 'ghcr.io/weaveworks/tf-runner-azure:latest'
           format: 'table'
@@ -78,7 +78,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
           skip-files: '/usr/local/bin/terraform' # false positive
       - name: Run Trivy vulnerability scanner on planner image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@fbd16365eb88e12433951383f5e99bd901fc618f # v0.12.0
         with:
           image-ref: 'ghcr.io/weaveworks/branch-planner:latest'
           format: 'table'
