@@ -73,9 +73,11 @@ jobs:
 
       - name: Install Flux CLI
         uses: fluxcd/flux2/action@main
+        if: steps.list-changed.outputs.changed == 'true'
 
       - name: Install Source controller
         run: flux install --components=source-controller
+        if: steps.list-changed.outputs.changed == 'true'
 
       - name: Run chart-testing (install)
         run: ct install --config ct.yaml
