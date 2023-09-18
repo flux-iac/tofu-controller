@@ -37,7 +37,7 @@ jobs:
         uses: fluxcd/pkg/actions/kustomize@6c0b4426ba7809a9406c1a4e07aa4be4984ea72f # main
       - name: Get branch names
         id: branch-name
-        uses: tj-actions/branch-names@v5.1
+        uses: tj-actions/branch-names@033f2358d95522973eee35810e35a86fae4a71d8 # v7.0.5
       - name: Prepare
         id: prep
         run: |
