@@ -78,7 +78,7 @@ func (s *Server) getSource(ctx context.Context, tf *infrav1.Terraform) (*sourcev
 }
 
 func (s *Server) reconcileTerraform(ctx context.Context, originalTF *infrav1.Terraform, originalSource *sourcev1.GitRepository, branch string, prID string, interval time.Duration) error {
-	tfName := s.createObjectName(originalTF.Name, branch, prID)
+	tfName := s.createObjectName(originalTF.Name, prID)
 	msg := fmt.Sprintf("Terraform object %s in the namespace %s", tfName, originalTF.Namespace)
 	source, err := s.reconcileSource(ctx, originalSource, branch, prID, interval)
 	if err != nil {
@@ -103,7 +103,7 @@ func (s *Server) reconcileTerraform(ctx context.Context, originalTF *infrav1.Ter
 
 		// Relocate the output secret, so it's not shared between branches
 		if spec.WriteOutputsToSecret != nil && originalTF.Spec.WriteOutputsToSecret != nil {
-			spec.WriteOutputsToSecret.Name = s.createObjectName(originalTF.Spec.WriteOutputsToSecret.Name, branch, prID)
+			spec.WriteOutputsToSecret.Name = s.createObjectName(originalTF.Spec.WriteOutputsToSecret.Name, prID)
 		}
 		spec.ApprovePlan = ""
 		spec.Force = false
@@ -131,7 +131,7 @@ func (s *Server) reconcileTerraform(ctx context.Context, originalTF *infrav1.Ter
 }
 
 func (s *Server) reconcileSource(ctx context.Context, originalSource *sourcev1.GitRepository, branch string, prID string, interval time.Duration) (*sourcev1.GitRepository, error) {
-	sourceName := s.createObjectName(originalSource.Name, branch, prID)
+	sourceName := s.createObjectName(originalSource.Name, prID)
 	msg := fmt.Sprintf("Source %s in the namespace %s", sourceName, originalSource.Namespace)
 	source := &sourcev1.GitRepository{
 		ObjectMeta: metav1.ObjectMeta{
@@ -165,8 +165,8 @@ func (s *Server) reconcileSource(ctx context.Context, originalSource *sourcev1.G
 	return source, nil
 }
 
-func (s *Server) createObjectName(name string, branch string, prID string) string {
-	return fmt.Sprintf("%s-%s-%s", name, branch, prID)
+func (s *Server) createObjectName(name string, prID string) string {
+	return fmt.Sprintf("%s-%s", name, prID)
 }
 
 func (s *Server) createLabels(labels map[string]string, originalName string, branch string, prID string) map[string]string {
