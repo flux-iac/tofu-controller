@@ -9,8 +9,10 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	bpconfig "github.com/weaveworks/tf-controller/internal/config"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sLabels "k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
@@ -98,13 +100,15 @@ func (s *Server) reconcileTerraform(ctx context.Context, originalTF *infrav1.Ter
 
 		spec.SourceRef.Name = source.Name
 		spec.SourceRef.Namespace = source.Namespace
+
+		// DestroyResourcesOnDeletion must be false, otherwise plan deletion will destroy resources
+		spec.DestroyResourcesOnDeletion = false
 		spec.PlanOnly = true
 		spec.StoreReadablePlan = "human"
 
-		// Relocate the output secret, so it's not shared between branches
-		if spec.WriteOutputsToSecret != nil && originalTF.Spec.WriteOutputsToSecret != nil {
-			spec.WriteOutputsToSecret.Name = s.createObjectName(originalTF.Spec.WriteOutputsToSecret.Name, prID)
-		}
+		// We don't need to examine or use the outputs of the plan
+		spec.WriteOutputsToSecret = nil
+
 		spec.ApprovePlan = ""
 		spec.Force = false
 
@@ -170,46 +174,59 @@ func (s *Server) createObjectName(name string, prID string) string {
 }
 
 func (s *Server) createLabels(labels map[string]string, originalName string, branch string, prID string) map[string]string {
-	if labels == nil {
-		labels = make(map[string]string)
+	resultLabels := make(map[string]string)
+	for k, v := range labels {
+		resultLabels[k] = v
 	}
 
-	labels[bpconfig.LabelKey] = bpconfig.LabelValue
-	labels[bpconfig.LabelPrimaryResourceKey] = originalName
-	labels[bpconfig.LabelPRIDKey] = prID
-
-	return labels
+	resultLabels[bpconfig.LabelKey] = bpconfig.LabelValue
+	resultLabels[bpconfig.LabelPrimaryResourceKey] = originalName
+	resultLabels[bpconfig.LabelPRIDKey] = prID
+	return resultLabels
 }
 
-func (s *Server) deleteTerraform(ctx context.Context, tf *infrav1.Terraform) error {
-	msg := fmt.Sprintf("Terraform %s in the namespace %s", tf.Name, tf.Namespace)
+func (s *Server) deleteTerraformAndSource(ctx context.Context, tf *infrav1.Terraform) error {
+	const (
+		pollInterval = 5 * time.Second // Interval to check the deletion status
+		pollTimeout  = 2 * time.Minute // Total time before timing out
+	)
 
-	if err := s.deleteSource(ctx, tf); err != nil {
-		s.log.Error(err, fmt.Sprintf("unable to delete Source for %s", msg))
-	}
+	tfMsg := fmt.Sprintf("Terraform %s in the namespace %s", tf.Name, tf.Namespace)
 
-	if err := s.clusterClient.Delete(ctx, tf); err != nil {
-		return fmt.Errorf("unable to delete %s: %w", msg, err)
-	}
-
-	s.log.Info(fmt.Sprintf("deleted %s", msg))
-
-	return nil
-}
-
-func (s *Server) deleteSource(ctx context.Context, tf *infrav1.Terraform) error {
+	// Get source, but not yet delete it
 	source, err := s.getSource(ctx, tf)
 	if err != nil {
-		return fmt.Errorf("unable to get Source for Terraform %s in the namespace %s: %w", tf.Name, tf.Namespace, err)
+		return fmt.Errorf("unable to get Source for %s: %w", tfMsg, err)
 	}
 
-	msg := fmt.Sprintf("Source %s in the namespace %s", source.Name, source.Namespace)
+	// Delete Terraform object
+	if err := s.clusterClient.Delete(ctx, tf); err != nil {
+		return fmt.Errorf("unable to delete %s: %w", tfMsg, err)
+	}
 
+	// We have to wait for the Terraform object to be deleted before deleting the source
+	err = wait.PollImmediate(pollInterval, pollTimeout, func() (bool, error) {
+		if err := s.clusterClient.Get(ctx, client.ObjectKey{Name: tf.Name, Namespace: tf.Namespace}, tf); err != nil {
+			if errors.IsNotFound(err) {
+				return true, nil // Terraform object is deleted
+			}
+			return false, err // An error occurred
+		}
+		return false, nil // Terraform object still exists
+	})
+
+	if err != nil {
+		return fmt.Errorf("error waiting for %s to be deleted: %w", tfMsg, err)
+	}
+
+	s.log.Info(fmt.Sprintf("deleted %s", tfMsg))
+
+	sourceMsg := fmt.Sprintf("Source %s in the namespace %s", source.Name, source.Namespace)
 	if err := s.clusterClient.Delete(ctx, source); err != nil {
-		return fmt.Errorf("unable to delete %s: %w", msg, err)
+		return fmt.Errorf("unable to delete %s: %w", sourceMsg, err)
 	}
 
-	s.log.Info(fmt.Sprintf("deleted %s", msg))
+	s.log.Info(fmt.Sprintf("deleted %s", sourceMsg))
 
 	return nil
 }
