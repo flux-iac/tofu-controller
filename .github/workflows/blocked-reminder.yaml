@@ -6,6 +6,9 @@ on:
     # others on Fri.
     - cron: '0 15 * * 1,4'
 
+permissions:
+  issues: read # for actions/github-script to query issues
+
 jobs:
   issue-list:
     runs-on: ubuntu-latest
