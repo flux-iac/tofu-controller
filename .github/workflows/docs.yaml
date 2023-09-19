@@ -8,6 +8,9 @@ on:
       - '.github/workflows/docs.yaml'
       - 'mkdocs.yml'
 
+permissions:
+  contents: read # for actions/checkout to fetch code
+
 jobs:
   publish:
     runs-on: ubuntu-latest
