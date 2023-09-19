@@ -3,6 +3,8 @@ package polling
 import (
 	"context"
 	"fmt"
+	bpconfig "github.com/weaveworks/tf-controller/internal/config"
+	"k8s.io/apimachinery/pkg/labels"
 	"testing"
 
 	"github.com/weaveworks/tf-controller/internal/git/provider/providerfakes"
@@ -197,10 +199,10 @@ func Test_poll_reconcile_objects(t *testing.T) {
 		expectToEqual(g, item.Spec.StoreReadablePlan, "human")
 		expectToEqual(g, item.Spec.ApprovePlan, "")
 		expectToEqual(g, item.Spec.Force, false)
-		expectToEqual(g, item.Spec.WriteOutputsToSecret.Name, fmt.Sprintf("test-secret-%d", idx+1))
-		expectToEqual(g, item.Labels["infra.weave.works/branch-planner"], "true")
+		g.Expect(item.Spec.WriteOutputsToSecret).To(gomega.BeNil()) // we don't need to use the output Secret of the plan
+		expectToEqual(g, item.Labels[bpconfig.LabelKey], bpconfig.LabelValue)
 		expectToEqual(g, item.Labels["test-label"], "abc")
-		expectToEqual(g, item.Labels["infra.weave.works/pr-id"], fmt.Sprint(idx+1))
+		expectToEqual(g, item.Labels[bpconfig.LabelPRIDKey], fmt.Sprint(idx+1))
 	}
 
 	// Check that the Source objects are created with all expected fields.
@@ -217,9 +219,9 @@ func Test_poll_reconcile_objects(t *testing.T) {
 	for idx, item := range srcList.Items[1:] {
 		expectToEqual(g, item.Name, fmt.Sprintf("%s-%d", source.Name, idx+1))
 		expectToEqual(g, item.Spec.Reference.Branch, fmt.Sprintf("test-branch-%d", idx+1))
-		expectToEqual(g, item.Labels["infra.weave.works/branch-planner"], "true")
+		expectToEqual(g, item.Labels[bpconfig.LabelKey], bpconfig.LabelValue)
 		expectToEqual(g, item.Labels["test-label"], "123")
-		expectToEqual(g, item.Labels["infra.weave.works/pr-id"], fmt.Sprint(idx+1))
+		expectToEqual(g, item.Labels[bpconfig.LabelPRIDKey], fmt.Sprint(idx+1))
 	}
 
 	// Check that branch Terraform objects are updated
@@ -234,16 +236,13 @@ func Test_poll_reconcile_objects(t *testing.T) {
 	tfList.Items = nil
 
 	expectToSucceed(g, k8sClient.List(context.TODO(), &tfList, &client.ListOptions{
-		Namespace: ns.Name,
+		Namespace:     ns.Name,
+		LabelSelector: labels.Set{bpconfig.LabelKey: bpconfig.LabelValue}.AsSelector(),
 	}))
 
-	for idx, item := range tfList.Items {
-		expectedSecretName := fmt.Sprintf("%s-%d", secretName, idx)
-		if idx == 0 {
-			expectedSecretName = secretName
-		}
+	for _, item := range tfList.Items {
 		expectToEqual(g, item.Labels["test-label"], "xyz")
-		expectToEqual(g, item.Spec.WriteOutputsToSecret.Name, expectedSecretName)
+		g.Expect(item.Spec.WriteOutputsToSecret).To(gomega.BeNil())
 	}
 
 	// Check that corresponding Terraform objects and Sources are deleted

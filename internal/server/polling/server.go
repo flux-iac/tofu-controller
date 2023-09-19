@@ -244,7 +244,7 @@ func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, sou
 		// If an error occurs, log it.
 		if !exist || pr.Closed {
 			log.Info("the PR either does not exist or has been closed, deleting corresponding Terraform object...", "PR ID", prId)
-			if err = s.deleteTerraform(ctx, tfPlannerObject); err != nil {
+			if err = s.deleteTerraformAndSource(ctx, tfPlannerObject); err != nil {
 				log.Error(err, "failed to delete Terraform object", "name", tfPlannerObject.Name, "namespace", tfPlannerObject.Namespace, "PR ID", prId)
 			} else {
 				log.Info("successfully deleted Terraform object", "name", tfPlannerObject.Name, "namespace", tfPlannerObject.Namespace, "PR ID", prId)
