@@ -63,7 +63,8 @@ var (
 // general, an individual test will want to create a namespace at its
 // start, use its name for any other objects it creates, and delete
 // the namespace afterward. Test_scaffold shows how to do this.
-func newNamespace(g gomega.Gomega) *corev1.Namespace {
+func newNamespace(t *testing.T, g gomega.Gomega) *corev1.Namespace {
+	t.Helper()
 	num := nscounter.Add(1)
 	name := fmt.Sprintf("test-ns-%d", num)
 	ns := corev1.Namespace{}
@@ -72,15 +73,16 @@ func newNamespace(g gomega.Gomega) *corev1.Namespace {
 	return &ns
 }
 
-func expectToSucceed(g gomega.Gomega, arg interface{}) {
+func expectToSucceed(t *testing.T, g gomega.Gomega, arg interface{}) {
+	t.Helper()
 	g.ExpectWithOffset(1, arg).To(gomega.Succeed())
 }
 
 // Minimal test to check the scaffolding works.
 func Test_scaffold(t *testing.T) {
 	g := gomega.NewWithT(t)
-	ns := newNamespace(g)
+	ns := newNamespace(t, g)
 	// here is where you'd create some objects in the namespace, as
 	// part of your test case.
-	t.Cleanup(func() { expectToSucceed(g, k8sClient.Delete(context.TODO(), ns)) })
+	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(context.TODO(), ns)) })
 }
