@@ -3,9 +3,9 @@ entries:
   tf-controller:
   - apiVersion: v2
     appVersion: v0.16.0-rc.3
-    created: "2023-09-19T11:07:51.482355373Z"
+    created: "2023-09-19T11:22:11.399012794Z"
     description: The Helm chart for Weave GitOps Terraform Controller
-    digest: bc2cbc6485692768463aeedd89e2d0475e215963ecbb33e9d06ac5f3812f4abb
+    digest: 6df80a3b2a131adc15f2ff5c4ddda5839208436c90568d6fba9c41e0dc4a08db
     name: tf-controller
     type: application
     urls:
@@ -771,4 +771,4 @@ entries:
     urls:
     - https://weaveworks.github.io/tf-controller/tf-controller-0.1.0.tgz
     version: 0.1.0
-generated: "2023-09-19T11:07:51.477884197Z"
+generated: "2023-09-19T11:22:11.393220967Z"
