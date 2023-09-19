@@ -192,8 +192,8 @@ func Test_poll_reconcile_objects(t *testing.T) {
 
 	// Ignore the first one as it's the original resource.
 	for idx, item := range tfList.Items[1:] {
-		expectToEqual(g, item.Name, fmt.Sprintf("%s-%d", original.Name, idx+1))
-		expectToEqual(g, item.Spec.SourceRef.Name, fmt.Sprintf("%s-source-%d", original.Name, idx+1))
+		expectToEqual(g, item.Name, fmt.Sprintf("%s-pr-%d", original.Name, idx+1))
+		expectToEqual(g, item.Spec.SourceRef.Name, fmt.Sprintf("%s-source-pr-%d", original.Name, idx+1))
 		expectToEqual(g, item.Spec.SourceRef.Namespace, ns.Name)
 		expectToEqual(g, item.Spec.PlanOnly, true)
 		expectToEqual(g, item.Spec.StoreReadablePlan, "human")
@@ -217,7 +217,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 
 	// Ignore the first one as it's the original resource.
 	for idx, item := range srcList.Items[1:] {
-		expectToEqual(g, item.Name, fmt.Sprintf("%s-%d", source.Name, idx+1))
+		expectToEqual(g, item.Name, fmt.Sprintf("%s-pr-%d", source.Name, idx+1))
 		expectToEqual(g, item.Spec.Reference.Branch, fmt.Sprintf("test-branch-%d", idx+1))
 		expectToEqual(g, item.Labels[bpconfig.LabelKey], bpconfig.LabelValue)
 		expectToEqual(g, item.Labels["test-label"], "123")
@@ -260,7 +260,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 
 	expectToEqual(g, len(tfList.Items), 2)
 	expectToEqual(g, tfList.Items[0].Name, original.Name)
-	expectToEqual(g, tfList.Items[1].Name, original.Name+"-3")
+	expectToEqual(g, tfList.Items[1].Name, original.Name+"-pr-3")
 
 	srcList.Items = nil
 
@@ -270,7 +270,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 
 	expectToEqual(g, len(srcList.Items), 2)
 	expectToEqual(g, srcList.Items[0].Name, source.Name)
-	expectToEqual(g, srcList.Items[1].Name, source.Name+"-3")
+	expectToEqual(g, srcList.Items[1].Name, source.Name+"-pr-3")
 
 	t.Cleanup(func() { expectToSucceed(g, k8sClient.Delete(context.TODO(), ns)) })
 }

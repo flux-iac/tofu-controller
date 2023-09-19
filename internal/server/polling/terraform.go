@@ -170,7 +170,7 @@ func (s *Server) reconcileSource(ctx context.Context, originalSource *sourcev1.G
 }
 
 func (s *Server) createObjectName(name string, prID string) string {
-	return fmt.Sprintf("%s-%s", name, prID)
+	return fmt.Sprintf("%s-pr-%s", name, prID)
 }
 
 func (s *Server) createLabels(labels map[string]string, originalName string, branch string, prID string) map[string]string {
