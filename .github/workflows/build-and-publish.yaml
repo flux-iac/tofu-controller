@@ -6,8 +6,7 @@ on:
       - main
 
 permissions:
-  id-token: write # needed for keyless signing
-  packages: write # needed for ghcr access
+  contents: read # for actions/checkout to fetch code
 
 env:
   CONTROLLER: ${{ github.event.repository.name }}
@@ -15,6 +14,9 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # needed for keyless signing
+      packages: write # needed for ghcr access
     steps:
       - name: Checkout
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0

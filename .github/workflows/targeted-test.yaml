@@ -4,6 +4,10 @@ on:
       pattern:
         required: true
         type: string
+
+permissions:
+  contents: read # for actions/checkout to fetch code
+
 jobs:
   targeted-test:
     runs-on: ubuntu-latest
