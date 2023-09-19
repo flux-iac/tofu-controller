@@ -2,6 +2,73 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.16.0-rc.3
+
+**Release date:** 2023-09-19
+
+We've been implementing the new feature called the Branch Planner during v0.15.x as a separate component.
+And it has been included in the installation of TF-Controller since v0.16.0-rc.2.
+This version also includes many improvement for the Branch Planner.
+Branch Planner allows us to interact with Pull Requests to plan and review the planning process with a separate branch,
+while the GitOps automation is still working on the main branch. This feature is currently Technology Preview.
+
+**BREAKING CHANGES**
+
+This version also introduced the lockdown mode by default.
+Lockdown is the mode that enhances security for your Terraform Controller setup
+by preventing the Terraform objects from referencing cross-namespace Secrets and ConfigMaps.
+To relax this restriction, you can enable `--allow-cross-namespace-refs` flag at the controller level.
+This setting can also be done via a Helm Chart value too.
+
+New Features and Bug Fixing:
+  * Branch Planner: Delete Terraform objects before deleting its source @chanwit
+  * Branch Planner: Exclude branch name from the planning object (use PR ID as suffix instead) @chanwit
+  * correct the behaviour of e2e tests @chanwit
+  * Screen cross-ns refs in `.spec.cliConfigSecretRef` @squaremo
+  * docs: update least required permissions for a github api token @yitsushi
+  * Add install docs for GKE Autopilot @chanwit
+  * Fix reconcile stuck in a loop with manual approval @yitsushi
+  * Expose `--allow-cross-namespace-refs` in the chart @squaremo
+  * Adds Troubleshooting Section and tip to drift detection page @LappleApple
+  * Update dependency github.com/cyphar/filepath-securejoin @chanwit
+  * Add flag `--allow-cross-namespace-refs` to tf-controller and branch-planner @squaremo
+  * Use Pod's Subdomain-based DNS resolution @syalioune
+  * Add PriorityClassName, SecurityContext and ResourceRequirements to the Runner PodSpec @luizbafilho
+  * Set default observedGeneration to -1 for Kustomization Controller compatibility @luizbafilho
+  * Fix `tfctl install --export` not separating yaml objects properly @matheuscscp
+  * Support Flux v2.1.0 @chanwit
+  * Add SECURITY.md @yiannistri
+  * Add OpenSSF Scorecard @yiannistri @LappleApple
+  * Improve integration tests @yitsushi @luizbafilho @squaremo @yiannistri @chanwit
+  * Refactor the runner base image @chanwit
+  * Do not create branch planner resources if there are no terraform changes @yitsushi
+  * Docs: Add Branch Planner guide @yiannistri @chanwit
+  * Prevent dependsOn crossnamespace reference @squaremo @luizbafilho
+  * Build: remove `nsswitch.conf` creation @hiddeco
+  * Implement Resume and Suspend All @luizbafilho
+  * Build(deps): bump the ci group with 5 updates @chanwit
+  * Bump libcrypto3 and libssl3 @yitsushi
+
+# v0.16.0-rc.2
+
+New Features and Bug Fixing:
+
+  * Fix NPE in the Branch Planner @chanwit
+  * Capture StdErr from Terraform Init and send it back to the controller @chanwit
+  * Implementing the Branch Planner system @yitsushi @luizbafilho @squaremo @yiannistri @chanwit
+
+# v0.16.0-rc.1
+
+New Features and Bug Fixing:
+  * patch: static replica count for branch planner @yitsushi
+  * feat: ability to set resource limits and security context for branch planner @yitsushi
+  * fix: clear comment id after replan @yitsushi
+  * Add RecordDuration metrics and using functions from fluxcd @luizbafilho
+  * patch: use allowedNamespaces in Branch Planner @yitsushi
+  * feat: post error as comment to a pull request @yitsushi
+  * Fix source deletion when using branch planner @luizbafilho
+  * Improve the Plan Only mode @yitsushi
+
 # v0.15.1
 
 **Release date:** 2023-06-06
