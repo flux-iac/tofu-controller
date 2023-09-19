@@ -174,15 +174,15 @@ func (s *Server) createObjectName(name string, prID string) string {
 }
 
 func (s *Server) createLabels(labels map[string]string, originalName string, branch string, prID string) map[string]string {
-	if labels == nil {
-		labels = make(map[string]string)
+	resultLabels := make(map[string]string)
+	for k, v := range labels {
+		resultLabels[k] = v
 	}
 
-	labels[bpconfig.LabelKey] = bpconfig.LabelValue
-	labels[bpconfig.LabelPrimaryResourceKey] = originalName
-	labels[bpconfig.LabelPRIDKey] = prID
-
-	return labels
+	resultLabels[bpconfig.LabelKey] = bpconfig.LabelValue
+	resultLabels[bpconfig.LabelPrimaryResourceKey] = originalName
+	resultLabels[bpconfig.LabelPRIDKey] = prID
+	return resultLabels
 }
 
 func (s *Server) deleteTerraformAndSource(ctx context.Context, tf *infrav1.Terraform) error {
