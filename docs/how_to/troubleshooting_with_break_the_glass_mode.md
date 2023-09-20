@@ -11,13 +11,19 @@ is not performing as expected. This feature is available in the Terraform contro
 ~> **WARNING:** Please also make sure that you have enough privileges to exec pods in your namespaces. Otherwise, you will not be able to use this feature.
 
 There are two primary methods of initiating this mode:
- 
+
 1. Using the `tfctl` command-line tool.
 2. Setting the `spec.breakTheGlass` field to `true` in the Terraform object.
 
 ## Using `tfctl` to Break the Glass
 
-To start a one-time troubleshooting session, you can use the `tfctl break-glass` command. For instance:
+In order to use this functionality, it needs to be enabled at the controller level; in order to do that, you can set the following Helm chart value to `true`:
+
+```yaml
+allowBreakTheGlass: true
+```
+
+After the feature is enabled, to start a one-time troubleshooting session, you can use the `tfctl break-glass` command. For instance:
 
 ```shell
 tfctl break-glass hello-world
