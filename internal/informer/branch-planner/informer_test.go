@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	. "github.com/onsi/gomega"
+	gom "github.com/onsi/gomega"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
@@ -22,8 +22,8 @@ import (
 )
 
 func TestInformer(t *testing.T) {
-	g := NewWithT(t)
-	ns := newNamespace(g)
+	g := gom.NewWithT(t)
+	ns := newNamespace(t, g)
 	ctx, ctxCancel := context.WithCancel(context.Background())
 	defer ctxCancel()
 
@@ -40,7 +40,7 @@ func TestInformer(t *testing.T) {
 			},
 		},
 	}
-	expectToSucceed(g, k8sClient.Create(context.TODO(), source))
+	expectToSucceed(t, g, k8sClient.Create(context.TODO(), source))
 
 	// Create a Terraform object to be the template.
 	tf := &infrav1.Terraform{
@@ -60,7 +60,7 @@ func TestInformer(t *testing.T) {
 			},
 		},
 	}
-	expectToSucceed(g, k8sClient.Create(context.TODO(), tf))
+	expectToSucceed(t, g, k8sClient.Create(context.TODO(), tf))
 
 	tfOutputCM := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -71,10 +71,10 @@ func TestInformer(t *testing.T) {
 			"tfplan": "terraform plan output",
 		},
 	}
-	expectToSucceed(g, k8sClient.Create(context.TODO(), tfOutputCM))
+	expectToSucceed(t, g, k8sClient.Create(context.TODO(), tfOutputCM))
 
 	dynamicClient, err := dynamic.NewForConfig(k8sConfig)
-	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(err).NotTo(gom.HaveOccurred())
 
 	gitProvider := &providerfakes.FakeProvider{}
 
@@ -92,36 +92,36 @@ func TestInformer(t *testing.T) {
 		WithGitProvider(gitProvider),
 		WithSharedInformer(sharedInformer),
 	)
-	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(err).NotTo(gom.HaveOccurred())
 
 	go func() {
-		g.Expect(informer.Start(ctx)).To(Succeed())
+		g.Expect(informer.Start(ctx)).To(gom.Succeed())
 	}()
 
 	g.Eventually(func() bool {
 		return informer.HasSynced()
-	}).Should(BeTrue())
+	}).Should(gom.BeTrue())
 
 	// Patch status to trigger informer update function
 	k8sClient.Get(ctx, client.ObjectKeyFromObject(tf), tf)
 	patch := client.MergeFrom(tf.DeepCopy())
 	tf.Status.LastPlanAt = &metav1.Time{Time: time.Now()}
-	expectToSucceed(g, k8sClient.Status().Patch(ctx, tf, patch))
+	expectToSucceed(t, g, k8sClient.Status().Patch(ctx, tf, patch))
 
 	g.Eventually(func() int {
 		return gitProvider.AddCommentToPullRequestCallCount()
-	}).Should(Equal(1))
+	}).Should(gom.Equal(1))
 
 	g.Eventually(func() string {
 		_, _, body := gitProvider.AddCommentToPullRequestArgsForCall(0)
 		return string(body)
-	}).Should(ContainSubstring("terraform plan output"))
+	}).Should(gom.ContainSubstring("terraform plan output"))
 }
 
-func createSharedInformer(g *WithT, ctx context.Context, client client.Client, dynamicClient dynamic.Interface) cache.SharedIndexInformer {
+func createSharedInformer(g *gom.WithT, ctx context.Context, client client.Client, dynamicClient dynamic.Interface) cache.SharedIndexInformer {
 	restMapper := client.RESTMapper()
 	mapping, err := restMapper.RESTMapping(infrav1.GroupVersion.WithKind(infrav1.TerraformKind).GroupKind())
-	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(err).NotTo(gom.HaveOccurred())
 
 	tweakListOptionsFunc := func(options *metav1.ListOptions) {
 		options.LabelSelector = fmt.Sprintf("%s=%s", config.LabelKey, config.LabelValue)
