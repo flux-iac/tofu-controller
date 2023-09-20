@@ -25,7 +25,8 @@ and ease of access.
      to compress the Workspace file system into a tar.gz format, which is then retrieved
      as a byte array.
    * The caching mechanism will be executed right before the Terraform Initialization step, ensuring that the latest and most relevant data is used.
-   * Each Workspace Blob will be cached on the TF-Controller's local disk, following the naming convention `$namespace-$name.tar.gz`.
+   * Each Workspace Blob will be cached on the TF-Controller's local disk, using the UUID of the Terraform object as the filename,`${uuid}.tar.gz`.
+   * To prevent unauthorized access to the cache entries, and cache collisions, the cache file will be deleted after the finalization process is complete.
 2. **Persistence** 
    * The persistence mechanism used by the Source Controller will be adopted for the TF-Controller's persistence volume.
 3. **BLOB Encryption**
