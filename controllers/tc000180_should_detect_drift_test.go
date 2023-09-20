@@ -1,9 +1,10 @@
 package controllers
 
 import (
+	"testing"
+
 	. "github.com/onsi/gomega"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
-	"testing"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
@@ -95,4 +96,21 @@ func Test_000180_should_detect_drift_test(t *testing.T) {
 	It("should be false for an object with the pending plan.")
 	g.Expect(reconciler.shouldDetectDrift(tf5_1, "main/2345")).Should(BeFalse())
 
+	It("should be true for a normally applied object.")
+	g.Expect(reconciler.shouldDetectDrift(tf3, "main/1234")).Should(BeTrue())
+
+	It("should be true for when ApprovePlan is disable")
+	tf6 := infrav1.Terraform{
+		Spec: infrav1.TerraformSpec{
+			Destroy:     false,
+			ApprovePlan: infrav1.ApprovePlanDisableValue,
+		},
+		Status: infrav1.TerraformStatus{
+			LastAttemptedRevision: "main/2345",
+			LastPlannedRevision:   "main/2345",
+			LastAppliedRevision:   "main/1234",
+		},
+	}
+
+	g.Expect(reconciler.shouldDetectDrift(tf6, "main/1234")).Should(BeTrue())
 }
