@@ -3,8 +3,9 @@ package controllers
 import (
 	"context"
 	"fmt"
-	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"strings"
+
+	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/weaveworks/tf-controller/runner"
@@ -30,6 +31,10 @@ func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, rev
 		terraform.Status.LastPlannedRevision == "" &&
 		terraform.Status.LastAttemptedRevision == "" {
 		return false
+	}
+
+	if terraform.Spec.ApprovePlan == infrav1.ApprovePlanDisableValue {
+		return true
 	}
 
 	// thing worked normally, no change pending
