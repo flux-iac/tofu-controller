@@ -9,7 +9,16 @@
 
 The TF-Controller is being enhanced to address the resource deletion problem
 more efficiently using the contents of generated Workspace BLOBs.
-This ensures that Terraform finalization procedures are streamlined and efficient.
+
+The TF-Controller currently faces challenges related to the deletion of Terraform resources. 
+These problems span across three categories:
+1. single resource deletion,
+2. resources with dependencies deletion, and
+3. namespace deletion.
+
+Implementing a robust Workspace BLOB caching mechanism is essential 
+for improving the reliability of the Terraform resource deletion process, for the single resource deletion scenarios.
+
 Currently, the TF-Controller downloads a Source BLOB and pushes it to a tf-runner.
 The tf-runner then processes this BLOB to create a Workspace file system.
 The tf-runner generates a backend configuration file, variable files, and other necessary files
@@ -48,7 +57,7 @@ and ease of access.
 ## Consequence
 
 1. With the implementation of this architecture:
-   * BLOB management in TF-Controller will be optimized, leading to a more efficient and streamlined Terraform finalization process.
+   * The reliability of the Terraform resource deletion process will improved for the single resource deletion scenario.
    * Security measures will ensure the safety of the stored BLOBs, minimizing potential threats.
 2. Using the default pod local volume might limit storage capabilities and risk data loss upon controller restart. This warrants the need for considering persistent volumes in future versions.
 3. Encryption and security measures will demand regular maintenance and monitoring, especially concerning key rotations and integrity checks.
