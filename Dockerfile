@@ -37,13 +37,15 @@ FROM alpine:3.18
 
 LABEL org.opencontainers.image.source="https://github.com/weaveworks/tf-controller"
 
-RUN apk update
+ARG LIBCRYTO_VERSION
 
-RUN apk add --no-cache libcrypto3=3.1.2-r0 && \
-    apk add --no-cache libssl3=3.1.2-r0 && \
-    apk add --no-cache ca-certificates tini git openssh-client gnupg && \
-    apk add --no-cache libretls && \
-    apk add --no-cache busybox
+RUN apk update && \
+    apk add --no-cache \
+    libcrypto3=${LIBCRYTO_VERSION} \
+    libssl3=${LIBCRYTO_VERSION} \
+    ca-certificates tini git openssh-client gnupg \
+    libretls \
+    busybox
 
 COPY --from=builder /workspace/tf-controller /usr/local/bin/
 

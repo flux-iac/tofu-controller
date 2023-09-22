@@ -7,6 +7,7 @@ BRANCH_PLANNER_IMAGE ?= ghcr.io/weaveworks/branch-planner
 TAG ?= latest
 BUILD_SHA ?= $(shell git rev-parse --short HEAD)
 BUILD_VERSION ?= $(shell git describe --tags $$(git rev-list --tags --max-count=1))
+LIBCRYTO_VERSION ?= 3.1.3-r0
 
 # source controller version
 SOURCE_VER ?= v1.0.0-rc.1
@@ -139,19 +140,19 @@ run-planner: manifests generate fmt vet ## Run a branch planner from your host.
 
 .PHONY: docker-build
 docker-build: ## Build docker
-	docker build -t ${MANAGER_IMG}:${TAG} ${BUILD_ARGS} .
-	docker build -t ${RUNNER_IMG}:${TAG}-base -f runner-base.Dockerfile ${BUILD_ARGS} .
+	docker build -t ${MANAGER_IMG}:${TAG} --build-arg LIBCRYTO_VERSION=${LIBCRYTO_VERSION} ${BUILD_ARGS} .
+	docker build -t ${RUNNER_IMG}:${TAG}-base -f runner-base.Dockerfile --build-arg LIBCRYTO_VERSION=${LIBCRYTO_VERSION} ${BUILD_ARGS} .
 	docker build -t ${RUNNER_IMG}:${TAG} -f runner.Dockerfile --build-arg BASE_IMAGE=${RUNNER_IMG}:${TAG}-base ${BUILD_ARGS} .
 	docker build -t ${RUNNER_AZURE_IMAGE}:${TAG} -f runner-azure.Dockerfile --build-arg BASE_IMAGE=${RUNNER_IMG}:${TAG}-base ${BUILD_ARGS} .
-	docker build -t ${BRANCH_PLANNER_IMAGE}:${TAG} -f planner.Dockerfile ${BUILD_ARGS} .
+	docker build -t ${BRANCH_PLANNER_IMAGE}:${TAG} -f planner.Dockerfile --build-arg LIBCRYTO_VERSION=${LIBCRYTO_VERSION} ${BUILD_ARGS} .
 
 .PHONY: docker-buildx
 docker-buildx: ## Build docker
-	docker buildx build --load -t ${MANAGER_IMG}:${TAG} ${BUILD_ARGS} .
-	docker buildx build --load -t ${RUNNER_IMG}:${TAG}-base -f runner-base.Dockerfile ${BUILD_ARGS} .
+	docker buildx build --load -t ${MANAGER_IMG}:${TAG} --build-arg LIBCRYTO_VERSION=${LIBCRYTO_VERSION} ${BUILD_ARGS} .
+	docker buildx build --load -t ${RUNNER_IMG}:${TAG}-base -f runner-base.Dockerfile --build-arg LIBCRYTO_VERSION=${LIBCRYTO_VERSION} ${BUILD_ARGS} .
 	docker buildx build --load -t ${RUNNER_IMG}:${TAG} -f runner.Dockerfile --build-arg BASE_IMAGE=${RUNNER_IMG}:${TAG}-base ${BUILD_ARGS} .
 	docker buildx build --load -t ${RUNNER_AZURE_IMAGE}:${TAG} -f runner-azure.Dockerfile --build-arg BASE_IMAGE=${RUNNER_IMG}:${TAG}-base ${BUILD_ARGS} .
-	docker buildx build --load -t ${BRANCH_PLANNER_IMAGE}:${TAG} -f planner.Dockerfile ${BUILD_ARGS} .
+	docker buildx build --load -t ${BRANCH_PLANNER_IMAGE}:${TAG} -f planner.Dockerfile --build-arg LIBCRYTO_VERSION=${LIBCRYTO_VERSION} ${BUILD_ARGS} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
@@ -162,7 +163,7 @@ docker-push: ## Push docker image with the manager.
 	docker push ${BRANCH_PLANNER_IMAGE}:${TAG}
 
 docker-dev-runner:
-	docker buildx build --load -t ${RUNNER_IMG}:${TAG}-base -f runner-base.Dockerfile ${BUILD_ARGS} .
+	docker buildx build --load -t ${RUNNER_IMG}:${TAG}-base -f runner-base.Dockerfile --build-arg LIBCRYTO_VERSION=${LIBCRYTO_VERSION} ${BUILD_ARGS} .
 	docker buildx build --load -t ${RUNNER_IMG}:${TAG} -f runner.Dockerfile --build-arg BASE_IMAGE=${RUNNER_IMG}:${TAG}-base ${BUILD_ARGS} .
 	docker push ${RUNNER_IMG}:${TAG}
 
