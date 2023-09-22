@@ -7,6 +7,11 @@ BRANCH_PLANNER_IMAGE ?= ghcr.io/weaveworks/branch-planner
 TAG ?= latest
 BUILD_SHA ?= $(shell git rev-parse --short HEAD)
 BUILD_VERSION ?= $(shell git describe --tags $$(git rev-list --tags --max-count=1))
+
+# Update the following files too:
+# - .github/workflows/build-and-publish.yaml
+# - .github/workflows/release-runners.yaml
+# - .github/workflows/release.yaml
 LIBCRYTO_VERSION ?= 3.1.3-r0
 
 # source controller version
