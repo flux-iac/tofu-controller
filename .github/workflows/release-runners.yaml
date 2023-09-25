@@ -18,6 +18,7 @@ permissions:
 env:
   VERSION: ${{ github.event.inputs.version }}
   BUILD_DATE: ${{ github.event.inputs.build_date }}
+  LIBCRYTO_VERSION: "3.1.3-r0"
 
 jobs:
   release-base:
@@ -52,6 +53,8 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
           file: ./runner-base.Dockerfile
+          build-args: |
+            LIBCRYTO_VERSION=${{ env.LIBCRYTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
             ghcr.io/weaveworks/tf-runner:${{ env.VERSION }}-base
@@ -103,6 +106,7 @@ jobs:
           build-args: |
             BASE_IMAGE=ghcr.io/weaveworks/tf-runner:${{ env.VERSION }}-base
             TF_VERSION=${{ matrix.tf_version }}
+            LIBCRYTO_VERSION=${{ env.LIBCRYTO_VERSION }}
           tags: |
             ghcr.io/weaveworks/tf-runner:${{ env.VERSION }}-tf-${{ matrix.tf_version }}
           labels: |
