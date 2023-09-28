@@ -204,6 +204,8 @@ func Test_poll_reconcile_objects(t *testing.T) {
 		expectToEqual(t, g, item.Labels[bpconfig.LabelKey], bpconfig.LabelValue)
 		expectToEqual(t, g, item.Labels["test-label"], "abc")
 		expectToEqual(t, g, item.Labels[bpconfig.LabelPRIDKey], fmt.Sprint(idx+1))
+		expectToEqual(t, g, item.Spec.BackendConfig.SecretSuffix, original.Name)
+		expectToEqual(t, g, item.Spec.BackendConfig.InClusterConfig, true)
 	}
 
 	// Check that the Source objects are created with all expected fields.
@@ -313,6 +315,9 @@ func Test_poll_noPathChanges(t *testing.T) {
 			BranchPlanner: &infrav1.BranchPlanner{
 				EnablePathScope: true,
 			},
+			BackendConfig: &infrav1.BackendConfigSpec{
+				SecretSuffix: "special-value",
+			},
 		},
 	}
 	expectToSucceed(t, g, k8sClient.Create(context.TODO(), original))
@@ -360,6 +365,7 @@ func Test_poll_noPathChanges(t *testing.T) {
 	}))
 	expectToEqual(t, g, len(tfList.Items), 1, "terraform list") // just the original
 	expectToEqual(t, g, tfList.Items[0].Name, original.Name)
+	expectToEqual(t, g, tfList.Items[0].Spec.BackendConfig, original.Spec.BackendConfig)
 
 	var srcList sourcev1.GitRepositoryList
 	expectToSucceed(t, g, k8sClient.List(context.TODO(), &srcList, &client.ListOptions{
