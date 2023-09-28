@@ -119,6 +119,13 @@ func (s *Server) reconcileTerraform(ctx context.Context, originalTF *infrav1.Ter
 			spec.CliConfigSecretRef = nil
 		}
 
+		if spec.BackendConfig == nil {
+			spec.BackendConfig = &infrav1.BackendConfigSpec{
+				SecretSuffix:    originalTF.Name,
+				InClusterConfig: true,
+			}
+		}
+
 		tf.Spec = *spec
 
 		tf.SetLabels(branchLabels)
