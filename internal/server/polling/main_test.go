@@ -67,10 +67,12 @@ func newNamespace(t *testing.T, g gomega.Gomega) *corev1.Namespace {
 }
 
 func expectToSucceed(t *testing.T, g gomega.Gomega, arg interface{}) {
+	t.Helper()
 	g.ExpectWithOffset(1, arg).To(gomega.Succeed())
 }
 
 func expectToEqual(t *testing.T, g gomega.Gomega, arg interface{}, expect interface{}, desc ...interface{}) {
+	t.Helper()
 	g.ExpectWithOffset(1, expect).To(gomega.Equal(arg), desc...)
 }
 
