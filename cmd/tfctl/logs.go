@@ -16,6 +16,7 @@ import (
 
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -33,17 +34,17 @@ type logsFlags struct {
 	allNamespaces       bool
 	sinceTime           string
 	sinceSeconds        time.Duration
+	runner              bool
 }
 
 var logsArgs = logsFlags{
 	tail: -1,
 }
 
-const controllerContainer = "manager"
-
-func init() {
-
-}
+const (
+	runnerLogsSleep     = 30 * time.Second
+	controllerContainer = "manager"
+)
 
 func buildLogsCmd() *cobra.Command {
 	logsCmd := &cobra.Command{
@@ -76,6 +77,7 @@ func buildLogsCmd() *cobra.Command {
 	logsCmd.Flags().BoolVarP(&logsArgs.allNamespaces, "all-namespaces", "A", false, "displays logs for objects across all namespaces")
 	logsCmd.Flags().DurationVar(&logsArgs.sinceSeconds, "since", logsArgs.sinceSeconds, "Only return logs newer than a relative duration like 5s, 2m, or 3h. Defaults to all logs. Only one of since-time / since may be used.")
 	logsCmd.Flags().StringVar(&logsArgs.sinceTime, "since-time", logsArgs.sinceTime, "Only return logs after a specific date (RFC3339). Defaults to all logs. Only one of since-time / since may be used.")
+	logsCmd.Flags().BoolVarP(&logsArgs.runner, "runner", "", false, "displays logs for the Terraform runner")
 
 	return logsCmd
 }
@@ -96,6 +98,10 @@ func logsCmdRun(cmd *cobra.Command, args []string) error {
 
 	if len(args) > 0 {
 		return fmt.Errorf("no argument required")
+	}
+
+	if logsArgs.runner {
+		return runnerLogs(ctx, logsArgs, clientset)
 	}
 
 	pods, err := getPods(ctx, clientset, logsArgs.controllerNamespace)
@@ -144,6 +150,34 @@ func logsCmdRun(cmd *cobra.Command, args []string) error {
 	}
 
 	return podLogs(ctx, requests)
+}
+
+// runnerLogs fetch logs from the Terraform runner
+func runnerLogs(ctx context.Context, logFlags logsFlags, c *kubernetes.Clientset) error {
+	logOpts := &corev1.PodLogOptions{
+		Follow: logsArgs.follow,
+	}
+	podName := fmt.Sprintf("%s-tf-runner", logFlags.name)
+
+LOOP:
+	req := c.CoreV1().Pods(logsArgs.controllerNamespace).GetLogs(podName, logOpts)
+
+	stream, err := req.Stream(ctx)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			fmt.Printf("%s/%s runner pod is not running, waiting...\n", logsArgs.controllerNamespace, podName)
+			time.Sleep(runnerLogsSleep)
+
+			goto LOOP
+		}
+
+		return err
+	}
+	defer stream.Close()
+
+	_, err = io.Copy(os.Stdout, stream)
+
+	return err
 }
 
 // getPods searches for all Deployments in the given namespace that match the given label and returns a list of Pods
