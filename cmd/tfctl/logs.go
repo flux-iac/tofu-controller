@@ -65,6 +65,9 @@ func buildLogsCmd() *cobra.Command {
 
 	  # Print logs when Flux is installed in a different namespace than flux-system
 	  tfctl logs --controller-namespace=my-namespace
+
+	  # Print runner logs
+	  tfctl logs --runner --name=podinfo
 		`,
 		RunE: logsCmdRun,
 	}
