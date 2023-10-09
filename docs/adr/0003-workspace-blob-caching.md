@@ -26,17 +26,16 @@ A caching mechanism for these BLOBs is essential to fixing the single TF object 
 
 1. **BLOB Creation and Storage**
    * A gRPC function named `CreateWorkspaceBlob` will be invoked by the TF-Controller 
-     to compress the Workspace file system into a tar.gz format, which is then retrieved
-     as a byte array.
+     to tell tf-runner to compress the Workspace file system into a tar.gz BLOB, which is then retrieved back to the controller.
    * The caching mechanism will be executed right before the Terraform Initialization step, ensuring that the latest and most relevant data is used.
    * Each Workspace Blob will be cached on the TF-Controller's local disk, using the UUID of the Terraform object as the filename,`${uuid}.tar.gz`.
-   * To prevent unauthorized access to the cache entries, and cache collisions, the cache file will be deleted after the finalization process is complete.
+   * To reduce the risk of unauthorized access to the cache entries, and cache collisions, the cache file will be deleted after the finalization process is complete.
 2. **Persistence** 
-   * The persistence mechanism used by the Source Controller will be adopted for the TF-Controller's persistence volume.
+   * [The persistence mechanism used by the Source Controller](https://fluxcd.io/flux/installation/configuration/vertical-scaling/#persistent-storage-for-flux-internal-artifacts) will be adopted for the TF-Controller's persistence volume.
 3. **BLOB Encryption**
    * The encryption and decryption of the BLOBs will be tasked to the runner, with the controller solely responsible for storing encrypted BLOBs.
    * Each namespace will require a service account, preferably named "tf-runner".
-   * The token of this service account, which is natively supported by Kubernetes, will serve as the most appropriate encryption key.
+   * The token of this service account, which is natively supported by Kubernetes, will serve as the most appropriate encryption key because it's stored in a Secret, access to which can be controlled by RBAC. Storing it in a Secret also allows the key to be rotated.
 4. **Security Measures (Based on STRIDE Analysis)**
    * **Spoofing:** Implement Kubernetes RBAC for access restrictions and use mutual authentication for gRPC communications.
    * **Tampering:** Use checksums for integrity verification and 0600 permissions to write-protect local disk storage.
@@ -46,14 +45,12 @@ A caching mechanism for these BLOBs is essential to fixing the single TF object 
    * **Elevation of Privilege:** Minimize permissions associated with service account tokens.
 5. **First MVP & Future Planning**
    * For the initial MVP, the default pod local volume will be used.
-   * Since a controller restart will erase the BLOB cache, it's essential to maintain data integrity and availability. 
-     Consideration for using persistent volumes should be made for subsequent versions.
+   * Since a controller restart will erase the BLOB cache, consideration for using persistent volumes should be made for subsequent versions.
 
 ## Consequence
 
 1. With the implementation of this architecture:
-   * The reliability of the Terraform resource deletion process will improved for the single object deletion scenario.
-   * Security measures will ensure the safety of the stored BLOBs, minimizing potential threats.
+   * Single object deletions will succeed in circumstances in which they previously got stuck.
+   * Security measures will ensure the safety of the new Workspace BLOB storage mechanics, minimizing potential risks.
 2. Using the default pod local volume might limit storage capabilities and risk data loss upon controller restart. This warrants the need for considering persistent volumes in future versions.
 3. Encryption and security measures will demand regular maintenance and monitoring, especially concerning key rotations and integrity checks.
-4. Given the complexity of this setup, the importance of robust documentation, including troubleshooting and recovery processes, becomes apparent.
