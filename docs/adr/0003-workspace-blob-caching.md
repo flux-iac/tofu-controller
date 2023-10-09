@@ -7,25 +7,20 @@
 
 ## Context
 
-The TF-Controller is being enhanced to address the resource deletion problem
-more efficiently using the contents of generated Workspace BLOBs.
-
-The TF-Controller currently faces challenges related to the deletion of Terraform resources. 
+The TF-Controller currently faces challenges related to the deletion of Terraform resources.
 These problems span across three categories:
-1. single resource deletion,
-2. resources with dependencies deletion, and
-3. namespace deletion.
 
-Implementing a robust Workspace BLOB caching mechanism is essential 
-for improving the reliability of the Terraform resource deletion process, for the single resource deletion scenarios.
+1. Single object deletion,
+2. Resources with dependencies deletion, and
+3. Namespace deletion.
 
-Currently, the TF-Controller downloads a Source BLOB and pushes it to a tf-runner.
-The tf-runner then processes this BLOB to create a Workspace file system.
-The tf-runner generates a backend configuration file, variable files, and other necessary files
-for the Workspace file system. This newly created Workspace file system is then compressed,
-sent back to the TF-Controller, and stored as a Workspace BLOB in the controller's storage.
-A clear caching mechanism for these BLOBs is essential to ensure efficiency, security, 
-and ease of access.
+These problems must be fixed in the above order as (2) and (3) require single object deletion to be resolved first.
+
+Deleting a single TF object can sometimes be obstructed because it's tied to other resources like Source objects, Secrets, and ConfigMaps. If we try to remove it without deleting these resources, the TF object gets stuck in an inconsistent state, making it harder for users to manage their infrastructure smoothly.
+Therefore, the TF-Controller is being enhanced to address this problem more efficiently, using the contents of generated Workspace BLOBs. Each BLOB contains all necessary information from the associated Source, Secrets, and ConfigMaps to ensure that TF-Controller finalization procedures can delete objects correctly.
+
+Currently, the TF-Controller downloads a Source BLOB and pushes it to a tf-runner. The tf-runner processes this BLOB to create a Workspace file system. It generates a backend configuration file, variable files, and other necessary files for the Workspace file system, using data from associated Secrets and ConfigMaps. This newly created Workspace file system is then compressed, sent back to the TF-Controller, and stored as a Workspace BLOB in the controller's storage.
+A caching mechanism for these BLOBs is essential to fixing the single TF object deletion process.
 
 ## Decision
 
@@ -57,7 +52,7 @@ and ease of access.
 ## Consequence
 
 1. With the implementation of this architecture:
-   * The reliability of the Terraform resource deletion process will improved for the single resource deletion scenario.
+   * The reliability of the Terraform resource deletion process will improved for the single object deletion scenario.
    * Security measures will ensure the safety of the stored BLOBs, minimizing potential threats.
 2. Using the default pod local volume might limit storage capabilities and risk data loss upon controller restart. This warrants the need for considering persistent volumes in future versions.
 3. Encryption and security measures will demand regular maintenance and monitoring, especially concerning key rotations and integrity checks.
