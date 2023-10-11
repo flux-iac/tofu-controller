@@ -71,6 +71,8 @@ func newRootCommand() *cobra.Command {
 
 	rootCmd.AddCommand(buildBreakTheGlassCmd(app))
 
+	rootCmd.AddCommand(buildLogsCmd())
+
 	return rootCmd
 }
 

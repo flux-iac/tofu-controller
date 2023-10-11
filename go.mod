@@ -1,6 +1,6 @@
 module github.com/weaveworks/tf-controller
 
-go 1.19
+go 1.20
 
 replace github.com/weaveworks/tf-controller/api => ./api
 
@@ -15,11 +15,12 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.38.5
 	github.com/cyphar/filepath-securejoin v0.2.4
 	github.com/elgohr/go-localstack v1.0.20
+	github.com/fluxcd/flux2/v2 v2.1.1
 	github.com/fluxcd/pkg/apis/event v0.5.2
 	github.com/fluxcd/pkg/apis/meta v1.1.2
 	github.com/fluxcd/pkg/runtime v0.42.0
 	github.com/fluxcd/pkg/untar v0.3.0
-	github.com/fluxcd/source-controller/api v1.1.0
+	github.com/fluxcd/source-controller/api v1.1.1
 	github.com/go-logr/logr v1.2.4
 	github.com/google/uuid v1.3.1
 	github.com/hashicorp/go-cleanhttp v0.5.2
@@ -94,9 +95,18 @@ require (
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fatih/color v1.13.0 // indirect
+	github.com/fluxcd/helm-controller/api v0.36.1 // indirect
+	github.com/fluxcd/image-automation-controller/api v0.36.1 // indirect
+	github.com/fluxcd/image-reflector-controller/api v0.30.0 // indirect
+	github.com/fluxcd/kustomize-controller/api v1.1.0 // indirect
+	github.com/fluxcd/notification-controller/api v1.1.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.1.0 // indirect
-	github.com/fluxcd/pkg/ssa v0.21.0 // indirect
+	github.com/fluxcd/pkg/apis/kustomize v1.1.1 // indirect
+	github.com/fluxcd/pkg/kustomize v1.3.4 // indirect
+	github.com/fluxcd/pkg/oci v0.31.0 // indirect
+	github.com/fluxcd/pkg/ssa v0.32.0 // indirect
 	github.com/fluxcd/pkg/tar v0.2.0 // indirect
+	github.com/fluxcd/pkg/version v0.2.2 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-logr/zapr v1.2.4 // indirect
@@ -109,6 +119,7 @@ require (
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/gnostic v0.6.9 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/google/go-containerregistry v0.16.1 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
@@ -125,7 +136,7 @@ require (
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
@@ -141,7 +152,7 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.0.2 // indirect
+	github.com/opencontainers/image-spec v1.1.0-rc3 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -167,6 +178,7 @@ require (
 	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/oauth2 v0.9.0 // indirect
+	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/term v0.12.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
@@ -184,7 +196,7 @@ require (
 	k8s.io/utils v0.0.0-20230505201702-9f6742963106 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/kustomize/api v0.13.5-0.20230601165947-6ce0bf390ce3 // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.3.0 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
