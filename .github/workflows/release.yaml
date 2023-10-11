@@ -12,7 +12,7 @@ on:
 
 permissions:
   contents: read # for actions/checkout to fetch code
-  LIBCRYTO_VERSION: "3.1.3-r0"
+  LIBCRYPTO_VERSION: "3.1.3-r0"
 
 env:
   CONTROLLER: ${{ github.event.repository.name }}
@@ -70,7 +70,7 @@ jobs:
           context: .
           file: ./Dockerfile
           build-args: |
-            LIBCRYTO_VERSION=${{ env.LIBCRYTO_VERSION }}
+            LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
             ghcr.io/weaveworks/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
@@ -90,7 +90,7 @@ jobs:
           context: .
           file: ./runner-base.Dockerfile
           build-args: |
-            LIBCRYTO_VERSION=${{ env.LIBCRYTO_VERSION }}
+            LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
             ghcr.io/weaveworks/tf-runner:${{ steps.prep.outputs.VERSION }}-base
@@ -152,7 +152,7 @@ jobs:
           context: .
           file: ./planner.Dockerfile
           build-args: |
-            LIBCRYTO_VERSION=${{ env.LIBCRYTO_VERSION }}
+            LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7 - azure-cli does not install correctly on 32 bit arm
           tags: |
             ghcr.io/weaveworks/branch-planner:${{ steps.prep.outputs.VERSION }}
