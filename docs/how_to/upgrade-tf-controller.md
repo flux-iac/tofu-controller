@@ -12,7 +12,7 @@ Please follow these steps to upgrade TF-Controller:
 8. Check your system logs to identify any potential issues.
 9. Push the changes you made.
 10. Resume your Terraform resources—either one-by-one for critical resources, or all of them with `tfctl resume --all`
-11. Ensure no changes are planned for deletion. TF-Controller has a flag to help prevent the deletion: `spec.destroyResourcesOnDeletion`. This is set to `false` by default.
+11. Ensure no changes are planned for deletion. If you changed the value in step 6 from `spec.destroyResourcesOnDeletion` to `false`, resources will not be automatically removed.
 12. Revert back to auto-approval mode after ensuring stability.
 13. Resume any suspended Kustomization objects to restore GitOps automation.
 
