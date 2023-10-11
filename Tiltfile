@@ -8,7 +8,7 @@ tfNamespace      = "terraform"
 buildSHA         = str(local('git rev-parse --short HEAD')).rstrip('\n')
 buildVersionRef  = str(local('git rev-list --tags --max-count=1')).rstrip('\n')
 buildVersion     = str(local("git describe --tags ${buildVersionRef}")).rstrip('\n')
-LIBCRYTO_VERSION = "3.1.3-r0"
+LIBCRYPTO_VERSION = "3.1.3-r0"
 
 if os.path.exists('Tiltfile.local'):
    include('Tiltfile.local')
@@ -66,7 +66,7 @@ docker_build(
   build_args={
     'BUILD_SHA': buildSHA,
     'BUILD_VERSION': buildVersion,
-    'LIBCRYTO_VERSION': LIBCRYTO_VERSION,
+    'LIBCRYPTO_VERSION': LIBCRYPTO_VERSION,
   })
 
 docker_build(
@@ -76,7 +76,7 @@ docker_build(
   build_args={
     'BUILD_SHA': buildSHA,
     'BUILD_VERSION': buildVersion,
-    'LIBCRYTO_VERSION': LIBCRYTO_VERSION,
+    'LIBCRYPTO_VERSION': LIBCRYPTO_VERSION,
   })
 
 # There are no resources using this image when tilt starts, but we still need
@@ -89,5 +89,5 @@ docker_build(
   build_args={
     'BUILD_SHA': buildSHA,
     'BUILD_VERSION': buildVersion,
-    'LIBCRYTO_VERSION': LIBCRYTO_VERSION,
+    'LIBCRYPTO_VERSION': LIBCRYPTO_VERSION,
   })
