@@ -9,7 +9,8 @@ Please follow these steps to upgrade TF-Controller:
 5. Upgrade Flux first, following [the Flux documentation](https://fluxcd.io/flux/installation/upgrade/).
 6. To prevent unintentional resource deletions, set the `spec.destroyResourcesOnDeletion` flag to `false` for critical or production systems (the default value is `false`)
 7. If the Flux upgrade goes well, proceed to upgrade the TF-controller via its image tag. Adjust the values in the HelmRelease to match the new version to which you are upgrading.
-8. Check your system logs to identify any potential issues.
+8. Check the pod logs for the TF-Controller deployment and any runner logs in order to identify potential issues. If you check the `warnings` in the logs, you can also identify any required API changes. For example:
+` v1alpha1 Terraform is deprecated, upgrade to v1alpha2`.
 9. Push the changes you made.
 10. Resume your Terraform resources—either one-by-one for critical resources, or all of them with `tfctl resume --all`
 11. Ensure no changes are planned for deletion. If you changed the value in step 6 from `spec.destroyResourcesOnDeletion` to `false`, resources will not be automatically removed.
