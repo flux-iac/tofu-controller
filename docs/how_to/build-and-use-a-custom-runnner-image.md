@@ -50,21 +50,21 @@ docker push $REMOTE_REPO:${TF_CONTROLLER_VERSION}
 
 (replacing the relevant values above with the corresponding values in your organisation/implementation)
 
-3. Update the `runnerImage` field in the tf-controller Helm chart values to point to the new image:
+3. Update the `values.runner.image` values in the tf-controller Helm chart values to point to the new image:
 
 ```yaml
 values:
   runner:
     image:
       repository: ghcr.io/my-org/custom-runnner
-      tag: v0.15.1
+      tag: v0.16.0-rc.3
 ```
 
 4. Commit and push the changes to git, and confirm that the HelmRelease has been updated:
 
 ```bash
 kubectl get deployments.apps -n flux-system tf-controller -o jsonpath='{.spec.template.spec.containers[*]}' | jq '.image'
-"ghcr.io/my-org/custom-runner:v0.15.1"
+"ghcr.io/my-org/custom-runner:v0.16.0-rc.3"
 ```
 
 ### References:
