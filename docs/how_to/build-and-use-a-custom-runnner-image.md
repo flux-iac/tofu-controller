@@ -1,15 +1,15 @@
 # Using a custom runner image for TF-Controller
 
-In order to build a custom runner image, you need to have a Dockerfile that extends the base image and adds Terraform, plus any additional tooling that may be needed.
-The repository which contains the base images is [here](ghcr.io/weaveworks/tf-runner) - all base image tags have the following format: `$TF_CONTROLLER_VERSION-base`
+In order to build a custom runner image, you need a Dockerfile that extends the base image and that adds Terraform, plus any additional required tooling.
+The repository that contains the base images is [here](ghcr.io/weaveworks/tf-runner). All base image tags follow the following format: `$TF_CONTROLLER_VERSION-base`
 
 ## Prerequisites
 
-docker and git are required to build the image.
+You need Docker and Git to build the image.
 
 ## Build the image
 
-1. Create a `Dockerfile` that extends the base image and adds Terraform, plus any additional tooling that may be needed. For example:
+1. Create a `Dockerfile` that extends the base image and that adds Terraform, plus any additional required tooling. For example:
 
 ```Dockerfile
 ARG BASE_IMAGE
@@ -30,9 +30,9 @@ RUN unzip -q /terraform_${TF_VERSION}_linux_${TARGETARCH}.zip -d /usr/local/bin/
 USER 65532:65532
 ```
 
-The original Dockerfile for the runner can be found [here](https://github.com/weaveworks/tf-controller/blob/89e0c7edde91efebba825b31e9f0ef3cc583684b/runner.Dockerfile)
+Find the original Dockerfile for the runner [here](https://github.com/weaveworks/tf-controller/blob/89e0c7edde91efebba825b31e9f0ef3cc583684b/runner.Dockerfile).
 
-2. Build the image (from the directory containing the `Dockerfile` you created above):
+2. Build the image from the directory containing the `Dockerfile` you created above:
 
 ```bash
 export TF_CONTROLLER_VERSION=v0.16.0-rc.3
@@ -48,9 +48,9 @@ docker tag my-custom-runner:${TF_CONTROLLER_VERSION} $REMOTE_REPO:${TF_CONTROLLE
 docker push $REMOTE_REPO:${TF_CONTROLLER_VERSION}
 ```
 
-(replacing the relevant values above with the corresponding values in your organisation/implementation)
+Replace the relevant values above with the corresponding values in your organisation/implementation.
 
-3. Update the `values.runner.image` values in the tf-controller Helm chart values to point to the new image:
+3. Update the `values.runner.image` values in the TF-Controller Helm chart values to point to the new image:
 
 ```yaml
 values:
@@ -60,7 +60,7 @@ values:
       tag: v0.16.0-rc.3
 ```
 
-4. Commit and push the changes to git, and confirm that the HelmRelease has been updated:
+4. Commit and push the changes to Git, and confirm that the HelmRelease has been updated:
 
 ```bash
 kubectl get deployments.apps -n flux-system tf-controller -o jsonpath='{.spec.template.spec.containers[*]}' | jq '.env[] | select(.name == "RUNNER_POD_IMAGE")'
@@ -70,7 +70,7 @@ kubectl get deployments.apps -n flux-system tf-controller -o jsonpath='{.spec.te
 }
 ```
 
-### References:
+### References
 
-There is a set of Github actions in the tf-controller community repo which facilitate a similar process to the above, but using Github actions to build and push the image.
-The actions can be found [here](https://github.com/tf-controller/tf-runner-images/blob/main/.github/workflows/release-runner-images.yaml)
+A set of GitHub actions in the TF-Controller community repo facilitate a process that's similar to the above, but using GitHub Actions to build and push the image.
+You can find them [here](https://github.com/tf-controller/tf-runner-images/blob/main/.github/workflows/release-runner-images.yaml).
