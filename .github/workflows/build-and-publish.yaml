@@ -45,12 +45,17 @@ jobs:
         id: prep
         run: |
           BRANCH=$(sed 's/\//-/g' <<< ${{ steps.branch-name.outputs.current_branch }})
+          BUILD_SHA=$(git rev-parse --short HEAD)
           VERSION="${BRANCH}-${GITHUB_SHA::8}"
+          BUILD_VERSION=${BRANCH}
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF/refs\/tags\//}
+            BUILD_VERSION=${VERSION}
           fi
           echo ::set-output name=BUILD_DATE::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
           echo ::set-output name=VERSION::${VERSION}
+          echo ::set-output name=BUILD_VERSION::${BUILD_VERSION}
+          echo ::set-output name=BUILD_SHA::${BUILD_SHA}
       - name: Setup QEMU
         uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
         with:
@@ -94,6 +99,8 @@ jobs:
           file: ./runner-base.Dockerfile
           build-args: |
             LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
+            BUILD_VERSION=${{ steps.prep.outputs.BUILD_VERSION }}
+            BUILD_SHA=${{ steps.prep.outputs.BUILD_SHA }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
             ghcr.io/weaveworks/tf-runner:${{ steps.prep.outputs.VERSION }}-base
