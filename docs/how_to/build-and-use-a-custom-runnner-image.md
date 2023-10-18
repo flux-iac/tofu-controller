@@ -63,8 +63,11 @@ values:
 4. Commit and push the changes to git, and confirm that the HelmRelease has been updated:
 
 ```bash
-kubectl get deployments.apps -n flux-system tf-controller -o jsonpath='{.spec.template.spec.containers[*]}' | jq '.image'
-"ghcr.io/my-org/custom-runner:v0.16.0-rc.3"
+kubectl get deployments.apps -n flux-system tf-controller -o jsonpath='{.spec.template.spec.containers[*]}' | jq '.env[] | select(.name == "RUNNER_POD_IMAGE")'
+{
+  "name": "RUNNER_POD_IMAGE",
+  "value": "ghcr.io/my-org/custom-runner:v0.16.0-rc3"
+}
 ```
 
 ### References:
