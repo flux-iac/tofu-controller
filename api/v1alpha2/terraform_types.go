@@ -943,7 +943,7 @@ func (in *Terraform) ShouldRetry() bool {
 		return true
 	}
 
-	return in.GetReconciliationFailures() <= in.Spec.Remediation.Retries
+	return in.GetReconciliationFailures() < in.Spec.Remediation.Retries
 }
 
 func (in *TerraformSpec) GetAlwaysCleanupRunnerPod() bool {

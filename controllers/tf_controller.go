@@ -295,6 +295,28 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		r.RecordReadiness(ctx, &terraform)
 	}
 
+	// Reset retry count if necessary.
+	revisionChanged := sourceObj.GetArtifact().Revision != terraform.Status.LastAttemptedRevision
+	generationChanges := terraform.Generation != terraform.Status.ObservedGeneration
+	if revisionChanged || generationChanges {
+		log.Info("Reset reconciliation failures count. Reason: resource changed")
+		terraform.ResetReconciliationFailures()
+		if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+			log.Error(err, "unable to update status after planing")
+			return ctrl.Result{Requeue: true}, err
+		}
+	}
+
+	if !terraform.ShouldRetry() {
+		log.Info(fmt.Sprintf(
+			"Resource reached maximum number of retries (%d/%d). Generation: %d",
+			terraform.GetReconciliationFailures(),
+			terraform.Spec.Remediation.Retries,
+			terraform.GetGeneration(),
+		))
+		return ctrl.Result{Requeue: false}, nil
+	}
+
 	if !isBeingDeleted(terraform) {
 		// case 1:
 		// If revision is changed, and there's no intend to apply,
@@ -432,6 +454,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// Check remediation.
 	if reconcileErr == nil {
+		log.Info("Reset reconciliation failures count. Reason: successful reconciliation")
 		reconciledTerraform.ResetReconciliationFailures()
 	} else {
 		reconciledTerraform.IncrementReconciliationFailures()
@@ -468,11 +491,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			sourceObj.GetArtifact().Revision)
 		traceLog.Info("Record an event for the failure")
 		r.event(ctx, *reconciledTerraform, sourceObj.GetArtifact().Revision, eventv1.EventSeverityError, reconcileErr.Error(), nil)
-
-		if !reconciledTerraform.ShouldRetry() {
-			log.Info(fmt.Sprintf("Resource reached maximum number of retries. Generation: %d", reconciledTerraform.GetGeneration()))
-			return ctrl.Result{Requeue: false}, nil
-		}
 
 		if reconciledTerraform.Spec.Remediation != nil {
 			log.Info(fmt.Sprintf(
