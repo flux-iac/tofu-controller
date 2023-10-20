@@ -429,6 +429,14 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	// reconcile Terraform by applying the latest revision
 	traceLog.Info("Run reconcile for the Terraform resource")
 	reconciledTerraform, reconcileErr := r.reconcile(ctx, runnerClient, *terraform.DeepCopy(), sourceObj, reconciliationLoopID)
+
+	// Check remediation.
+	if reconcileErr == nil {
+		reconciledTerraform.ResetReconciliationFailures()
+	} else {
+		reconciledTerraform.IncrementReconciliationFailures()
+	}
+
 	traceLog.Info("Patch the status of the Terraform resource")
 	if err := r.patchStatus(ctx, req.NamespacedName, reconciledTerraform.Status); err != nil {
 		log.Error(err, "unable to update status after the reconciliation is complete")
@@ -445,6 +453,11 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			terraform.GetRetryInterval().String()),
 			"revision",
 			sourceObj.GetArtifact().Revision)
+
+		if !terraform.ShouldRetry() {
+			return ctrl.Result{Requeue: false}, nil
+		}
+
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	} else if reconcileErr != nil {
 		// broadcast the reconciliation failure and requeue at the specified retry interval
@@ -455,7 +468,29 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			sourceObj.GetArtifact().Revision)
 		traceLog.Info("Record an event for the failure")
 		r.event(ctx, *reconciledTerraform, sourceObj.GetArtifact().Revision, eventv1.EventSeverityError, reconcileErr.Error(), nil)
-		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
+
+		if !reconciledTerraform.ShouldRetry() {
+			log.Info(fmt.Sprintf("Resource reached maximum number of retries. Generation: %d", reconciledTerraform.GetGeneration()))
+			return ctrl.Result{Requeue: false}, nil
+		}
+
+		if reconciledTerraform.Spec.Remediation != nil {
+			log.Info(fmt.Sprintf(
+				"Reconciliation failed, retry (%d/%d) after %s. Generation: %d",
+				reconciledTerraform.GetReconciliationFailures(),
+				reconciledTerraform.Spec.Remediation.Retries,
+				reconciledTerraform.GetRetryInterval(),
+				reconciledTerraform.GetGeneration(),
+			))
+		} else {
+			log.Info(fmt.Sprintf(
+				"Reconciliation failed, retry after %s. Generation: %d",
+				reconciledTerraform.GetRetryInterval(),
+				reconciledTerraform.GetGeneration(),
+			))
+		}
+
+		return ctrl.Result{RequeueAfter: reconciledTerraform.GetRetryInterval()}, nil
 	}
 
 	log.Info(fmt.Sprintf("Reconciliation completed. Generation: %d", reconciledTerraform.GetGeneration()))
