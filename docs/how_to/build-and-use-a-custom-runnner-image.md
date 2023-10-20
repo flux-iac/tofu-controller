@@ -1,7 +1,7 @@
 # Using a custom runner image for TF-Controller
 
 In order to build a custom runner image, you need a Dockerfile that extends the base image and that adds Terraform, plus any additional required tooling.
-The repository that contains the base images is [here](ghcr.io/weaveworks/tf-runner). All base image tags follow the following format: `$TF_CONTROLLER_VERSION-base`
+The repository that contains the base images is [here](ghcr.io/weaveworks/tf-runner). All base image tags follow the following format: `${TF_CONTROLLER_VERSION}-base`
 
 ## Prerequisites
 
