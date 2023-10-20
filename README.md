@@ -16,6 +16,10 @@ TF-controller offers many GitOps models:
   3. **State Enforcement Model:** You have a TFSTATE file, and you'd like to use GitOps enforce it, without changing anything else.
   4. **Drift Detection Model:** You have a TFSTATE file, and you'd like to use GitOps just for drift detection, so you can decide to do things later when a drift occurs.
 
+## Get in touch
+
+If you have a feature request to share or a bug to report, please file an issue. You can also reach out via our [TF-Controller Slack channel](https://app.slack.com/client/T2NDH1D9D/C054MR4UP88)—get there by first joining the [Weave Community Slack space](https://weave-community.slack.com).
+
 ## Quickstart and documentation
 
 To get started check out this [guide](https://weaveworks.github.io/tf-controller/getting_started/) on how to GitOps your Terraform resources with TF-controller and Flux.
