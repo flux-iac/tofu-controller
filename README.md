@@ -18,7 +18,7 @@ TF-controller offers many GitOps models:
 
 ## Get in touch
 
-If you have a feature request to share or a bug to report, please file an issue. You can also reach out via our [TF-Controller Slack channel](https://app.slack.com/client/T2NDH1D9D/C054MR4UP88)—get there by first joining the [Weave Community Slack space](https://weave-community.slack.com).
+If you have a feature request to share or a bug to report, please file an issue. You can also reach out via our [TF-Controller Slack channel](https://weave-community.slack.com/archives/C054MR4UP88) — get there by first joining the [Weave Community Slack space](https://weave-community.slack.com).
 
 ## Quickstart and documentation
 
