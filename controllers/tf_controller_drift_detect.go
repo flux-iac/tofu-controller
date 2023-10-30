@@ -26,6 +26,11 @@ func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, rev
 		return false
 	}
 
+	// whenever we are in manual mode, we do not do drift detection
+	if terraform.Spec.IsManualMode() {
+		return false
+	}
+
 	// new object
 	if terraform.Status.LastAppliedRevision == "" &&
 		terraform.Status.LastPlannedRevision == "" &&

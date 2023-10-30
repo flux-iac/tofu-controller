@@ -898,6 +898,10 @@ func (in *TerraformSpec) GetAlwaysCleanupRunnerPod() bool {
 	return *in.AlwaysCleanupRunnerPod
 }
 
+func (in TerraformSpec) IsManualMode() bool {
+	return in.ApprovePlan == "" || (in.ApprovePlan != ApprovePlanDisableValue && in.ApprovePlan != ApprovePlanAutoValue)
+}
+
 func (c *CloudSpec) IsValid() bool {
 	if c.Organization == "" {
 		return false
