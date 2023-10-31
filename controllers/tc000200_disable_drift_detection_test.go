@@ -34,6 +34,7 @@ func Test_000200_disable_drift_detection(t *testing.T) {
 	tf2 := infrav1.Terraform{
 		Spec: infrav1.TerraformSpec{
 			DisableDriftDetection: false,
+			ApprovePlan:           infrav1.ApprovePlanAutoValue,
 		},
 		Status: infrav1.TerraformStatus{
 			LastAttemptedRevision: "main/2345",

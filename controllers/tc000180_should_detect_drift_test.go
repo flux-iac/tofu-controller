@@ -32,7 +32,8 @@ func Test_000180_should_detect_drift_test(t *testing.T) {
 
 	tf3 := infrav1.Terraform{
 		Spec: infrav1.TerraformSpec{
-			Destroy: false,
+			Destroy:     false,
+			ApprovePlan: infrav1.ApprovePlanAutoValue,
 		},
 		Status: infrav1.TerraformStatus{
 			LastAttemptedRevision: "main/1234",
@@ -48,7 +49,8 @@ func Test_000180_should_detect_drift_test(t *testing.T) {
 
 	tf4 := infrav1.Terraform{
 		Spec: infrav1.TerraformSpec{
-			Destroy: false,
+			Destroy:     false,
+			ApprovePlan: infrav1.ApprovePlanAutoValue,
 		},
 		Status: infrav1.TerraformStatus{
 			LastAttemptedRevision: "main/2345",
@@ -64,7 +66,8 @@ func Test_000180_should_detect_drift_test(t *testing.T) {
 
 	tf5 := infrav1.Terraform{
 		Spec: infrav1.TerraformSpec{
-			Destroy: false,
+			Destroy:     false,
+			ApprovePlan: infrav1.ApprovePlanAutoValue,
 		},
 		Status: infrav1.TerraformStatus{
 			LastAttemptedRevision: "main/2345",
