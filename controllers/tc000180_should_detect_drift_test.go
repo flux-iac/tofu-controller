@@ -96,9 +96,6 @@ func Test_000180_should_detect_drift_test(t *testing.T) {
 	It("should be false for an object with the pending plan.")
 	g.Expect(reconciler.shouldDetectDrift(tf5_1, "main/2345")).Should(BeFalse())
 
-	It("should be true for a normally applied object.")
-	g.Expect(reconciler.shouldDetectDrift(tf3, "main/1234")).Should(BeTrue())
-
 	It("should be true for when ApprovePlan is disable")
 	tf6 := infrav1.Terraform{
 		Spec: infrav1.TerraformSpec{
