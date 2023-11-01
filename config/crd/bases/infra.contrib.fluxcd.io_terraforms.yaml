@@ -4617,9 +4617,10 @@ spec:
                     type: string
                   lockTimeout:
                     default: 0s
-                    description: LockTimeout is a Duration string that will allow
-                      a Terraform resource to retry plan/apply before resulting in
-                      a failure.
+                    description: LockTimeout is a Duration string that instructs Terraform
+                      to retry acquiring a lock for the specified period of time before
+                      returning an error. The duration syntax is a number followed
+                      by a time unit letter, such as `3s` for three seconds.
                     type: string
                 type: object
               values:
@@ -9835,9 +9836,10 @@ spec:
                     type: string
                   lockTimeout:
                     default: 0s
-                    description: LockTimeout is a Duration string that will allow
-                      a Terraform resource to retry plan/apply before resulting in
-                      a failure.
+                    description: LockTimeout is a Duration string that instructs Terraform
+                      to retry acquiring a lock for the specified period of time before
+                      returning an error. The duration syntax is a number followed
+                      by a time unit letter, such as `3s` for three seconds.
                     type: string
                 type: object
               values:
