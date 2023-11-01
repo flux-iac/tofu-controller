@@ -479,6 +479,16 @@ type TFStateSpec struct {
 	//
 	// +optional
 	LockIdentifier string `json:"lockIdentifier,omitempty"`
+
+	// LockTimeout is a Duration string that instructs Terraform to retry acquiring a lock for the specified period of
+	// time before returning an error. The duration syntax is a number followed by a time unit letter, such as `3s` for
+	// three seconds.
+	//
+	// Defaults to `0s` which will behave as though `LockTimeout` was not set
+	//
+	// +optional
+	// +kubebuilder:default:string="0s"
+	LockTimeout metav1.Duration `json:"lockTimeout,omitempty"`
 }
 
 type ForceUnlockEnum string

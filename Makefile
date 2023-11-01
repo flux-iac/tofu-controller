@@ -1,4 +1,4 @@
-
+.DEFAULT_GOAL := help
 # Image URL to use all building/pushing image targets
 MANAGER_IMG ?= ghcr.io/weaveworks/tf-controller
 RUNNER_IMG  ?= ghcr.io/weaveworks/tf-runner
@@ -118,13 +118,13 @@ gen-grpc:
 build: gen-grpc generate fmt vet ## Build manager binary.
 	go build -o bin/runner \
 		-ldflags "-X main.BuildSHA=$(BUILD_SHA) -X main.BuildVersion=$(BUILD_VERSION)" \
-		cmd/runner/main.go
+		./cmd/runner
 	go build -o bin/manager \
 		-ldflags "-X main.BuildSHA=$(BUILD_SHA) -X main.BuildVersion=$(BUILD_VERSION)" \
-		cmd/manager/main.go
+		./cmd/manager
 	go build -o bin/tfctl \
 		-ldflags "-X main.BuildSHA=$(BUILD_SHA) -X main.BuildVersion=$(BUILD_VERSION)" \
-		cmd/tfctl/main.go
+		./cmd/tfctl
 
 .PHONY: install-cli
 install-cli:

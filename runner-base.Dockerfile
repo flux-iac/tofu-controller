@@ -20,14 +20,14 @@ COPY go.sum go.sum
 RUN go mod download
 
 # Copy the go source
-COPY cmd/runner/main.go cmd/runner/main.go
+COPY cmd/runner/ cmd/runner/
 COPY controllers/ controllers/
 COPY mtls/ mtls/
 COPY runner/ runner/
 COPY utils/ utils/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -gcflags=all="-N -l" -a -o tf-runner cmd/runner/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -gcflags=all="-N -l" -a -o tf-runner ./cmd/runner
 
 FROM alpine:3.18
 
