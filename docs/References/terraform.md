@@ -1310,6 +1310,7 @@ Kubernetes meta/v1.Duration
 <p>LockTimeout is a Duration string that instructs Terraform to retry acquiring a lock for the specified period of
 time before returning an error. The duration syntax is a number followed by a time unit letter, such as <code>3s</code> for
 three seconds.</p>
+<p>Defaults to <code>0s</code> which will behave as though <code>LockTimeout</code> was not set</p>
 </td>
 </tr>
 </tbody>
