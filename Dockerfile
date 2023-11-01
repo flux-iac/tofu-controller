@@ -21,7 +21,7 @@ COPY go.sum go.sum
 RUN go mod download
 
 # Copy the go source
-COPY cmd/manager/main.go cmd/manager/main.go
+COPY cmd/manager/ cmd/manager/
 COPY controllers/ controllers/
 COPY mtls/ mtls/
 COPY runner/ runner/
@@ -31,7 +31,7 @@ COPY utils/ utils/
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} \
       go build -gcflags=all="-N -l" \
         -ldflags "-X main.BuildSHA='${BUILD_SHA}' -X main.BuildVersion='${BUILD_VERSION}'" \
-        -a -o tf-controller cmd/manager/main.go
+        -a -o tf-controller ./cmd/manager
 
 FROM alpine:3.18
 
