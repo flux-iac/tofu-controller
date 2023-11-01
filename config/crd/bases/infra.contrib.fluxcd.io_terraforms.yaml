@@ -9827,6 +9827,15 @@ spec:
                       ID: [value]`, e.g. `f2ab685b-f84d-ac0b-a125-378a22877e8d`, to
                       force unlock the state."
                     type: string
+                  lockTimeout:
+                    default: 0s
+                    description: "LockTimeout is a Duration string that instructs
+                      Terraform to retry acquiring a lock for the specified period
+                      of time before returning an error. The duration syntax is a
+                      number followed by a time unit letter, such as `3s` for three
+                      seconds. \n Defaults to `0s` which will behave as though `LockTimeout`
+                      was not set"
+                    type: string
                 type: object
               values:
                 description: Values map to the Terraform variable "values", which
