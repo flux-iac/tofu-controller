@@ -1296,6 +1296,22 @@ either <code>yes</code> or <code>auto</code>.</p>
 e.g. <code>f2ab685b-f84d-ac0b-a125-378a22877e8d</code>, to force unlock the state.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>lockTimeout</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>LockTimeout is a Duration string that instructs Terraform to retry acquiring a lock for the specified period of
+time before returning an error. The duration syntax is a number followed by a time unit letter, such as <code>3s</code> for
+three seconds.</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>

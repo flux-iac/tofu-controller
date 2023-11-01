@@ -4615,6 +4615,12 @@ spec:
                       ID: [value]`, e.g. `f2ab685b-f84d-ac0b-a125-378a22877e8d`, to
                       force unlock the state."
                     type: string
+                  lockTimeout:
+                    default: 0s
+                    description: LockTimeout is a Duration string that will allow
+                      a Terraform resource to retry plan/apply before resulting in
+                      a failure.
+                    type: string
                 type: object
               values:
                 description: Values map to the Terraform variable "values", which
@@ -9826,6 +9832,12 @@ spec:
                       empty to do nothing, set this to the value of the `Lock Info:
                       ID: [value]`, e.g. `f2ab685b-f84d-ac0b-a125-378a22877e8d`, to
                       force unlock the state."
+                    type: string
+                  lockTimeout:
+                    default: 0s
+                    description: LockTimeout is a Duration string that will allow
+                      a Terraform resource to retry plan/apply before resulting in
+                      a failure.
                     type: string
                 type: object
               values:
