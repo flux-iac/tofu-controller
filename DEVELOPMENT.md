@@ -18,16 +18,19 @@ to merge them for you after reviews.
 
 ## Protobuf Setup
 
-TF-controller requires a specific version of Protobuf compiler and its Go plugins. 
+TF-controller requires a specific version of Protobuf compiler and its Go plugins.
 
 * Protoc: version [3.19.4](https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip)
 * Go plugin: `go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.27.1`
 * Go plugin: `go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2`
 
+These can be installed by running `make tools`.
+
 ## How to run the test suite
 
 Prerequisites:
-* go = 1.19.x
+
+* go = 1.20.x
 * kubebuilder = 3.6.x
 * controller-gen = 0.8.x
 * kustomize = 4.x
@@ -44,6 +47,7 @@ If you get an error stating "etcd" not found then run:
 ```bash
 make install-envtest
 ```
+
 and then retry `make test`
 
 ## GRPC
@@ -63,6 +67,7 @@ make gen-grpc
 ```
 
 to update the the generated `runner.pg.go` data.
+
 ## How to run the controller locally
 
 Install flux on your test cluster:
@@ -127,7 +132,6 @@ make docker-push
 
 **Note**: `make docker-build` will build an image for the `amd64` architecture.
 
-
 ### Deploying into a cluster
 
 Deploy `tf-controller` into the cluster that is configured in the local kubeconfig file (i.e. `~/.kube/config`):
@@ -152,15 +156,15 @@ To discuss ideas and specifications we use [Github Discussions](https://github.c
 
 These things will make a PR more likely to be accepted:
 
-- a well-described requirement
-- tests for new code
-- tests for old code!
-- new code and tests follow the conventions in old code and tests
-- a good commit message (see below)
-- all code must abide [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
-- names should abide [What's in a name](https://talks.golang.org/2014/names.slide#1)
-- code must build on both Linux and Darwin, via plain `go build`
-- code should have appropriate test coverage and tests should be written
+* a well-described requirement
+* tests for new code
+* tests for old code!
+* new code and tests follow the conventions in old code and tests
+* a good commit message (see below)
+* all code must abide [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
+* names should abide [What's in a name](https://talks.golang.org/2014/names.slide#1)
+* code must build on both Linux and Darwin, via plain `go build`
+* code should have appropriate test coverage and tests should be written
   to work with `go test`
 
 In general, we will merge a PR once one maintainer has endorsed it.
@@ -171,9 +175,9 @@ get asked to resubmit the PR or divide the changes into more than one PR.
 
 We prefer the following rules for good commit messages:
 
-- Limit the subject to 50 characters and write as the continuation
+* Limit the subject to 50 characters and write as the continuation
   of the sentence "If applied, this commit will ..."
-- Explain what and why in the body, if more than a trivial change;
+* Explain what and why in the body, if more than a trivial change;
   wrap it at 72 characters.
 
 The [following article](https://chris.beams.io/posts/git-commit/#seven-rules)
