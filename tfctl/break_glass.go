@@ -11,7 +11,7 @@ import (
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/rest"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -63,7 +63,7 @@ func (c *CLI) BreakTheGlass(out io.Writer, resource string) error {
 		return err
 	}
 
-	shell(context.TODO(), c.restConfig, tfObject)
+	shell(context.TODO(), c.kubeconfigArgs, tfObject)
 
 	return nil
 }
@@ -104,14 +104,43 @@ func removeBreakingTheGlass(ctx context.Context, kubeClient client.Client, names
 	})
 }
 
-func shell(ctx context.Context, restConfig *rest.Config, tfObject types.NamespacedName) error {
-	// kubectl exec --stdin --tty -n flux-system helloworld-tf-tf-runner -- /bin/sh
+func shell(ctx context.Context, kubeconfigArgs *genericclioptions.ConfigFlags, tfObject types.NamespacedName) error {
 	podName := tfObject.Name + "-tf-runner"
 	namespace := tfObject.Namespace
 
-	cmd := exec.Command("kubectl", "exec",
-		"--stdin", "--tty", "-n", namespace, podName,
-		"--", "/bin/sh", "-c", "cd /tmp/"+tfObject.Namespace+"-"+tfObject.Name+" && /bin/sh && rm /tmp/.break-glass")
+	// set basic arguments for exec
+	cmdArgs := []string{"exec", "--stdin", "--tty"}
+
+	// add Namespace
+	cmdArgs = append(cmdArgs, "-n", namespace)
+
+	// add Context if set
+	if kubeconfigArgs.Context != nil {
+		cmdArgs = append(cmdArgs, "--context", *kubeconfigArgs.Context)
+	}
+
+	// add Cluster Name if set
+	if kubeconfigArgs.ClusterName != nil {
+		cmdArgs = append(cmdArgs, "--cluster", *kubeconfigArgs.ClusterName)
+	}
+
+	// add Kubeconfig file if set
+	if kubeconfigArgs.KubeConfig != nil {
+		cmdArgs = append(cmdArgs, "--kubeconfig", *kubeconfigArgs.KubeConfig)
+	}
+
+	// add APIServer if set
+	if kubeconfigArgs.APIServer != nil {
+		cmdArgs = append(cmdArgs, "--server", *kubeconfigArgs.APIServer)
+	}
+
+	// add podName of the runner
+	cmdArgs = append(cmdArgs, podName)
+
+	// add command to run for break-glass
+	cmdArgs = append(cmdArgs, "--", "/bin/sh", "-c", "cd /tmp/"+tfObject.Namespace+"-"+tfObject.Name+" && /bin/sh && rm /tmp/.break-glass")
+
+	cmd := exec.Command("kubectl", cmdArgs...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
