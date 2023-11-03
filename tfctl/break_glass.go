@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"strconv"
 	"time"
 
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
@@ -116,89 +115,89 @@ func shell(ctx context.Context, kubeconfigArgs *genericclioptions.ConfigFlags, t
 	cmdArgs = append(cmdArgs, "--namespace", namespace)
 
 	// add Username if set
-	if kubeconfigArgs.Username != nil {
+	if kubeconfigArgs.Username != nil && *kubeconfigArgs.Username != "" {
 		cmdArgs = append(cmdArgs, "--as", *kubeconfigArgs.Username)
 	}
 
 	// add ImpersonateGroup(s) if set
-	if kubeconfigArgs.ImpersonateGroup != nil {
+	if kubeconfigArgs.ImpersonateGroup != nil && len(*kubeconfigArgs.ImpersonateGroup) != 0 {
 		for _, group := range *kubeconfigArgs.ImpersonateGroup {
 			cmdArgs = append(cmdArgs, "--as-group", group)
 		}
 	}
 
 	// add ImpersonateUID if set
-	if kubeconfigArgs.ImpersonateUID != nil {
+	if kubeconfigArgs.ImpersonateUID != nil && *kubeconfigArgs.ImpersonateUID != "" {
 		cmdArgs = append(cmdArgs, "--as-uid", *kubeconfigArgs.ImpersonateUID)
 	}
 
 	// add CacheDir if set
-	if kubeconfigArgs.CacheDir != nil {
+	if kubeconfigArgs.CacheDir != nil && *kubeconfigArgs.CacheDir != "" {
 		cmdArgs = append(cmdArgs, "--cache-dir", *kubeconfigArgs.CacheDir)
 	}
 
 	// add CAFile if set
-	if kubeconfigArgs.CAFile != nil {
+	if kubeconfigArgs.CAFile != nil && *kubeconfigArgs.CAFile != "" {
 		cmdArgs = append(cmdArgs, "--certificate-authority", *kubeconfigArgs.CAFile)
 	}
 
 	// add CertFile if set
-	if kubeconfigArgs.CertFile != nil {
+	if kubeconfigArgs.CertFile != nil && *kubeconfigArgs.CertFile != "" {
 		cmdArgs = append(cmdArgs, "--client-certificate", *kubeconfigArgs.CertFile)
 	}
 
 	// add KeyFile if set
-	if kubeconfigArgs.KeyFile != nil {
+	if kubeconfigArgs.KeyFile != nil && *kubeconfigArgs.KeyFile != "" {
 		cmdArgs = append(cmdArgs, "--client-key", *kubeconfigArgs.KeyFile)
 	}
 
 	// add ClusterName if set
-	if kubeconfigArgs.ClusterName != nil {
+	if kubeconfigArgs.ClusterName != nil && *kubeconfigArgs.ClusterName != "" {
 		cmdArgs = append(cmdArgs, "--cluster", *kubeconfigArgs.ClusterName)
 	}
 
 	// add Context if set
-	if kubeconfigArgs.Context != nil {
+	if kubeconfigArgs.Context != nil && *kubeconfigArgs.Context != "" {
 		cmdArgs = append(cmdArgs, "--context", *kubeconfigArgs.Context)
 	}
 
 	// add DisableCompression if set
-	if kubeconfigArgs.DisableCompression != nil {
-		cmdArgs = append(cmdArgs, "--disable-compression", strconv.FormatBool(*kubeconfigArgs.DisableCompression))
+	if kubeconfigArgs.DisableCompression != nil && *kubeconfigArgs.DisableCompression {
+		cmdArgs = append(cmdArgs, "--disable-compression")
 	}
 
 	// add Insecure if set
-	if kubeconfigArgs.Insecure != nil {
-		cmdArgs = append(cmdArgs, "--insecure-skip-tls-verify", strconv.FormatBool(*kubeconfigArgs.Insecure))
+	if kubeconfigArgs.Insecure != nil && *kubeconfigArgs.Insecure {
+		cmdArgs = append(cmdArgs, "--insecure-skip-tls-verify")
 	}
 
 	// add Kubeconfig file if set
-	if kubeconfigArgs.KubeConfig != nil {
+	if kubeconfigArgs.KubeConfig != nil && *kubeconfigArgs.KubeConfig != "" {
 		cmdArgs = append(cmdArgs, "--kubeconfig", *kubeconfigArgs.KubeConfig)
 	}
 
 	// add Timeout if set
-	if kubeconfigArgs.Timeout != nil {
+	if kubeconfigArgs.Timeout != nil && *kubeconfigArgs.Timeout != "" {
 		cmdArgs = append(cmdArgs, "--request-timeout", *kubeconfigArgs.Timeout)
 	}
 
 	// add APIServer if set
-	if kubeconfigArgs.APIServer != nil {
+	if kubeconfigArgs.APIServer != nil && *kubeconfigArgs.APIServer != "" {
 		cmdArgs = append(cmdArgs, "--server", *kubeconfigArgs.APIServer)
 	}
 
 	// add TLSServerName if set
-	if kubeconfigArgs.TLSServerName != nil {
+	if kubeconfigArgs.TLSServerName != nil && *kubeconfigArgs.TLSServerName != "" {
 		cmdArgs = append(cmdArgs, "--tls-server-name", *kubeconfigArgs.TLSServerName)
 	}
 
 	// add BearerToken if set
-	if kubeconfigArgs.BearerToken != nil {
+	if kubeconfigArgs.BearerToken != nil && *kubeconfigArgs.BearerToken != "" {
 		cmdArgs = append(cmdArgs, "--token", *kubeconfigArgs.BearerToken)
 	}
 
 	// add AuthInfoName if set
-	if kubeconfigArgs.AuthInfoName != nil {
+	if kubeconfigArgs.AuthInfoName != nil && *kubeconfigArgs.AuthInfoName != "" {
 		cmdArgs = append(cmdArgs, "--user", *kubeconfigArgs.AuthInfoName)
 	}
 
