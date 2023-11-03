@@ -27,8 +27,9 @@ Inline variables can be set using `vars`. The `varsFrom` field accepts a list of
 You may use the `varsKeys` property of `varsFrom` to select specific keys from the input or omit this field
 to select all keys from the input source.
 
-Note that in the case of the same variable key being passed multiple times, the controller will use
-the lattermost instance of the key passed to `varsFrom`.
+Values from `varsFrom` are always read first and then values from `vars` are read. If the same key is used in `varsFrom`
+as in `vars`, the value from `varsFrom` will be overwritten. This mechanism allows us to have the global variables set 
+once in one of the ConfigMaps or Secrets, and if necessary we can overwrite the value directly in the Terraform object.
 
 ```yaml hl_lines="15-20 22-28"
 apiVersion: infra.contrib.fluxcd.io/v1alpha2

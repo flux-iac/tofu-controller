@@ -243,13 +243,6 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 		vars["values"] = &apiextensionsv1.JSON{Raw: buf.Bytes()}
 	}
 
-	log.Info("mapping the Spec.Vars")
-	if len(terraform.Spec.Vars) > 0 {
-		for _, v := range terraform.Spec.Vars {
-			vars[v.Name] = v.Value
-		}
-	}
-
 	log.Info("mapping the Spec.VarsFrom")
 	// varsFrom overwrite vars
 	for _, vf := range terraform.Spec.VarsFrom {
@@ -341,6 +334,13 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 					}
 				}
 			}
+		}
+	}
+
+	log.Info("mapping the Spec.Vars")
+	if len(terraform.Spec.Vars) > 0 {
+		for _, v := range terraform.Spec.Vars {
+			vars[v.Name] = v.Value
 		}
 	}
 

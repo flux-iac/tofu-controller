@@ -151,7 +151,7 @@ func Test_000090_varsfrom_override_and_controlled_outputs_test(t *testing.T) {
 	expectedOutputValue := map[string]string{
 		"Name":        "tf-output-" + terraformName,
 		"Namespace":   "flux-system",
-		"Value":       "Hello, my overridden cat!",
+		"Value":       "Hello, my cat!",
 		"OwnerRef[0]": string(createdHelloWorldTF.UID),
 	}
 	g.Eventually(func() (map[string]string, error) {
