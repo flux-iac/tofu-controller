@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strconv"
 	"time"
 
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
@@ -112,16 +113,63 @@ func shell(ctx context.Context, kubeconfigArgs *genericclioptions.ConfigFlags, t
 	cmdArgs := []string{"exec", "--stdin", "--tty"}
 
 	// add Namespace
-	cmdArgs = append(cmdArgs, "-n", namespace)
+	cmdArgs = append(cmdArgs, "--namespace", namespace)
+
+	// add Username if set
+	if kubeconfigArgs.Username != nil {
+		cmdArgs = append(cmdArgs, "--as", *kubeconfigArgs.Username)
+	}
+
+	// add ImpersonateGroup(s) if set
+	if kubeconfigArgs.ImpersonateGroup != nil {
+		for _, group := range *kubeconfigArgs.ImpersonateGroup {
+			cmdArgs = append(cmdArgs, "--as-group", group)
+		}
+	}
+
+	// add ImpersonateUID if set
+	if kubeconfigArgs.ImpersonateUID != nil {
+		cmdArgs = append(cmdArgs, "--as-uid", *kubeconfigArgs.ImpersonateUID)
+	}
+
+	// add CacheDir if set
+	if kubeconfigArgs.CacheDir != nil {
+		cmdArgs = append(cmdArgs, "--cache-dir", *kubeconfigArgs.CacheDir)
+	}
+
+	// add CAFile if set
+	if kubeconfigArgs.CAFile != nil {
+		cmdArgs = append(cmdArgs, "--certificate-authority", *kubeconfigArgs.CAFile)
+	}
+
+	// add CertFile if set
+	if kubeconfigArgs.CertFile != nil {
+		cmdArgs = append(cmdArgs, "--client-certificate", *kubeconfigArgs.CertFile)
+	}
+
+	// add KeyFile if set
+	if kubeconfigArgs.KeyFile != nil {
+		cmdArgs = append(cmdArgs, "--client-key", *kubeconfigArgs.KeyFile)
+	}
+
+	// add ClusterName if set
+	if kubeconfigArgs.ClusterName != nil {
+		cmdArgs = append(cmdArgs, "--cluster", *kubeconfigArgs.ClusterName)
+	}
 
 	// add Context if set
 	if kubeconfigArgs.Context != nil {
 		cmdArgs = append(cmdArgs, "--context", *kubeconfigArgs.Context)
 	}
 
-	// add Cluster Name if set
-	if kubeconfigArgs.ClusterName != nil {
-		cmdArgs = append(cmdArgs, "--cluster", *kubeconfigArgs.ClusterName)
+	// add DisableCompression if set
+	if kubeconfigArgs.DisableCompression != nil {
+		cmdArgs = append(cmdArgs, "--disable-compression", strconv.FormatBool(*kubeconfigArgs.DisableCompression))
+	}
+
+	// add Insecure if set
+	if kubeconfigArgs.Insecure != nil {
+		cmdArgs = append(cmdArgs, "--insecure-skip-tls-verify", strconv.FormatBool(*kubeconfigArgs.Insecure))
 	}
 
 	// add Kubeconfig file if set
@@ -129,9 +177,29 @@ func shell(ctx context.Context, kubeconfigArgs *genericclioptions.ConfigFlags, t
 		cmdArgs = append(cmdArgs, "--kubeconfig", *kubeconfigArgs.KubeConfig)
 	}
 
+	// add Timeout if set
+	if kubeconfigArgs.Timeout != nil {
+		cmdArgs = append(cmdArgs, "--request-timeout", *kubeconfigArgs.Timeout)
+	}
+
 	// add APIServer if set
 	if kubeconfigArgs.APIServer != nil {
 		cmdArgs = append(cmdArgs, "--server", *kubeconfigArgs.APIServer)
+	}
+
+	// add TLSServerName if set
+	if kubeconfigArgs.TLSServerName != nil {
+		cmdArgs = append(cmdArgs, "--tls-server-name", *kubeconfigArgs.TLSServerName)
+	}
+
+	// add BearerToken if set
+	if kubeconfigArgs.BearerToken != nil {
+		cmdArgs = append(cmdArgs, "--token", *kubeconfigArgs.BearerToken)
+	}
+
+	// add AuthInfoName if set
+	if kubeconfigArgs.AuthInfoName != nil {
+		cmdArgs = append(cmdArgs, "--user", *kubeconfigArgs.AuthInfoName)
 	}
 
 	// add podName of the runner
