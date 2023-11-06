@@ -262,7 +262,7 @@ type TerraformSpec struct {
 	// +optional
 	BranchPlanner *BranchPlanner `json:"branchPlanner,omitempty"`
 
-	// Remediation holds the remediation configuration for when the reconciliation
+	// Remediation specifies what the controller should do when reconciliation
 	// fails. The default is to not perform any action.
 	// +optional
 	Remediation *Remediation `json:"remediation,omitempty"`
@@ -278,7 +278,7 @@ type BranchPlanner struct {
 
 type Remediation struct {
 	// Retries is the number of retries that should be attempted on failures
-	// before bailing. Defaults to '0', a negative integer equals to unlimited
+	// before bailing. Defaults to '0', a negative integer denotes unlimited
 	// retries.
 	// +optional
 	Retries int64 `json:"retries,omitempty"`
@@ -400,8 +400,8 @@ type TerraformStatus struct {
 	// +optional
 	Lock LockStatus `json:"lock,omitempty"`
 
-	// ReconciliationFailures is the counter to track the number of reconciliation
-	// failures.
+	// ReconciliationFailures is the number of reconciliation
+	// failures since the last success or update.
 	// +optional
 	ReconciliationFailures int64 `json:"reconciliationFailures,omitempty"`
 }

@@ -302,7 +302,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		log.Info("Reset reconciliation failures count. Reason: resource changed")
 		terraform.ResetReconciliationFailures()
 		if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
-			log.Error(err, "unable to update status after planing")
+			log.Error(err, "unable to update status after planning")
 			return ctrl.Result{Requeue: true}, err
 		}
 	}

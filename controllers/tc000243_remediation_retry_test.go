@@ -105,10 +105,7 @@ spec:
 	createdHelloWorldTF := infrav1.Terraform{}
 	g.Eventually(func() bool {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
-		if err != nil {
-			return false
-		}
-		return true
+		return err == nil
 	}, timeout, interval).Should(BeTrue())
 
 	It("should be reconciled and contain some status conditions.")
