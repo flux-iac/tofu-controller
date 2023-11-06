@@ -556,11 +556,12 @@ const (
 
 // These constants are the Condition Types that the Terraform Resource works with
 const (
-	ConditionTypeApply       = "Apply"
-	ConditionTypeHealthCheck = "HealthCheck"
-	ConditionTypeOutput      = "Output"
-	ConditionTypePlan        = "Plan"
-	ConditionTypeStateLocked = "StateLocked"
+	ConditionTypeApply         = "Apply"
+	ConditionTypeHealthCheck   = "HealthCheck"
+	ConditionTypeOutput        = "Output"
+	ConditionTypePlan          = "Plan"
+	ConditionTypeStateLocked   = "StateLocked"
+	ConditionRetryLimitReached = "RetryLimitReached"
 )
 
 // Webhook stages
@@ -844,6 +845,30 @@ func TerraformStateLocked(terraform Terraform, lockID, message string) Terraform
 	return terraform
 }
 
+// TerraformReachedLimit will set a new condition on the Terraform resource
+// indicating that the resource has reached its retry limit.
+func TerraformReachedLimit(terraform Terraform) Terraform {
+	newCondition := metav1.Condition{
+		Type:    ConditionRetryLimitReached,
+		Status:  metav1.ConditionTrue,
+		Reason:  "ReachedHitRetryLimit",
+		Message: "Resource reached maximum number of retries.",
+	}
+	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+	SetTerraformReadiness(&terraform, metav1.ConditionFalse, newCondition.Reason, newCondition.Message, "")
+
+	return terraform
+}
+
+// TerraformResetRetry will set a new condition on the Terraform resource
+// indicating that the resource retry count has been reset.
+func TerraformResetRetry(terraform Terraform) Terraform {
+	apimeta.RemoveStatusCondition(terraform.GetStatusConditions(), ConditionRetryLimitReached)
+	terraform.ResetReconciliationFailures()
+
+	return terraform
+}
+
 // HasDrift returns true if drift has been detected since the last successful apply
 func (in Terraform) HasDrift() bool {
 	for _, condition := range in.Status.Conditions {
@@ -939,7 +964,7 @@ func (in *Terraform) ResetReconciliationFailures() {
 }
 
 func (in *Terraform) ShouldRetry() bool {
-	if in.Spec.Remediation == nil {
+	if in.Spec.Remediation == nil || in.Spec.Remediation.Retries < 0 {
 		return true
 	}
 

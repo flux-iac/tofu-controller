@@ -698,7 +698,7 @@ int64
 <td>
 <em>(Optional)</em>
 <p>Retries is the number of retries that should be attempted on failures
-before bailing. Defaults to &lsquo;0&rsquo;, a negative integer equals to unlimited
+before bailing. Defaults to &lsquo;0&rsquo;, a negative integer denotes unlimited
 retries.</p>
 </td>
 </tr>
@@ -1902,7 +1902,7 @@ Remediation
 </td>
 <td>
 <em>(Optional)</em>
-<p>Remediation holds the remediation configuration for when the reconciliation
+<p>Remediation specifies what the controller should do when reconciliation
 fails. The default is to not perform any action.</p>
 </td>
 </tr>
@@ -2453,7 +2453,7 @@ Remediation
 </td>
 <td>
 <em>(Optional)</em>
-<p>Remediation holds the remediation configuration for when the reconciliation
+<p>Remediation specifies what the controller should do when reconciliation
 fails. The default is to not perform any action.</p>
 </td>
 </tr>
@@ -2659,8 +2659,8 @@ int64
 </td>
 <td>
 <em>(Optional)</em>
-<p>ReconciliationFailures is the counter to track the number of reconciliation
-failures.</p>
+<p>ReconciliationFailures is the number of reconciliation
+failures since the last success or update.</p>
 </td>
 </tr>
 </tbody>

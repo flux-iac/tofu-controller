@@ -118,8 +118,8 @@ spec:
 		return len(createdHelloWorldTF.Status.Conditions)
 	}, timeout, interval).Should(Equal(1))
 
-	It("should be an error")
-	By("checking that the Ready's reason of the TF resource become `ArtifactFailed`.")
+	It("should stop retry")
+	By("when reached retry limit specified in .Spec.Remediation.Retries")
 	type failedStatusCheckResult struct {
 		Type    string
 		Reason  string
@@ -128,11 +128,10 @@ spec:
 		Retries int64
 	}
 	expected := failedStatusCheckResult{
-		Type:    "Ready",
-		Reason:  "ArtifactFailed",
-		Message: "rpc error: code = Unknown desc = failed to untar artifact, error: requires gzip-compressed body: gzip: invalid header",
-		Status:  metav1.ConditionFalse,
-		Retries: 3,
+		Type:    infrav1.ConditionRetryLimitReached,
+		Reason:  "ReachedHitRetryLimit",
+		Message: "Resource reached maximum number of retries.",
+		Status:  metav1.ConditionTrue,
 	}
 	g.Eventually(func() interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
@@ -140,23 +139,20 @@ spec:
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Ready" {
+			if c.Type == expected.Type {
 				return failedStatusCheckResult{
 					Type:    c.Type,
 					Reason:  c.Reason,
 					Message: c.Message,
 					Status:  c.Status,
-					Retries: createdHelloWorldTF.Status.ReconciliationFailures,
 				}
 			}
 		}
 		return createdHelloWorldTF.Status
 	}, timeout, interval).Should(Equal(expected))
+	g.Expect(createdHelloWorldTF.Status.ReconciliationFailures).To(Equal(int64(3)))
 
-	// It should never reach 4 when Retry is set to 3.
-	expected = failedStatusCheckResult{
-		Retries: 4,
-	}
+	// After 15s, it's still 3 and didn't go higher.
 	time.Sleep(15 * time.Second)
 	g.Eventually(func() interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
@@ -165,14 +161,14 @@ spec:
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Ready" {
-				return failedStatusCheckResult{
-					Retries: createdHelloWorldTF.Status.ReconciliationFailures,
-				}
+				return createdHelloWorldTF.Status.ReconciliationFailures
 			}
 		}
 		return createdHelloWorldTF.Status
-	}, timeout, interval).Should(Not(Equal(expected)))
+	}, timeout, interval).Should(Not(BeNumerically(">", createdHelloWorldTF.Spec.Remediation.Retries)))
 
+	It("should restart retry count")
+	By("when resource was updated")
 	// After changing the resource, retry count should be set back to 0.
 	// With setting Retries lower than the previous one, we can check if it was
 	// reset to 0 as it would never reach 2 from 3.
@@ -180,10 +176,10 @@ spec:
 	g.Expect(k8sClient.Update(ctx, &createdHelloWorldTF)).Should(Succeed())
 
 	expected = failedStatusCheckResult{
-		Type:    "Ready",
-		Reason:  "ArtifactFailed",
-		Message: "rpc error: code = Unknown desc = failed to untar artifact, error: requires gzip-compressed body: gzip: invalid header",
-		Status:  metav1.ConditionFalse,
+		Type:    infrav1.ConditionRetryLimitReached,
+		Reason:  "ReachedHitRetryLimit",
+		Message: "Resource reached maximum number of retries.",
+		Status:  metav1.ConditionTrue,
 		Retries: 2,
 	}
 	g.Eventually(func() interface{} {
@@ -192,7 +188,7 @@ spec:
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Ready" {
+			if c.Type == expected.Type {
 				return failedStatusCheckResult{
 					Type:    c.Type,
 					Reason:  c.Reason,
