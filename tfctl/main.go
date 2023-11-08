@@ -11,6 +11,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
 
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
@@ -25,12 +26,13 @@ const (
 
 // CLI is the main struct for the tfctl command line tool
 type CLI struct {
-	restConfig *rest.Config
-	client     client.Client
-	namespace  string
-	terraform  string
-	build      string
-	release    string
+	restConfig     *rest.Config
+	client         client.Client
+	kubeconfigArgs *genericclioptions.ConfigFlags
+	namespace      string
+	terraform      string
+	build          string
+	release        string
 }
 
 // New returns a new CLI instance
@@ -39,7 +41,12 @@ func New(build, release string) *CLI {
 }
 
 // Init initializes the CLI instance for a given kubeconfig, namespace and terraform binary
-func (c *CLI) Init(k8sConfig *rest.Config, config *viper.Viper) error {
+func (c *CLI) Init(kubeconfigArgs *genericclioptions.ConfigFlags, config *viper.Viper) error {
+	k8sConfig, err := kubeconfigArgs.ToRESTConfig()
+	if err != nil {
+		return err
+	}
+
 	scheme := runtime.NewScheme()
 	cobra.CheckErr(corev1.AddToScheme(scheme))
 	cobra.CheckErr(appsv1.AddToScheme(scheme))
@@ -53,6 +60,7 @@ func (c *CLI) Init(k8sConfig *rest.Config, config *viper.Viper) error {
 	}
 
 	c.client = client
+	c.kubeconfigArgs = kubeconfigArgs
 	c.restConfig = k8sConfig
 	c.namespace = config.GetString("namespace")
 	c.terraform = config.GetString("terraform")
