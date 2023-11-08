@@ -37,11 +37,7 @@ func newRootCommand() *cobra.Command {
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			k8sConfig, err := kubeconfigArgs.ToRESTConfig()
-			if err != nil {
-				return err
-			}
-			return app.Init(k8sConfig, config)
+			return app.Init(kubeconfigArgs, config)
 		},
 	}
 

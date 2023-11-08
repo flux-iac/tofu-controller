@@ -130,7 +130,7 @@ build: gen-grpc generate fmt vet ## Build manager binary.
 install-cli:
 	go build -o ${GOPATH}/bin/tfctl \
 		-ldflags "-X main.BuildSHA=$(BUILD_SHA) -X main.BuildVersion=$(BUILD_VERSION)" \
-		cmd/tfctl/main.go
+		./cmd/tfctl
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
