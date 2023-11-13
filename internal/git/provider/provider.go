@@ -19,6 +19,8 @@ const (
 	ProviderAzure     = ProviderType(giturlapis.ProviderAzure)
 )
 
+type URLParserFn = func(repoURL string, options ...ProviderOption) (Provider, Repository, error)
+
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . Provider
 
 type Provider interface {

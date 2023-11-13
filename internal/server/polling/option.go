@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/tf-controller/internal/config"
+	"github.com/weaveworks/tf-controller/internal/git/provider"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -69,6 +70,14 @@ func WithNoCrossNamespaceRefs(deny bool) Option {
 func WithAllowedNamespaces(namespaces []string) Option {
 	return func(s *Server) error {
 		s.allowedNamespaces = namespaces
+		return nil
+	}
+}
+
+func WithCustomProviderURLParserFn(fn provider.URLParserFn) Option {
+	return func(s *Server) error {
+		s.gitProviderParserFn = fn
+
 		return nil
 	}
 }

@@ -103,3 +103,14 @@ func Test_ReadConfig_resources(t *testing.T) {
 	g.Expect(conf.Resources[2].Name).To(gomega.Equal(""))
 	g.Expect(conf.Resources[2].Namespace).To(gomega.Equal("myns"))
 }
+
+func Test_RuntimeNamespace(t *testing.T) {
+	g := gomega.NewWithT(t)
+	runtimeNamespace := "runtime-namespace"
+
+	os.Setenv("RUNTIME_NAMESPACE", runtimeNamespace)
+	g.Expect(config.RuntimeNamespace(), runtimeNamespace)
+
+	os.Unsetenv("RUNTIME_NAMESPACE")
+	g.Expect(config.RuntimeNamespace(), config.DefaultNamespace)
+}
