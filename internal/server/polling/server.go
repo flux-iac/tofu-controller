@@ -32,10 +32,14 @@ type Server struct {
 	branchPollingInterval time.Duration
 	allowedNamespaces     []string
 	noCrossNamespaceRefs  bool
+	gitProviderParserFn   provider.URLParserFn
 }
 
 func New(options ...Option) (*Server, error) {
-	server := &Server{log: logr.Discard()}
+	server := &Server{
+		log:                 logr.Discard(),
+		gitProviderParserFn: provider.FromURL,
+	}
 
 	for _, opt := range options {
 		if err := opt(server); err != nil {
@@ -77,8 +81,10 @@ func (s *Server) Start(ctx context.Context) error {
 					resource.Namespace = bpconfig.RuntimeNamespace()
 				}
 
-				if s.isNamespaceAllowed(resource.Namespace) {
+				if !s.isNamespaceAllowed(resource.Namespace) {
 					s.log.Info("skip resource because namespace is not allowed", "namespace", resource.Namespace)
+
+					continue
 				}
 
 				if resource.Name != "" {
@@ -145,7 +151,7 @@ func (s *Server) poll(ctx context.Context, resource types.NamespacedName, secret
 	}
 
 	s.log.Info("initializing git provider", "url", source.Spec.URL)
-	gitProvider, repo, err := provider.FromURL(
+	gitProvider, repo, err := s.gitProviderParserFn(
 		source.Spec.URL,
 		provider.WithLogger(s.log),
 		provider.WithToken("api-token", string(secret.Data["token"])),
@@ -299,7 +305,7 @@ func (s *Server) replanTerraform(ctx context.Context, object *infrav1.Terraform,
 	terraform := &infrav1.Terraform{}
 	// TODO use better namespaced name
 	if err := s.clusterClient.Get(ctx, types.NamespacedName{Name: object.Name, Namespace: object.Namespace}, terraform); err != nil {
-		return err
+		return fmt.Errorf("failed to get terraform resource: %s", err)
 	}
 	patch := client.MergeFrom(terraform.DeepCopy())
 
@@ -320,7 +326,7 @@ func (s *Server) replanTerraform(ctx context.Context, object *infrav1.Terraform,
 		},
 	}
 	if err := s.clusterClient.Status().Patch(ctx, terraform, patch, statusOpts); err != nil {
-		return err
+		return fmt.Errorf("failed to patch status of the terraform resource: %w", err)
 	}
 
 	// trigger a new reconcile
