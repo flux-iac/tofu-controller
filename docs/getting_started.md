@@ -123,7 +123,7 @@ The GitOps automation mode could be enabled by setting `.spec.approvePlan=auto`.
 and automatically applied for you.
 
 ```yaml
-apiVersion: infra.contrib.fluxcd.io/v1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld
