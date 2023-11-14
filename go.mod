@@ -39,7 +39,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/weaveworks/tf-controller/api v0.0.0-00010101000000-000000000000
 	github.com/weaveworks/tf-controller/tfctl v0.0.0-00010101000000-000000000000
-	github.com/zclconf/go-cty v1.13.2
+	github.com/zclconf/go-cty v1.14.1
 	golang.org/x/net v0.17.0
 	google.golang.org/grpc v1.56.3
 	google.golang.org/protobuf v1.31.0
@@ -64,7 +64,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg v1.0.0 // indirect
-	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
+	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.13 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.14.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.2.2 // indirect
