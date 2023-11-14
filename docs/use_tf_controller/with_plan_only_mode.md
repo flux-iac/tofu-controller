@@ -7,7 +7,7 @@ If `planOnly` is set to `true`, the controller will skip the apply part and runs
 only `terraform plan` and saves the output.
 
 ```
-apiVersion: infra.contrib.fluxcd.io/v1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld
