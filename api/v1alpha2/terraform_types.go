@@ -529,8 +529,9 @@ const (
 
 // The potential reasons that are associated with condition types
 const (
-	ArtifactFailedReason            = "ArtifactFailed"
 	AccessDeniedReason              = "AccessDenied"
+	ArtifactFailedReason            = "ArtifactFailed"
+	RetryLimitReachedReason         = "RetryLimitReached"
 	DeletionBlockedByDependants     = "DeletionBlockedByDependantsReason"
 	DependencyNotReadyReason        = "DependencyNotReady"
 	DriftDetectedReason             = "DriftDetected"
@@ -556,12 +557,11 @@ const (
 
 // These constants are the Condition Types that the Terraform Resource works with
 const (
-	ConditionTypeApply         = "Apply"
-	ConditionTypeHealthCheck   = "HealthCheck"
-	ConditionTypeOutput        = "Output"
-	ConditionTypePlan          = "Plan"
-	ConditionTypeStateLocked   = "StateLocked"
-	ConditionRetryLimitReached = "RetryLimitReached"
+	ConditionTypeApply       = "Apply"
+	ConditionTypeHealthCheck = "HealthCheck"
+	ConditionTypeOutput      = "Output"
+	ConditionTypePlan        = "Plan"
+	ConditionTypeStateLocked = "StateLocked"
 )
 
 // Webhook stages
@@ -849,13 +849,12 @@ func TerraformStateLocked(terraform Terraform, lockID, message string) Terraform
 // indicating that the resource has reached its retry limit.
 func TerraformReachedLimit(terraform Terraform) Terraform {
 	newCondition := metav1.Condition{
-		Type:    ConditionRetryLimitReached,
+		Type:    meta.StalledCondition,
 		Status:  metav1.ConditionTrue,
-		Reason:  "ReachedHitRetryLimit",
+		Reason:  RetryLimitReachedReason,
 		Message: "Resource reached maximum number of retries.",
 	}
 	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
-	SetTerraformReadiness(&terraform, metav1.ConditionFalse, newCondition.Reason, newCondition.Message, "")
 
 	return terraform
 }
@@ -863,8 +862,8 @@ func TerraformReachedLimit(terraform Terraform) Terraform {
 // TerraformResetRetry will set a new condition on the Terraform resource
 // indicating that the resource retry count has been reset.
 func TerraformResetRetry(terraform Terraform) Terraform {
-	apimeta.RemoveStatusCondition(terraform.GetStatusConditions(), ConditionRetryLimitReached)
-	terraform.ResetReconciliationFailures()
+	apimeta.RemoveStatusCondition(terraform.GetStatusConditions(), meta.StalledCondition)
+	terraform.resetReconciliationFailures()
 
 	return terraform
 }
@@ -959,7 +958,7 @@ func (in *Terraform) IncrementReconciliationFailures() {
 	in.Status.ReconciliationFailures++
 }
 
-func (in *Terraform) ResetReconciliationFailures() {
+func (in *Terraform) resetReconciliationFailures() {
 	in.Status.ReconciliationFailures = 0
 }
 
