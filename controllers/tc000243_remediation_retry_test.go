@@ -8,6 +8,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
+	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -128,8 +129,8 @@ spec:
 		Retries int64
 	}
 	expected := failedStatusCheckResult{
-		Type:    infrav1.ConditionRetryLimitReached,
-		Reason:  "ReachedHitRetryLimit",
+		Type:    meta.StalledCondition,
+		Reason:  infrav1.RetryLimitReachedReason,
 		Message: "Resource reached maximum number of retries.",
 		Status:  metav1.ConditionTrue,
 	}
@@ -154,18 +155,32 @@ spec:
 
 	// After 15s, it's still 3 and didn't go higher.
 	time.Sleep(15 * time.Second)
+
+	recheckHelloWorldTF := infrav1.Terraform{}
 	g.Eventually(func() interface{} {
-		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
-		if err != nil {
-			return nil
+		return k8sClient.Get(ctx, helloWorldTFKey, &recheckHelloWorldTF)
+	}, timeout, interval).Should(Succeed())
+
+	var retryCondition *metav1.Condition
+	for _, cond := range recheckHelloWorldTF.Status.Conditions {
+		if cond.Type == meta.StalledCondition && cond.Reason == infrav1.RetryLimitReachedReason {
+			retryCondition = &cond
+			break
 		}
-		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Ready" {
-				return createdHelloWorldTF.Status.ReconciliationFailures
-			}
+	}
+	var originalRetryCondition *metav1.Condition
+	for _, cond := range createdHelloWorldTF.Status.Conditions {
+		if cond.Type == meta.StalledCondition && cond.Reason == infrav1.RetryLimitReachedReason {
+			originalRetryCondition = &cond
+			break
 		}
-		return createdHelloWorldTF.Status
-	}, timeout, interval).Should(Not(BeNumerically(">", createdHelloWorldTF.Spec.Remediation.Retries)))
+	}
+
+	g.Expect(retryCondition).ToNot(BeNil(), "Terraform resource should have retry limit reached status condition")
+	g.Expect(originalRetryCondition).ToNot(BeNil(), "Terraform resource should have retry limit reached status condition")
+	g.Expect(recheckHelloWorldTF.Status.ReconciliationFailures).To(Equal(createdHelloWorldTF.Status.ReconciliationFailures))
+	g.Expect(retryCondition.ObservedGeneration).To(Equal(originalRetryCondition.ObservedGeneration))
+	g.Expect(recheckHelloWorldTF.Status.LastAttemptedRevision).To(Equal(testRepo.Status.Artifact.Revision))
 
 	It("should restart retry count")
 	By("when resource was updated")
@@ -176,8 +191,8 @@ spec:
 	g.Expect(k8sClient.Update(ctx, &createdHelloWorldTF)).Should(Succeed())
 
 	expected = failedStatusCheckResult{
-		Type:    infrav1.ConditionRetryLimitReached,
-		Reason:  "ReachedHitRetryLimit",
+		Type:    meta.StalledCondition,
+		Reason:  infrav1.RetryLimitReachedReason,
 		Message: "Resource reached maximum number of retries.",
 		Status:  metav1.ConditionTrue,
 		Retries: 2,
@@ -188,7 +203,7 @@ spec:
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == expected.Type {
+			if c.Type == expected.Type && c.Reason == expected.Reason {
 				return failedStatusCheckResult{
 					Type:    c.Type,
 					Reason:  c.Reason,
