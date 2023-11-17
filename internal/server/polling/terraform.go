@@ -7,6 +7,7 @@ import (
 
 	"github.com/fluxcd/pkg/runtime/acl"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	"github.com/weaveworks/tf-controller/internal/config"
 	bpconfig "github.com/weaveworks/tf-controller/internal/config"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -80,9 +81,9 @@ func (s *Server) getSource(ctx context.Context, tf *infrav1.Terraform) (*sourcev
 }
 
 func (s *Server) reconcileTerraform(ctx context.Context, originalTF *infrav1.Terraform, originalSource *sourcev1.GitRepository, branch string, prID string, interval time.Duration) error {
-	tfName := s.createObjectName(originalTF.Name, prID)
+	tfName := config.PullRequestObjectName(originalTF.Name, prID)
 	msg := fmt.Sprintf("Terraform object %s in the namespace %s", tfName, originalTF.Namespace)
-	source, err := s.reconcileSource(ctx, originalSource, branch, prID, interval)
+	source, err := s.reconcileSource(ctx, originalTF.Name, originalSource, branch, prID, interval)
 	if err != nil {
 		return fmt.Errorf("unable to reconcile Source for %s: %w", msg, err)
 	}
@@ -141,8 +142,8 @@ func (s *Server) reconcileTerraform(ctx context.Context, originalTF *infrav1.Ter
 	return nil
 }
 
-func (s *Server) reconcileSource(ctx context.Context, originalSource *sourcev1.GitRepository, branch string, prID string, interval time.Duration) (*sourcev1.GitRepository, error) {
-	sourceName := s.createObjectName(originalSource.Name, prID)
+func (s *Server) reconcileSource(ctx context.Context, tfName string, originalSource *sourcev1.GitRepository, branch string, prID string, interval time.Duration) (*sourcev1.GitRepository, error) {
+	sourceName := config.SourceName(tfName, originalSource.Name, prID)
 	msg := fmt.Sprintf("Source %s in the namespace %s", sourceName, originalSource.Namespace)
 	source := &sourcev1.GitRepository{
 		ObjectMeta: metav1.ObjectMeta{
@@ -178,10 +179,6 @@ func (s *Server) reconcileSource(ctx context.Context, originalSource *sourcev1.G
 	}
 
 	return source, nil
-}
-
-func (s *Server) createObjectName(name string, prID string) string {
-	return fmt.Sprintf("%s-pr-%s", name, prID)
 }
 
 func (s *Server) createLabels(labels map[string]string, originalName string, branch string, prID string) map[string]string {
