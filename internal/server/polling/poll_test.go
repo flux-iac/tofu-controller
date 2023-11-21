@@ -188,7 +188,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 	}))
 
 	expectToEqual(t, g, len(tfList.Items), 4)
-	for _, item := range tfList.Items[1:] {
+	for _, item := range tfList.Items {
 		if item.Name == original.Name {
 			// Ignore the original source object.
 			continue
