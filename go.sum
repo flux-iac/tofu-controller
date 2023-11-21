@@ -183,8 +183,8 @@ github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYF
 github.com/flowstack/go-jsonschema v0.1.1/go.mod h1:yL7fNggx1o8rm9RlgXv7hTBWxdBM0rVwpMwimd3F3N0=
 github.com/fluxcd/pkg/apis/acl v0.1.0 h1:EoAl377hDQYL3WqanWCdifauXqXbMyFuK82NnX6pH4Q=
 github.com/fluxcd/pkg/apis/acl v0.1.0/go.mod h1:zfEZzz169Oap034EsDhmCAGgnWlcWmIObZjYMusoXS8=
-github.com/fluxcd/pkg/apis/event v0.5.2 h1:WtnCOeWglf7wR3dpyiWxb1JtYkw1G5OXcERb1QopFpA=
-github.com/fluxcd/pkg/apis/event v0.5.2/go.mod h1:5l6SSxVTkqrXrYjgEqAajOOHkl4x0TPocAuSdu+3AEs=
+github.com/fluxcd/pkg/apis/event v0.6.0 h1:AUaeee1CGWb65BLqVximHXG8Gcu6vWuYONIq6tVpjgo=
+github.com/fluxcd/pkg/apis/event v0.6.0/go.mod h1:OEzWcX/oPbMmkCvC9QGoK27JXFvUZgBhLD+zgxZe47A=
 github.com/fluxcd/pkg/apis/meta v1.1.2 h1:Unjo7hxadtB2dvGpeFqZZUdsjpRA08YYSBb7dF2WIAM=
 github.com/fluxcd/pkg/apis/meta v1.1.2/go.mod h1:BHQyRHCskGMEDf6kDGbgQ+cyiNpUHbLsCOsaMYM2maI=
 github.com/fluxcd/pkg/runtime v0.42.0 h1:a5DQ/f90YjoHBmiXZUpnp4bDSLORjInbmqP7K11L4uY=
