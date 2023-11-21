@@ -2,9 +2,9 @@ package polling
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
+	"github.com/weaveworks/tf-controller/internal/config"
 	bpconfig "github.com/weaveworks/tf-controller/internal/config"
 	"k8s.io/apimachinery/pkg/labels"
 
@@ -188,13 +188,14 @@ func Test_poll_reconcile_objects(t *testing.T) {
 	}))
 
 	expectToEqual(t, g, len(tfList.Items), 4)
-	// The first one is the original Terraform object.
-	expectToEqual(t, g, tfList.Items[0].Name, original.Name)
-
-	// Ignore the first one as it's the original resource.
-	for idx, item := range tfList.Items[1:] {
-		expectToEqual(t, g, item.Name, fmt.Sprintf("%s-pr-%d", original.Name, idx+1))
-		expectToEqual(t, g, item.Spec.SourceRef.Name, fmt.Sprintf("%s-source-pr-%d", original.Name, idx+1))
+	for _, item := range tfList.Items {
+		if item.Name == original.Name {
+			// Ignore the original source object.
+			continue
+		}
+		prID := item.Labels[bpconfig.LabelPRIDKey]
+		expectToEqual(t, g, item.Name, config.PullRequestObjectName(original.Name, prID))
+		expectToEqual(t, g, item.Spec.SourceRef.Name, config.SourceName(original.Name, source.Name, prID))
 		expectToEqual(t, g, item.Spec.SourceRef.Namespace, ns.Name)
 		expectToEqual(t, g, item.Spec.PlanOnly, true)
 		expectToEqual(t, g, item.Spec.StoreReadablePlan, "human")
@@ -203,7 +204,6 @@ func Test_poll_reconcile_objects(t *testing.T) {
 		g.Expect(item.Spec.WriteOutputsToSecret).To(gomega.BeNil()) // we don't need to use the output Secret of the plan
 		expectToEqual(t, g, item.Labels[bpconfig.LabelKey], bpconfig.LabelValue)
 		expectToEqual(t, g, item.Labels["test-label"], "abc")
-		expectToEqual(t, g, item.Labels[bpconfig.LabelPRIDKey], fmt.Sprint(idx+1))
 		expectToEqual(t, g, item.Spec.BackendConfig.SecretSuffix, original.Name)
 		expectToEqual(t, g, item.Spec.BackendConfig.InClusterConfig, true)
 	}
@@ -215,16 +215,17 @@ func Test_poll_reconcile_objects(t *testing.T) {
 	}))
 
 	expectToEqual(t, g, len(srcList.Items), 4)
-	// The first one is the original Source object.
-	expectToEqual(t, g, srcList.Items[0].Name, source.Name)
-
-	// Ignore the first one as it's the original resource.
-	for idx, item := range srcList.Items[1:] {
-		expectToEqual(t, g, item.Name, fmt.Sprintf("%s-pr-%d", source.Name, idx+1))
-		expectToEqual(t, g, item.Spec.Reference.Branch, fmt.Sprintf("test-branch-%d", idx+1))
+	for _, item := range srcList.Items {
+		if item.Name == source.Name {
+			// Ignore the original source object.
+			continue
+		}
+		prID := item.Labels[bpconfig.LabelPRIDKey]
+		expectToEqual(t, g, item.Name, config.SourceName(original.Name, source.Name, prID))
+		expectToEqual(t, g, item.Spec.Reference.Branch, "test-branch-"+prID)
 		expectToEqual(t, g, item.Labels[bpconfig.LabelKey], bpconfig.LabelValue)
+		expectToEqual(t, g, item.Labels[bpconfig.LabelPRIDKey], prID)
 		expectToEqual(t, g, item.Labels["test-label"], "123")
-		expectToEqual(t, g, item.Labels[bpconfig.LabelPRIDKey], fmt.Sprint(idx+1))
 	}
 
 	// Check that branch Terraform objects are updated
@@ -272,8 +273,13 @@ func Test_poll_reconcile_objects(t *testing.T) {
 	}))
 
 	expectToEqual(t, g, len(srcList.Items), 2)
-	expectToEqual(t, g, srcList.Items[0].Name, source.Name)
-	expectToEqual(t, g, srcList.Items[1].Name, source.Name+"-pr-3")
+	for _, item := range srcList.Items {
+		if item.Name == source.Name {
+			continue
+		}
+		// Only one item left and it should be PR#3.
+		expectToEqual(t, g, item.Name, config.SourceName(original.Name, source.Name, "3"))
+	}
 
 	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(context.TODO(), ns)) })
 }
