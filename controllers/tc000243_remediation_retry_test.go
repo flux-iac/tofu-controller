@@ -7,6 +7,7 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
+	controllerruntime "sigs.k8s.io/controller-runtime"
 
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
@@ -153,8 +154,14 @@ spec:
 	}, timeout, interval).Should(Equal(expected))
 	g.Expect(createdHelloWorldTF.Status.ReconciliationFailures).To(Equal(int64(3)))
 
-	// After 15s, it's still 3 and didn't go higher.
-	time.Sleep(15 * time.Second)
+	reconcileResult, err := reconciler.Reconcile(ctx, controllerruntime.Request{
+		NamespacedName: types.NamespacedName{
+			Namespace: createdHelloWorldTF.GetNamespace(),
+			Name:      createdHelloWorldTF.GetName(),
+		},
+	})
+	g.Expect(err).To(Succeed())
+	g.Expect(reconcileResult.Requeue).To(BeFalse())
 
 	recheckHelloWorldTF := infrav1.Terraform{}
 	g.Eventually(func() interface{} {
