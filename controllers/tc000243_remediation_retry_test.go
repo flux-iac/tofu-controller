@@ -19,8 +19,8 @@ import (
 // +kubebuilder:docs-gen:collapse=Imports
 
 func Test_000243_remediation_retry_test(t *testing.T) {
-	Spec("This spec describes the behaviour of a Terraform resource that obtains a bad tar.gz file blob from its Source reference.")
-	It("should report the error and stop reconcile.")
+	Spec("This spec describes the retry behaviour of a Terraform resource that repeatedly fails.")
+	It("should retry up to the limit given in .spec.remediation.retries, and start again only when the spec changes.")
 
 	const (
 		sourceName    = "test-tf-controller-retry"
