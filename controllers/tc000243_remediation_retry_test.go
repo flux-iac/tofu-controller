@@ -12,6 +12,7 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -168,25 +169,15 @@ spec:
 		return k8sClient.Get(ctx, helloWorldTFKey, &recheckHelloWorldTF)
 	}, timeout, interval).Should(Succeed())
 
-	var retryCondition *metav1.Condition
-	for _, cond := range recheckHelloWorldTF.Status.Conditions {
-		if cond.Type == meta.StalledCondition && cond.Reason == infrav1.RetryLimitReachedReason {
-			retryCondition = &cond
-			break
-		}
-	}
-	var originalRetryCondition *metav1.Condition
-	for _, cond := range createdHelloWorldTF.Status.Conditions {
-		if cond.Type == meta.StalledCondition && cond.Reason == infrav1.RetryLimitReachedReason {
-			originalRetryCondition = &cond
-			break
-		}
-	}
+	originalCondition := apimeta.FindStatusCondition(createdHelloWorldTF.Status.Conditions, meta.StalledCondition)
+	recheckCondition := apimeta.FindStatusCondition(recheckHelloWorldTF.Status.Conditions, meta.StalledCondition)
 
-	g.Expect(retryCondition).ToNot(BeNil(), "Terraform resource should have retry limit reached status condition")
-	g.Expect(originalRetryCondition).ToNot(BeNil(), "Terraform resource should have retry limit reached status condition")
+	g.Expect(recheckCondition).ToNot(BeNil(), "Terraform resource should have retry limit reached status condition")
+	g.Expect(originalCondition).ToNot(BeNil(), "Terraform resource should have retry limit reached status condition")
+	g.Expect(originalCondition.Reason).To(Equal(infrav1.RetryLimitReachedReason))
+	g.Expect(originalCondition.Reason).To(Equal(recheckCondition.Reason))
 	g.Expect(recheckHelloWorldTF.Status.ReconciliationFailures).To(Equal(createdHelloWorldTF.Status.ReconciliationFailures))
-	g.Expect(retryCondition.ObservedGeneration).To(Equal(originalRetryCondition.ObservedGeneration))
+	g.Expect(recheckCondition.ObservedGeneration).To(Equal(originalCondition.ObservedGeneration))
 	g.Expect(recheckHelloWorldTF.Status.LastAttemptedRevision).To(Equal(testRepo.Status.Artifact.Revision))
 
 	It("should restart retry count")
@@ -220,6 +211,6 @@ spec:
 				}
 			}
 		}
-		return createdHelloWorldTF.Status
+		return nil
 	}, timeout, interval).Should(Equal(expected))
 }
