@@ -261,6 +261,11 @@ type TerraformSpec struct {
 	// BranchPlanner configuration.
 	// +optional
 	BranchPlanner *BranchPlanner `json:"branchPlanner,omitempty"`
+
+	// Remediation specifies what the controller should do when reconciliation
+	// fails. The default is to not perform any action.
+	// +optional
+	Remediation *Remediation `json:"remediation,omitempty"`
 }
 
 type BranchPlanner struct {
@@ -269,6 +274,14 @@ type BranchPlanner struct {
 	// resources will be created only if there are any changes in terraform files.
 	// +optional
 	EnablePathScope bool `json:"enablePathScope"`
+}
+
+type Remediation struct {
+	// Retries is the number of retries that should be attempted on failures
+	// before bailing. Defaults to '0', a negative integer denotes unlimited
+	// retries.
+	// +optional
+	Retries int64 `json:"retries,omitempty"`
 }
 
 type CloudSpec struct {
@@ -386,6 +399,11 @@ type TerraformStatus struct {
 
 	// +optional
 	Lock LockStatus `json:"lock,omitempty"`
+
+	// ReconciliationFailures is the number of reconciliation
+	// failures since the last success or update.
+	// +optional
+	ReconciliationFailures int64 `json:"reconciliationFailures,omitempty"`
 }
 
 // LockStatus defines the observed state of a Terraform State Lock
@@ -511,8 +529,9 @@ const (
 
 // The potential reasons that are associated with condition types
 const (
-	ArtifactFailedReason            = "ArtifactFailed"
 	AccessDeniedReason              = "AccessDenied"
+	ArtifactFailedReason            = "ArtifactFailed"
+	RetryLimitReachedReason         = "RetryLimitReached"
 	DeletionBlockedByDependants     = "DeletionBlockedByDependantsReason"
 	DependencyNotReadyReason        = "DependencyNotReady"
 	DriftDetectedReason             = "DriftDetected"
@@ -826,6 +845,29 @@ func TerraformStateLocked(terraform Terraform, lockID, message string) Terraform
 	return terraform
 }
 
+// TerraformReachedLimit will set a new condition on the Terraform resource
+// indicating that the resource has reached its retry limit.
+func TerraformReachedLimit(terraform Terraform) Terraform {
+	newCondition := metav1.Condition{
+		Type:    meta.StalledCondition,
+		Status:  metav1.ConditionTrue,
+		Reason:  RetryLimitReachedReason,
+		Message: "Resource reached maximum number of retries.",
+	}
+	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+
+	return terraform
+}
+
+// TerraformResetRetry will set a new condition on the Terraform resource
+// indicating that the resource retry count has been reset.
+func TerraformResetRetry(terraform Terraform) Terraform {
+	apimeta.RemoveStatusCondition(terraform.GetStatusConditions(), meta.StalledCondition)
+	terraform.resetReconciliationFailures()
+
+	return terraform
+}
+
 // HasDrift returns true if drift has been detected since the last successful apply
 func (in Terraform) HasDrift() bool {
 	for _, condition := range in.Status.Conditions {
@@ -898,6 +940,34 @@ func (in *Terraform) GetRunnerHostname(target string, clusterDomain string) stri
 	} else {
 		return fmt.Sprintf("%s.tf-runner.%s.svc.%s", target, in.Namespace, clusterDomain)
 	}
+}
+
+func (in *Terraform) GetRetries() int64 {
+	if in.Spec.Remediation == nil {
+		return 0
+	}
+
+	return in.Spec.Remediation.Retries
+}
+
+func (in *Terraform) GetReconciliationFailures() int64 {
+	return in.Status.ReconciliationFailures
+}
+
+func (in *Terraform) IncrementReconciliationFailures() {
+	in.Status.ReconciliationFailures++
+}
+
+func (in *Terraform) resetReconciliationFailures() {
+	in.Status.ReconciliationFailures = 0
+}
+
+func (in *Terraform) ShouldRetry() bool {
+	if in.Spec.Remediation == nil || in.Spec.Remediation.Retries < 0 {
+		return true
+	}
+
+	return in.GetReconciliationFailures() < in.Spec.Remediation.Retries
 }
 
 func (in *TerraformSpec) GetAlwaysCleanupRunnerPod() bool {

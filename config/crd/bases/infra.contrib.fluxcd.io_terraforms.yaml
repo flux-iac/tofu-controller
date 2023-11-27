@@ -5267,6 +5267,17 @@ spec:
                 description: RefreshBeforeApply forces refreshing of the state before
                   the apply step.
                 type: boolean
+              remediation:
+                description: Remediation specifies what the controller should do when
+                  reconciliation fails. The default is to not perform any action.
+                properties:
+                  retries:
+                    description: Retries is the number of retries that should be attempted
+                      on failures before bailing. Defaults to '0', a negative integer
+                      denotes unlimited retries.
+                    format: int64
+                    type: integer
+                type: object
               retryInterval:
                 description: The interval at which to retry a previously failed reconciliation.
                   The default value is 15 when not specified.
@@ -10206,6 +10217,11 @@ spec:
                   pending:
                     type: string
                 type: object
+              reconciliationFailures:
+                description: ReconciliationFailures is the number of reconciliation
+                  failures since the last success or update.
+                format: int64
+                type: integer
             type: object
         type: object
     served: true

@@ -672,6 +672,40 @@ string
 </table>
 </div>
 </div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.Remediation">Remediation
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec</a>)
+</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>retries</code><br>
+<em>
+int64
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Retries is the number of retries that should be attempted on failures
+before bailing. Defaults to &lsquo;0&rsquo;, a negative integer denotes unlimited
+retries.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="infra.contrib.fluxcd.io/v1alpha2.ResourceInventory">ResourceInventory
 </h3>
 <p>
@@ -1857,6 +1891,21 @@ BranchPlanner
 <p>BranchPlanner configuration.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>remediation</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha2.Remediation">
+Remediation
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Remediation specifies what the controller should do when reconciliation
+fails. The default is to not perform any action.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -2393,6 +2442,21 @@ BranchPlanner
 <p>BranchPlanner configuration.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>remediation</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha2.Remediation">
+Remediation
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Remediation specifies what the controller should do when reconciliation
+fails. The default is to not perform any action.</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -2584,6 +2648,19 @@ LockStatus
 </td>
 <td>
 <em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>reconciliationFailures</code><br>
+<em>
+int64
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>ReconciliationFailures is the number of reconciliation
+failures since the last success or update.</p>
 </td>
 </tr>
 </tbody>

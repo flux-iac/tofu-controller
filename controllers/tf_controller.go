@@ -295,6 +295,18 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		r.RecordReadiness(ctx, &terraform)
 	}
 
+	// Reset retry count if necessary.
+	revisionChanged := sourceObj.GetArtifact().Revision != terraform.Status.LastAttemptedRevision
+	generationChanges := terraform.Generation != terraform.Status.ObservedGeneration
+	if revisionChanged || generationChanges {
+		log.Info("Reset reconciliation failures count. Reason: resource changed")
+		terraform = infrav1.TerraformResetRetry(terraform)
+		if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+			log.Error(err, "unable to update status after planning")
+			return ctrl.Result{Requeue: true}, err
+		}
+	}
+
 	if !isBeingDeleted(terraform) {
 		// case 1:
 		// If revision is changed, and there's no intend to apply,
@@ -426,9 +438,40 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 	}
 
+	if !terraform.ShouldRetry() {
+		// `ShouldRetry` will return true if .Spec.Remediation is nil.
+		// The code doesn't reach this block if .Spec.Remediation is nil.
+		log.Info(fmt.Sprintf(
+			"Resource reached maximum number of retries (%d/%d). Generation: %d",
+			terraform.GetReconciliationFailures(),
+			terraform.Spec.Remediation.Retries,
+			terraform.GetGeneration(),
+		))
+
+		terraform = infrav1.TerraformReachedLimit(terraform)
+
+		traceLog.Info("Patch the status of the Terraform resource")
+		if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+			log.Error(err, "unable to update status after the reconciliation is complete")
+			return ctrl.Result{Requeue: true}, err
+		}
+
+		return ctrl.Result{Requeue: false}, nil
+	}
+
 	// reconcile Terraform by applying the latest revision
 	traceLog.Info("Run reconcile for the Terraform resource")
 	reconciledTerraform, reconcileErr := r.reconcile(ctx, runnerClient, *terraform.DeepCopy(), sourceObj, reconciliationLoopID)
+
+	// Check remediation.
+	if reconcileErr == nil {
+		log.Info("Reset reconciliation failures count. Reason: successful reconciliation")
+		terraform := infrav1.TerraformResetRetry(*reconciledTerraform)
+		reconciledTerraform = &terraform
+	} else {
+		reconciledTerraform.IncrementReconciliationFailures()
+	}
+
 	traceLog.Info("Patch the status of the Terraform resource")
 	if err := r.patchStatus(ctx, req.NamespacedName, reconciledTerraform.Status); err != nil {
 		log.Error(err, "unable to update status after the reconciliation is complete")
@@ -445,6 +488,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			terraform.GetRetryInterval().String()),
 			"revision",
 			sourceObj.GetArtifact().Revision)
+
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	} else if reconcileErr != nil {
 		// broadcast the reconciliation failure and requeue at the specified retry interval
@@ -455,7 +499,24 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			sourceObj.GetArtifact().Revision)
 		traceLog.Info("Record an event for the failure")
 		r.event(ctx, *reconciledTerraform, sourceObj.GetArtifact().Revision, eventv1.EventSeverityError, reconcileErr.Error(), nil)
-		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
+
+		if reconciledTerraform.Spec.Remediation != nil {
+			log.Info(fmt.Sprintf(
+				"Reconciliation failed, retry (%d/%d) after %s. Generation: %d",
+				reconciledTerraform.GetReconciliationFailures(),
+				reconciledTerraform.Spec.Remediation.Retries,
+				reconciledTerraform.GetRetryInterval(),
+				reconciledTerraform.GetGeneration(),
+			))
+		} else {
+			log.Info(fmt.Sprintf(
+				"Reconciliation failed, retry after %s. Generation: %d",
+				reconciledTerraform.GetRetryInterval(),
+				reconciledTerraform.GetGeneration(),
+			))
+		}
+
+		return ctrl.Result{RequeueAfter: reconciledTerraform.GetRetryInterval()}, nil
 	}
 
 	log.Info(fmt.Sprintf("Reconciliation completed. Generation: %d", reconciledTerraform.GetGeneration()))

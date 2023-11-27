@@ -27,6 +27,8 @@ spec:
   path: ./
   interval: 20s
   approvePlan: auto
+  remediation:
+    retries: 3
   sourceRef:
     kind: GitRepository
     name: helloworld
