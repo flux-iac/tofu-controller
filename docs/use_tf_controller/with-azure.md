@@ -58,4 +58,4 @@ spec:
           value: "/var/run/secrets/azure/tokens/azure-identity-token"
 ```
 
-Import existing resources to some tfstate stored on a storage account.
+Import existing resources to a tfstate file stored on a storage account.
