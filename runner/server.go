@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-exec/tfexec"
 	tfjson "github.com/hashicorp/terraform-json"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
+	"github.com/weaveworks/tf-controller/internal/storage"
 	"github.com/weaveworks/tf-controller/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -303,6 +304,31 @@ func (r *TerraformRunnerServer) SelectWorkspace(ctx context.Context, req *Worksp
 	}
 
 	return &WorkspaceReply{Message: "ok"}, nil
+}
+
+// CreateWorkspaceBlob archives and compresses using tar and gzip the .terraform directory and returns the tarball as a byte array
+func (r *TerraformRunnerServer) CreateWorkspaceBlob(ctx context.Context, req *CreateWorkspaceBlobRequest) (*CreateWorkspaceBlobReply, error) {
+	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
+	if req.TfInstance != r.InstanceID {
+		err := fmt.Errorf("no TF instance found")
+		log.Error(err, "no terraform")
+		return nil, err
+	}
+
+	archivePath, err := storage.ArchiveDir(filepath.Join(req.WorkingDir, ".terraform"))
+	if err != nil {
+		log.Error(err, "unable to archive .terraform directory")
+		return nil, err
+	}
+
+	// read archivePath into byte array
+	blob, err := os.ReadFile(archivePath)
+	if err != nil {
+		log.Error(err, "unable to read archive file")
+		return nil, err
+	}
+
+	return &CreateWorkspaceBlobReply{Blob: blob}, nil
 }
 
 func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest) (*DestroyReply, error) {
