@@ -213,4 +213,39 @@ spec:
 		}
 		return nil
 	}, timeout, interval).Should(Equal(expected))
+
+	g.Expect(createdHelloWorldTF.Status.LastAttemptedRevision).To(Equal(testRepo.Status.Artifact.Revision))
+
+	It("should reset the retry count")
+	By("detecting a new artifact for the source GitRepository")
+	updatedTime = time.Now()
+	testRepo.Status = sourcev1.GitRepositoryStatus{
+		ObservedGeneration: int64(1),
+		Conditions: []metav1.Condition{
+			{
+				Type:               "Ready",
+				Status:             metav1.ConditionTrue,
+				LastTransitionTime: metav1.Time{Time: updatedTime},
+				Reason:             "GitOperationSucceed",
+				Message:            "Fetched revision: master/aaabbbccc6e3d0cbb7ed22ced771a0056455a2fb",
+			},
+		},
+		Artifact: &sourcev1.Artifact{
+			Path:           "gitrepository/flux-system/test-tf-controller/aaabbbccc6e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			URL:            server.URL() + "/bad.tar.gz",
+			Revision:       "master/aaabbbccc6e3d0cbb7ed22ced771a0056455a2fb",
+			Digest:         "sha256:196d115c43583ccd10107d631d8a594be542a75911f9832a5ec2c1e22b65387b",
+			LastUpdateTime: metav1.Time{Time: updatedTime},
+		},
+	}
+	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
+
+	g.Eventually(func() interface{} {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return nil
+		}
+
+		return createdHelloWorldTF.Status.LastAttemptedRevision
+	}, timeout, interval).Should(Equal(testRepo.Status.Artifact.Revision))
 }
