@@ -82,9 +82,10 @@ EOF
 
 Branch Planner uses a ConfigMap as configuration. That ConfigMap is optional to use but useful for fine-tuning Branch Planner.
 
-### Custom Configuration
+### Configuration
 
-By default, Branch Planner will look for the `branch-planner` ConfigMap in the same namespace as where the `tf-controller` is installed. That ConfigMap allows users to precisely specify which Terraform resources in a cluster should be monitored by Branch Planner.
+By default, Branch Planner will look for the `branch-planner` ConfigMap in the same namespace as where the `tf-controller` is installed.
+That ConfigMap allows users to precisely specify which Terraform resources in a cluster should be monitored by Branch Planner.
 
 The ConfigMap has two fields:
 
@@ -102,6 +103,7 @@ data:
   secretName: branch-planner-token
   resources: |-
     - namespace: terraform
+    - namespace: flux-system
 ```
 
 #### Secret
@@ -134,7 +136,8 @@ data:
 
 ### Default Configuration
 
-If a ConfigMap is not found, it will watch the `flux-system` namespace for any Terraform resources and expect to find a GitHub token in a secret named `branch-planner-token` in the `flux-system` namespace. Note that supplying a secret with a token is a necessary task, otherwise Branch Planner will not be able to interact with the GitHub API. 
+If a ConfigMap is not found, it will not watch any namespaces and expect to find a GitHub token in a secret named `branch-planner-token` in the `flux-system` namespace.
+Note that supplying a secret with a token is a necessary task, otherwise Branch Planner will not be able to interact with the GitHub API. 
 
 ## Enable Branch Planner
 
