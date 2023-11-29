@@ -7,7 +7,7 @@ Use the OIDC flag and explicitly point to the token. Due to a bug in AzureRM 3.4
 Set env variables on the runner pod:
 
 ```
-       - name: ARM_USE_OIDC
+        - name: ARM_USE_OIDC
           value: "true"
         - name: ARM_OIDC_TOKEN_FILE_PATH
           value: "/var/run/secrets/azure/tokens/azure-identity-token"
