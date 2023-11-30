@@ -1,6 +1,6 @@
 # Branch Planner Overview
 
-The GitOps methodology streamlines infrastructure provisioning and management, using Git as the source of truth. The Branch Planner, a component of TF-Controller, aims to take this a step further by allowing developers and operations teams to plan Terraform configurations on a branch that's separate from the `main` branch. This makes it easier to review and understand the potential impact of your changes before you `terraform apply`.
+The GitOps methodology streamlines infrastructure provisioning and management, using Git as the source of truth. The Branch Planner, a component of TF-Controller, aims to take this a step further by allowing developers and operations teams to plan Terraform configurations on a branch that's separate from the `main` branch. This makes it easier to review and understand the potential impact of your changes before you run `terraform apply`.
 
 The Branch Planner's most important feature is its seamless integration with the PR (Pull Request) user interface. When changes are proposed on a new branch, Branch Planner runs a plan in the cluster and displays the results directly as comments under your PR. Once you're satisfied with the results, merge your branch into the `main` branch to trigger the TF-Controller. 
 
