@@ -35,6 +35,8 @@ func ArchiveDir(dir string) (out string, err error) {
 	if err != nil {
 		return "", err
 	}
+	defer tf.Close()
+
 	tmpName := tf.Name()
 	defer func() {
 		if err != nil {
@@ -46,14 +48,17 @@ func ArchiveDir(dir string) (out string, err error) {
 	mw := io.MultiWriter(h, tf)
 
 	gw := gzip.NewWriter(mw)
+	defer gw.Close()
+
 	tw := tar.NewWriter(gw)
+	defer tw.Close()
+
 	if err := filepath.Walk(dir, func(p string, fi os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
-		// Ignore anything that is not a file (directories, symlinks)
-		if !fi.Mode().IsRegular() {
+		if fi.IsDir() {
 			return nil
 		}
 
@@ -79,35 +84,16 @@ func ArchiveDir(dir string) (out string, err error) {
 
 		f, err := os.Open(p)
 		if err != nil {
-			f.Close()
 			return err
 		}
+		defer f.Close()
+
 		if _, err := io.Copy(tw, f); err != nil {
-			f.Close()
 			return err
 		}
-		return f.Close()
+
+		return nil
 	}); err != nil {
-		tw.Close()
-		gw.Close()
-		tf.Close()
-		return "", err
-	}
-
-	if err := tw.Close(); err != nil {
-		gw.Close()
-		tf.Close()
-		return "", err
-	}
-	if err := gw.Close(); err != nil {
-		tf.Close()
-		return "", err
-	}
-	if err := tf.Close(); err != nil {
-		return "", err
-	}
-
-	if err := os.Chmod(tmpName, 0644); err != nil {
 		return "", err
 	}
 
