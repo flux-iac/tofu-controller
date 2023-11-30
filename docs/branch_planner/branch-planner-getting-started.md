@@ -77,7 +77,7 @@ spec:
 EOF
 ```
 
-6. Now you can create a pull request on your GitHub repo. The Branch Planner will create a new Terraform object with the plan-only mode enabled and will generate a new plan for you.
+6. Now you can create a pull request on your GitHub repo. The Branch Planner will create a new Terraform object with the plan-only mode enabled and will generate a new plan for you. It will post the plan as a new comment in the pull request.
 
 ## Configure Branch Planner
 
