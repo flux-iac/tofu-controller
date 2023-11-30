@@ -6,7 +6,7 @@ The Branch Planner's most important feature is its seamless integration with the
 
 ### How does it work?
 
-When the Branch Planner is enabled through Helm values, it will watch all configured Terraform resources, check their referenced Source, and poll for Pull Requests using GitHub's API plus the provided token.
+When the Branch Planner is enabled through Helm values, it will watch all configured Terraform resources, check their referenced Source, and poll for Pull Requests using GitHub's API using the provided token.
 
 Upon starting, the Branch Planner polls repositories that contain Terraform resources at regular intervals in order to detect Pull Requests (PR) that change those resources. When the Branch Planner detects an open Pull Request, it either creates a new Terraform object or updates an existing one, applying Plan Only mode based on the original Terraform object for the corresponding branch. In this mode, TF-Controller generates Terraform plans but does not apply them. 
 
