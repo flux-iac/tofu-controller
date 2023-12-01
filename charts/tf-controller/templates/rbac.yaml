@@ -47,6 +47,57 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
+  name: tf-cluster-reconciler-role
+rules:
+- apiGroups:
+  - infra.contrib.fluxcd.io
+  resources:
+  - terraforms
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.contrib.fluxcd.io
+  resources:
+  - terraforms/finalizers
+  verbs:
+  - create
+  - delete
+  - get
+  - patch
+  - update
+- apiGroups: 
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
   name: tf-manager-role
 rules:
 - apiGroups:
@@ -167,7 +218,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: cluster-admin
+  name: tf-cluster-reconciler-role
 subjects:
 - kind: ServiceAccount
   name: {{ include "tf-controller.serviceAccountName" . }}
