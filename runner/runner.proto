@@ -33,6 +33,7 @@ service Runner {
 
   rpc Init(InitRequest) returns (InitReply) {}
   rpc SelectWorkspace(WorkspaceRequest) returns (WorkspaceReply) {}
+  rpc CreateWorkspaceBlob(CreateWorkspaceBlobRequest) returns (CreateWorkspaceBlobReply) {}
   rpc Upload(UploadRequest) returns (UploadReply) {}
 
   rpc FinalizeSecrets(FinalizeSecretsRequest) returns (FinalizeSecretsReply) {}
@@ -289,8 +290,18 @@ message WorkspaceRequest {
   string tfInstance = 1;
 }
 
+
 message WorkspaceReply {
   string message = 1;
+}
+
+message CreateWorkspaceBlobRequest {
+  string tfInstance = 1;
+  string workingDir = 2;
+}
+
+message CreateWorkspaceBlobReply {
+  bytes blob = 2;
 }
 
 message UploadRequest {

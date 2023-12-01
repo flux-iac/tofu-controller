@@ -26,6 +26,7 @@ COPY cmd/runner/ cmd/runner/
 COPY controllers/ controllers/
 COPY mtls/ mtls/
 COPY runner/ runner/
+COPY internal/ internal/
 COPY utils/ utils/
 
 # Build
