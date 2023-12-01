@@ -9,6 +9,10 @@
       
       
       
+        <link rel="prev" href="../branch-planner-getting-started/">
+      
+      
+        <link rel="next" href="../../how_to/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -16,7 +20,7 @@
     
     
       
-        <title>Branch planner tfc integration getting started - Weave GitOps Terraform Controller</title>
+        <title>Branch Planner and Terraform Cloud Integration - Weave GitOps Terraform Controller</title>
       
     
     
@@ -107,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Branch planner tfc integration getting started
+              Branch Planner and Terraform Cloud Integration
             
           </span>
         </div>
@@ -304,19 +308,21 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
@@ -330,7 +336,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             Branch Planner
@@ -365,7 +371,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started.md" class="md-nav__link">
+      <a href="../branch-planner-getting-started/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -383,39 +389,123 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../least-required-permissions.md" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Branch Planner and Terraform Cloud Integration
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
-    Least Required Permissions
+    Branch Planner and Terraform Cloud Integration
   </span>
   
 
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tfc-integration.md" class="md-nav__link">
+      
         
-  
-  <span class="md-ellipsis">
-    Terraform Cloud Integration
-  </span>
-  
 
-      </a>
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#branch-planner-and-terraform-cloud-integration-getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      Branch Planner and Terraform Cloud Integration: Getting Started
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-by-step-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-step Guide
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step-by-step Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-create-a-terraform-cloud-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Create a Terraform Cloud Token
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-create-a-terraform-cr" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Create a Terraform CR
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-edit-file-create-a-branch-and-open-a-pull-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Edit File, Create a Branch, and Open a Pull Request
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-review-approve-and-merge-the-pull-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Review, Approve and Merge the Pull Request
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusion
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -599,7 +689,7 @@
   
 
 
-  <h1>Branch planner tfc integration getting started</h1>
+  <h1>Branch Planner and Terraform Cloud Integration</h1>
 
 <h2 id="branch-planner-and-terraform-cloud-integration-getting-started">Branch Planner and Terraform Cloud Integration: Getting Started</h2>
 <p>With Branch Planner, you can provision the <code>main</code> branch directly on Terraform Cloud. TF-Controller communicates with Terraform Cloud to run the necessary plans and apply your approved code. The state is securely stored on Terraform Cloud.</p>
