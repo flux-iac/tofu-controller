@@ -1,15 +1,14 @@
-# Branch Planner User Guide
+# Branch Planner Overview
 
-## Overview
+The GitOps methodology streamlines infrastructure provisioning and management, using Git as the source of truth. The Branch Planner, a component of TF-Controller, aims to take this a step further by allowing developers and operations teams to plan Terraform configurations on a branch that's separate from the `main` branch. This makes it easier to review and understand the potential impact of your changes before you run `terraform apply`.
 
-The Branch Planner, a new component of the Terraform Controller, is specifically designed to enhance the flexibility and robustness of Terraform Controller planning operations. This feature, currently in its technology preview phase, facilitates Terraform planning across branches, creating a streamlined and familiar PR-based workflow for users.
+The Branch Planner's most important feature is its seamless integration with the PR (Pull Request) user interface. When enabled through Helm values, it watches repositories that contain Terraform resources at regular intervals—checking their referenced Source, and polling for Pull Requests using GitHub's API and the provided token. When changes are proposed on a new branch, Branch Planner runs a plan in the cluster and displays the results directly as comments on your PR. Once you're satisfied with the results, you can merge your branch into the `main` branch to trigger the TF-Controller to reconcile the updated code.
 
-### How does it work?
-
-When the Branch Planner starts, it polls repositories that contain Terraform resources at regular intervals, in order to detect Pull Requests (PR) that change those resources. Upon detecting that a PR exists, the Branch Planner initialises a Terraform object in Plan Only mode for the corresponding branch. In this mode, Terraform Controller generates Terraform plans but does not apply them. Once the plan is generated, Branch Planner posts the plan under the PR as a comment enabling users to review the plan. When the Terraform files of the corresponding branch get updated, Branch Planner posts the updated plan under the PR as new comment, keeping the PR up-to-date with the latest Terraform plan.
+![branch planner](branch-planner.png)
 
 ### Replan commands
 
 The Branch Planner also allows users to manually trigger the replan process. By simply commenting `!replan` under the PR, the Branch Planner will be instructed to generate a new plan and post it under the PR as a new comment.
 
-Now that you know what Branch Planner can do for you, follow the [guide to get started](./getting-started.md).
+Now that you know what Branch Planner can do for you, follow the [guide to get started](./branch-planner-getting-started.md).
+
