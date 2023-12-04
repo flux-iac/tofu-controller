@@ -28,6 +28,8 @@ func TestCreateWorkspaceBlob(t *testing.T) {
 	resp, err := runnerClient.CreateWorkspaceBlob(ctx, &runner.CreateWorkspaceBlobRequest{TfInstance: "test", WorkingDir: tempDir})
 	g.Expect(err).To(BeNil())
 
+	g.Expect(resp.GetSha256Checksum()).ToNot(BeEmpty())
+
 	blobReader := bytes.NewReader(resp.Blob)
 
 	outputTempDir := t.TempDir()
