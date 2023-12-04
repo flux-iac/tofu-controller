@@ -302,6 +302,7 @@ message CreateWorkspaceBlobRequest {
 
 message CreateWorkspaceBlobReply {
   bytes blob = 2;
+  bytes sha256Checksum = 3;
 }
 
 message UploadRequest {
