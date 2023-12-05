@@ -1,14 +1,14 @@
 # Integrate with Flux Receivers and Alerts
 
-These docs show how to customize your Flux installation so that Flux API
-resources like `Receivers` and `Alerts` can be used with third-party custom
+You can customize your Flux installation to use Flux API
+resources like `Receivers` and `Alerts` with third-party custom
 resource definitions such as the `Terraform` API CRD.
 
 You will need to add a patch to the `kustomization.yaml` in your Flux cluster
-installation's bootstrap manifests, find it under the `flux-system` directory.
+installation's bootstrap manifests. Find it under the `flux-system` directory.
 
 <!-- <a id="enable-notifications-for-third-party-controllers">&nbsp;</a> -->
-### Enable notifications for third party controllers
+### Enable Notifications for Third-Party Controllers
 
 Enable notifications for 3rd party Flux controllers such as [tf-controller](https://github.com/weaveworks/tf-controller):
 

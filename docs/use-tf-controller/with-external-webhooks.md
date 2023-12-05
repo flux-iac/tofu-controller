@@ -1,4 +1,4 @@
-# Use TF-Controller with an External Webhooks
+# Use TF-Controller with External Webhooks
 
 The TF-Controller provides a way to integrate with webhooks to further validate Terraform plans and manage the Terraform execution process. 
 With the webhook feature, you can implement custom policy checks, validations, and other logic to determine if the Terraform process should proceed.

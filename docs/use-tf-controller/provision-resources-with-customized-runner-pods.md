@@ -1,8 +1,8 @@
-# Use TF-controller to provision resources with customized Runner Pods
+# Use TF-Controller to provision resources with customized Runner Pods
 
-## Customize Runner Pod's metadata
+## Customize Runner Pod metadata
 
-In some situations, it is needed to add custom labels and annotations to the runner pod used to reconcile Terraform.
+Sometimes you need to add custom labels and annotations to the runner pod used to reconcile Terraform.
 For example, for Azure AKS to grant pod active directory permissions using Azure Active Directory (AAD) Pod Identity,
 a label like `aadpodidbinding: myIdentity` on the pod is required.
 
