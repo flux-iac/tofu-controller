@@ -1,10 +1,10 @@
-# Use TF-controller with a plan-only mode
+# Use TF-Controller with a plan-only mode
 
 This plan-only mode is designed to be used in conjunction with the [Branch Planner](../branch_planner/index.md).
-But you can also use it in a circumstance where you want to run `terraform plan` only.
+But you can also use it whenever you want to run `terraform plan` only.
 
-If `planOnly` is set to `true`, the controller will skip the apply part and runs
-only `terraform plan` and saves the output.
+If `planOnly` is set to `true`, TF-Controller will skip the `apply` step, run
+`terraform plan`, and save the output.
 
 ```
 apiVersion: infra.contrib.fluxcd.io/v1alpha2

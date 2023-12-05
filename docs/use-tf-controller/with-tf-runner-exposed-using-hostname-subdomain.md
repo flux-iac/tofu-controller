@@ -1,6 +1,6 @@
 # Use TF-controller with Terraform Runners **exposed via hostname/subdomain** 
 
-TF-controller uses **the Controller/Runner architecture**. The Controller acts as a client, and talks to each Runner's Pod via gRPC over **port 30000**.
+TF-controller uses the Controller/Runner architecture. The Controller acts as a client, and talks to each Runner's Pod via gRPC over port 30000.
 
 TF-controller must thus be able to reliably connect to each Runner's pod regardless of the cluster network topology.
 
@@ -20,8 +20,7 @@ cluster.local {
 }
 ```
 
-> [!IMPORTANT]
-> The gRPC communication between TF-controller and Runner's pod is secured with mTLS. TF-controller generates a valid wildcard TLS certificate for `*.<namespace>.pod.<cluster-domain>` hosts on the Runner's namespace. The Runner's pod present this certificate during TLS handshake with TF-controller. 
+IMPORTANT: The gRPC communication between TF-controller and Runner's pod is secured with mTLS. TF-controller generates a valid wildcard TLS certificate for `*.<namespace>.pod.<cluster-domain>` hosts on the Runner's namespace. The Runner's pod present this certificate during TLS handshake with TF-controller. 
 
 ## Hostname/Subdomain Runner DNS resolution
 
@@ -100,9 +99,8 @@ spec:
   serviceAccountName: tf-runner
 ```
 
-The Runner's pod can then be targeted by TF-controller using `<terraform_object_name>.tf-runner.<namespace>.svc.<cluster-domain> (helloworld.tf-runner.hello-world.svc.cluster.local)` as per Kubernetes specification instead of `IP-based pod DNS resolution`.
+The Runner's pod can then be targeted by TF-Controller using `<terraform_object_name>.tf-runner.<namespace>.svc.<cluster-domain> (helloworld.tf-runner.hello-world.svc.cluster.local)` as per Kubernetes specification instead of `IP-based pod DNS resolution`.
 
 The switch is performed by setting the following _Helm value_ `usePodSubdomainResolution: true` or running directly TF-controller with the option `--use-pod-subdomain-resolution=true`
 
-> [!IMPORTANT]
-> The gRPC communication between TF-controller and Runner's pod is secured with mTLS. TF-controller generates a valid wildcard TLS certificate for `*.<namespace>.pod.<cluster-domain>` and `*.tf-runner.<namespace>.svc.<cluster-domain>` hosts on the Runner's namespace. The Runner's pod present this certificate during TLS handshake with TF-controller. 
+IMPORTANT: The gRPC communication between TF-Controller and Runner's pod is secured with mTLS. TF-controller generates a valid wildcard TLS certificate for `*.<namespace>.pod.<cluster-domain>` and `*.tf-runner.<namespace>.svc.<cluster-domain>` hosts on the Runner's namespace. The Runner's pod present this certificate during TLS handshake with TF-Controller. 

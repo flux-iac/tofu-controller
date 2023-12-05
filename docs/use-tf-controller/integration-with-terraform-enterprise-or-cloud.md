@@ -1,9 +1,18 @@
-# Use TF-controller with Terraform Enterprise
+# Terraform Enterprise and Terraform Cloud Integration
 
-## Terraform Enterprise Integration
+Terraform is a secure and robust platform designed to store the Terraform states 
+for your production systems. When working with Infrastructure as Code, 
+managing and ensuring the state is both secure and consistent is critical. 
 
-Starting from v0.9.5, Weave TF-controller officially supports integration to Terraform Cloud (TFC) and 
-Terraform Enterprise (TFE). Here are the steps to set up TF-controller for your TFE instance.
+TF-Controller supports both Terraform Cloud and Terraform Enterprise. The `spec.cloud` in the Terraform CRD enables users to integrate their Kubernetes configurations with Terraform workflows.
+
+To get started, simply place your Terraform Cloud token in a Kubernetes Secret
+and specify it in the `spec.cliConfigSecretRef` field of the Terraform CR.
+The `spec.cloud` cloud specifies the organization and workspace name.
+
+## Terraform Enterprise
+
+Here are the steps to set up TF-Controller for your TFE instance.
 
 ![](tfe_integration_01.png)
 
@@ -29,7 +38,7 @@ Content of the file will look like this:
 ```
 
 ### Prepare an TFRC file
-TF-controller accepts an TFRC file in the HCL format. So you have to prepare `terraform.tfrc` file using contents from above.
+TF-Controller accepts an TFRC file in the HCL format. So you have to prepare `terraform.tfrc` file using contents from above.
 ```hcl
 credentials "tfe.dev.example.com" {
   token = "mXXXXXXXXX.atlasv1.ixXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
@@ -109,4 +118,26 @@ output "greeting" {
 
 ### Terraform Cloud
 
-For connecting to Terraform Cloud, please replace your hostname to `app.terraform.io`.
+TF-Controller can send your Terraform resources to be planned and applied via Terraform Cloud. 
+States are automatically stored in your Terraform Cloud's workspace. 
+To use TF-Controller with Terraform Cloud, connect by replacing your hostname to `app.terraform.io`. Also, set `spec.approvalPlan` to `auto`. 
+
+Here's how the configuration looks:
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: branch-planner-tfc
+  namespace: flux-system
+spec:
+  interval: 2m
+  approvePlan: auto
+  cloud:
+    organization: weaveworks
+    workspaces:
+      name: branch-planner-tfc
+  cliConfigSecretRef:
+    name: tfc-cli-config
+    namespace: flux-system
+```

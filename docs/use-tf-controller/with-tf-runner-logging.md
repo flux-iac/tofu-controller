@@ -1,4 +1,4 @@
-# Use TF-controller with Terraform Runners enabled via Env Variables 
+# Control the logging behavior of Terraform Runner
 
 A Terraform Runner uses two environment variables, `DISABLE_TF_LOGS` and `ENABLE_SENSITIVE_TF_LOGS`, to control the logging behavior of the Terraform execution.
 

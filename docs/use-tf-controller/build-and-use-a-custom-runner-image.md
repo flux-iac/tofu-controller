@@ -1,13 +1,12 @@
-# Using a custom runner image for TF-Controller
+# Build and Use a Custom Runner Image
 
-In order to build a custom runner image, you need a Dockerfile that extends the base image and that adds Terraform, plus any additional required tooling.
-The repository that contains the base images is [here](ghcr.io/weaveworks/tf-runner). All base image tags follow the following format: `${TF_CONTROLLER_VERSION}-base`
+To build a custom runner image, you need a Dockerfile that extends the base image and that adds Terraform, plus any additional required tooling. The repository that contains the base images is [here](ghcr.io/weaveworks/tf-runner). All base image tags follow the following format: `${TF_CONTROLLER_VERSION}-base`.
 
 ## Prerequisites
 
 You need Docker and Git to build the image.
 
-## Build the image
+## Build the Image
 
 1. Create a `Dockerfile` that extends the base image and that adds Terraform, plus any additional required tooling. For example:
 
@@ -60,7 +59,7 @@ values:
       tag: v0.16.0-rc.3
 ```
 
-4. Commit and push the changes to Git, and confirm that the HelmRelease has been updated:
+4. Commit and push the changes to Git. Confirm that the HelmRelease has been updated:
 
 ```bash
 kubectl get deployments.apps -n flux-system tf-controller -o jsonpath='{.spec.template.spec.containers[*]}' | jq '.env[] | select(.name == "RUNNER_POD_IMAGE")'
@@ -72,5 +71,4 @@ kubectl get deployments.apps -n flux-system tf-controller -o jsonpath='{.spec.te
 
 ### References
 
-A set of GitHub actions in the TF-Controller community repo facilitate a process that's similar to the above, but using GitHub Actions to build and push the image.
-You can find them [here](https://github.com/tf-controller/tf-runner-images/blob/main/.github/workflows/release-runner-images.yaml).
+A [set of GitHub actions in the TF-Controller community repo](https://github.com/tf-controller/tf-runner-images/blob/main/.github/workflows/release-runner-images.yaml) facilitates a process similar to the above, but uses GitHub Actions to build and push the image.

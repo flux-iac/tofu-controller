@@ -1,4 +1,4 @@
-# How does the interval and retryInterval work?
+# Troubleshooting with Interval and retryInterval
 
 ## Overview
 This document describes the requeue behavior of the Reconcile method in the TerraformReconciler struct in the code base. 
