@@ -1,6 +1,6 @@
 # Overview
 
-~> **BREAKING NEWS:** The **Technology Preview** of the Branch Planner is now available! [Learn more](./branch_planner/index.md) or Get started with the [Branch Planner](./branch_planner/getting-started.md).
+~> **BREAKING NEWS:** The **Technology Preview** of the Branch Planner is now available! [Learn more](./branch-planner/index.md) or Get started with the [Branch Planner](./branch-planner/getting-started.md).
 
 TF-controller is a reliable controller for [Flux](https://fluxcd.io) to reconcile Terraform resources
 in the GitOps way.

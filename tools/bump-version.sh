@@ -11,13 +11,13 @@ yq e -i ".images[0].newTag=\"$VERSION\"" config/branch-planner/kustomization.yam
 
 # bump version in docs/release.yaml
 
-# Without Brnach Planner
+# Without Branch Planner
 yq e -i "(select(di == 1).spec.chart.spec.version) = \">=${VERSION#v}\"" docs/release.yaml
 yq e -i "(select(di == 1).spec.values.image.tag) = \"$VERSION\"" docs/release.yaml
 yq e -i "(select(di == 1).spec.values.runner.image.tag) = \"$VERSION\"" docs/release.yaml
 
-# Wit Brnach Planner
-yq e -i "(select(di == 1).spec.chart.spec.version) = \">=${VERSION#v}\"" docs/branch_planner/release.yaml
-yq e -i "(select(di == 1).spec.values.image.tag) = \"$VERSION\"" docs/branch_planner/release.yaml
-yq e -i "(select(di == 1).spec.values.runner.image.tag) = \"$VERSION\"" docs/branch_planner/release.yaml
-yq e -i "(select(di == 1).spec.values.branchPlanner.image.tag) = \"$VERSION\"" docs/branch_planner/release.yaml
+# With Branch Planner
+yq e -i "(select(di == 1).spec.chart.spec.version) = \">=${VERSION#v}\"" docs/branch-planner/release.yaml
+yq e -i "(select(di == 1).spec.values.image.tag) = \"$VERSION\"" docs/branch-planner/release.yaml
+yq e -i "(select(di == 1).spec.values.runner.image.tag) = \"$VERSION\"" docs/branch-planner/release.yaml
+yq e -i "(select(di == 1).spec.values.branchPlanner.image.tag) = \"$VERSION\"" docs/branch-planner/release.yaml
