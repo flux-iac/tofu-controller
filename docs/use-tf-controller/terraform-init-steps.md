@@ -19,12 +19,12 @@ spec:
     branch: main
 ```
 
-Here's guidance for [when your source is an OCI artifact](https://weaveworks.github.io/tf-controller/use_tf_controller/with_an_OCI_Artifact_as_Source.md).
+Here's guidance for [when your source is an OCI artifact](with-an-oci-artifact-as-source.md).
 
 ### Optional Steps 
 
 At this point you have options to enhance your use of TF-Controller:
-- Optional: [Use TF-Controller with GitOps Dependency Management](with-GitOps-dependency-management.md)
+- Optional: [Use TF-Controller with GitOps Dependency Management](with-gitops-dependency-management.md)
     - This is to avoid the Kustomization controller's variable substitution
 - Optional: [Using TF-Controller with Primitive Modules](with-primitive-modules.md) for an optional way to write Terraform code.
 
@@ -42,7 +42,7 @@ Related resources, with optional steps noted:
 Be mindful of locking mechanism when pursuing these steps.
 
 ### Optional: Working with Integrations
-- [Working with Terraform Cloud and Terraform Enterprise](https://weaveworks.github.io/tf-controller/use-tf-controller/with-terraform-enterprise-or-cloud.md); see also: [Terraform Cloud and Branch Planner](../branch-planner/branch-planner-tfc-integration-getting-started.md)
+- [Working with Terraform Cloud and Terraform Enterprise](integration-with-terraform-enterprise-or-cloud); see also: [Terraform Cloud and Branch Planner](../branch-planner/branch-planner-tfc-integration-getting-started.md)
 
 ### Context-Related Steps
 - Optional: [Use TF-Controller with Terraform Runners enabled via Env Variables](with-tf-runner-logging.md)

@@ -8,7 +8,7 @@ TF-Controller supports both Terraform Cloud and Terraform Enterprise. The `spec.
 
 To get started, simply place your Terraform Cloud token in a Kubernetes Secret
 and specify it in the `spec.cliConfigSecretRef` field of the Terraform CR.
-The `spec.cloud` cloud specifies the organization and workspace name.
+The `spec.cloud` field specifies the organization and workspace name.
 
 ## Terraform Enterprise
 
@@ -120,7 +120,7 @@ output "greeting" {
 
 TF-Controller can send your Terraform resources to be planned and applied via Terraform Cloud. 
 States are automatically stored in your Terraform Cloud's workspace. 
-To use TF-Controller with Terraform Cloud, connect by replacing your hostname to `app.terraform.io`. Also, set `spec.approvalPlan` to `auto`. 
+To use TF-Controller with Terraform Cloud, replace your hostname to `app.terraform.io`. Also, set `spec.approvalPlan` to `auto`. 
 
 Here's how the configuration looks:
 

@@ -3,13 +3,12 @@
 Assume that you have a `GitRepository` object named `helloworld` pointing to a Git repository, and you want to plan and apply the Terraform resources under `./` of that Git repo. Let's walk through the steps of using TF-Controller to plan and
 manually apply Terraform resources. 
 
-- Start by creating the `Terraform` object and setting the necessary fields in the spec:
+- Create a `Terraform` object and set the necessary fields in the spec:
   - `approvePlan`, which sets the mode. For plan and manual approval mode, either keep this field blank or omit it entirely.
   - `interval`, which determines how often TF-Controller will run the Terraform configuration
-  - `path`, which specifies the location of the configuration files
-  - `sourceRef`, which points to the GitRepository object
-- Then create the `GitRepository` object, which points to the Git repository containing the Terraform configuration.
-- Once these objects are created, use kubectl to obtain the `approvePlan` value and set it in the `Terraform` object. 
+  - `path`, which specifies the location of the configuration files, in this case `./`
+  - `sourceRef`, which points to the `helloworld` GitRepository object
+- Once this object is created, use kubectl to obtain the `approvePlan` value and set it in the `Terraform` object. 
 - After making our changes and pushing them to the Git repository, TF-Controller will apply the plan and create the real resources.
 
 Here is an example:

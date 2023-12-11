@@ -3,7 +3,7 @@
 ~> **BREAKING CHANGE**: This is a breaking change of the `v1alpha1` API.
 
 Users who are upgrading from TF-Controller <= 0.7.0 must update `varsFrom`
-from a single object to become an array of an object:
+from a single object to become an array of objects:
 
 ```yaml hl_lines="2"
   varsFrom:
@@ -11,7 +11,7 @@ from a single object to become an array of an object:
     name: cluster-config
 ```
 
-to be an array of object:
+changes to
 
 ```yaml hl_lines="2"
   varsFrom:
