@@ -15,9 +15,12 @@ import (
 
 	"github.com/flux-iac/tofu-controller/controllers"
 	"github.com/flux-iac/tofu-controller/runner"
+	"github.com/onsi/gomega"
 	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 
 	corev1 "k8s.io/api/core/v1"
@@ -42,8 +45,9 @@ func init() {
 const (
 	// longer timeout duration is helpful to avoid flakiness when
 	// asserting on k8s resources created via Terraform
-	timeout  = time.Second * 30
-	interval = time.Millisecond * 500
+	timeout               = time.Second * 30
+	interval              = time.Millisecond * 500
+	cleanupTimeoutSeconds = 60
 )
 
 var (
@@ -234,4 +238,19 @@ func getGrpcClient(ctx context.Context, addr string) (runner.RunnerClient, error
 	}
 
 	return runner.NewRunnerClient(grpcConn), nil
+}
+
+func waitResourceToBeDelete(g gomega.Gomega, resource client.Object) {
+	ctx := context.Background()
+	key := types.NamespacedName{Namespace: resource.GetNamespace(), Name: resource.GetName()}
+
+	err := k8sClient.Get(ctx, key, resource)
+	if apierrors.IsNotFound(err) {
+		return
+	}
+
+	g.Expect(k8sClient.Delete(ctx, resource)).Should(gomega.Succeed())
+	g.Eventually(func() error {
+		return k8sClient.Get(ctx, key, resource)
+	}, cleanupTimeoutSeconds, interval).ShouldNot(gomega.Succeed())
 }

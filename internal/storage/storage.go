@@ -22,7 +22,7 @@ func ArchiveDir(dir string) (out string, err error) {
 		}
 	}()
 
-	if err := os.Chdir(filepath.Dir(dir)); err != nil {
+	if err := os.Chdir(dir); err != nil {
 		return "", err
 	}
 

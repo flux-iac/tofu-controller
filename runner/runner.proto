@@ -33,7 +33,6 @@ service Runner {
 
   rpc Init(InitRequest) returns (InitReply) {}
   rpc SelectWorkspace(WorkspaceRequest) returns (WorkspaceReply) {}
-  rpc CreateWorkspaceBlob(CreateWorkspaceBlobRequest) returns (CreateWorkspaceBlobReply) {}
   rpc Upload(UploadRequest) returns (UploadReply) {}
 
   rpc FinalizeSecrets(FinalizeSecretsRequest) returns (FinalizeSecretsReply) {}
@@ -41,6 +40,8 @@ service Runner {
 
   rpc StartBreakTheGlassSession(BreakTheGlassRequest) returns (BreakTheGlassReply) {}
   rpc HasBreakTheGlassSessionDone(BreakTheGlassRequest) returns (BreakTheGlassReply) {}
+
+  rpc CreateWorkspaceBlobStream(CreateWorkspaceBlobRequest) returns (stream CreateWorkspaceBlobReply) {}
 }
 
 message LookPathRequest {

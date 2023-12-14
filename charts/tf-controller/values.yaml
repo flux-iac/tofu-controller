@@ -112,6 +112,10 @@ awsPackage:
   install: true
   tag: v4.38.0-v1alpha11
   repository: ghcr.io/flux-iac/aws-primitive-modules
+blobCacheVolume:
+  emptyDir: {}
+  # persistentVolumeClaim:
+  #   claimName: tofu-controller-blob-cache
 # -- Runner-specific configurations
 runner:
   image:
