@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -69,9 +68,8 @@ func TestCreateWorkspaceBlob(t *testing.T) {
 	blobReader := bytes.NewReader(blob)
 
 	outputTempDir := t.TempDir()
-	sum, err := untar.Untar(blobReader, outputTempDir)
+	_, err = untar.Untar(blobReader, outputTempDir)
 	g.Expect(err).To(BeNil())
-	fmt.Println(sum)
 
 	outputFilePath := filepath.Join(outputTempDir, ".terraform", "random.txt")
 	outputContent, err := os.ReadFile(outputFilePath)
