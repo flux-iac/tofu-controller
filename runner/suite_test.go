@@ -23,6 +23,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/fluxcd/pkg/runtime/logger"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
@@ -63,7 +64,11 @@ var (
 func TestMain(m *testing.M) {
 	var err error
 
-	ctrl.SetLogger(zap.New(zap.WriteTo(&logBuffer)))
+	if os.Getenv("WITH_STDOUT_LOGGER") != "" {
+		ctrl.SetLogger(logger.NewLogger(logger.Options{}))
+	} else {
+		ctrl.SetLogger(zap.New(zap.WriteTo(&logBuffer)))
+	}
 
 	ctx, cancel = context.WithCancel(context.TODO())
 	// "bootstrapping test environment"
@@ -126,6 +131,7 @@ func TestMain(m *testing.M) {
 
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme: scheme,
+		Logger: ctrl.LoggerFrom(ctx).WithName("controller"),
 	})
 	if err != nil {
 		panic(err.Error())
