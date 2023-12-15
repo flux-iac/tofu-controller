@@ -298,6 +298,7 @@ message WorkspaceReply {
 message CreateWorkspaceBlobRequest {
   string tfInstance = 1;
   string workingDir = 2;
+  string namespace  = 3;
 }
 
 message CreateWorkspaceBlobReply {
