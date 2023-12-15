@@ -62,8 +62,8 @@ func TestCreateWorkspaceBlob(t *testing.T) {
 	g.Expect(err).To(BeNil())
 	nonceSize := gcm.NonceSize()
 	nonce, ciphertext := resp.Blob[:nonceSize], resp.Blob[nonceSize:]
-	g.Expect(err).To(BeNil())
 	blob, err := gcm.Open(nil, nonce, ciphertext, nil)
+	g.Expect(err).To(BeNil())
 
 	blobReader := bytes.NewReader(blob)
 
