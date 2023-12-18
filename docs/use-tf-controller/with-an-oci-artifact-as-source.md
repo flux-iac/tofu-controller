@@ -1,4 +1,4 @@
-# Use TF-controller with an OCI Artifact as Source
+# Use TF-Controller with an OCI Artifact as Source
 
 To use OCI artifacts as the source of Terraform objects, you need Flux 2 version **v0.32.0** or higher.
 

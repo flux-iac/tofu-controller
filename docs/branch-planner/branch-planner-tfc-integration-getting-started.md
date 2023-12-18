@@ -117,7 +117,3 @@ This enables you and your team to review the expected changes before they're app
     - Choose your desired merge strategy from the options provided, such as "Squash and merge" or "Rebase and merge".
     - Click `Confirm merge`.
     - Following the merge, TF-Controller will take over. It will send the updated Terraform configuration to Terraform Cloud, where the changes will be planned and then applied. The resulting infrastructure state will be securely stored within your Terraform Cloud workspace.
-
-## Conclusion
-
-Combining tools like Terraform Cloud, TF-Controller with Branch Planner, and GitHub offers an innovative way for organization to streamline their infrastructure management. Being able to easily review and understand changes in a familiar platform like GitHub ensures clarity. With the immediate feedback provided by Branch Planner, teams can anticipate and discuss potential changes on different branches, before they're implemented. This combination doesn't just make updates safer and more predictable, but it promotes team-wide involvement. Furthermore, the collaboration between TF-Controller and Terraform Cloud guarantees consistency, minimizing errors, and being GitOps. As we navigate an increasingly complex IaC landscape, such simplified, integrated approaches are key to efficient, secure and error-free operations.

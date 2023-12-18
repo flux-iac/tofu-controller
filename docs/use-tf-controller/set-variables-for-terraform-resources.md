@@ -1,9 +1,9 @@
-# Use TF-controller to set variables for Terraform resources
+# Use TF-Controller to Set Variables for Terraform Resources
 
 ~> **BREAKING CHANGE**: This is a breaking change of the `v1alpha1` API.
 
-Users who are upgrading from TF-controller <= 0.7.0 require updating `varsFrom`,
-from a single object:
+Users who are upgrading from TF-Controller <= 0.7.0 must update `varsFrom`
+from a single object to become an array of objects:
 
 ```yaml hl_lines="2"
   varsFrom:
@@ -11,7 +11,7 @@ from a single object:
     name: cluster-config
 ```
 
-to be an array of object, like this:
+changes to
 
 ```yaml hl_lines="2"
   varsFrom:
@@ -61,7 +61,7 @@ spec:
     name: cluster-creds
 ```
 
-## Variable value as HCL
+## Variable Value as HCL
 
 The `vars` field supports HCL string, number, bool, object and list types. For example, the following variable can be populated using the accompanying Terraform spec:
 
@@ -99,7 +99,7 @@ spec:
       public: false
 ```
 
-## Rename variables in varsFrom
+## Rename Variables in varsFrom
 
 To rename a variable, you can use the varsKeys key within the varsFrom field. 
 Here's the basic structure:
@@ -142,8 +142,8 @@ spec:
 
 ## Rename output variables
 
-See [Rename outputs](to_provision_resources_and_obtain_outputs.md#rename-outputs) for more details.
+See [Rename outputs](provision-resources-obtain-outputs.md#rename-outputs) for more details.
 
-## Rename input secrets
+## Rename Input Secrets
 
-See [Rename input secrets](with_the_ready_to_use_AWS_package.md#rename-input-secrets) for more details.
+See [Rename input secrets](with-the-ready-to-use-aws-package.md#rename-input-secrets) for more details.
