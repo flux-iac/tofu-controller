@@ -1,38 +1,33 @@
-# Use TF-controller to provision resources and auto approve
+# Use TF-Controller to provision resources and auto approve
 
-To provision resources with TF-controller, you need to create a `Terraform` object and a Flux source object, 
+To provision resources with TF-Controller, you need to create a `Terraform` object and a Flux source object, 
 such as a `GitRepository` or `OCIRepository` object.
 
 ## Create a Terraform object
 
 The `Terraform` object is a Kubernetes custom resource definition (CRD) object.
-It is the core object of TF-controller and defines
-the Terraform module, backend configuration, and GitOps automation mode.. 
+It is the core object of TF-Controller and defines
+the Terraform module, backend configuration, and GitOps automation mode.
 
-It defines the Terraform module, the backend configuration, and the GitOps automation mode.
-
-The Terraform module is a Terraform configuration that can be used to provision resources.
-It can be placed inside a Git repository, or packaged as an OCI image in an OCI registry.
+The Terraform module is a Terraform configuration that you can use to provision resources.
+It can either be placed inside a Git repository, or packaged as an OCI image in an OCI registry.
 
 The backend configuration is the configuration for the Terraform backend to be used to store the Terraform state.
 It is optional. If not specified, the Kubernetes backend will be used by default.
 
-## GitOps automation mode
+## GitOps Automation mode
 
-The GitOps automation mode is the GitOps automation mode to be used to run the Terraform module. It determines how Terraform runs and manages your infrastructure. It is optional. If not specified, the "plan-and-manually-apply" mode will be used by default.
+Use the GitOps automation mode to run the Terraform module. It determines how Terraform runs and manages your infrastructure. It is optional. If not specified, the "plan-and-manually-apply" mode is used by default.
 In the "plan-and-manually-apply" mode,
-TF-controller will run a Terraform plan and output the proposed changes to a Git repository.
+TF-Controller will run a Terraform plan and output the proposed changes to a Git repository.
 A human must then review and manually apply the changes.
-This is the default GitOps automation mode if none is specified.
 
-In the "auto-apply" mode, TF-controller will automatically apply the changes after a Terraform plan is run.
+In the "auto-apply" mode, TF-Controller will automatically apply the changes after a Terraform plan is run.
 This can be useful for environments where changes can be made automatically,
 but it is important to ensure that the proper controls, like policies, are in place to prevent unintended changes
 from being applied.
 
-To specify the GitOps automation mode in a Terraform object,
-you can set the `spec.approvePlan` field to the desired value. For example, to use the "auto-apply" mode, y
-ou would set it to `spec.approvePlan: auto`.
+To specify the GitOps automation mode in a Terraform object, set the `spec.approvePlan` field to the desired value. For example, to use the "auto-apply" mode, set it to `spec.approvePlan: auto`.
 
 It is important to carefully consider which GitOps automation mode is appropriate for your use case to ensure that
 your infrastructure is properly managed and controlled.
@@ -61,7 +56,7 @@ The `metadata` block contains information about the object, including its `name`
 The `spec` field contains the specification for the `Terraform` object.
 The `path` field specifies the path to the Terraform configuration files,
 in this case a directory named "helloworld".
-The `interval` field specifies the frequency at which TF-controller should run the Terraform configuration,
+The `interval` field specifies the frequency at which TF-Controller should run the Terraform configuration,
 in this case every 10 minutes. The `approvePlan` field specifies whether or not
 to automatically approve the changes proposed by a Terraform plan.
 In this case, it is set to `auto`, meaning that changes will be automatically approved.

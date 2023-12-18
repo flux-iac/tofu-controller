@@ -1,6 +1,6 @@
-# Use TF-controller with a custom backend
+# Option: Use TF-Controller with a Custom Backend
 
-By default, `tf-controller` will use the [Kubernetes backend](https://www.terraform.io/language/settings/backends/kubernetes) to store the Terraform state file (tfstate) in cluster.
+By default, TF-Controller uses the [Kubernetes backend](https://www.terraform.io/language/settings/backends/kubernetes) to store the Terraform state file (tfstate) in clusters.
 
 The tfstate is stored in a secret named: `tfstate-${workspace}-${secretSuffix}`. The default `suffix` will be the name of the Terraform resource, however you may override this setting using `.spec.backendConfig.secretSuffix`. The default `workspace` name is "default", you can also override the workspace by setting `.spec.workspace` to another value.
 
@@ -37,4 +37,12 @@ spec:
   runnerPodTemplate:
     spec:
       image: registry.io/tf-runner:xyz
+```
+
+To add fields from secrets or configMaps, use `-backend-config` arguments of the `init` command to set the values:
+
+```
+terraform init \
+  -backend-config="access_key=<your access key>" \
+  -backend-config="secret_key=<your secret key>"
 ```

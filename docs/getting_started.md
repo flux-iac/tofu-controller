@@ -59,17 +59,17 @@ Tested with GKE Autopilot v1.27.3-gke.100.
 ### With Branch Planner
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch_planner/release.yaml
+kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch-planner/release.yaml
 ```
 
-For the most recent release candidate of TF-controller with Branch Planner, please use [branch_planner/rc.yaml](https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch_planner/rc.yaml).
+For the most recent release candidate of TF-controller with Branch Planner, please use [branch-planner/rc.yaml](https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch-planner/rc.yaml).
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch_planner/rc.yaml
+kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch-planner/rc.yaml
 ```
 
 For more details about the Branch Planner, please visit the
-[Branch Planner documentation](./branch_planner/getting-started.md).
+[Branch Planner documentation](./branch-planner/branch-planner-getting-started.md).
 
 ### Manual installation
 
@@ -138,7 +138,7 @@ spec:
     namespace: flux-system
 ```
 
-For a full list of features and how to use them, please follow the [Use TF-controller](use_tf_controller/index.md) guide.
+For a full list of features and how to use them, please follow the [Use TF-controller](use-tf-controller/index.md) guide.
 
 ## Other Examples
   * A Terraform GitOps with Flux to automatically reconcile your [AWS IAM Policies](https://github.com/tf-controller/aws-iam-policies).
