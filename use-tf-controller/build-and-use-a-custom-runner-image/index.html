@@ -11,19 +11,19 @@
       
       
       
-      <link rel="icon" href="/assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.2">
     
     
       
-        <title>Weave GitOps Terraform Controller</title>
+        <title>Build and Use a Custom Runner Image - Weave GitOps Terraform Controller</title>
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/main.50c56a3b.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.50c56a3b.min.css">
       
         
-        <link rel="stylesheet" href="/assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -42,7 +42,7 @@
       
     
     
-    <script>__md_scope=new URL("/",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -67,6 +67,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#build-and-use-a-custom-runner-image" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -79,7 +84,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/." title="Weave GitOps Terraform Controller" class="md-header__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
+    <a href="../.." title="Weave GitOps Terraform Controller" class="md-header__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -99,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              Build and Use a Custom Runner Image
             
           </span>
         </div>
@@ -212,7 +217,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/." title="Weave GitOps Terraform Controller" class="md-nav__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
+    <a href="../.." title="Weave GitOps Terraform Controller" class="md-nav__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -242,7 +247,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -262,7 +267,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/getting_started/" class="md-nav__link">
+      <a href="../../getting_started/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -282,7 +287,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/use-tf-controller/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -339,7 +344,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/branch-planner/" class="md-nav__link">
+      <a href="../../branch-planner/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -360,7 +365,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/branch-planner/branch-planner-getting-started/" class="md-nav__link">
+      <a href="../../branch-planner/branch-planner-getting-started/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -381,7 +386,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/branch-planner/branch-planner-tfc-integration-getting-started/" class="md-nav__link">
+      <a href="../../branch-planner/branch-planner-tfc-integration-getting-started/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -409,7 +414,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/References/terraform/" class="md-nav__link">
+      <a href="../../References/terraform/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -429,7 +434,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/tfctl/" class="md-nav__link">
+      <a href="../../tfctl/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -459,6 +464,49 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#build-the-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      Build the Image
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Build the Image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      References
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -470,8 +518,87 @@
             <div class="md-content" data-md-component="content">
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+  
+  
+
+
+<h1 id="build-and-use-a-custom-runner-image">Build and Use a Custom Runner Image</h1>
+<p>To build a custom runner image, you need a Dockerfile that extends the base image and that adds Terraform, plus any additional required tooling. The repository that contains the base images is <a href="ghcr.io/weaveworks/tf-runner">here</a>. All base image tags follow the following format: <code>${TF_CONTROLLER_VERSION}-base</code>.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>You need Docker and Git to build the image.</p>
+<h2 id="build-the-image">Build the Image</h2>
+<ol>
+<li>Create a <code>Dockerfile</code> that extends the base image and that adds Terraform, plus any additional required tooling. For example:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">ARG</span><span class="w"> </span>BASE_IMAGE
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">FROM</span><span class="w"> </span><span class="s">$BASE_IMAGE</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">ARG</span><span class="w"> </span>TARGETARCH
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">ARG</span><span class="w"> </span><span class="nv">TF_VERSION</span><span class="o">=</span><span class="m">1</span>.3.9
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c"># Switch to root to have permissions for operations</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">USER</span><span class="w"> </span><span class="s">root</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">ADD</span><span class="w"> </span>https://releases.hashicorp.com/terraform/<span class="si">${</span><span class="nv">TF_VERSION</span><span class="si">}</span>/terraform_<span class="si">${</span><span class="nv">TF_VERSION</span><span class="si">}</span>_linux_<span class="si">${</span><span class="nv">TARGETARCH</span><span class="si">}</span>.zip<span class="w"> </span>/terraform_<span class="si">${</span><span class="nv">TF_VERSION</span><span class="si">}</span>_linux_<span class="si">${</span><span class="nv">TARGETARCH</span><span class="si">}</span>.zip
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="k">RUN</span><span class="w"> </span>unzip<span class="w"> </span>-q<span class="w"> </span>/terraform_<span class="si">${</span><span class="nv">TF_VERSION</span><span class="si">}</span>_linux_<span class="si">${</span><span class="nv">TARGETARCH</span><span class="si">}</span>.zip<span class="w"> </span>-d<span class="w"> </span>/usr/local/bin/<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span>rm<span class="w"> </span>/terraform_<span class="si">${</span><span class="nv">TF_VERSION</span><span class="si">}</span>_linux_<span class="si">${</span><span class="nv">TARGETARCH</span><span class="si">}</span>.zip<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span>chmod<span class="w"> </span>+x<span class="w"> </span>/usr/local/bin/terraform
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="c"># Switch back to the non-root user after operations</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="k">USER</span><span class="w"> </span><span class="s">65532:65532</span>
+</code></pre></div>
+<p>Find the original Dockerfile for the runner <a href="https://github.com/weaveworks/tf-controller/blob/89e0c7edde91efebba825b31e9f0ef3cc583684b/runner.Dockerfile">here</a>.</p>
+<ol>
+<li>Build the image from the directory containing the <code>Dockerfile</code> you created above:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">TF_CONTROLLER_VERSION</span><span class="o">=</span>v0.16.0-rc.3
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">TF_VERSION</span><span class="o">=</span><span class="m">1</span>.3.9
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">BASE_IMAGE</span><span class="o">=</span>ghcr.io/weaveworks/tf-runner:<span class="si">${</span><span class="nv">TF_CONTROLLER_VERSION</span><span class="si">}</span>-base
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">TARGETARCH</span><span class="o">=</span>amd64
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">REMOTE_REPO</span><span class="o">=</span>ghcr.io/my-org/custom-runnner
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>docker<span class="w"> </span>build<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span>--build-arg<span class="w"> </span><span class="nv">BASE_IMAGE</span><span class="o">=</span><span class="si">${</span><span class="nv">BASE_IMAGE</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span>--build-arg<span class="w"> </span><span class="nv">TARGETARCH</span><span class="o">=</span><span class="si">${</span><span class="nv">TARGETARCH</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span>--tag<span class="w"> </span>my-custom-runner:<span class="si">${</span><span class="nv">TF_CONTROLLER_VERSION</span><span class="si">}</span><span class="w"> </span>.
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>docker<span class="w"> </span>tag<span class="w"> </span>my-custom-runner:<span class="si">${</span><span class="nv">TF_CONTROLLER_VERSION</span><span class="si">}</span><span class="w"> </span><span class="nv">$REMOTE_REPO</span>:<span class="si">${</span><span class="nv">TF_CONTROLLER_VERSION</span><span class="si">}</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>docker<span class="w"> </span>push<span class="w"> </span><span class="nv">$REMOTE_REPO</span>:<span class="si">${</span><span class="nv">TF_CONTROLLER_VERSION</span><span class="si">}</span>
+</code></pre></div>
+<p>Replace the relevant values above with the corresponding values in your organisation/implementation.</p>
+<ol>
+<li>Update the <code>values.runner.image</code> values in the TF-Controller Helm chart values to point to the new image:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">values</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">runner</span><span class="p">:</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">      </span><span class="nt">repository</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/my-org/custom-runnner</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">      </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v0.16.0-rc.3</span>
+</code></pre></div>
+<ol>
+<li>Commit and push the changes to Git. Confirm that the HelmRelease has been updated:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>deployments.apps<span class="w"> </span>-n<span class="w"> </span>flux-system<span class="w"> </span>tf-controller<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.template.spec.containers[*]}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.env[] | select(.name == &quot;RUNNER_POD_IMAGE&quot;)&#39;</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="o">{</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="s2">&quot;name&quot;</span>:<span class="w"> </span><span class="s2">&quot;RUNNER_POD_IMAGE&quot;</span>,
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="s2">&quot;value&quot;</span>:<span class="w"> </span><span class="s2">&quot;ghcr.io/my-org/custom-runner:v0.16.0-rc3&quot;</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="o">}</span>
+</code></pre></div>
+<h3 id="references">References</h3>
+<p>A <a href="https://github.com/tf-controller/tf-runner-images/blob/main/.github/workflows/release-runner-images.yaml">set of GitHub actions in the TF-Controller community repo</a> facilitates a process similar to the above, but uses GitHub Actions to build and push the image.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -505,10 +632,10 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "/", "features": ["content.code.annotate", "content.code.copy"], "search": "/assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="/assets/javascripts/bundle.d7c377c4.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7c377c4.min.js"></script>
       
     
   </body>

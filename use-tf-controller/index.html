@@ -9,21 +9,25 @@
       
       
       
+        <link rel="prev" href="../getting_started/">
       
       
-      <link rel="icon" href="/assets/images/favicon.png">
+        <link rel="next" href="../branch-planner/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.2">
     
     
       
-        <title>Weave GitOps Terraform Controller</title>
+        <title>Use TF-Controller - Weave GitOps Terraform Controller</title>
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/main.50c56a3b.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.50c56a3b.min.css">
       
         
-        <link rel="stylesheet" href="/assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -42,7 +46,7 @@
       
     
     
-    <script>__md_scope=new URL("/",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -67,6 +71,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#use-tf-controller" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -79,7 +88,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/." title="Weave GitOps Terraform Controller" class="md-header__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
+    <a href=".." title="Weave GitOps Terraform Controller" class="md-header__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -99,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              Use TF-Controller
             
           </span>
         </div>
@@ -212,7 +221,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/." title="Weave GitOps Terraform Controller" class="md-nav__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
+    <a href=".." title="Weave GitOps Terraform Controller" class="md-nav__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -242,7 +251,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -262,7 +271,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/getting_started/" class="md-nav__link">
+      <a href="../getting_started/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -279,10 +288,19 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/use-tf-controller/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -291,6 +309,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -339,7 +358,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/branch-planner/" class="md-nav__link">
+      <a href="../branch-planner/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -360,7 +379,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/branch-planner/branch-planner-getting-started/" class="md-nav__link">
+      <a href="../branch-planner/branch-planner-getting-started/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -381,7 +400,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/branch-planner/branch-planner-tfc-integration-getting-started/" class="md-nav__link">
+      <a href="../branch-planner/branch-planner-tfc-integration-getting-started/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -409,7 +428,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/References/terraform/" class="md-nav__link">
+      <a href="../References/terraform/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -429,7 +448,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/tfctl/" class="md-nav__link">
+      <a href="../tfctl/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -459,6 +478,8 @@
   
   
   
+    
+  
   
 </nav>
                   </div>
@@ -470,8 +491,58 @@
             <div class="md-content" data-md-component="content">
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+  
+  
+
+
+<h1 id="use-tf-controller">Use TF-controller</h1>
+<ul>
+<li><a href="provision-resources-and-auto-approve/">Use TF-controller to provision resources and <strong>auto approve</strong></a></li>
+<li><a href="plan-and-manually-apply-terraform-resources/">Use TF-controller to <strong>plan and manually apply</strong> Terraform resources</a></li>
+<li><a href="provision-resources-obtain-outputs/">Use TF-controller to provision resources and <strong>obtain outputs</strong></a></li>
+<li><a href="detect-drifts-only-without-plan-or-apply/">Use TF-controller to <strong>detect drifts only</strong> without plan or apply</a></li>
+<li><a href="with-drift-detection-disabled/">Use TF-controller with <strong>drift detection disabled</strong></a></li>
+<li><a href="with-aws-eks-irsa/">Use TF-controller with <strong>AWS EKS IRSA</strong></a></li>
+<li><a href="set-variables-for-terraform-resources/">Use TF-controller to <strong>set variables</strong> for Terraform resources</a></li>
+<li><a href="with-a-custom-backend/">Use TF-controller with a <strong>custom backend</strong></a></li>
+<li><a href="with-an-oci-artifact-as-source/">Use TF-controller with an <strong>OCI Artifact as Source</strong></a></li>
+<li><a href="provision-Terraform-resources-that-are-required-health-checks/">Use TF-controller to provision Terraform resources that are required <strong>health checks</strong></a></li>
+<li><a href="provision-resources-and-destroy-them-when-terraform-object-gets-deleted/">Use TF-controller to provision resources and <strong>destroy them when the Terraform object gets deleted</strong></a></li>
+<li><a href="force-unlock-terraform-states/">Use TF-controller to <strong>force unlock</strong> Terraform states</a></li>
+<li><a href="with-tf-runner-logging/">Use TF-controller with Terraform Runners enabled via Env Variables</a></li>
+<li><a href="provision-resources-with-customized-runner-pods/">Use TF-controller to provision resources with <strong>customized Runner Pods</strong></a></li>
+<li><a href="integration-with-terraform-enterprise-or-cloud/">Use TF-controller with <strong>Terraform Enterprise</strong></a></li>
+<li><a href="with-primitive-modules/">Use TF-controller with <strong>primitive modules</strong></a></li>
+<li><a href="with-gitops-dependency-management/">Use TF-controller with <strong>GitOps dependency management</strong></a></li>
+<li><a href="with-the-ready-to-use-aws-package/">Use TF-controller with <strong>the ready-to-use AWS package</strong></a></li>
+<li><a href="with-plan-only-mode/">User TF-controller with <strong>plan-only mode</strong></a></li>
+<li><a href="with-external-webhooks/">Use TF-controller with <strong>external webhooks</strong></a></li>
+<li><a href="with-tf-runner-exposed-using-hostname-subdomain/">Use TF-controller with Terraform Runners <strong>exposed via hostname/subdomain</strong></a></li>
+<li><a href="backup-and-restore-a-Terraform-state/">How to <strong>backup and restore</strong> a Terraform state</a></li>
+<li><a href="build-and-use-a-custom-runner-image/">How to <strong>build and use</strong> a custom runner image</a></li>
+<li><a href="flux-receiver-and-alert/">How to integrate with Flux Receivers and Alerts?</a></li>
+<li><a href="interval-and-retryInterval/">How does the interval and retryInterval work?</a></li>
+<li><a href="resource-deletion/">How does the resource deletion work?</a></li>
+<li><a href="troubleshooting-with-break-the-glass-mode/">How to troubleshoot with <strong>Break the Glass</strong> mode</a></li>
+<li><a href="use-cross-namespace-refs/">How to enable cross-namespace references</a></li>
+<li><a href="with-azure/">How to run TF-controller in Azure Kubernetes Service</a></li>
+<li><a href="upgrade-tf-controller/">How to upgrade TF-controller to a newer version</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -505,10 +576,10 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "/", "features": ["content.code.annotate", "content.code.copy"], "search": "/assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate", "content.code.copy"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="/assets/javascripts/bundle.d7c377c4.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7c377c4.min.js"></script>
       
     
   </body>
