@@ -28,3 +28,5 @@
   - [How does the resource deletion work?](resource-deletion.md)
   - [How to troubleshoot with **Break the Glass** mode](troubleshooting-with-break-the-glass-mode.md)
   - [How to enable cross-namespace references](use-cross-namespace-refs.md)
+  - [How to run TF-controller in Azure Kubernetes Service](with-azure.md)
+  - [How to upgrade TF-controller to a newer version](upgrade-tf-controller.md)

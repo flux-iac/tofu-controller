@@ -69,7 +69,7 @@ kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main
 ```
 
 For more details about the Branch Planner, please visit the
-[Branch Planner documentation](./branch-planner/getting-started.md).
+[Branch Planner documentation](./branch-planner/branch-planner-getting-started.md).
 
 ### Manual installation
 
@@ -138,7 +138,7 @@ spec:
     namespace: flux-system
 ```
 
-For a full list of features and how to use them, please follow the [Use TF-controller](use_tf_controller/index.md) guide.
+For a full list of features and how to use them, please follow the [Use TF-controller](use-tf-controller/index.md) guide.
 
 ## Other Examples
   * A Terraform GitOps with Flux to automatically reconcile your [AWS IAM Policies](https://github.com/tf-controller/aws-iam-policies).

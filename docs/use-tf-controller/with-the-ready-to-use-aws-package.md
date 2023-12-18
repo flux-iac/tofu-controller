@@ -83,7 +83,7 @@ kubectl apply -f aws-credentials.yaml
 
 Now, you can create two Terraform objects, one for an S3 bucket, another one for ACL.
 Please note that we are using GitOps dependencies to make sure the ACL is created after the bucket is created.
-You can read more about the GitOps dependencies in the [GitOps dependencies](./with_GitOps_dependency_management.md) document.
+You can read more about the GitOps dependencies in the [GitOps dependencies](./with-gitops-dependency-management.md) document.
 
 ```shell
 

@@ -146,4 +146,4 @@ See [Rename outputs](provision-resources-obtain-outputs.md#rename-outputs) for m
 
 ## Rename Input Secrets
 
-See [Rename input secrets](with-the-ready-to-use-AWS-package.md#rename-input-secrets) for more details.
+See [Rename input secrets](with-the-ready-to-use-aws-package.md#rename-input-secrets) for more details.
