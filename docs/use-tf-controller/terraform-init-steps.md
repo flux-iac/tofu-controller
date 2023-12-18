@@ -42,7 +42,7 @@ Related resources, with optional steps noted:
 Be mindful of locking mechanism when pursuing these steps.
 
 ### Optional: Working with Integrations
-- [Working with Terraform Cloud and Terraform Enterprise](integration-with-terraform-enterprise-or-cloud); see also: [Terraform Cloud and Branch Planner](../branch-planner/branch-planner-tfc-integration-getting-started.md)
+- [Working with Terraform Cloud and Terraform Enterprise](integration-with-terraform-enterprise-or-cloud.md); see also: [Terraform Cloud and Branch Planner](../branch-planner/branch-planner-tfc-integration-getting-started.md)
 
 ### Context-Related Steps
 - Optional: [Use TF-Controller with Terraform Runners enabled via Env Variables](with-tf-runner-logging.md)
