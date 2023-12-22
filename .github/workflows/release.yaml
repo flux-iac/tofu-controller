@@ -12,10 +12,10 @@ on:
 
 permissions:
   contents: read # for actions/checkout to fetch code
-  LIBCRYPTO_VERSION: "3.1.4-r1"
 
 env:
   CONTROLLER: ${{ github.event.repository.name }}
+  LIBCRYPTO_VERSION: "3.1.4-r1"
 
 jobs:
   build-push:
