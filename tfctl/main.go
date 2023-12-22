@@ -14,9 +14,9 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
 
+	"github.com/fluxcd/cli-utils/pkg/kstatus/polling"
 	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -100,7 +100,6 @@ func download(version, resource string) ([]byte, error) {
 
 func newManager(kubeClient client.Client) (*ssa.ResourceManager, error) {
 	kubePoller := polling.NewStatusPoller(kubeClient, kubeClient.RESTMapper(), polling.Options{})
-
 	return ssa.NewResourceManager(kubeClient, kubePoller, ssa.Owner{
 		Field: "tf-controller",
 		Group: "contrib.fluxcd.io",
