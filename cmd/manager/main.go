@@ -39,7 +39,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	ctrlcache "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -138,10 +140,12 @@ func main() {
 		watchNamespace = runtimeNamespace
 	}
 
-	restConfig := client.GetConfigOrDie(clientOptions)
-	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
-		Scheme:                        scheme,
-		MetricsBindAddress:            metricsAddr,
+	mgrConfig := ctrl.Options{
+		Scheme: scheme,
+		Metrics: metricsserver.Options{
+			BindAddress:   metricsAddr,
+			ExtraHandlers: pprof.GetHandlers(),
+		},
 		HealthProbeBindAddress:        healthAddr,
 		LeaderElection:                leaderElectionOptions.Enable,
 		LeaderElectionReleaseOnCancel: leaderElectionOptions.ReleaseOnCancel,
@@ -149,15 +153,21 @@ func main() {
 		RenewDeadline:                 &leaderElectionOptions.RenewDeadline,
 		RetryPeriod:                   &leaderElectionOptions.RetryPeriod,
 		LeaderElectionID:              "1953de50.contrib.fluxcd.io",
-		Namespace:                     watchNamespace,
 		Logger:                        ctrl.Log,
-	})
+	}
+
+	if watchNamespace != "" {
+		mgrConfig.Cache.DefaultNamespaces = map[string]ctrlcache.Config{
+			watchNamespace: ctrlcache.Config{},
+		}
+	}
+
+	restConfig := client.GetConfigOrDie(clientOptions)
+	mgr, err := ctrl.NewManager(restConfig, mgrConfig)
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
-
-	pprof.SetupHandlers(mgr, setupLog)
 
 	var eventRecorder *events.Recorder
 	if eventRecorder, err = events.NewRecorder(mgr, ctrl.Log, eventsAddr, controllerName); err != nil {
