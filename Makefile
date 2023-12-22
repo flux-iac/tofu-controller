@@ -30,6 +30,9 @@ SHELL = /usr/bin/env bash -o pipefail
 # Allows for defining additional Docker buildx arguments, e.g. '--push'.
 BUILD_ARGS ?=
 
+# Default architecture for terraform binary that gets bundled in runner images
+TERRAFORM_ARCH ?= amd64
+
 .PHONY: all
 all: build
 
@@ -146,11 +149,11 @@ run-planner: manifests generate fmt vet ## Run a branch planner from your host.
 
 .PHONY: docker-build
 docker-build: ## Build docker
-	docker build -t ${MANAGER_IMG}:${TAG} --build-arg LIBCRYPTO_VERSION=${LIBCRYPTO_VERSION} ${BUILD_ARGS} .
-	docker build -t ${RUNNER_IMG}:${TAG}-base -f runner-base.Dockerfile --build-arg LIBCRYPTO_VERSION=${LIBCRYPTO_VERSION} ${BUILD_ARGS} .
-	docker build -t ${RUNNER_IMG}:${TAG} -f runner.Dockerfile --build-arg BASE_IMAGE=${RUNNER_IMG}:${TAG}-base ${BUILD_ARGS} .
-	docker build -t ${RUNNER_AZURE_IMAGE}:${TAG} -f runner-azure.Dockerfile --build-arg BASE_IMAGE=${RUNNER_IMG}:${TAG}-base ${BUILD_ARGS} .
-	docker build -t ${BRANCH_PLANNER_IMAGE}:${TAG} -f planner.Dockerfile --build-arg LIBCRYPTO_VERSION=${LIBCRYPTO_VERSION} ${BUILD_ARGS} .
+	docker build -t ${MANAGER_IMG}:${TAG} --build-arg LIBCRYPTO_VERSION=${LIBCRYPTO_VERSION} --build-arg TARGETARCH=${TERRAFORM_ARCH} ${BUILD_ARGS} .
+	docker build -t ${RUNNER_IMG}:${TAG}-base -f runner-base.Dockerfile --build-arg LIBCRYPTO_VERSION=${LIBCRYPTO_VERSION} --build-arg TARGETARCH=${TERRAFORM_ARCH} ${BUILD_ARGS} .
+	docker build -t ${RUNNER_IMG}:${TAG} -f runner.Dockerfile --build-arg BASE_IMAGE=${RUNNER_IMG}:${TAG}-base --build-arg TARGETARCH=${TERRAFORM_ARCH} ${BUILD_ARGS} .
+	docker build -t ${RUNNER_AZURE_IMAGE}:${TAG} -f runner-azure.Dockerfile --build-arg BASE_IMAGE=${RUNNER_IMG}:${TAG}-base --build-arg TARGETARCH=${TERRAFORM_ARCH} ${BUILD_ARGS} .
+	docker build -t ${BRANCH_PLANNER_IMAGE}:${TAG} -f planner.Dockerfile --build-arg LIBCRYPTO_VERSION=${LIBCRYPTO_VERSION} --build-arg TARGETARCH=${TERRAFORM_ARCH} ${BUILD_ARGS} .
 
 .PHONY: docker-buildx
 docker-buildx: ## Build docker
