@@ -24,7 +24,7 @@ If you have a feature request to share or a bug to report, please file an issue.
 
 To get started check out this [guide](https://weaveworks.github.io/tf-controller/getting_started/) on how to GitOps your Terraform resources with TF-controller and Flux.
 
-Check out the [documentation](https://weaveworks.github.io/tf-controller/) and [use cases](https://weaveworks.github.io/tf-controller/use_tf_controller/).
+Check out the [documentation](https://weaveworks.github.io/tf-controller/) and [use cases](https://weaveworks.github.io/tf-controller/use-tf-controller/).
 
 ## Roadmap
 
