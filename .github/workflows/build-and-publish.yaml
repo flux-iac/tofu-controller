@@ -52,10 +52,10 @@ jobs:
             VERSION=${GITHUB_REF/refs\/tags\//}
             BUILD_VERSION=${VERSION}
           fi
-          echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
-          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
-          echo "BUILD_VERSION=${BUILD_VERSION}" >> $GITHUB_OUTPUT
-          echo "BUILD_SHA=${BUILD_SHA}" >> $GITHUB_OUTPUT
+          echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
+          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "BUILD_VERSION=${BUILD_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "BUILD_SHA=${BUILD_SHA}" >> "$GITHUB_OUTPUT"
       - name: Setup QEMU
         uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
         with:
