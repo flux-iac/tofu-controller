@@ -128,6 +128,10 @@ type TerraformSpec struct {
 	// +optional
 	Values *apiextensionsv1.JSON `json:"values,omitempty"`
 
+	// TfVarsFiles loads all given .tfvars files. It copycats the -var-file functionality.
+	// +optional
+	TfVarsFiles []string `json:"tfVarsFiles,omitempty"`
+
 	// List of all configuration files to be created in initialization.
 	// +optional
 	FileMappings []FileMapping `json:"fileMappings,omitempty"`

@@ -148,6 +148,7 @@ message PlanRequest {
   bool destroy = 4;
   repeated string targets = 5;
   string lockTimeout = 6;
+  string sourceRefRootDir = 6;
 }
 
 message PlanReply {
