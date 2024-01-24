@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 
+	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/hashicorp/terraform-exec/tfexec"
 	tfjson "github.com/hashicorp/terraform-json"
 	"google.golang.org/grpc/codes"
@@ -132,6 +133,15 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 
 	for _, target := range req.Targets {
 		planOpt = append(planOpt, tfexec.Target(target))
+	}
+
+	for _, path := range r.terraform.Spec.TfVarsFiles {
+		secureTfVarsFile, err := securejoin.SecureJoin(req.SourceRefRootDir, path)
+		if err != nil {
+			log.Error(err, "error processing tfVarsFiles")
+			return nil, err
+		}
+		planOpt = append(planOpt, tfexec.VarFile(secureTfVarsFile))
 	}
 
 	drifted, err := r.tfPlan(ctx, planOpt...)

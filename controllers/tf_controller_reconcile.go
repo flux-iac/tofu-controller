@@ -136,7 +136,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 
 	if r.shouldDetectDrift(terraform, revision) {
 		var driftDetectionErr error // declared here to avoid shadowing on terraform variable
-		terraform, driftDetectionErr = r.detectDrift(ctx, terraform, tfInstance, runnerClient, revision)
+		terraform, driftDetectionErr = r.detectDrift(ctx, terraform, tfInstance, runnerClient, revision, tmpDir)
 
 		// immediately return if no drift - reconciliation will retry normally
 		if driftDetectionErr == nil {
@@ -184,7 +184,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 
 	// if we should plan this Terraform CR, do so
 	if r.shouldPlan(terraform) {
-		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision)
+		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision, tmpDir)
 		if err != nil {
 			log.Error(err, "error planning")
 			return &terraform, err
