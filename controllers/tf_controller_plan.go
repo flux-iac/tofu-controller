@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+
 	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"github.com/weaveworks/tf-controller/api/planid"
 
@@ -27,7 +28,7 @@ func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
 	return false
 }
 
-func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, sourceRefRootDir string) (infrav1.Terraform, error) {
 
 	log := ctrl.LoggerFrom(ctx)
 
@@ -43,10 +44,11 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 	const tfplanFilename = "tfplan"
 
 	planRequest := &runner.PlanRequest{
-		TfInstance: tfInstance,
-		Out:        tfplanFilename,
-		Refresh:    true, // be careful, refresh requires to be true by default
-		Targets:    terraform.Spec.Targets,
+		TfInstance:       tfInstance,
+		Out:              tfplanFilename,
+		Refresh:          true, // be careful, refresh requires to be true by default
+		Targets:          terraform.Spec.Targets,
+		SourceRefRootDir: sourceRefRootDir,
 	}
 
 	// if backend is disabled completely, there will be no plan output file (req.Out = "")
