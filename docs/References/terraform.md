@@ -1514,6 +1514,18 @@ a variable for each value. To use this feature, your Terraform file must define 
 </tr>
 <tr>
 <td>
+<code>tfVarsFiles</code><br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>TfVarsFiles loads all given .tfvars files. It copycats the -var-file functionality.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>fileMappings</code><br>
 <em>
 <a href="#infra.contrib.fluxcd.io/v1alpha2.FileMapping">
@@ -2061,6 +2073,18 @@ Kubernetes pkg/apis/apiextensions/v1.JSON
 <p>Values map to the Terraform variable &ldquo;values&rdquo;, which is an object of arbitrary values.
 It is a convenient way to pass values to Terraform resources without having to define
 a variable for each value. To use this feature, your Terraform file must define the variable &ldquo;values&rdquo;.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tfVarsFiles</code><br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>TfVarsFiles loads all given .tfvars files. It copycats the -var-file functionality.</p>
 </td>
 </tr>
 <tr>
