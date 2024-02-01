@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -300,8 +301,27 @@ func Test_000360_tfvars_files_bad_path_test(t *testing.T) {
 		return len(createdHelloWorldTF.Status.Conditions)
 	}, timeout, interval).ShouldNot(BeZero())
 
-	It("should not be planned.")
+	It("should fail to plan.")
 	By("checking that the Plan's reason of the TF resource become `TFExecPlanFailed`.")
+	g.Eventually(func() map[string]interface{} {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return nil
+		}
+		for _, c := range createdHelloWorldTF.Status.Conditions {
+			if strings.Contains(c.Message, "dial tcp: lookup vault on") && (strings.Contains(c.Message, "no such host") || strings.Contains(c.Message, "server misbehaving")) {
+				return map[string]interface{}{
+					"Type":   c.Type,
+					"Reason": c.Reason,
+				}
+			}
+		}
+		return nil
+	}, timeout, interval).Should(Equal(map[string]interface{}{
+		"Type":   "Ready",
+		"Reason": infrav1.TFExecPlanFailedReason,
+	}))
+
 	g.Eventually(func() interface{} {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
