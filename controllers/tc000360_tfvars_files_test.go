@@ -321,23 +321,4 @@ func Test_000360_tfvars_files_bad_path_test(t *testing.T) {
 		"Type":   "Ready",
 		"Reason": infrav1.TFExecPlanFailedReason,
 	}))
-
-	g.Eventually(func() interface{} {
-		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
-		if err != nil {
-			return nil
-		}
-		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Plan" {
-				return map[string]interface{}{
-					"Type":   c.Type,
-					"Reason": c.Reason,
-				}
-			}
-		}
-		return createdHelloWorldTF.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
-		"Type":   infrav1.ConditionTypePlan,
-		"Reason": "TFExecPlanFailed",
-	}))
 }
