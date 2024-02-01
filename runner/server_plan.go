@@ -138,9 +138,16 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 	for _, path := range r.terraform.Spec.TfVarsFiles {
 		secureTfVarsFile, err := securejoin.SecureJoin(req.SourceRefRootDir, path)
 		if err != nil {
-			log.Error(err, "error processing tfVarsFiles")
+			log.Error(err, "Failed to secure join root dir with the given tfvars file's path.")
 			return nil, err
 		}
+
+		info, err := os.Stat(secureTfVarsFile)
+		if os.IsNotExist(err) || info.IsDir() {
+			log.Error(err, "The given tfvars file's path does not exists.")
+			return nil, err
+		}
+
 		planOpt = append(planOpt, tfexec.VarFile(secureTfVarsFile))
 	}
 
