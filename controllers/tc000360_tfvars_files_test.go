@@ -309,7 +309,7 @@ func Test_000360_tfvars_files_bad_path_test(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if strings.Contains(c.Message, "no such file") && strings.Contains(c.Message, "does-not-exists.tfvars") {
+			if strings.Contains(c.Message, "tfvars file's path does not exist: does-not-exists.tfvars") {
 				return map[string]interface{}{
 					"Type":   c.Type,
 					"Reason": c.Reason,
