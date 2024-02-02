@@ -149,7 +149,7 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 		}
 
 		if info.IsDir() {
-			log.Error(err, "The given tfvars file's path does not exists.")
+			log.Error(err, "The given tfvars file's path does not exist.")
 			return nil, fmt.Errorf("error running Plan: %s The given tfvars file's path is a directory",
 				secureTfVarsFile)
 		}
