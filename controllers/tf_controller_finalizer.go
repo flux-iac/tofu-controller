@@ -69,7 +69,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 
 		// This will create the "destroy" plan because deletion timestamp is set.
 		traceLog.Info("Create a new plan to destroy")
-		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision)
+		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision, tmpDir)
 		traceLog.Info("Check for error")
 		if err != nil {
 			traceLog.Error(err, "Error, requeue job")
