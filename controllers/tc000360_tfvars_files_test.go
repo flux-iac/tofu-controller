@@ -115,6 +115,16 @@ func Test_000360_tfvars_files_test(t *testing.T) {
 		return true
 	}, timeout, interval).Should(BeTrue())
 
+	It("should be reconciled and contain some status conditions.")
+	By("checking that the TF resource's status conditions has some elements.")
+	g.Eventually(func() int {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return -1
+		}
+		return len(createdHelloWorldTF.Status.Conditions)
+	}, timeout, interval).ShouldNot(BeZero())
+
 	It("should be planned.")
 	By("checking that the Plan's reason of the TF resource become `TerraformPlannedWithChanges`.")
 	g.Eventually(func() interface{} {
@@ -281,6 +291,16 @@ func Test_000360_tfvars_files_bad_path_test(t *testing.T) {
 		return true
 	}, timeout, interval).Should(BeTrue())
 
+	It("should be reconciled and contain some status conditions.")
+	By("checking that the TF resource's status conditions has some elements.")
+	g.Eventually(func() int {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return -1
+		}
+		return len(createdHelloWorldTF.Status.Conditions)
+	}, timeout, interval).ShouldNot(BeZero())
+
 	It("should fail to plan.")
 	By("checking that the Plan's reason of the TF resource become `TFExecPlanFailed`.")
 	g.Eventually(func() map[string]interface{} {
@@ -289,7 +309,7 @@ func Test_000360_tfvars_files_bad_path_test(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if strings.Contains(c.Message, "no such file") && strings.Contains(c.Message, "does-not-exists.tfvars") {
+			if strings.Contains(c.Message, "tfvars file's path does not exist: does-not-exists.tfvars") {
 				return map[string]interface{}{
 					"Type":   c.Type,
 					"Reason": c.Reason,
