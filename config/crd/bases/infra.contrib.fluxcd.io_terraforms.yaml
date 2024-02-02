@@ -9812,6 +9812,12 @@ spec:
                 items:
                   type: string
                 type: array
+              tfVarsFiles:
+                description: TfVarsFiles loads all given .tfvars files. It copycats
+                  the -var-file functionality.
+                items:
+                  type: string
+                type: array
               tfstate:
                 description: TFStateSpec allows the user to set ForceUnlock
                 properties:

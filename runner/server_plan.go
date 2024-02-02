@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 
+	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/hashicorp/terraform-exec/tfexec"
 	tfjson "github.com/hashicorp/terraform-json"
 	"google.golang.org/grpc/codes"
@@ -132,6 +133,28 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 
 	for _, target := range req.Targets {
 		planOpt = append(planOpt, tfexec.Target(target))
+	}
+
+	for _, path := range r.terraform.Spec.TfVarsFiles {
+		secureTfVarsFile, err := securejoin.SecureJoin(req.SourceRefRootDir, path)
+		if err != nil {
+			log.Error(err, "Failed to secure join root dir with the given tfvars file's path.")
+			return nil, err
+		}
+
+		info, err := os.Stat(secureTfVarsFile)
+		if os.IsNotExist(err) {
+			log.Error(err, "The given tfvars file's path does not exist.")
+			return nil, fmt.Errorf("error running plan: tfvars file's path does not exist: %s", secureTfVarsFile)
+		}
+
+		if info.IsDir() {
+			log.Error(err, "The given tfvars file's path does not exist.")
+			return nil, fmt.Errorf("error running Plan: tfvars file's path is a directory: %s",
+				secureTfVarsFile)
+		}
+
+		planOpt = append(planOpt, tfexec.VarFile(secureTfVarsFile))
 	}
 
 	drifted, err := r.tfPlan(ctx, planOpt...)
