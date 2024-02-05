@@ -1,10 +1,10 @@
 name: Wild Watermelon Blocked Issue Reminder on Slack
 on:
   workflow_dispatch:
-  schedule:
-    # Poke on Monday to kick off the week, and on Thu so we have time to poke
-    # others on Fri.
-    - cron: '0 15 * * 1,4'
+#  schedule:
+#    # Poke on Monday to kick off the week, and on Thu so we have time to poke
+#    # others on Fri.
+#    - cron: '0 15 * * 1,4'
 
 permissions:
   issues: read # for actions/github-script to query issues
