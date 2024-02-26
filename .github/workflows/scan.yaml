@@ -52,7 +52,7 @@ jobs:
       - name: Run Trivy vulnerability scanner on controller image
         uses: aquasecurity/trivy-action@fbd16365eb88e12433951383f5e99bd901fc618f # v0.12.0
         with:
-          image-ref: 'ghcr.io/weaveworks/tf-controller:latest'
+          image-ref: 'ghcr.io/flux-iac/tf-controller:latest'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
@@ -61,7 +61,7 @@ jobs:
       - name: Run Trivy vulnerability scanner on runner image
         uses: aquasecurity/trivy-action@fbd16365eb88e12433951383f5e99bd901fc618f # v0.12.0
         with:
-          image-ref: 'ghcr.io/weaveworks/tf-runner:latest'
+          image-ref: 'ghcr.io/flux-iac/tf-runner:latest'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
@@ -71,7 +71,7 @@ jobs:
       - name: Run Trivy vulnerability scanner on runner image
         uses: aquasecurity/trivy-action@fbd16365eb88e12433951383f5e99bd901fc618f # v0.12.0
         with:
-          image-ref: 'ghcr.io/weaveworks/tf-runner-azure:latest'
+          image-ref: 'ghcr.io/flux-iac/tf-runner-azure:latest'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
@@ -81,7 +81,7 @@ jobs:
       - name: Run Trivy vulnerability scanner on planner image
         uses: aquasecurity/trivy-action@fbd16365eb88e12433951383f5e99bd901fc618f # v0.12.0
         with:
-          image-ref: 'ghcr.io/weaveworks/branch-planner:latest'
+          image-ref: 'ghcr.io/flux-iac/branch-planner:latest'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
