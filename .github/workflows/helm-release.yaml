@@ -29,4 +29,4 @@ jobs:
           VERSION=$(yq e '.version' charts/tf-controller/Chart.yaml)
           mkdir helm-release
           helm package charts/tf-controller/ -d helm-release
-          helm push helm-release/tf-controller-${VERSION}.tgz oci://ghcr.io/weaveworks/charts
+          helm push helm-release/tf-controller-${VERSION}.tgz oci://ghcr.io/flux-iac/charts
