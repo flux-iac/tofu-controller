@@ -5,7 +5,7 @@ metadata:
   name: helloworld
 spec:
   interval: 1m
-  url: https://github.com/tf-controller/helloworld.git
+  url: https://github.com/flux-iac/helloworld.git
   ref:
     branch: main
 ---
@@ -15,6 +15,6 @@ metadata:
   name: helloworld-oci
 spec:
   interval: 1m
-  url: oci://ghcr.io/tf-controller/helloworld
+  url: oci://ghcr.io/flux-iac/helloworld
   ref:
     tag: main
