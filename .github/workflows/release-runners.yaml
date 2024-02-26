@@ -57,7 +57,7 @@ jobs:
             LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
-            ghcr.io/weaveworks/tf-runner:${{ env.VERSION }}-base
+            ghcr.io/flux-iac/tf-runner:${{ env.VERSION }}-base
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -104,11 +104,11 @@ jobs:
           file: ./runner.Dockerfile
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           build-args: |
-            BASE_IMAGE=ghcr.io/weaveworks/tf-runner:${{ env.VERSION }}-base
+            BASE_IMAGE=ghcr.io/flux-iac/tf-runner:${{ env.VERSION }}-base
             TF_VERSION=${{ matrix.tf_version }}
             LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           tags: |
-            ghcr.io/weaveworks/tf-runner:${{ env.VERSION }}-tf-${{ matrix.tf_version }}
+            ghcr.io/flux-iac/tf-runner:${{ env.VERSION }}-tf-${{ matrix.tf_version }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
