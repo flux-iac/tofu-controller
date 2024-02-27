@@ -1,4 +1,4 @@
-## Use TF-Controller with Azure
+## Use tofu-controller with Azure
 
 This content was [provided](https://github.com/flux-iac/tofu-controller/issues/561) by users [@mingmingshiliyu](https://github.com/mingmingshiliyu) and [@maciekdude](https://github.com/maciekdude).
 

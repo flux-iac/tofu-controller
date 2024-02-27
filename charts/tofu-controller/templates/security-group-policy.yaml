@@ -3,7 +3,7 @@
 apiVersion: vpcresources.k8s.aws/v1beta1
 kind: SecurityGroupPolicy
 metadata:
-  name: {{ include "tf-controller.name" . }}
+  name: {{ include "tofu-controller.name" . }}
   namespace: {{ .Release.Namespace }}
   # Tell helm to deploy this first
   annotations:
@@ -11,7 +11,7 @@ metadata:
 spec:
   serviceAccountSelector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "tf-controller.name" . }}
+      app.kubernetes.io/name: {{ include "tofu-controller.name" . }}
   securityGroups:
     groupIds:
     {{- with .Values.eksSecurityGroupPolicy.ids }}

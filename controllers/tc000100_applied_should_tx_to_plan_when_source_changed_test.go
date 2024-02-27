@@ -56,7 +56,7 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 		},
 
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/file.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:80ddfd18eb96f7d31cadc1a8a5171c6e2d95df3f6c23b0ed9cd8dddf6dba1406", // must be the real checksum value
@@ -220,7 +220,7 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 		},
 
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/ed22ced771a0056455a2fbb8e362c206e3d0cbb7.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/ed22ced771a0056455a2fbb8e362c206e3d0cbb7.tar.gz",
 			URL:            server.URL() + "/2222.tar.gz",
 			Revision:       "master/ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
 			Digest:         "sha256:525802635a47a5ae3f9c058a2b958aac0daef08efbe100a4fc16833df5201b94", // must be the real checksum value

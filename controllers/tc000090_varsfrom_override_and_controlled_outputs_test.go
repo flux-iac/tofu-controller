@@ -57,7 +57,7 @@ func Test_000090_varsfrom_override_and_controlled_outputs_test(t *testing.T) {
 		},
 
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/env.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:d021eda9b869586f5a43ad1ba7f21e4bf9b3970443236755463f22824b525316",

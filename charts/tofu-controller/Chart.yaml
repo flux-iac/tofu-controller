@@ -1,0 +1,6 @@
+apiVersion: v2
+name: tofu-controller
+description: The Helm chart for the Tofu Controller
+type: application
+version: 0.16.0-rc.3
+appVersion: "v0.16.0-rc.3"

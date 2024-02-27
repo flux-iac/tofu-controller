@@ -21,7 +21,7 @@ func Test_000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 	It("should report the error and stop reconcile.")
 
 	const (
-		sourceName    = "test-tf-controller-bad-tar-gz-no-output"
+		sourceName    = "test-tofu-controller-bad-tar-gz-no-output"
 		terraformName = "bad-tar-gz-no-outputs"
 	)
 	g := NewWithT(t)
@@ -62,7 +62,7 @@ func Test_000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 			},
 		},
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/bad.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:196d115c43583ccd10107d631d8a594be542a75911f9832a5ec2c1e22b65387b",

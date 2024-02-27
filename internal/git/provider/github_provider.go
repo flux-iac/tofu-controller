@@ -114,7 +114,7 @@ func (p *GitHubProvider) GetLastComments(ctx context.Context, pr PullRequest, si
 }
 
 func (p *GitHubProvider) UpdateCommentOfPullRequest(ctx context.Context, pr PullRequest, commentID int, body []byte) error {
-	// tf-controller plan output:
+	// tofu-controller plan output:
 	comment, _, err := p.client.Issues.FindComment(ctx, pr.Repository.String(), pr.Number, commentID)
 
 	// if comment not found, scm.ErrNotFound

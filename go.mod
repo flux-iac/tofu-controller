@@ -198,7 +198,7 @@ require (
 
 replace (
 	// v0.15.1-0.20220809152546-4850a69faedb is actually the v0.16.1a tag of the fork
-	github.com/hashicorp/terraform-exec v0.16.1 => github.com/tf-controller/terraform-exec v0.15.1-0.20220809152546-4850a69faedb
+	github.com/hashicorp/terraform-exec v0.16.1 => github.com/flux-iac/terraform-exec v0.15.1-0.20220809152546-4850a69faedb
 
 	k8s.io/api => k8s.io/api v0.28.4
 	k8s.io/apimachinery => k8s.io/apimachinery v0.28.4

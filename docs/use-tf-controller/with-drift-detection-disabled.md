@@ -1,4 +1,4 @@
-# Use TF-Controller with drift detection disabled
+# Use tofu-controller with drift detection disabled
 
 Drift detection is enabled by default. You can set `.spec.disableDriftDetection: true` to disable it.
 

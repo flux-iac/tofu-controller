@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the base image name and tag prefix
-IMAGE_NAME="ghcr.io/weaveworks/tf-runner"
+IMAGE_NAME="ghcr.io/flux-iac/tf-runner"
 VERSION="${1}" # Assuming the desired version is passed as an argument to this script
 
 # Versions of Terraform to check

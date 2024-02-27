@@ -76,7 +76,7 @@ func replan(ctx context.Context, kubeClient client.Client, namespacedName types.
 		terraform.Status.LastAttemptedRevision = ""
 		statusOpts := &client.SubResourcePatchOptions{
 			PatchOptions: client.PatchOptions{
-				FieldManager: "tf-controller",
+				FieldManager: "tofu-controller",
 			},
 		}
 		return kubeClient.Status().Patch(ctx, terraform, patch, statusOpts)

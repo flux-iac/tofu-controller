@@ -59,7 +59,7 @@ func Test_000064_values_template_hcl_test(t *testing.T) {
 			},
 		},
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/tf-hcl-vars-template.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:c45003ab3424d0c0bf0fd17374c18f4d64c22a700711f8014f3d9b8f3875b544",

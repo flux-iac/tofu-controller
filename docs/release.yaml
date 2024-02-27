@@ -2,28 +2,28 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
-  name: tf-controller
+  name: tofu-controller
   namespace: flux-system
 spec:
   interval: 1h0s
   type: oci
-  url: oci://ghcr.io/weaveworks/charts
+  url: oci://ghcr.io/flux-iac/charts
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: tf-controller
+  name: tofu-controller
   namespace: flux-system
 spec:
   chart:
     spec:
-      chart: tf-controller
+      chart: tofu-controller
       sourceRef:
         kind: HelmRepository
-        name: tf-controller
+        name: tofu-controller
       version: '>=0.16.0-rc.3'
   interval: 1h0s
-  releaseName: tf-controller
+  releaseName: tofu-controller
   targetNamespace: flux-system
   install:
     crds: Create

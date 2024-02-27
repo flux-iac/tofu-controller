@@ -8,7 +8,7 @@ updates:
       interval: "weekly"
     # Project maintainers and the Wild Watermelon team
     reviewers:
-      - "weaveworks/wild-watermelon"
+      - "flux-iac/wild-watermelon"
     # Only do security updates not version updates.
     open-pull-requests-limit: 0
     groups:
@@ -26,6 +26,6 @@ updates:
     schedule:
       interval: "weekly"
     reviewers:
-      - "weaveworks/wild-watermelon"
+      - "flux-iac/wild-watermelon"
     # Only do security updates not version updates.
     open-pull-requests-limit: 0

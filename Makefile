@@ -1,9 +1,9 @@
 .DEFAULT_GOAL := help
 # Image URL to use all building/pushing image targets
-MANAGER_IMG ?= ghcr.io/weaveworks/tf-controller
-RUNNER_IMG  ?= ghcr.io/weaveworks/tf-runner
-RUNNER_AZURE_IMAGE ?= ghcr.io/weaveworks/tf-runner-azure
-BRANCH_PLANNER_IMAGE ?= ghcr.io/weaveworks/branch-planner
+MANAGER_IMG ?= ghcr.io/flux-iac/tofu-controller
+RUNNER_IMG  ?= ghcr.io/flux-iac/tf-runner
+RUNNER_AZURE_IMAGE ?= ghcr.io/flux-iac/tf-runner-azure
+BRANCH_PLANNER_IMAGE ?= ghcr.io/flux-iac/branch-planner
 TAG ?= latest
 BUILD_SHA ?= $(shell git rev-parse --short HEAD)
 BUILD_VERSION ?= $(shell git describe --tags $$(git rev-list --tags --max-count=1))
@@ -192,7 +192,7 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image weaveworks/tf-controller=${MANAGER_IMG}:${TAG}
+	cd config/manager && $(KUSTOMIZE) edit set image flux-iac/tofu-controller=${MANAGER_IMG}:${TAG}
 	$(KUSTOMIZE) build config/default | kubectl apply --server-side -f -
 
 .PHONY: undeploy
@@ -203,15 +203,15 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 .PHONY: dev-deploy
 dev-deploy: manifests kustomize
 	mkdir -p config/dev && cp config/default/* config/dev
-	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/weaveworks/tf-controller=${MANAGER_IMG}:${TAG}
-	$(KUSTOMIZE) build config/dev | yq e "select(.kind == \"Deployment\" and .metadata.name == \"tf-controller\").spec.template.spec.containers[0].env[1].value = \"test/tf-runner:$${TAG}\"" - | kubectl apply --server-side -f -
+	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/flux-iac/tofu-controller=${MANAGER_IMG}:${TAG}
+	$(KUSTOMIZE) build config/dev | yq e "select(.kind == \"Deployment\" and .metadata.name == \"tofu-controller\").spec.template.spec.containers[0].env[1].value = \"test/tf-runner:$${TAG}\"" - | kubectl apply --server-side -f -
 	rm -rf config/dev
 
 # Delete dev deployment and CRDs
 .PHONY: dev-cleanup
 dev-cleanup: manifests kustomize
 	mkdir -p config/dev && cp config/default/* config/dev
-	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/weaveworks/tf-controller=${MANAGER_IMG}:${TAG}
+	cd config/dev && $(KUSTOMIZE) edit set image ghcr.io/flux-iac/tofu-controller=${MANAGER_IMG}:${TAG}
 	$(KUSTOMIZE) build config/dev | kubectl delete --server-side -f -
 	rm -rf config/dev
 
@@ -287,10 +287,10 @@ endef
 release-manifests:
 	rm -rf ./config/release || true
 	mkdir ./config/release
-	kustomize build ./config/crd > ./config/release/tf-controller.crds.yaml
-	kustomize build ./config/rbac > ./config/release/tf-controller.rbac.yaml
-	kustomize build ./config/manager > ./config/release/tf-controller.deployment.yaml
-	kustomize build ./config/package > ./config/release/tf-controller.packages.yaml
+	kustomize build ./config/crd > ./config/release/tofu-controller.crds.yaml
+	kustomize build ./config/rbac > ./config/release/tofu-controller.rbac.yaml
+	kustomize build ./config/manager > ./config/release/tofu-controller.deployment.yaml
+	kustomize build ./config/package > ./config/release/tofu-controller.packages.yaml
 
 # Helm
 SRC_ROOT = $(shell git rev-parse --show-toplevel)

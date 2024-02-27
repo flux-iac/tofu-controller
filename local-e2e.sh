@@ -7,19 +7,19 @@ VERSION=e2e-$(git rev-parse --short HEAD)-$(if [[ $(git diff --stat) != '' ]]; t
 
 kind create cluster
 
-[[ -z "$SKIP_IMAGE_BUILD" ]] && make docker-build MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION # BUILD_ARGS="--no-cache"
+[[ -z "$SKIP_IMAGE_BUILD" ]] && make docker-build MANAGER_IMG=test/tofu-controller RUNNER_IMG=test/tf-runner TAG=$VERSION # BUILD_ARGS="--no-cache"
 
-kind load docker-image test/tf-controller:$VERSION
+kind load docker-image test/tofu-controller:$VERSION
 kind load docker-image test/tf-runner:$VERSION
 
 make install
 
 # Dev deploy
-make dev-deploy MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION || true
-make dev-deploy MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION
+make dev-deploy MANAGER_IMG=test/tofu-controller RUNNER_IMG=test/tf-runner TAG=$VERSION || true
+make dev-deploy MANAGER_IMG=test/tofu-controller RUNNER_IMG=test/tf-runner TAG=$VERSION
 
 kubectl patch deployment \
-  tf-controller \
+  tofu-controller \
   --namespace tf-system \
   --type='json' \
   -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/args", "value": [
@@ -31,7 +31,7 @@ kubectl patch deployment \
 ]}]'
 
 kubectl -n tf-system rollout status deploy/source-controller --timeout=1m
-kubectl -n tf-system rollout status deploy/tf-controller --timeout=1m
+kubectl -n tf-system rollout status deploy/tofu-controller --timeout=1m
 
 echo "==================== Show Terraform version"
 docker run --rm --entrypoint=/usr/local/bin/terraform test/tf-runner:$VERSION version
@@ -94,7 +94,7 @@ kubectl -n tf-system wait terraform/helloworld-vars --for=condition=ready --time
 kubectl -n tf-system delete -f ./config/testdata/vars
 
 echo "==================== Run multi-tenancy test"
-kubectl -n tf-system scale --replicas=3 deploy/tf-controller
+kubectl -n tf-system scale --replicas=3 deploy/tofu-controller
 kustomize build ./config/testdata/multi-tenancy/tenant01 | kubectl apply -f -
 kustomize build ./config/testdata/multi-tenancy/tenant02 | kubectl apply -f -
 kubectl -n tf-tenant01-dev wait terraform/helloworld-tenant01-dev --for=condition=ready --timeout=4m
@@ -119,7 +119,7 @@ kubectl delete ns tf-tenant02-dev
 kubectl delete ns tf-tenant02-prd
 
 echo "==================== Set up chaos testing environment"
-kubectl -n tf-system scale --replicas=1 deploy/tf-controller
+kubectl -n tf-system scale --replicas=1 deploy/tofu-controller
 kubectl -n chaos-testing apply -f ./config/testdata/chaos
 kubectl -n chaos-testing apply -f ./config/testdata/source
 sleep 20

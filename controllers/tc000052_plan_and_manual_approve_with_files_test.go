@@ -66,7 +66,7 @@ func Test_000052_plan_and_manual_approve_with_files_test(t *testing.T) {
 			},
 		},
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/tf-data-archive.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:0ab01c8057debc27f4b355885211228e686f48693c56a2b3af7c2b42b02213a6",

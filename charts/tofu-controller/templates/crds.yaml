@@ -7,7 +7,7 @@ metadata:
   creationTimestamp: null
   name: terraforms.infra.contrib.fluxcd.io
   labels:
-    {{- include "tf-controller.labels" . | nindent 4 }}
+    {{- include "tofu-controller.labels" . | nindent 4 }}
 spec:
   group: infra.contrib.fluxcd.io
   names:

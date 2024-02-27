@@ -51,7 +51,7 @@ import (
 	//+kubebuilder:scaffold:imports
 )
 
-const controllerName = "tf-controller"
+const controllerName = "tofu-controller"
 
 var (
 	scheme   = runtime.NewScheme()
@@ -182,9 +182,9 @@ func main() {
 	certsReady := make(chan struct{})
 	rotator := &mtls.CertRotator{
 		Ready:                         certsReady,
-		CAName:                        "tf-controller",
-		CAOrganization:                "weaveworks",
-		DNSName:                       "tf-controller",
+		CAName:                        "tofu-controller",
+		CAOrganization:                "flux-iac",
+		DNSName:                       "tofu-controller",
 		CAValidityDuration:            caValidityDuration,
 		RotationCheckFrequency:        rotationCheckFrequency,
 		LookaheadInterval:             4 * rotationCheckFrequency, // we do 4 rotation checks ahead

@@ -1,16 +1,16 @@
 ## Decision Making
 
-In the Terraform Controller project, we aim for consensus in all our decisions.
+In the Tofu Controller project, we aim for consensus in all our decisions.
 Our communication channels (GitHub, public meetings, RFCs, etc) facilitate agreement before setting up a vote.
 
 If a decision can't be reached or the situation is unclear,
 this typically indicates that we need more information.
-In such cases, we seek additional input from users, related projects, or teams in Weaveworks Product and/or Engineering.
+In such cases, we seek additional input from users, related projects, or teams in flux-iac Product and/or Engineering.
 
 ### Deciders
 
-- Repository Maintainers: Decisions that affect the Terraform Controller repository.
-- Weaveworks Tech Leads, Product Managers, Principal Engineers: Decisions that are outside the scope of the Terraform
+- Repository Maintainers: Decisions that affect the Tofu Controller repository.
+- flux-iac Tech Leads, Product Managers, Principal Engineers: Decisions that are outside the scope of the Terraform
   Controller repository but are related to project direction, product strategy, and higher-level technical decisions.
 
 ### Decision Guidelines
@@ -40,5 +40,5 @@ If a vote is called, the following decisions require a Supermajority Vote – tw
       spelling or grammar, update work affiliations, or reflect an external and evident reality. They do not change the
       intention or meaning of anything in this document.
 
-Please note that since Terraform Controller is a single repository project, all the maintainers, Weaveworks Tech Leads,
+Please note that since Tofu Controller is a single repository project, all the maintainers, flux-iac Tech Leads,
 Product Managers, and Principal Engineers are considered Deciders for the purposes of this decision-making process.

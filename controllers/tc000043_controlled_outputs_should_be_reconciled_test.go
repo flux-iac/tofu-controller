@@ -22,7 +22,7 @@ func Test_000043_controlled_outputs_should_be_reconciled_test(t *testing.T) {
 	It("the outputs should be reconciled if there were deleted")
 
 	const (
-		sourceName    = "test-tf-controller-controlled-output-should-be-reconciled"
+		sourceName    = "test-tofu-controller-controlled-output-should-be-reconciled"
 		terraformName = "helloworld-controlled-output-should-be-reconciled"
 	)
 	g := NewWithT(t)
@@ -64,7 +64,7 @@ func Test_000043_controlled_outputs_should_be_reconciled_test(t *testing.T) {
 			},
 		},
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/file.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:80ddfd18eb96f7d31cadc1a8a5171c6e2d95df3f6c23b0ed9cd8dddf6dba1406",

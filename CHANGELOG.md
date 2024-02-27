@@ -7,7 +7,7 @@ All notable changes of this project are documented in this file.
 **Release date:** 2023-09-19
 
 We've been implementing the new feature called the Branch Planner during v0.15.x as a separate component.
-And it has been included in the installation of TF-Controller since v0.16.0-rc.2.
+And it has been included in the installation of tofu-controller since v0.16.0-rc.2.
 This version also includes many improvement for the Branch Planner.
 Branch Planner allows us to interact with Pull Requests to plan and review the planning process with a separate branch,
 while the GitOps automation is still working on the main branch. This feature is currently Technology Preview.
@@ -15,7 +15,7 @@ while the GitOps automation is still working on the main branch. This feature is
 **BREAKING CHANGES**
 
 This version also introduced the lockdown mode by default.
-Lockdown is the mode that enhances security for your Terraform Controller setup
+Lockdown is the mode that enhances security for your Tofu Controller setup
 by preventing the Terraform objects from referencing cross-namespace Secrets and ConfigMaps.
 To relax this restriction, you can enable `--allow-cross-namespace-refs` flag at the controller level.
 This setting can also be done via a Helm Chart value too.
@@ -31,7 +31,7 @@ New Features and Bug Fixing:
   * Expose `--allow-cross-namespace-refs` in the chart @squaremo
   * Adds Troubleshooting Section and tip to drift detection page @LappleApple
   * Update dependency github.com/cyphar/filepath-securejoin @chanwit
-  * Add flag `--allow-cross-namespace-refs` to tf-controller and branch-planner @squaremo
+  * Add flag `--allow-cross-namespace-refs` to tofu-controller and branch-planner @squaremo
   * Use Pod's Subdomain-based DNS resolution @syalioune
   * Add PriorityClassName, SecurityContext and ResourceRequirements to the Runner PodSpec @luizbafilho
   * Set default observedGeneration to -1 for Kustomization Controller compatibility @luizbafilho
@@ -83,7 +83,7 @@ Bug Fixing:
 
 **Release date:** 2023-06-04
 
-This version is the first stable release of Terraform Controller to support Flux v2 GA.
+This version is the first stable release of Tofu Controller to support Flux v2 GA.
 
 Bug Fixing:
   * Add OIDC go-client plugin to `tfctl` (@chanwit)
@@ -102,7 +102,7 @@ New Features and Bug Fixing:
    * Honor pod grace period seconds in case of the controller restarting (@chanwit)
    * Add planOnly mode (@yitsushi) 
    * Add finalizer to a dependency only if object is not being deleted (@chanwit)
-   * Add --no-cross-namespace-refs to the tf-controller / the lockdown mode (@squaremo)
+   * Add --no-cross-namespace-refs to the tofu-controller / the lockdown mode (@squaremo)
    * Fix force-unlock in the object deletion path (@mmeha)
    * Pending plan not equal plan id in the plan storage (@chanwit)
    * Add plan log sanitization (@chanwit)
@@ -158,7 +158,7 @@ Breaking changes:
 **Release date:** 2023-02-25
 
 This release contains a number of new features and bug fixes. 
-The most notable feature is the first-class support for Terraform Cloud in TF-controller with the `spec.cloud` field.
+The most notable feature is the first-class support for Terraform Cloud in tofu-controller with the `spec.cloud` field.
 This feature allows Weave GitOps Enterprise users to use GitOps Templates with Terraform Cloud as a backend for your Terraform resources.
 We also upgraded Flux to v0.40.0 and Terraform to v1.3.9 in this release.
 
@@ -261,7 +261,7 @@ New Features and Bug Fixing:
 
 **Release date:** 2022-08-12
 
-This release is another milestone of the project as it is the first release of TF-controller
+This release is another milestone of the project as it is the first release of tofu-controller
 that supports Flux's OCIRepository.
 
 New Features and Bug Fixing:
@@ -367,10 +367,10 @@ New Features and Bug Fixing:
   * Implemented local gRPC runner (@chanwit)
   * Update source-controller to v0.21.1 (@tomhuang12)
   * Add Trivy scan (@tomhuang12)
-  * Change image repository to ghcr.io/weaveworks (@phoban01)
-  * Move repository to Weaveworks (@chanwit)
+  * Change image repository to ghcr.io/flux-iac (@phoban01)
+  * Move repository to flux-iac (@chanwit)
   * Add E2E Tests (@tomhuang12)
-  * Moved charts to `weaveworks/tf-controller` (@tomhuang12)
+  * Moved charts to `flux-iac/tofu-controller` (@tomhuang12)
   * Add local http server for http health check (@tomhuang12)
   * Update Terraform version (@fsequeira1)
   * Update the Helm repository URL (@tomhuang12)
@@ -420,7 +420,7 @@ New Features:
   * Add field to allow specifying TF client configuration `.spec.cliConfigurationSecretRef` and disable backend completely `.spec.backendConfig.disable` (@chanwit)
   
 Improvements:
-  * Add documentation on how to use TF-controller with EKS IRSA (@phoban01)
+  * Add documentation on how to use tofu-controller with EKS IRSA (@phoban01)
   * Support gzip encoding for `tfplan` (@tomhuang12)
   * Improve re-plan behaviour (@chanwit)
 

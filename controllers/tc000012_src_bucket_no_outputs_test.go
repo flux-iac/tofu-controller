@@ -25,7 +25,7 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 	It("should be reconciled to have available outputs.")
 
 	var (
-		sourceName    = "test-tf-controller-src-bucket-no-output"
+		sourceName    = "test-tofu-controller-src-bucket-no-output"
 		terraformName = "src-bucket-helloworld-no-outputs-" + rand.String(6)
 	)
 	g := NewWithT(t)

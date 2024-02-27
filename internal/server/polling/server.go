@@ -322,7 +322,7 @@ func (s *Server) replanTerraform(ctx context.Context, object *infrav1.Terraform,
 	terraform.Status.LastAttemptedRevision = ""
 	statusOpts := &client.SubResourcePatchOptions{
 		PatchOptions: client.PatchOptions{
-			FieldManager: "tf-controller",
+			FieldManager: "tofu-controller",
 		},
 	}
 	if err := s.clusterClient.Status().Patch(ctx, terraform, patch, statusOpts); err != nil {

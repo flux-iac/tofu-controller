@@ -564,7 +564,7 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 	httpClient.RetryMax = httpRetry
 	httpClient.Logger = nil
 	r.httpClient = httpClient
-	r.statusManager = "tf-controller"
+	r.statusManager = "tofu-controller"
 	r.requeueDependency = 30 * time.Second
 	recoverPanic := true
 
@@ -818,7 +818,7 @@ func (r *TerraformReconciler) patchStatus(ctx context.Context, objectKey types.N
 	terraform.Status = newStatus
 	statusOpts := &client.SubResourcePatchOptions{
 		PatchOptions: client.PatchOptions{
-			FieldManager: "tf-controller",
+			FieldManager: "tofu-controller",
 		},
 	}
 	return r.Status().Patch(ctx, &terraform, patch, statusOpts)

@@ -1,5 +1,5 @@
 {{- if .Values.usePodSubdomainResolution -}}
-{{- range include "tf-controller.runner.allowedNamespaces" . | fromJsonArray }}
+{{- range include "tofu-controller.runner.allowedNamespaces" . | fromJsonArray }}
 ---
 apiVersion: v1
 kind: Service
@@ -12,7 +12,7 @@ spec:
   - name: grpc
     port: 30000
   selector:
-    app.kubernetes.io/created-by: tf-controller
+    app.kubernetes.io/created-by: tofu-controller
     app.kubernetes.io/name: tf-runner
 {{- end }}
 {{- end }}

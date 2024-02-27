@@ -20,7 +20,7 @@ import (
 
 func Test_000120_delete_test(t *testing.T) {
 	const (
-		sourceName    = "test-tf-controller-delete"
+		sourceName    = "test-tofu-controller-delete"
 		terraformName = "helloworld-delete"
 	)
 	g := NewWithT(t)
@@ -58,7 +58,7 @@ func Test_000120_delete_test(t *testing.T) {
 		},
 
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/file.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:80ddfd18eb96f7d31cadc1a8a5171c6e2d95df3f6c23b0ed9cd8dddf6dba1406",

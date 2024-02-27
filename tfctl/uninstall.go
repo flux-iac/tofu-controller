@@ -16,17 +16,17 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-// Uninstall removes the tf-controller resources from the cluster.
+// Uninstall removes the tofu-controller resources from the cluster.
 func (c *CLI) Uninstall(out io.Writer) error {
 	ctx := context.Background()
 
 	var deployment appsv1.Deployment
 	if err := c.client.Get(ctx, types.NamespacedName{
 		Namespace: c.namespace,
-		Name:      "tf-controller",
+		Name:      "tofu-controller",
 	}, &deployment); err != nil {
 		if apierrors.IsNotFound(err) {
-			fmt.Fprintf(out, "tf-controller not found in %s namespace.\n", c.namespace)
+			fmt.Fprintf(out, "tofu-controller not found in %s namespace.\n", c.namespace)
 			return nil
 		}
 		return err
@@ -43,7 +43,7 @@ func (c *CLI) Uninstall(out io.Writer) error {
 	}
 
 	if version == "" {
-		return errors.New("could not determine tf-controller version")
+		return errors.New("could not determine tofu-controller version")
 	}
 
 	manager, err := newManager(c.client)
@@ -55,8 +55,8 @@ func (c *CLI) Uninstall(out io.Writer) error {
 		Frequency:     100 * time.Millisecond,
 		CharSet:       yacspin.CharSets[9],
 		SpinnerAtEnd:  true,
-		Message:       "Uninstalling tf-controller ",
-		StopMessage:   fmt.Sprintf("tf-controller %s uninstalled ", version),
+		Message:       "Uninstalling tofu-controller ",
+		StopMessage:   fmt.Sprintf("tofu-controller %s uninstalled ", version),
 		StopCharacter: "✓",
 		Colors:        []string{"yellow"},
 		StopColors:    []string{"fgGreen"},

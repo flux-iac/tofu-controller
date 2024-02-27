@@ -27,7 +27,7 @@ func Test_000130_destroy_no_outputs_test(t *testing.T) {
 	// when("creating a Terraform object with the auto approve mode, and having a GitRepository attached to it.")
 	It("should obtain the TF program's blob from the Source, unpack it, plan it, and apply it correctly with an output available, and there must be *NO* tfstate Secret because no backend specified.")
 	const (
-		sourceName    = "test-tf-controller-destroy-no-output"
+		sourceName    = "test-tofu-controller-destroy-no-output"
 		terraformName = "helloworld-destroy-no-outputs"
 	)
 	g := NewWithT(t)
@@ -69,7 +69,7 @@ func Test_000130_destroy_no_outputs_test(t *testing.T) {
 		},
 
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/tf-k8s-configmap.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:c3bf30bad9621b5110a3761a70754170d1dae6c525a63098b6ec9919efac3555", // must be the real checksum value

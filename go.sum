@@ -170,6 +170,8 @@ github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f h1:Wl78ApPPB2
 github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f/go.mod h1:OSYXu++VVOHnXeitef/D8n/6y4QV8uLHSFXX4NeXMGc=
 github.com/fatih/color v1.13.0 h1:8LOYc1KYPPmyKMuN8QV2DNRWNbLo6LZ0iLs8+mlH53w=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
+github.com/flux-iac/terraform-exec v0.15.1-0.20220809152546-4850a69faedb h1:WTjFm1b1ri7hmqG93zWrNgxRf0zXfZZhJz2JlYUBIwo=
+github.com/flux-iac/terraform-exec v0.15.1-0.20220809152546-4850a69faedb/go.mod h1:aj0lVshy8l+MHhFNoijNHtqTJQI3Xlowv5EOsEaGO7M=
 github.com/fluxcd/cli-utils v0.36.0-flux.2 h1:7nlXfAJ7iaDF34IdbyId+wBf7beL2qvzDBLmVBJSDVo=
 github.com/fluxcd/cli-utils v0.36.0-flux.2/go.mod h1:TQtgRf9OjQBzE5FJ9UDV6WNz9Po3pzAtk3NQmQEN5l8=
 github.com/fluxcd/pkg/apis/acl v0.1.0 h1:EoAl377hDQYL3WqanWCdifauXqXbMyFuK82NnX6pH4Q=
@@ -496,8 +498,6 @@ github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcU
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/subosito/gotenv v1.4.2 h1:X1TuBLAMDFbaTAChgCBLu3DU3UPyELpnF2jjJ2cz/S8=
 github.com/subosito/gotenv v1.4.2/go.mod h1:ayKnFf/c6rvx/2iiLrJUk1e6plDbT3edrFNGqEflhK0=
-github.com/tf-controller/terraform-exec v0.15.1-0.20220809152546-4850a69faedb h1:erdYHB6ginMrQNREnRDkPjjkU7Bb6tm67exkX+0SJsw=
-github.com/tf-controller/terraform-exec v0.15.1-0.20220809152546-4850a69faedb/go.mod h1:aj0lVshy8l+MHhFNoijNHtqTJQI3Xlowv5EOsEaGO7M=
 github.com/theckman/yacspin v0.13.12 h1:CdZ57+n0U6JMuh2xqjnjRq5Haj6v1ner2djtLQRzJr4=
 github.com/theckman/yacspin v0.13.12/go.mod h1:Rd2+oG2LmQi5f3zC3yeZAOl245z8QOvrH4OPOJNZxLg=
 github.com/vmihailenco/msgpack v3.3.3+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=

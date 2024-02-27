@@ -1,4 +1,4 @@
-tf-controller plan output:
+tofu-controller plan output:
 
 ```hcl
 {{.PlanOutput}}

@@ -144,7 +144,7 @@ func testResources(namespace string) []client.Object {
 			Namespace: namespace,
 		},
 		Spec: sourcev1.GitRepositorySpec{
-			URL: "https://github.com/weaveworks/tf-conrtoller",
+			URL: "https://github.com/flux-iac/tf-conrtoller",
 			Reference: &sourcev1.GitRepositoryRef{
 				Branch: "main",
 			},

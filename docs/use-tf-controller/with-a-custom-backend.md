@@ -1,6 +1,6 @@
-# Option: Use TF-Controller with a Custom Backend
+# Option: Use tofu-controller with a Custom Backend
 
-By default, TF-Controller uses the [Kubernetes backend](https://www.terraform.io/language/settings/backends/kubernetes) to store the Terraform state file (tfstate) in clusters.
+By default, tofu-controller uses the [Kubernetes backend](https://www.terraform.io/language/settings/backends/kubernetes) to store the Terraform state file (tfstate) in clusters.
 
 The tfstate is stored in a secret named: `tfstate-${workspace}-${secretSuffix}`. The default `suffix` will be the name of the Terraform resource, however you may override this setting using `.spec.backendConfig.secretSuffix`. The default `workspace` name is "default", you can also override the workspace by setting `.spec.workspace` to another value.
 

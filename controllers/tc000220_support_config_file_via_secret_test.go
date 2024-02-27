@@ -75,7 +75,7 @@ func Test_000220_support_config_file_via_secret_test(t *testing.T) {
 		},
 
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/tfc-helloworld.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:e236bcf665fd3e186cd0d8908d589c37735111b03cd2a67e9c07695e318e9ae5", // must be the real checksum value

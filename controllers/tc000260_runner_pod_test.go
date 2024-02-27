@@ -25,7 +25,7 @@ func Test_000260_runner_pod_test(t *testing.T) {
 		terraformName      = "runner-pod-test"
 		sourceName         = "runner-pod-test"
 		serviceAccountName = "helloworld-tf-runner"
-		runnerPodImage     = "ghcr.io/weaveworks/tf-runner:test"
+		runnerPodImage     = "ghcr.io/flux-iac/tf-runner:test"
 		revision           = "v2.6@sha256:c7fd0cc69b924aa5f9a6928477311737e439ca1b9e444855b0377e8a8ec65bb5"
 	)
 
@@ -101,7 +101,7 @@ func Test_000260_runner_pod_test_env_vars(t *testing.T) {
 		terraformName      = "runner-pod-test"
 		sourceName         = "runner-pod-test"
 		serviceAccountName = "helloworld-tf-runner"
-		runnerPodImage     = "ghcr.io/weaveworks/tf-runner:test"
+		runnerPodImage     = "ghcr.io/flux-iac/tf-runner:test"
 		revision           = "v2.6@sha256:c7fd0cc69b924aa5f9a6928477311737e439ca1b9e444855b0377e8a8ec65bb5"
 	)
 
@@ -185,7 +185,7 @@ func Test_000260_runner_pod_test_env_vars_proxy(t *testing.T) {
 		terraformName      = "runner-pod-test"
 		sourceName         = "runner-pod-test"
 		serviceAccountName = "helloworld-tf-runner"
-		runnerPodImage     = "ghcr.io/weaveworks/tf-runner:test"
+		runnerPodImage     = "ghcr.io/flux-iac/tf-runner:test"
 		revision           = "v2.6@sha256:c7fd0cc69b924aa5f9a6928477311737e439ca1b9e444855b0377e8a8ec65bb5"
 	)
 
@@ -278,7 +278,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
 		terraformName      = "runner-pod-test"
 		sourceName         = "runner-pod-test"
 		serviceAccountName = "helloworld-tf-runner"
-		runnerPodImage     = "ghcr.io/weaveworks/tf-runner:test"
+		runnerPodImage     = "ghcr.io/flux-iac/tf-runner:test"
 		revision           = "v2.6@sha256:c7fd0cc69b924aa5f9a6928477311737e439ca1b9e444855b0377e8a8ec65bb5"
 	)
 
@@ -422,7 +422,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 		},
 
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/terraform-envvar-variable-output.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:72637c4e56394f5e728c7eaf85f959497189cc35d1441957840a96812026a5d6",
@@ -605,7 +605,7 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_with_value(t *testing.T)
 		},
 
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/terraform-envvar-provider-vars.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:964c61b6e7251a91fbba153bfed53b071d11f897bb22c7a4e33afa41b53c799c",
@@ -746,7 +746,7 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_without_value(t *testing
 		},
 
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/terraform-envvar-provider-vars.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:964c61b6e7251a91fbba153bfed53b071d11f897bb22c7a4e33afa41b53c799c",
@@ -878,7 +878,7 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_secretRef(t *testing.T) {
 		},
 
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/terraform-envvar-provider-vars.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:964c61b6e7251a91fbba153bfed53b071d11f897bb22c7a4e33afa41b53c799c",
@@ -1045,7 +1045,7 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_configMapRef(t *testing.T) {
 		},
 
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/terraform-envvar-provider-vars.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:964c61b6e7251a91fbba153bfed53b071d11f897bb22c7a4e33afa41b53c799c",

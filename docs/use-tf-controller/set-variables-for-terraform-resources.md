@@ -1,8 +1,8 @@
-# Use TF-Controller to Set Variables for Terraform Resources
+# Use tofu-controller to Set Variables for Terraform Resources
 
 ~> **BREAKING CHANGE**: This is a breaking change of the `v1alpha1` API.
 
-Users who are upgrading from TF-Controller <= 0.7.0 must update `varsFrom`
+Users who are upgrading from tofu-controller <= 0.7.0 must update `varsFrom`
 from a single object to become an array of objects:
 
 ```yaml hl_lines="2"

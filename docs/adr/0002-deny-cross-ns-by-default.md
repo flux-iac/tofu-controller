@@ -7,7 +7,7 @@
 
 ## Context
 
-Like [Flux](https://fluxcd.io/), the tf-controller API has a handful
+Like [Flux](https://fluxcd.io/), the tofu-controller API has a handful
 of places where it accepts cross-namespace references.
 
  - `Terraform.spec.sourceRef` -- refers to the Flux source object with

@@ -61,7 +61,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish multi-arch tf-controller container image
+      - name: Publish multi-arch tofu-controller container image
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
           push: true
@@ -194,7 +194,7 @@ jobs:
           kustomize build ./config/rbac > ./config/release/${{ env.CONTROLLER }}.rbac.yaml
           kustomize build ./config/manager | yq e '.spec.template.spec.containers[0].env[1].value="ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}"' - > ./config/release/${{ env.CONTROLLER }}.deployment.yaml
           kustomize build ./config/package > ./config/release/${{ env.CONTROLLER }}.packages.yaml
-          echo '[CHANGELOG](https://github.com/weaveworks/${{ env.CONTROLLER }}/blob/main/CHANGELOG.md)' > ./config/release/notes.md
+          echo '[CHANGELOG](https://github.com/flux-iac/${{ env.CONTROLLER }}/blob/main/CHANGELOG.md)' > ./config/release/notes.md
       - name: Setup Go
         uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
         with:
@@ -207,7 +207,7 @@ jobs:
           args: release --release-notes=./config/release/notes.md --skip-validate
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.TF_CONTROLLER_WEAVEWORKSBOT }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.TF_CONTROLLER_flux-iacBOT }}
       - name: Publish Helm chart
         uses: stefanprodan/helm-gh-pages@0ad2bb377311d61ac04ad9eb6f252fb68e207260 # v1.7.0
         with:

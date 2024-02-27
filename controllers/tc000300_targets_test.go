@@ -19,7 +19,7 @@ import (
 
 func Test_000300_targets(t *testing.T) {
 	const (
-		sourceName    = "test-tf-controller-targets"
+		sourceName    = "test-tofu-controller-targets"
 		terraformName = "tf-multi-resources-targets"
 
 		resourceOne = "kubernetes_config_map_v1.one"
@@ -67,7 +67,7 @@ func Test_000300_targets(t *testing.T) {
 		},
 
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/tf-multi-resources.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:d304b84675a595928753e123dcdc2b04f7f4cc57f91510593fb64bd00b242d25",

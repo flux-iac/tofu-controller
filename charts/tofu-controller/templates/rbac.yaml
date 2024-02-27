@@ -208,7 +208,7 @@ roleRef:
   name: tf-leader-election-role
 subjects:
 - kind: ServiceAccount
-  name: {{ include "tf-controller.serviceAccountName" . }}
+  name: {{ include "tofu-controller.serviceAccountName" . }}
   namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -221,7 +221,7 @@ roleRef:
   name: tf-cluster-reconciler-role
 subjects:
 - kind: ServiceAccount
-  name: {{ include "tf-controller.serviceAccountName" . }}
+  name: {{ include "tofu-controller.serviceAccountName" . }}
   namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -234,7 +234,7 @@ roleRef:
   name: tf-manager-role
 subjects:
 - kind: ServiceAccount
-  name: {{ include "tf-controller.serviceAccountName" . }}
+  name: {{ include "tofu-controller.serviceAccountName" . }}
   namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -246,9 +246,9 @@ roleRef:
   kind: ClusterRole
   name: tf-runner-role
 subjects:
-{{- range include "tf-controller.runner.allowedNamespaces" . | fromJsonArray }}
+{{- range include "tofu-controller.runner.allowedNamespaces" . | fromJsonArray }}
 - kind: ServiceAccount
-  name: {{ include "tf-controller.runner.serviceAccountName" $ }}
+  name: {{ include "tofu-controller.runner.serviceAccountName" $ }}
   namespace: {{ . }}
 {{- end }}
 {{- end }}

@@ -5,6 +5,6 @@ metadata:
   name: aws-package
 spec:
   interval: 1h0m0s
-  url: oci://ghcr.io/tf-controller/aws-primitive-modules
+  url: oci://ghcr.io/tofu-controller/aws-primitive-modules
   ref:
     tag: v4.38.0-v1alpha11

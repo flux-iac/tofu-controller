@@ -1,4 +1,4 @@
-tf-controller encountered an error generating plan:
+tofu-controller encountered an error generating plan:
 
 ```
 {{ .ErrorMessage }}

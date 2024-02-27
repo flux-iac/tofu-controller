@@ -24,7 +24,7 @@ func Test_000243_remediation_retry_test(t *testing.T) {
 	It("should retry up to the limit given in .spec.remediation.retries, and start again only when the spec changes.")
 
 	const (
-		sourceName    = "test-tf-controller-retry"
+		sourceName    = "test-tofu-controller-retry"
 		terraformName = "retry"
 	)
 	g := NewWithT(t)
@@ -65,7 +65,7 @@ func Test_000243_remediation_retry_test(t *testing.T) {
 			},
 		},
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/bad.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:196d115c43583ccd10107d631d8a594be542a75911f9832a5ec2c1e22b65387b",
@@ -231,7 +231,7 @@ spec:
 			},
 		},
 		Artifact: &sourcev1.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/aaabbbccc6e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			Path:           "gitrepository/flux-system/test-tofu-controller/aaabbbccc6e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/bad.tar.gz",
 			Revision:       "master/aaabbbccc6e3d0cbb7ed22ced771a0056455a2fb",
 			Digest:         "sha256:196d115c43583ccd10107d631d8a594be542a75911f9832a5ec2c1e22b65387b",

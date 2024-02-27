@@ -86,7 +86,7 @@ The design details should address at least the following questions:
 
 <!--
 Major milestones in the lifecycle of the RFC such as:
-- The first Terraform Controller release where an initial version of the RFC was available.
-- The version of Terraform Controller where the RFC graduated to general availability.
-- The version of Terraform Controller where the RFC was retired or superseded.
+- The first Tofu Controller release where an initial version of the RFC was available.
+- The version of Tofu Controller where the RFC graduated to general availability.
+- The version of Tofu Controller where the RFC was retired or superseded.
 -->

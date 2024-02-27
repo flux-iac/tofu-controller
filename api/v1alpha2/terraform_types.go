@@ -36,7 +36,7 @@ import (
 )
 
 const (
-	CACertSecretName = "tf-controller.tls"
+	CACertSecretName = "tofu-controller.tls"
 	// RunnerTLSSecretName is the name of the secret containing a TLS cert that will be written to
 	// the namespace in which a terraform runner is created
 	RunnerTLSSecretName     = "terraform-runner.tls"
@@ -44,7 +44,7 @@ const (
 	GitRepositoryIndexKey   = ".metadata.gitRepository"
 	BucketIndexKey          = ".metadata.bucket"
 	OCIRepositoryIndexKey   = ".metadata.ociRepository"
-	BreakTheGlassAnnotation = "break-the-glass.tf-controller/requestedAt"
+	BreakTheGlassAnnotation = "break-the-glass.tofu-controller/requestedAt"
 )
 
 type ReadInputsFromSecretSpec struct {

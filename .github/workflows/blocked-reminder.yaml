@@ -79,7 +79,7 @@ jobs:
         uses: archive/github-actions-slack@d9dae40827adf93bddf939db6552d1e392259d7d # v2.7.0
         if: ${{ steps.list-issues.outputs.result != '' }}
         with:
-          slack-bot-user-oauth-access-token: ${{ secrets.WEAVEWORKS_SLACK_GENERICBOT_TOKEN }}
+          slack-bot-user-oauth-access-token: ${{ secrets.flux-iac_SLACK_GENERICBOT_TOKEN }}
           slack-channel: C0586V3N0BG # team-wild-watermelon
           slack-text: ${{steps.list-issues.outputs.result}}
           slack-optional-icon_url: "https://avatars.githubusercontent.com/u/9976052"

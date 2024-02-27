@@ -2,13 +2,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    {{- include "tf-controller.labels" . | nindent 4 }}
-  name: {{ include "tf-controller.fullname" . }}
+    {{- include "tofu-controller.labels" . | nindent 4 }}
+  name: {{ include "tofu-controller.fullname" . }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "tf-controller.selectorLabels" . | nindent 6 }}
+      {{- include "tofu-controller.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -19,7 +19,7 @@ spec:
         {{- with .Values.podLabels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-        {{- include "tf-controller.selectorLabels" . | nindent 8 }}
+        {{- include "tofu-controller.selectorLabels" . | nindent 8 }}
     spec:
       {{- if not .Values.serviceAccount.create }}
       {{- with .Values.imagePullSecrets }}
@@ -49,7 +49,7 @@ spec:
         command:
         - /sbin/tini
         - --
-        - tf-controller
+        - tofu-controller
         env:
           {{- include "pod-namespace" . | indent 8 }}
         - name: RUNNER_POD_IMAGE
@@ -85,7 +85,7 @@ spec:
         {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      serviceAccountName: {{ include "tf-controller.serviceAccountName" . }}
+      serviceAccountName: {{ include "tofu-controller.serviceAccountName" . }}
       terminationGracePeriodSeconds: 10
       {{- with .Values.volumes }}
       volumes:

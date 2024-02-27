@@ -1,13 +1,13 @@
 # tfctl
 
-`tfctl` is a command-line utility to help with tf-controller operations.
+`tfctl` is a command-line utility to help with tofu-controller operations.
 
 ## Installation
 
 To install `tfctl` via Homebrew, run the following command:
 
 ```shell
-brew install weaveworks/tap/tfctl
+brew install flux-iac/tap/tfctl
 ```
 
 You can also download the `tfctl` binary via the GitHub releases page: [https://github.com/flux-iac/tofu-controller/releases](https://github.com/flux-iac/tofu-controller/releases).
@@ -22,13 +22,13 @@ Available Commands:
   delete      Delete a Terraform resource
   get         Get Terraform resources
   help        Help about any command
-  install     Install the tf-controller
+  install     Install the tofu-controller
   plan        Plan a Terraform configuration
   reconcile   Trigger a reconcile of the provided resource
   resume      Resume reconciliation for the provided resource
   suspend     Suspend reconciliation for the provided resource
-  uninstall   Uninstall the tf-controller
-  version     Prints tf-controller and tfctl version information
+  uninstall   Uninstall the tofu-controller
+  version     Prints tofu-controller and tfctl version information
 
 Flags:
   -h, --help                help for tfctl

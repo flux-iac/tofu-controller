@@ -27,7 +27,7 @@ metadata:
   namespace: default
 spec:
   interval: 30s
-  url: https://github.com/squaremo/tf-controller-helloworld
+  url: https://github.com/squaremo/tofu-controller-helloworld
   ref:
     branch: main
 ---

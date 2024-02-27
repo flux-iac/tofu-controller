@@ -7,7 +7,7 @@ namespace        = "flux-system"
 tfNamespace      = "terraform"
 buildSHA         = str(local('git rev-parse --short HEAD')).rstrip('\n')
 buildVersionRef  = str(local('git rev-list --tags --max-count=1')).rstrip('\n')
-buildVersion     = str(local("git describe --tags ${buildVersionRef}")).rstrip('\n')
+buildVersion     ="fake" # str(local("git describe --tags ${buildVersionRef}")).rstrip('\n')
 LIBCRYPTO_VERSION = "3.1.4-r5"
 
 if os.path.exists('Tiltfile.local'):
@@ -16,14 +16,14 @@ if os.path.exists('Tiltfile.local'):
 namespace_create(tfNamespace)
 
 # Download chart deps
-local_resource("helm-dep-update", "helm dep update charts/tf-controller", trigger_mode=TRIGGER_MODE_MANUAL, auto_init=True)
+local_resource("helm-dep-update", "helm dep update charts/tofu-controller", trigger_mode=TRIGGER_MODE_MANUAL, auto_init=True)
 
 # Define resources
-k8s_resource('chart-tf-controller',
+k8s_resource('chart-tofu-controller',
   labels=["deployments"],
   new_name='controller')
 
-k8s_resource('chart-tf-controller-branch-planner',
+k8s_resource('chart-tofu-controller-branch-planner',
   labels=["deployments"],
   new_name='branch-planner')
 
@@ -32,7 +32,7 @@ if os.path.exists('config/tilt/helm/dev-values-local.yaml'):
    helm_values.append('config/tilt/helm/dev-values-local.yaml')
 
 k8s_yaml(helm(
-   "charts/tf-controller",
+   "charts/tofu-controller",
    namespace=namespace,
    values=helm_values,
 ))
@@ -60,7 +60,7 @@ k8s_yaml(namespace_inject("./config/tilt/configMap.yaml", namespace))
 
 # Images
 docker_build(
-  "ghcr.io/weaveworks/tf-controller",
+  "ghcr.io/flux-iac/tofu-controller",
   "",
   dockerfile="Dockerfile",
   build_args={
@@ -70,7 +70,7 @@ docker_build(
   })
 
 docker_build(
-  "ghcr.io/weaveworks/branch-planner",
+  "ghcr.io/flux-iac/branch-planner",
   "",
   dockerfile="planner.Dockerfile",
   build_args={
@@ -81,9 +81,9 @@ docker_build(
 
 # There are no resources using this image when tilt starts, but we still need
 # this image.
-update_settings(suppress_unused_image_warnings=["ghcr.io/weaveworks/tf-runner"])
+update_settings(suppress_unused_image_warnings=["ghcr.io/flux-iac/tf-runner"])
 docker_build(
-  'ghcr.io/weaveworks/tf-runner',
+  'ghcr.io/flux-iac/tf-runner',
   '',
   dockerfile='runner.Dockerfile',
   build_args={

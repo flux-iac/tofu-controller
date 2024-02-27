@@ -4,8 +4,8 @@ kind: OCIRepository
 metadata:
   name: aws-package
   annotations:
-    metadata.weave.works/description: "This is the AWS package containing primitive modules for Weave TF-controller."
-    metadata.weave.works/docs-url: "https://github.com/tf-controller/aws-primitive-modules"
+    metadata.weave.works/description: "This is the AWS package containing primitive modules for Weave tofu-controller."
+    metadata.weave.works/docs-url: "https://github.com/tofu-controller/aws-primitive-modules"
 spec:
   interval: 1h0m0s
   ref:

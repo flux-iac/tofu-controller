@@ -49,8 +49,8 @@ const (
 func buildLogsCmd() *cobra.Command {
 	logsCmd := &cobra.Command{
 		Use:   "logs",
-		Short: "Display formatted logs for Terraform controller",
-		Long:  "The logs command displays formatted logs from Terraform controller.",
+		Short: "Display formatted logs for Tofu controller",
+		Long:  "The logs command displays formatted logs from Tofu controller.",
 		Example: `  # Print the reconciliation logs of all Terraform custom resources in your cluster
 	  tfctl logs --all-namespaces
 
@@ -76,7 +76,7 @@ func buildLogsCmd() *cobra.Command {
 	logsCmd.Flags().StringVarP(&logsArgs.name, "name", "", logsArgs.name, "specifies the name of the object logs to be displayed")
 	logsCmd.Flags().BoolVarP(&logsArgs.follow, "follow", "f", logsArgs.follow, "specifies if the logs should be streamed")
 	logsCmd.Flags().Int64VarP(&logsArgs.tail, "tail", "", logsArgs.tail, "lines of recent log file to display")
-	logsCmd.Flags().StringVarP(&logsArgs.controllerNamespace, "controller-namespace", "", defaultNamespace, "the namespace where the Terraform controller is running")
+	logsCmd.Flags().StringVarP(&logsArgs.controllerNamespace, "controller-namespace", "", defaultNamespace, "the namespace where the Tofu controller is running")
 	logsCmd.Flags().BoolVarP(&logsArgs.allNamespaces, "all-namespaces", "A", false, "displays logs for objects across all namespaces")
 	logsCmd.Flags().DurationVar(&logsArgs.sinceSeconds, "since", logsArgs.sinceSeconds, "Only return logs newer than a relative duration like 5s, 2m, or 3h. Defaults to all logs. Only one of since-time / since may be used.")
 	logsCmd.Flags().StringVar(&logsArgs.sinceTime, "since-time", logsArgs.sinceTime, "Only return logs after a specific date (RFC3339). Defaults to all logs. Only one of since-time / since may be used.")
@@ -190,7 +190,7 @@ func getPods(ctx context.Context, c *kubernetes.Clientset, ns string) ([]corev1.
 	var ret []corev1.Pod
 
 	opts := metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("%s=%s", "app.kubernetes.io/name", "tf-controller"),
+		LabelSelector: fmt.Sprintf("%s=%s", "app.kubernetes.io/name", "tofu-controller"),
 	}
 	deployList, err := c.AppsV1().Deployments(ns).List(ctx, opts)
 	if err != nil {

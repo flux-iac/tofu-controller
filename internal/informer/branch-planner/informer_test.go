@@ -34,7 +34,7 @@ func TestInformer(t *testing.T) {
 			Namespace: ns.Name,
 		},
 		Spec: sourcev1.GitRepositorySpec{
-			URL: "https://github.com/tf-controller/helloworld",
+			URL: "https://github.com/tofu-controller/helloworld",
 			Reference: &sourcev1.GitRepositoryRef{
 				Branch: "main",
 			},

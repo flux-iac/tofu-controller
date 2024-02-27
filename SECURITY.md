@@ -1,12 +1,12 @@
-# tf-controller Security
+# tofu-controller Security
 
-This document defines security reporting, handling and disclosure information for the tf-controller project and community.
+This document defines security reporting, handling and disclosure information for the tofu-controller project and community.
 
 ## Security Process
 
 ### Report a Vulnerability
 
-We're very thankful for – and if desired happy to credit – security researchers and users who report vulnerabilities to the tf-controller community.
+We're very thankful for – and if desired happy to credit – security researchers and users who report vulnerabilities to the tofu-controller community.
 
 - To make a report please email the private security list at <security@weave.works> with the details.
   We ask that reporters act in good faith by not disclosing the issue to others.
@@ -16,7 +16,7 @@ We're very thankful for – and if desired happy to credit – security researc
 
 ### Security Team
 
-Our Security Team consists of project maintainers and Weaveworks employees.
+Our Security Team consists of project maintainers and flux-iac employees.
 
 ### Handling
 

@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	repo = "weaveworks/tf-controller"
+	repo = "flux-iac/tofu-controller"
 )
 
 // CLI is the main struct for the tfctl command line tool
@@ -73,7 +73,7 @@ func stringp(s string) *string {
 }
 
 func download(version, resource string) ([]byte, error) {
-	tpl := "https://github.com/%s/releases/download/%s/tf-controller.%s.yaml"
+	tpl := "https://github.com/%s/releases/download/%s/tofu-controller.%s.yaml"
 
 	url := fmt.Sprintf(tpl, repo, version, resource)
 
@@ -101,7 +101,7 @@ func download(version, resource string) ([]byte, error) {
 func newManager(kubeClient client.Client) (*ssa.ResourceManager, error) {
 	kubePoller := polling.NewStatusPoller(kubeClient, kubeClient.RESTMapper(), polling.Options{})
 	return ssa.NewResourceManager(kubeClient, kubePoller, ssa.Owner{
-		Field: "tf-controller",
+		Field: "tofu-controller",
 		Group: "contrib.fluxcd.io",
 	}), nil
 }

@@ -128,7 +128,7 @@ func main() {
 
 	for {
 		// Replace owner and repo.
-		prs, _, _ := client.PullRequests.List(ctx, "weaveworks", "tf-controller", nil)
+		prs, _, _ := client.PullRequests.List(ctx, "flux-iac", "tofu-controller", nil)
 
 		for _, pr := range prs {
 			// Only track PRs to the main branch
@@ -136,7 +136,7 @@ func main() {
 				continue
 			}
 
-			files, _, _ := client.PullRequests.ListFiles(ctx, "weaveworks", "tf-controller", *pr.Number, nil)
+			files, _, _ := client.PullRequests.ListFiles(ctx, "flux-iac", "tofu-controller", *pr.Number, nil)
 			var fileNames []string
 			for _, file := range files {
 				fileNames = append(fileNames, *file.Filename)
@@ -195,11 +195,11 @@ func main() {
 
 	for {
 		// Replace owner, repo, and author.
-		prs, _, _ := client.PullRequests.List(ctx, "weaveworks", "tf-controller", nil)
+		prs, _, _ := client.PullRequests.List(ctx, "flux-iac", "tofu-controller", nil)
 		targetAuthor := "chanwit" // replace with target username
 
 		for _, pr := range prs {
-			comments, _, _ := client.Issues.ListComments(ctx, "weaveworks", "tf-controller", *pr.Number, nil)
+			comments, _, _ := client.Issues.ListComments(ctx, "flux-iac", "tofu-controller", *pr.Number, nil)
 
 			for _, comment := range comments {
 				if *comment.User.Login != targetAuthor {
@@ -267,7 +267,7 @@ In essence, the temporary nature of in-memory state storage doesn't pose a risk 
 
 <!--
 Major milestones in the lifecycle of the RFC such as:
-- The first Terraform Controller release where an initial version of the RFC was available.
-- The version of Terraform Controller where the RFC graduated to general availability.
-- The version of Terraform Controller where the RFC was retired or superseded.
+- The first Tofu Controller release where an initial version of the RFC was available.
+- The version of Tofu Controller where the RFC graduated to general availability.
+- The version of Tofu Controller where the RFC was retired or superseded.
 -->

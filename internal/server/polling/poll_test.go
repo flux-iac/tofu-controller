@@ -108,7 +108,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 			},
 		},
 		Spec: sourcev1.GitRepositorySpec{
-			URL: "https://github.com/tf-controller/helloworld",
+			URL: "https://github.com/tofu-controller/helloworld",
 			Reference: &sourcev1.GitRepositoryRef{
 				Branch: "main",
 			},

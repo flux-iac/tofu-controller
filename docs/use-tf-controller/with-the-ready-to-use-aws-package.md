@@ -1,19 +1,19 @@
-## Use TF-Controller with the ready-to-use AWS package
+## Use tofu-controller with the ready-to-use AWS package
 
-You need TF-Controller v0.13+ to running the example of TF-Controller with the ready-to-use AWS package.
+You need tofu-controller v0.13+ to running the example of tofu-controller with the ready-to-use AWS package.
 
 ## What is a package?
 
 A package is a collection of primitive Terraform modules that are bundled into an OCI image.
-You can think of a TF-controller's package as a thin wrapper around a Terraform module provider,
-and a TF-controller primitive module as a thin wrapper around a Terraform resource or a root module.
+You can think of a tofu-controller's package as a thin wrapper around a Terraform module provider,
+and a tofu-controller primitive module as a thin wrapper around a Terraform resource or a root module.
 
 We will provide a set of ready-to-use packages for the most popular cloud providers.
 Currently, we ship the package for AWS only.
 
 ## AWS Package
 
-To provide the out-of-the-box experience, the AWS Package is installed by default when you installed the TF-controller.
+To provide the out-of-the-box experience, the AWS Package is installed by default when you installed the tofu-controller.
 Unlike other IaC implementation, our package model is designed to be very lightweight as a package is just a set of TF files in the form of OCI. 
 Packages would not put any burden to your cluster. However, you can opt this package out by setting `awsPackage.install: false` in your Helm chart values.
 
@@ -27,7 +27,7 @@ aws-package   v4.38.0-v1alpha11/6033f3b   False       True    stored artifact fo
 
 ## A step-by-step tutorial
 
-This section describes how to use the AWS package to provision an S3 bucket with ACL using the TF-controller.
+This section describes how to use the AWS package to provision an S3 bucket with ACL using the tofu-controller.
 
 ### Create a KinD local cluster
 
@@ -45,12 +45,12 @@ After you have a Kubernetes cluster, you can install Flux with the following com
 flux install
 ```
 
-### Install TF-controller
+### Install tofu-controller
 
-Then, you can install the TF-controller with the following command:
+Then, you can install the tofu-controller with the following command:
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml
+kubectl apply -f https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/release.yaml
 ```
 
 ### Setup AWS credentials
@@ -99,7 +99,7 @@ metadata:
 spec:
   path: aws_s3_bucket
   values:
-    bucket: my-tf-controller-test-bucket
+    bucket: my-tofu-controller-test-bucket
     tags:
       Environment: Dev
       Name: My bucket

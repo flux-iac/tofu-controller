@@ -32,7 +32,7 @@ func getRunnerPodImage(image string) string {
 		runnerPodImage = os.Getenv("RUNNER_POD_IMAGE")
 	}
 	if runnerPodImage == "" {
-		runnerPodImage = "ghcr.io/weaveworks/tf-runner:latest"
+		runnerPodImage = "ghcr.io/flux-iac/tf-runner:latest"
 	}
 	return runnerPodImage
 }
@@ -50,7 +50,7 @@ func runnerPodTemplate(terraform infrav1.Terraform, secretName string, revision 
 			Namespace: podNamespace,
 			Name:      podName,
 			Labels: map[string]string{
-				"app.kubernetes.io/created-by":   "tf-controller",
+				"app.kubernetes.io/created-by":   "tofu-controller",
 				"app.kubernetes.io/name":         "tf-runner",
 				"app.kubernetes.io/instance":     podInstance,
 				infrav1.RunnerLabel:              terraform.Namespace,
