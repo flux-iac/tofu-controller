@@ -5,11 +5,11 @@ import (
 	"os"
 	"os/signal"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/fluxcd/pkg/runtime/logger"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	cgoscheme "k8s.io/client-go/kubernetes/scheme"

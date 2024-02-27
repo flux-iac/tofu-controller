@@ -36,7 +36,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} \
 
 FROM alpine:3.18
 
-LABEL org.opencontainers.image.source="https://github.com/weaveworks/tf-controller"
+LABEL org.opencontainers.image.source="https://github.com/flux-iac/tofu-controller"
 
 ARG LIBCRYPTO_VERSION
 

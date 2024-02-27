@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/flux-iac/tofu-controller/mtls"
+	"github.com/flux-iac/tofu-controller/runner"
 	"github.com/fluxcd/pkg/runtime/logger"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
-	"github.com/weaveworks/tf-controller/mtls"
-	"github.com/weaveworks/tf-controller/runner"
 	"google.golang.org/grpc"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"

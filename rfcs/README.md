@@ -1,7 +1,7 @@
 # Terraform Controller RFCs
 
 In many situations, enhancements and new features are proposed
-on [tf-controller/discussions](https://github.com/weaveworks/tf-controller/discussions).
+on [tf-controller/discussions](https://github.com/flux-iac/tofu-controller/discussions).
 These proposals are evaluated publicly by maintainers, contributors, users, and any other interested parties. After a
 consensus is reached among the participants, the proposed changes proceed to the pull request stage where the
 implementation specifics are reviewed, and either approved or rejected by the maintainers.

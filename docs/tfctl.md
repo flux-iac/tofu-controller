@@ -10,7 +10,7 @@ To install `tfctl` via Homebrew, run the following command:
 brew install weaveworks/tap/tfctl
 ```
 
-You can also download the `tfctl` binary via the GitHub releases page: [https://github.com/weaveworks/tf-controller/releases](https://github.com/weaveworks/tf-controller/releases).
+You can also download the `tfctl` binary via the GitHub releases page: [https://github.com/flux-iac/tofu-controller/releases](https://github.com/flux-iac/tofu-controller/releases).
 
 ```
 Usage:

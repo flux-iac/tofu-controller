@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	. "github.com/onsi/gomega"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"

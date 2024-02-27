@@ -8,8 +8,8 @@ import (
 	"io"
 	"io/ioutil"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/fluxcd/pkg/apis/meta"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/types"

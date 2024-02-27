@@ -3,8 +3,8 @@ package config_test
 import (
 	"testing"
 
+	"github.com/flux-iac/tofu-controller/internal/config"
 	gm "github.com/onsi/gomega"
-	"github.com/weaveworks/tf-controller/internal/config"
 )
 
 func Test_PullRequestObjectName(t *testing.T) {

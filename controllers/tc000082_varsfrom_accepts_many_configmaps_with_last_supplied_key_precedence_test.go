@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
-	"github.com/weaveworks/tf-controller/runner"
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/flux-iac/tofu-controller/runner"
 
 	. "github.com/onsi/gomega"
 
