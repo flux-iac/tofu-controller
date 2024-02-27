@@ -44,8 +44,8 @@ jobs:
       - name: Setup Kubernetes
         uses: helm/kind-action@dda0770415bac9fc20092cacbc54aa298604d140 # v1.8.0
         with:
-          version: v0.18.0
-          node_image: kindest/node:v1.24.12@sha256:1e12918b8bc3d4253bc08f640a231bb0d3b2c5a9b28aa3f2ca1aee93e1e8db16
+          version: v0.22.0
+          node_image: kindest/node:v1.29.2@sha256:51a1434a5397193442f0be2a297b488b6c919ce8a3931be0ce822606ea5ca245
           cluster_name: kind
       - name: Setup Kustomize
         uses: fluxcd/pkg/actions/kustomize@6c0b4426ba7809a9406c1a4e07aa4be4984ea72f # main
