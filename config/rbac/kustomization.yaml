@@ -10,4 +10,4 @@ resources:
 - service_account.yaml
 - runner_role.yaml
 - runner_role_binding.yaml
-namePrefix: tf-
+namePrefix: tofu-
