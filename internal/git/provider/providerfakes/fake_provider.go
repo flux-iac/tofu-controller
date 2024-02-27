@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-logr/logr"
 	"github.com/flux-iac/tofu-controller/internal/git/provider"
+	"github.com/go-logr/logr"
 )
 
 type FakeProvider struct {
