@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: tf-editor-role
+  name: tofu-tf-editor-role
 rules:
 - apiGroups:
   - infra.contrib.fluxcd.io
