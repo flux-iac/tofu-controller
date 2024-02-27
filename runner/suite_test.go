@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/weaveworks/tf-controller/controllers"
-	"github.com/weaveworks/tf-controller/runner"
+	"github.com/flux-iac/tofu-controller/controllers"
+	"github.com/flux-iac/tofu-controller/runner"
 	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -23,10 +23,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/fluxcd/pkg/runtime/logger"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

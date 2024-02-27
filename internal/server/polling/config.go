@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/weaveworks/tf-controller/internal/config"
+	"github.com/flux-iac/tofu-controller/internal/config"
 )
 
 const DefaultConfigMapName = "branch-planner"

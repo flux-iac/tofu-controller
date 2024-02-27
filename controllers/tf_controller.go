@@ -27,6 +27,8 @@ import (
 	"strings"
 	"time"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/flux-iac/tofu-controller/mtls"
 	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/fluxcd/pkg/runtime/acl"
@@ -40,8 +42,6 @@ import (
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-retryablehttp"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
-	"github.com/weaveworks/tf-controller/mtls"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"

@@ -85,15 +85,15 @@ helm upgrade -i tf-controller tf-controller/tf-controller \
 ```
 
 For details on configurable parameters of the TF-controller chart,
-please see [chart readme](https://github.com/weaveworks/tf-controller/tree/main/charts/tf-controller#tf-controller-for-flux).
+please see [chart readme](https://github.com/flux-iac/tofu-controller/tree/main/charts/tf-controller#tf-controller-for-flux).
 
 Alternatively, you can install TF-controller via `kubectl`:
 
 ```shell
 export TF_CON_VER=v0.15.1
-kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
-kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
-kubectl apply -f https://github.com/weaveworks/tf-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
+kubectl apply -f https://github.com/flux-iac/tofu-controller/releases/download/${TF_CON_VER}/tf-controller.crds.yaml
+kubectl apply -f https://github.com/flux-iac/tofu-controller/releases/download/${TF_CON_VER}/tf-controller.rbac.yaml
+kubectl apply -f https://github.com/flux-iac/tofu-controller/releases/download/${TF_CON_VER}/tf-controller.deployment.yaml
 ```
 
 ## Quick start

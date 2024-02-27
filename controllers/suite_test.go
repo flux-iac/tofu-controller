@@ -29,8 +29,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/weaveworks/tf-controller/mtls"
-	"github.com/weaveworks/tf-controller/runner"
+	"github.com/flux-iac/tofu-controller/mtls"
+	"github.com/flux-iac/tofu-controller/runner"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 
@@ -39,9 +39,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

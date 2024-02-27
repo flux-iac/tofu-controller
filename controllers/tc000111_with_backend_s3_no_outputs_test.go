@@ -16,9 +16,9 @@ import (
 	types2 "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/elgohr/go-localstack"
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	. "github.com/onsi/gomega"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
