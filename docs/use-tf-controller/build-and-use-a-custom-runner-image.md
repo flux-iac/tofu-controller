@@ -29,7 +29,7 @@ RUN unzip -q /terraform_${TF_VERSION}_linux_${TARGETARCH}.zip -d /usr/local/bin/
 USER 65532:65532
 ```
 
-Find the original Dockerfile for the runner [here](https://github.com/weaveworks/tf-controller/blob/89e0c7edde91efebba825b31e9f0ef3cc583684b/runner.Dockerfile).
+Find the original Dockerfile for the runner [here](https://github.com/flux-iac/tofu-controller/blob/89e0c7edde91efebba825b31e9f0ef3cc583684b/runner.Dockerfile).
 
 2. Build the image from the directory containing the `Dockerfile` you created above:
 

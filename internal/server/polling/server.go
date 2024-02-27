@@ -11,15 +11,15 @@ import (
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	bpconfig "github.com/flux-iac/tofu-controller/internal/config"
+	"github.com/flux-iac/tofu-controller/internal/git/provider"
 	"github.com/go-logr/logr"
-	bpconfig "github.com/weaveworks/tf-controller/internal/config"
-	"github.com/weaveworks/tf-controller/internal/git/provider"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 )
 
 const DefaultPollingInterval = time.Second * 30

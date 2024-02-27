@@ -23,9 +23,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/flux-iac/tofu-controller/mtls"
 	"github.com/fluxcd/pkg/runtime/logger"
 	flag "github.com/spf13/pflag"
-	"github.com/weaveworks/tf-controller/mtls"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 

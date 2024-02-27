@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/flux-iac/tofu-controller/internal/config"
+	bpconfig "github.com/flux-iac/tofu-controller/internal/config"
 	"github.com/fluxcd/pkg/runtime/acl"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	"github.com/weaveworks/tf-controller/internal/config"
-	bpconfig "github.com/weaveworks/tf-controller/internal/config"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,7 +17,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 )
 
 func (s *Server) getTerraformObject(ctx context.Context, ref client.ObjectKey) (*infrav1.Terraform, error) {

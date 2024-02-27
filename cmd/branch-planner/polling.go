@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/flux-iac/tofu-controller/internal/server/polling"
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/tf-controller/internal/server/polling"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

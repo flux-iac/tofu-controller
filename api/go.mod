@@ -1,4 +1,4 @@
-module github.com/weaveworks/tf-controller/api
+module github.com/flux-iac/tofu-controller/api
 
 go 1.19
 
