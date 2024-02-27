@@ -17,25 +17,25 @@ func TestFromURL(t *testing.T) {
 	}{
 		{
 			url:      "https://github.com/flux-iac/tofu-controller",
-			repoOrg:  "weaveworks",
-			repoName: "tf-controller",
+			repoOrg:  "flux-iac",
+			repoName: "tofu-controller",
 		},
 		{
 			url:      "https://github.com/flux-iac/tofu-controller.git",
-			repoOrg:  "weaveworks",
-			repoName: "tf-controller",
+			repoOrg:  "flux-iac",
+			repoName: "tofu-controller",
 		},
 		{
 			url:      "ssh://git@github.com/flux-iac/tofu-controller.git",
-			repoOrg:  "weaveworks",
-			repoName: "tf-controller",
+			repoOrg:  "flux-iac",
+			repoName: "tofu-controller",
 		},
 		{
-			url:         "https://github.com/weaveworks",
+			url:         "https://github.com/flux-iac",
 			shouldError: true,
 		},
 		{
-			url:         "https://weave.works/weaveworks/tf-controller",
+			url:         "https://weave.works/flux-iac/tofu-controller",
 			shouldError: true,
 		},
 	}
