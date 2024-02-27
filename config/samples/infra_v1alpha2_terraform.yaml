@@ -6,7 +6,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 30s
-  url: https://github.com/tofu-controller/helloworld
+  url: https://github.com/flux-iac/helloworld
   ref:
     branch: main
 ---
