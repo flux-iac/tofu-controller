@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/tf-controller/internal/git/provider"
+	"github.com/flux-iac/tofu-controller/internal/git/provider"
 )
 
 type FakeProvider struct {

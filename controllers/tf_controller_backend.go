@@ -6,10 +6,10 @@ import (
 	"os"
 	"strings"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/flux-iac/tofu-controller/runner"
 	"github.com/fluxcd/pkg/runtime/acl"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
-	"github.com/weaveworks/tf-controller/runner"
 	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"

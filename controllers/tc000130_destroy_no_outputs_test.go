@@ -6,14 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/weaveworks/tf-controller/utils"
+	"github.com/flux-iac/tofu-controller/utils"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	. "github.com/onsi/gomega"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"

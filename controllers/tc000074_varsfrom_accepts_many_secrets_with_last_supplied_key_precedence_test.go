@@ -8,12 +8,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/flux-iac/tofu-controller/runner"
 	"github.com/google/uuid"
-	"github.com/weaveworks/tf-controller/runner"
 
 	. "github.com/onsi/gomega"
 
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

@@ -3,8 +3,8 @@ package provider_test
 import (
 	"testing"
 
+	"github.com/flux-iac/tofu-controller/internal/git/provider"
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/tf-controller/internal/git/provider"
 )
 
 func TestFromURL(t *testing.T) {
@@ -16,17 +16,17 @@ func TestFromURL(t *testing.T) {
 		shouldError bool
 	}{
 		{
-			url:      "https://github.com/weaveworks/tf-controller",
+			url:      "https://github.com/flux-iac/tofu-controller",
 			repoOrg:  "weaveworks",
 			repoName: "tf-controller",
 		},
 		{
-			url:      "https://github.com/weaveworks/tf-controller.git",
+			url:      "https://github.com/flux-iac/tofu-controller.git",
 			repoOrg:  "weaveworks",
 			repoName: "tf-controller",
 		},
 		{
-			url:      "ssh://git@github.com/weaveworks/tf-controller.git",
+			url:      "ssh://git@github.com/flux-iac/tofu-controller.git",
 			repoOrg:  "weaveworks",
 			repoName: "tf-controller",
 		},

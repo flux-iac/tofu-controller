@@ -1,8 +1,8 @@
 package branchplanner
 
 import (
+	"github.com/flux-iac/tofu-controller/internal/git/provider"
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/tf-controller/internal/git/provider"
 	"k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

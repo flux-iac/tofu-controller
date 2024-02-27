@@ -1,6 +1,6 @@
 ## Use TF-Controller with Azure
 
-This content was [provided](https://github.com/weaveworks/tf-controller/issues/561) by users [@mingmingshiliyu](https://github.com/mingmingshiliyu) and [@maciekdude](https://github.com/maciekdude).
+This content was [provided](https://github.com/flux-iac/tofu-controller/issues/561) by users [@mingmingshiliyu](https://github.com/mingmingshiliyu) and [@maciekdude](https://github.com/maciekdude).
 
 Use the OIDC flag and explicitly point to the token. Due to a bug in AzureRM 3.44.x, use version 3.47.x or later.
 

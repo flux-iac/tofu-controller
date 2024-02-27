@@ -28,7 +28,7 @@ Our Security Team consists of project maintainers and Weaveworks employees.
 
 ### Disclosures
 
-Vulnerability disclosures are announced publicly through our [security advisories](https://github.com/weaveworks/tf-controller/security/advisories).
+Vulnerability disclosures are announced publicly through our [security advisories](https://github.com/flux-iac/tofu-controller/security/advisories).
 Disclosures will contain an overview, details about the vulnerability, a fix that will typically be an update, and optionally a workaround if one is available.
 
 We will coordinate publishing disclosures and security releases in a way that is realistic and necessary for end users.

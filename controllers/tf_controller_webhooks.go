@@ -14,9 +14,9 @@ import (
 	"strings"
 	"text/template"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/flux-iac/tofu-controller/runner"
 	"github.com/hashicorp/go-cleanhttp"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
-	"github.com/weaveworks/tf-controller/runner"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 )
