@@ -1,8 +1,8 @@
-# Tofu Controller
+# Flux IaC GitOps Tofu Controller
 
 ![Version: 0.16.0-rc.3](https://img.shields.io/badge/Version-0.16.0--rc.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.16.0-rc.3](https://img.shields.io/badge/AppVersion-v0.16.0--rc.3-informational?style=flat-square)
 
-The Helm chart for the Tofu Controller
+The Helm chart for Flux IaC GitOps Tofu Controller
 
 ## Installation
 
@@ -11,7 +11,7 @@ After that you can install tofu-controller manually with Helm by:
 
 ```shell
 # Add tofu-controller helm repository
-helm repo add tofu-controller https://flux-iac.github.io/tofu-controller
+helm repo add tofu-controller https://flux-iac.github.io/tofu-controller/
 
 # Install tofu-controller
 helm upgrade -i tofu-controller tofu-controller/tofu-controller \
