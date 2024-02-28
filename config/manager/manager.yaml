@@ -18,7 +18,7 @@ spec:
         control-plane: tofu-controller
     spec:
       terminationGracePeriodSeconds: 10
-      serviceAccountName: tofu-controller
+      serviceAccountName: tf-controller
       securityContext:
         fsGroup: 1337
       containers:
