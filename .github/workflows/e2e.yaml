@@ -164,7 +164,7 @@ jobs:
           kubectl -n tofu-system delete -f ./config/testdata/vars
       - name: Run multi-tenancy test
         run: |
-          kubectl -n tofu-system scale --replicas=3 deploy/tf-controller
+          kubectl -n tofu-system scale --replicas=3 deploy/tofu-controller
           kustomize build ./config/testdata/multi-tenancy/tenant01 | kubectl apply -f -
           kustomize build ./config/testdata/multi-tenancy/tenant02 | kubectl apply -f -
           kubectl -n tf-tenant01-dev wait terraform/helloworld-tenant01-dev --for=condition=ready --timeout=4m
@@ -190,7 +190,7 @@ jobs:
 
       - name: Set up chaos testing environment
         run: |
-          kubectl -n tofu-system scale --replicas=0 deploy/tf-controller
+          kubectl -n tofu-system scale --replicas=0 deploy/tofu-controller
           sleep 3
 
           kubectl -n chaos-testing apply -f ./config/testdata/chaos
@@ -199,7 +199,7 @@ jobs:
           # Set up namespace-scoped old certs for GC
           kubectl -n chaos-testing apply -f ./config/testdata/gc-old-certs/test.yaml
 
-          kubectl -n tofu-system scale --replicas=1 deploy/tf-controller
+          kubectl -n tofu-system scale --replicas=1 deploy/tofu-controller
 
           sleep 10
       - name: Randomly delete runner pods
@@ -247,7 +247,7 @@ jobs:
       - name: Logs
         run: |
           kubectl -n tofu-system logs deploy/source-controller
-          kubectl -n tofu-system logs deploy/tf-controller
+          kubectl -n tofu-system logs deploy/tofu-controller
       - name: Debug failure
         if: failure()
         run: |
@@ -255,7 +255,7 @@ jobs:
           kubectl version
           kustomize version
           kubectl -n tofu-system logs deploy/source-controller
-          kubectl -n tofu-system logs deploy/tf-controller
+          kubectl -n tofu-system logs deploy/tofu-controller
 
           ns=(tofu-system tf-tenant01-dev tf-tenant01-prd tf-tenant02-dev tf-tenant02-prd chaos-testing)
           for n in "${ns[@]}"
