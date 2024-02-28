@@ -24,7 +24,7 @@ podLabels: {}
 replicaCount: 1
 image:
   # -- Controller image repository
-  repository: ghcr.io/weaveworks/tf-controller
+  repository: ghcr.io/flux-iac/tf-controller
   # -- Controller image pull policy
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
@@ -111,12 +111,12 @@ usePodSubdomainResolution: false
 awsPackage:
   install: true
   tag: v4.38.0-v1alpha11
-  repository: ghcr.io/tf-controller/aws-primitive-modules
+  repository: ghcr.io/flux-iac/aws-primitive-modules
 # -- Runner-specific configurations
 runner:
   image:
     # -- Runner image repository
-    repository: ghcr.io/weaveworks/tf-runner
+    repository: ghcr.io/flux-iac/tf-runner
     # -- Runner image tag
     # @default -- `.Chart.AppVersion`
     tag: "v0.16.0-rc.3"
@@ -177,7 +177,7 @@ metrics:
 branchPlanner:
   enabled: false
   image:
-    repository: ghcr.io/weaveworks/branch-planner
+    repository: ghcr.io/flux-iac/branch-planner
     pullPolicy: IfNotPresent
     tag: ""
   configMap: branch-planner
