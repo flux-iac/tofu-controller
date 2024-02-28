@@ -58,16 +58,16 @@ jobs:
             echo 'run make test and commit changes'
             exit 1
           fi
-      - name: Build the tf-controller container image
+      - name: Build the tofu-controller container image
         run: |
           VERSION="e2e-${GITHUB_SHA::8}"
           docker buildx use default
-          make docker-buildx MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION
+          make docker-buildx MANAGER_IMG=test/tofu-controller RUNNER_IMG=test/tf-runner TAG=$VERSION
       - name: Load test images into KIND
         run: |
           VERSION="e2e-${GITHUB_SHA::8}"
 
-          kind load docker-image test/tf-controller:$VERSION
+          kind load docker-image test/tofu-controller:$VERSION
           kind load docker-image test/tf-runner:$VERSION
       - name: Install CRDs
         run: make install
@@ -79,17 +79,17 @@ jobs:
           yq -i e ".spec.template.spec.containers[0].env[1].value=\"test/tf-runner:$VERSION\"" config/manager/manager.yaml
 
           # Dev deploy - do it twice to make sure the CRDs get in first
-          make dev-deploy MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION || true
-          make dev-deploy MANAGER_IMG=test/tf-controller RUNNER_IMG=test/tf-runner TAG=$VERSION
+          make dev-deploy MANAGER_IMG=test/tofu-controller RUNNER_IMG=test/tf-runner TAG=$VERSION || true
+          make dev-deploy MANAGER_IMG=test/tofu-controller RUNNER_IMG=test/tf-runner TAG=$VERSION
 
           # All of these old cert would be cleaned up by GC at the start of the test
-          kubectl -n tf-system apply -f config/testdata/gc-old-certs/test.yaml
+          kubectl -n tofu-system apply -f config/testdata/gc-old-certs/test.yaml
 
           # Increase the concurrency of the controller to speed up tests
           # --cert-rotation-check-frequency=6m0s, then GC will run every 1 minute
           kubectl patch deployment \
-            tf-controller \
-            --namespace tf-system \
+            tofu-controller \
+            --namespace tofu-system \
             --type='json' \
             -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/args", "value": [
             "--watch-all-namespaces",
@@ -100,71 +100,71 @@ jobs:
             "--cert-rotation-check-frequency=6m0s",
           ]}]'
 
-          kubectl -n tf-system rollout status deploy/source-controller --timeout=1m
-          kubectl -n tf-system rollout status deploy/tf-controller --timeout=1m
+          kubectl -n tofu-system rollout status deploy/source-controller --timeout=1m
+          kubectl -n tofu-system rollout status deploy/tofu-controller --timeout=1m
       - name: Get terraform version
         run: |
-          # Terraform binary will be moved from the TF-controller image to TF-runner, so we check TF's version there
+          # Terraform binary will be moved from the ToFu-controller image to TF-runner, so we check TF's version there
           VERSION="e2e-${GITHUB_SHA::8}"
           docker run --rm --entrypoint=/usr/local/bin/terraform test/tf-runner:$VERSION version
       - name: Add git repository source
         run: |
-          kubectl -n tf-system apply -f ./config/testdata/source
-          kubectl -n tf-system wait gitrepository/helloworld --for=condition=ready --timeout=4m
-          kubectl -n tf-system wait ocirepository/helloworld-oci --for=condition=ready --timeout=4m
+          kubectl -n tofu-system apply -f ./config/testdata/source
+          kubectl -n tofu-system wait gitrepository/helloworld --for=condition=ready --timeout=4m
+          kubectl -n tofu-system wait ocirepository/helloworld-oci --for=condition=ready --timeout=4m
       - name: Run approvePlan tests
         run: |
-          kubectl -n tf-system apply -f ./config/testdata/approve-plan
-          kubectl -n tf-system wait terraform/helloworld-auto-approve --for=condition=ready --timeout=4m
-          kubectl -n tf-system wait terraform/helloworld-oci-auto-approve --for=condition=ready --timeout=4m
-          kubectl -n tf-system wait terraform/helloworld-manual-approve --for=condition=plan=true --timeout=4m
+          kubectl -n tofu-system apply -f ./config/testdata/approve-plan
+          kubectl -n tofu-system wait terraform/helloworld-auto-approve --for=condition=ready --timeout=4m
+          kubectl -n tofu-system wait terraform/helloworld-oci-auto-approve --for=condition=ready --timeout=4m
+          kubectl -n tofu-system wait terraform/helloworld-manual-approve --for=condition=plan=true --timeout=4m
 
           # delete after tests
-          kubectl -n tf-system delete -f ./config/testdata/approve-plan
+          kubectl -n tofu-system delete -f ./config/testdata/approve-plan
       - name: Run plan with pod cleanup tests
         run: |
-          kubectl -n tf-system apply -f ./config/testdata/always-clean-pod
-          kubectl -n tf-system wait terraform/helloworld-always-clean-pod-manual-approve --for=condition=plan=true --timeout=4m
+          kubectl -n tofu-system apply -f ./config/testdata/always-clean-pod
+          kubectl -n tofu-system wait terraform/helloworld-always-clean-pod-manual-approve --for=condition=plan=true --timeout=4m
 
           # negate pod not found to be true
-          ! kubectl -n tf-system get terraform/helloworld-always-clean-pod-manual-approve-tf-runner
+          ! kubectl -n tofu-system get terraform/helloworld-always-clean-pod-manual-approve-tf-runner
 
           # delete after tests
-          kubectl -n tf-system delete -f ./config/testdata/always-clean-pod
+          kubectl -n tofu-system delete -f ./config/testdata/always-clean-pod
       - name: Run drift detection tests
         run: |
-          kubectl -n tf-system apply -f ./config/testdata/drift-detection
+          kubectl -n tofu-system apply -f ./config/testdata/drift-detection
 
           # apply should be true first
-          kubectl -n tf-system wait terraform/helloworld-drift-detection --for=condition=apply=true --timeout=4m
+          kubectl -n tofu-system wait terraform/helloworld-drift-detection --for=condition=apply=true --timeout=4m
 
           # patch .spec.approvePlan to "disable"
-          kubectl -n tf-system patch terraform/helloworld-drift-detection -p '{"spec":{"approvePlan":"disable"}}' --type=merge
-          kubectl -n tf-system wait  terraform/helloworld-drift-detection --for=condition=ready=true --timeout=4m
+          kubectl -n tofu-system patch terraform/helloworld-drift-detection -p '{"spec":{"approvePlan":"disable"}}' --type=merge
+          kubectl -n tofu-system wait  terraform/helloworld-drift-detection --for=condition=ready=true --timeout=4m
 
           # disable drift detection
           # the object should work correctly
-          kubectl -n tf-system wait terraform/helloworld-drift-detection-disable --for=condition=ready --timeout=4m
+          kubectl -n tofu-system wait terraform/helloworld-drift-detection-disable --for=condition=ready --timeout=4m
 
           # delete after tests
-          kubectl -n tf-system delete -f ./config/testdata/drift-detection
+          kubectl -n tofu-system delete -f ./config/testdata/drift-detection
       - name: Run healthchecks tests
         run: |
-          kubectl -n tf-system apply -f ./config/testdata/healthchecks
-          kubectl -n tf-system wait terraform/helloworld-healthchecks --for=condition=ready --timeout=4m
+          kubectl -n tofu-system apply -f ./config/testdata/healthchecks
+          kubectl -n tofu-system wait terraform/helloworld-healthchecks --for=condition=ready --timeout=4m
 
           # delete after tests
-          kubectl -n tf-system delete -f ./config/testdata/healthchecks
+          kubectl -n tofu-system delete -f ./config/testdata/healthchecks
       - name: Run vars tests
         run: |
-          kubectl -n tf-system apply -f ./config/testdata/vars
-          kubectl -n tf-system wait terraform/helloworld-vars --for=condition=ready --timeout=4m
+          kubectl -n tofu-system apply -f ./config/testdata/vars
+          kubectl -n tofu-system wait terraform/helloworld-vars --for=condition=ready --timeout=4m
 
           # delete after tests
-          kubectl -n tf-system delete -f ./config/testdata/vars
+          kubectl -n tofu-system delete -f ./config/testdata/vars
       - name: Run multi-tenancy test
         run: |
-          kubectl -n tf-system scale --replicas=3 deploy/tf-controller
+          kubectl -n tofu-system scale --replicas=3 deploy/tf-controller
           kustomize build ./config/testdata/multi-tenancy/tenant01 | kubectl apply -f -
           kustomize build ./config/testdata/multi-tenancy/tenant02 | kubectl apply -f -
           kubectl -n tf-tenant01-dev wait terraform/helloworld-tenant01-dev --for=condition=ready --timeout=4m
@@ -190,7 +190,7 @@ jobs:
 
       - name: Set up chaos testing environment
         run: |
-          kubectl -n tf-system scale --replicas=0 deploy/tf-controller
+          kubectl -n tofu-system scale --replicas=0 deploy/tf-controller
           sleep 3
 
           kubectl -n chaos-testing apply -f ./config/testdata/chaos
@@ -199,7 +199,7 @@ jobs:
           # Set up namespace-scoped old certs for GC
           kubectl -n chaos-testing apply -f ./config/testdata/gc-old-certs/test.yaml
 
-          kubectl -n tf-system scale --replicas=1 deploy/tf-controller
+          kubectl -n tofu-system scale --replicas=1 deploy/tf-controller
 
           sleep 10
       - name: Randomly delete runner pods
@@ -232,32 +232,32 @@ jobs:
           (kubectl get secret terraform-runner.tls-8 -n chaos-testing >/dev/null 2>&1 && exit 1 || exit 0)
           (kubectl get secret terraform-runner.tls-9 -n chaos-testing >/dev/null 2>&1 && exit 1 || exit 0)
 
-          (kubectl get secret terraform-runner.tls-0 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
-          (kubectl get secret terraform-runner.tls-1 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
-          (kubectl get secret terraform-runner.tls-2 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
-          (kubectl get secret terraform-runner.tls-3 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
-          (kubectl get secret terraform-runner.tls-4 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
-          (kubectl get secret terraform-runner.tls-5 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
-          (kubectl get secret terraform-runner.tls-6 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
-          (kubectl get secret terraform-runner.tls-7 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
-          (kubectl get secret terraform-runner.tls-8 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
-          (kubectl get secret terraform-runner.tls-9 -n tf-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-0 -n tofu-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-1 -n tofu-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-2 -n tofu-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-3 -n tofu-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-4 -n tofu-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-5 -n tofu-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-6 -n tofu-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-7 -n tofu-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-8 -n tofu-system >/dev/null 2>&1 && exit 1 || exit 0)
+          (kubectl get secret terraform-runner.tls-9 -n tofu-system >/dev/null 2>&1 && exit 1 || exit 0)
 
           echo "All tests are true, all of the old secrets were GCed."
       - name: Logs
         run: |
-          kubectl -n tf-system logs deploy/source-controller
-          kubectl -n tf-system logs deploy/tf-controller
+          kubectl -n tofu-system logs deploy/source-controller
+          kubectl -n tofu-system logs deploy/tf-controller
       - name: Debug failure
         if: failure()
         run: |
           which kubectl
           kubectl version
           kustomize version
-          kubectl -n tf-system logs deploy/source-controller
-          kubectl -n tf-system logs deploy/tf-controller
+          kubectl -n tofu-system logs deploy/source-controller
+          kubectl -n tofu-system logs deploy/tf-controller
 
-          ns=(tf-system tf-tenant01-dev tf-tenant01-prd tf-tenant02-dev tf-tenant02-prd chaos-testing)
+          ns=(tofu-system tf-tenant01-dev tf-tenant01-prd tf-tenant02-dev tf-tenant02-prd chaos-testing)
           for n in "${ns[@]}"
           do
             kubectl -n $n get gitrepositories -oyaml          
