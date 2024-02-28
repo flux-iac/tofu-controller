@@ -4,7 +4,7 @@ metadata:
   name: helloworld
 spec:
   interval: 1m
-  url: https://github.com/tf-controller/helloworld.git
+  url: https://github.com/flux-iac/helloworld.git
   ref:
     branch: main
 ---
