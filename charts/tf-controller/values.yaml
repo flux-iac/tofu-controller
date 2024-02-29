@@ -1,5 +1,3 @@
-# -- If `true`, install CRDs as part of the helm installation
-installCRDs: true
 # -- If `true`, enable cross-namespace references for controller and branch-planner
 allowCrossNamespaceRefs: false
 # ServiceAccount
