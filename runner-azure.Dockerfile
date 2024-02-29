@@ -16,8 +16,8 @@ RUN unzip -q /terraform_${TF_VERSION}_linux_${TARGETARCH}.zip -d /usr/local/bin/
 ARG AZCLI_VERSION=2.50.0
 RUN apk add --no-cache py3-pip && \
     apk add --no-cache gcc musl-dev python3-dev libffi-dev openssl-dev
-RUN pip install --upgrade pip && \
-    pip install azure-cli==${AZCLI_VERSION}
+RUN pip install --break-system-packages --upgrade pip && \
+    pip install azure-cli==${AZCLI_VERSION} --break-system-packages
 
 # Switch back to the non-root user after operations
 USER 65532:65532
