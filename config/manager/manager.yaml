@@ -2,20 +2,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tf-controller
+  name: tofu-controller
   labels:
-    control-plane: tf-controller
+    control-plane: tofu-controller
 spec:
   selector:
     matchLabels:
-      control-plane: tf-controller
+      control-plane: tofu-controller
   replicas: 1
   template:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: manager
       labels:
-        control-plane: tf-controller
+        control-plane: tofu-controller
     spec:
       terminationGracePeriodSeconds: 10
       serviceAccountName: tf-controller
@@ -23,12 +23,12 @@ spec:
         fsGroup: 1337
       containers:
       - name: manager
-        image: weaveworks/tf-controller
+        image: flux-iac/tofu-controller
         imagePullPolicy: IfNotPresent
         command:
         - /sbin/tini
         - --
-        - tf-controller
+        - tofu-controller
         args:
         - --watch-all-namespaces
         - --log-level=info
@@ -47,7 +47,7 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         - name: RUNNER_POD_IMAGE
-          value: weaveworks/tf-runner
+          value: flux-iac/tf-runner
         securityContext:
           capabilities:
             drop: ["ALL"]
