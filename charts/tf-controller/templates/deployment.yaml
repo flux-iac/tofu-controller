@@ -49,7 +49,7 @@ spec:
         command:
         - /sbin/tini
         - --
-        - tf-controller
+        - tofu-controller
         env:
           {{- include "pod-namespace" . | indent 8 }}
         - name: RUNNER_POD_IMAGE
