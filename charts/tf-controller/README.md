@@ -49,10 +49,9 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | extraEnv | object | `{}` | Additional container environment variables. |
 | fullnameOverride | string | `""` | Provide a fullname |
 | image.pullPolicy | string | `"IfNotPresent"` | Controller image pull policy |
-| image.repository | string | `"ghcr.io/flux-iac/tf-controller"` | Controller image repository |
+| image.repository | string | `"ghcr.io/flux-iac/tofu-controller"` | Controller image repository |
 | image.tag | string | `.Chart.AppVersion` | Overrides the image tag whose default is the chart appVersion. |
 | imagePullSecrets | list | `[]` | Controller image pull secret |
-| installCRDs | bool | `true` | If `true`, install CRDs as part of the helm installation |
 | kubeAPIBurst | int | `100` | Argument for `--kube-api-burst` (Controller).  Burst indicates the maximum burst queries-per-second of requests sent to the Kubernetes API, defaults to 100. |
 | kubeAPIQPS | int | `50` | Argument for `--kube-api-qps` (Controller).  Kube API QPS indicates the maximum queries-per-second of requests sent to the Kubernetes API, defaults to 50. |
 | logEncoding | string | `"json"` | Argument for `--log-encoding`. Can be 'json' or 'console'. (Controller) |
