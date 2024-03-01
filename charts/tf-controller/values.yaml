@@ -22,7 +22,7 @@ podLabels: {}
 replicaCount: 1
 image:
   # -- Controller image repository
-  repository: ghcr.io/flux-iac/tf-controller
+  repository: ghcr.io/flux-iac/tofu-controller
   # -- Controller image pull policy
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
