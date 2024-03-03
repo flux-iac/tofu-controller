@@ -25,7 +25,7 @@ func Test_000260_runner_pod_test(t *testing.T) {
 		terraformName      = "runner-pod-test"
 		sourceName         = "runner-pod-test"
 		serviceAccountName = "helloworld-tf-runner"
-		runnerPodImage     = "ghcr.io/weaveworks/tf-runner:test"
+		runnerPodImage     = "ghcr.io/flux-iac/tf-runner:test"
 		revision           = "v2.6@sha256:c7fd0cc69b924aa5f9a6928477311737e439ca1b9e444855b0377e8a8ec65bb5"
 	)
 
