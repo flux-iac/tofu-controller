@@ -32,7 +32,7 @@ func getRunnerPodImage(image string) string {
 		runnerPodImage = os.Getenv("RUNNER_POD_IMAGE")
 	}
 	if runnerPodImage == "" {
-		runnerPodImage = "ghcr.io/weaveworks/tf-runner:latest"
+		runnerPodImage = "ghcr.io/flux-iac/tf-runner:latest"
 	}
 	return runnerPodImage
 }
