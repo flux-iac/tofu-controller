@@ -40,9 +40,9 @@ k8s_yaml(helm(
 # Add Example
 k8s_yaml("./config/tilt/test/tf-dev-subject.yaml")
 k8s_resource(
-  objects=['helloworld:GitRepository:terraform','helloworld-tf:Secret:terraform','helloworld-tf:Terraform:terraform'],
+  objects=['helloworld:GitRepository:terraform','helloworld-tf:Secret:terraform'],
   extra_pod_selectors={'instance': 'helloworld-tf'},
-  new_name="helloworld-tf",
+  new_name="helloworld-tf-runner",
   pod_readiness='ignore',
   labels=["resources"],
 )
@@ -60,7 +60,7 @@ k8s_yaml(namespace_inject("./config/tilt/configMap.yaml", namespace))
 
 # Images
 docker_build(
-  "ghcr.io/weaveworks/tf-controller",
+  "ghcr.io/flux-iac/tofu-controller",
   "",
   dockerfile="Dockerfile",
   build_args={
@@ -70,7 +70,7 @@ docker_build(
   })
 
 docker_build(
-  "ghcr.io/weaveworks/branch-planner",
+  "ghcr.io/flux-iac/branch-planner",
   "",
   dockerfile="planner.Dockerfile",
   build_args={
@@ -79,15 +79,23 @@ docker_build(
     'LIBCRYPTO_VERSION': LIBCRYPTO_VERSION,
   })
 
-# There are no resources using this image when tilt starts, but we still need
-# this image.
-update_settings(suppress_unused_image_warnings=["ghcr.io/weaveworks/tf-runner"])
+
+k8s_kind('Terraform', image_json_path='{.spec.runnerPodTemplate.spec.image}')
 docker_build(
-  'ghcr.io/weaveworks/tf-runner',
+  'ghcr.io/flux-iac/tf-runner-base',
   '',
-  dockerfile='runner.Dockerfile',
+  dockerfile='runner-base.Dockerfile',
   build_args={
     'BUILD_SHA': buildSHA,
     'BUILD_VERSION': buildVersion,
     'LIBCRYPTO_VERSION': LIBCRYPTO_VERSION,
-  })
+  }
+)
+docker_build(
+  'ghcr.io/flux-iac/tf-runner',
+  '',
+  dockerfile='runner.Dockerfile',
+  build_args={
+    'BASE_IMAGE': 'ghcr.io/flux-iac/tf-runner-base',
+  }
+)
