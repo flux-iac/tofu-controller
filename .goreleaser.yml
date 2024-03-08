@@ -15,8 +15,11 @@ builds:
     binary: tfctl
     env:
       - CGO_ENABLED=0
+    flags:
+      - -trimpath
     ldflags:
-      -  -X main.BuildSHA={{.ShortCommit}} -X main.BuildVersion={{.Tag}}
+      - -s -w
+      - -X main.BuildSHA={{.ShortCommit}} -X main.BuildVersion={{.Tag}}
     goos:
       - darwin
       - linux
