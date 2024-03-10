@@ -58,44 +58,86 @@ k8s_yaml(namespace_inject(secret_from_dict("bbp-token", inputs = {
 # Add configMap
 k8s_yaml(namespace_inject("./config/tilt/configMap.yaml", namespace))
 
+local_resource(
+  'manager-compile',
+  'CGO_ENABLED=0 GOOS=linux GOARCH=$(go env GOARCH) go build -o bin/tofu-controller ./cmd/manager',
+  deps=[
+    'api/',
+    'tfctl/',
+    'cmd/manager/',
+    'controllers/',
+    'mtls/',
+    'runner/',
+    'internal/',
+    'utils/',
+    'go.mod',
+    'go.sum'
+  ],
+  labels = ['native-processes'],
+)
+
 # Images
 docker_build(
   "ghcr.io/flux-iac/tofu-controller",
   "",
-  dockerfile="Dockerfile",
-  build_args={
-    'BUILD_SHA': buildSHA,
-    'BUILD_VERSION': buildVersion,
-    'LIBCRYPTO_VERSION': LIBCRYPTO_VERSION,
-  })
-
-docker_build(
-  "ghcr.io/flux-iac/branch-planner",
-  "",
-  dockerfile="planner.Dockerfile",
-  build_args={
-    'BUILD_SHA': buildSHA,
-    'BUILD_VERSION': buildVersion,
-    'LIBCRYPTO_VERSION': LIBCRYPTO_VERSION,
-  })
-
-
-k8s_kind('Terraform', image_json_path='{.spec.runnerPodTemplate.spec.image}')
-docker_build(
-  'ghcr.io/flux-iac/tf-runner-base',
-  '',
-  dockerfile='runner-base.Dockerfile',
+  dockerfile="Dockerfile.dev",
   build_args={
     'BUILD_SHA': buildSHA,
     'BUILD_VERSION': buildVersion,
     'LIBCRYPTO_VERSION': LIBCRYPTO_VERSION,
   }
 )
+
+local_resource(
+  'branch-planner-compile',
+  'CGO_ENABLED=0 GOOS=linux GOARCH=$(go env GOARCH) go build -o bin/branch-planner ./cmd/branch-planner',
+  deps=[
+    'api/',
+    'tfctl/',
+    'cmd/branch-planner/',
+    'internal/',
+    'utils/',
+    'go.mod',
+    'go.sum'
+  ],
+  labels = ['native-processes'],
+)
+
+docker_build(
+  "ghcr.io/flux-iac/branch-planner",
+  "",
+  dockerfile="planner.Dockerfile.dev",
+  build_args={
+    'BUILD_SHA': buildSHA,
+    'BUILD_VERSION': buildVersion,
+    'LIBCRYPTO_VERSION': LIBCRYPTO_VERSION,
+  }
+)
+
+
+local_resource(
+  'runner-compile',
+  'CGO_ENABLED=0 GOOS=linux GOARCH=$(go env GOARCH) go build -o bin/tf-runner ./cmd/runner/main.go',
+  deps=[
+    'api/',
+    'tfctl/',
+    'cmd/runner',
+    'controllers/',
+    'mtls/',
+    'runner/',
+    'internal/',
+    'utils/',
+    'go.mod',
+    'go.sum'
+  ],
+  labels = ['native-processes'],
+)
+k8s_kind('Terraform', image_json_path='{.spec.runnerPodTemplate.spec.image}')
 docker_build(
   'ghcr.io/flux-iac/tf-runner',
   '',
-  dockerfile='runner.Dockerfile',
+  dockerfile='runner.Dockerfile.dev',
   build_args={
-    'BASE_IMAGE': 'ghcr.io/flux-iac/tf-runner-base',
+    'LIBCRYPTO_VERSION': LIBCRYPTO_VERSION,
   }
 )

@@ -2,3 +2,6 @@
 # Ignore build and test binaries.
 bin/
 testbin/
+!bin/tf-runner
+!bin/tofu-controller
+!bin/branch-planner
