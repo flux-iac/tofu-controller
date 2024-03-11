@@ -21,7 +21,7 @@ my.private.server: error looking up module versions: 401 Unauthorized.
 As a human you would normally execute `terraform login my.private.server` to obtain a token from the registry,  
 for tofu-controller, use the native [terraform credentials](https://developer.hashicorp.com/terraform/cli/config/config-file#credentials) configs.
 
-Obtain a token from your private registry, then follow onr of the below options:
+Obtain a token from your private registry, then follow one of the below options:
 
 #### Using credentials file
 
@@ -72,6 +72,7 @@ spec:
     name: flux-system
     namespace: flux-system
 ```
+---
 #### Using environment variables
 Another option is to use [environment variable credentials](https://developer.hashicorp.com/terraform/cli/config/config-file#environment-variable-credentials),  
 Terraform object should look like:
