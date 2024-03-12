@@ -1,6 +1,6 @@
 # Terraform Private Registries Integration
 
-Using Terraform private registries with tofu-controller is exactly as you would used it directly via Terraform.  
+Using Terraform private registries with the tofu-controller is exactly as you would use them directly via Terraform.  
 For example, you would like to use tofu-controller to deliver code that contains next block:
 ```terraform
 module "vpc" {
