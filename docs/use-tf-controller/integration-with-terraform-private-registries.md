@@ -19,7 +19,7 @@ my.private.server: error looking up module versions: 401 Unauthorized.
 
 ### Terraform Login
 As a human you would normally execute `terraform login my.private.server` to obtain a token from the registry,  
-for tofu-controller, use the native [terraform credentials](https://developer.hashicorp.com/terraform/cli/config/config-file#credentials) configs.
+with the tofu-controller use the native [terraform credentials](https://developer.hashicorp.com/terraform/cli/config/config-file#credentials) configs instead.
 
 Obtain a token from your private registry, then follow one of the below options:
 
