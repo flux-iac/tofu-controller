@@ -1,7 +1,7 @@
 # Terraform Private Registries Integration
 
 Using Terraform private registries with the tofu-controller is exactly as you would use them directly via Terraform.  
-For example, you would like to use tofu-controller to deliver code that contains next block:
+For example, you would like to use the tofu-controller to deploy code that contains the following module:
 ```terraform
 module "vpc" {
   source  = "my.private.server/terraform-modules/path/to/module"
