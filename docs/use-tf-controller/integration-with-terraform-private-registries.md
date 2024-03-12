@@ -11,7 +11,7 @@ module "vpc" {
   ...
 }
 ```
-without configuring terraform login process the controller will result with an error of:
+without configuring the terraform login process, deploying the module with the controller will result in the error:
 ```shell
 Failed to retrieve available versions for module "vpc" (main.tf:1) from
 my.private.server: error looking up module versions: 401 Unauthorized.
