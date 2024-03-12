@@ -53,7 +53,7 @@ stringData:
       }
     }
 ```
-Then deploy Terraform object, while referencing the above `tf-private-config` secret
+Then deploy the Terraform object, while referencing the above `tf-private-config` secret
 ```yaml
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
