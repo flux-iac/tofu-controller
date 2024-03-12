@@ -70,13 +70,13 @@ brews:
     ids:
     - tfctl
     tap:
-      owner: weaveworks
+      owner: flux-iac
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     commit_author:
-      name: weaveworksbot
-      email: team+gitbot@weave.works
+      name: flux-iac
+      email: noreply@github.com
     folder: Formula
-    homepage: https://weaveworks.github.io/tf-controller
+    homepage: https://flux-iac.github.io/tofu-controller
     install: |
       bin.install "tfctl"
