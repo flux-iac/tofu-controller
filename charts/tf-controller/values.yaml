@@ -1,5 +1,7 @@
 # -- If `true`, enable cross-namespace references for controller and branch-planner
 allowCrossNamespaceRefs: false
+# -- If `true`, controller will watch all namespaces for Terraform resources
+watchAllNamespaces: true
 # ServiceAccount
 serviceAccount:
   # -- If `true`, create a new service account
