@@ -194,7 +194,7 @@ jobs:
           kustomize build ./config/rbac > ./config/release/${{ env.CONTROLLER }}.rbac.yaml
           kustomize build ./config/manager | yq e '.spec.template.spec.containers[0].env[1].value="ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}"' - > ./config/release/${{ env.CONTROLLER }}.deployment.yaml
           kustomize build ./config/package > ./config/release/${{ env.CONTROLLER }}.packages.yaml
-          echo '[CHANGELOG](https://github.com/weaveworks/${{ env.CONTROLLER }}/blob/main/CHANGELOG.md)' > ./config/release/notes.md
+          echo '[CHANGELOG](https://github.com/flux-iac/${{ env.CONTROLLER }}/blob/main/CHANGELOG.md)' > ./config/release/notes.md
       - name: Setup Go
         uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
         with:
