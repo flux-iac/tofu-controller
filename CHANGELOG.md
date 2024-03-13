@@ -2,6 +2,44 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.16.0-rc.4
+
+**Release date:** 2024-03-14
+
+This is the first release of the project after rebooting under its new name and organization: Tofu Controller, now part of the Flux-IaC organization. Fully driven by our community, Tofu Controller and Flux-IaC aim to help innovate the development of Infrastructure as Code (IaC) controllers for Flux.
+
+Thank you so much to our vibrant community, which propelled us to reach 1,000 stars on GitHub recently.
+
+With the renaming of the controller, our community has identified several breaking changes, although some may have been missed. The transition from Weave TF-Controller to Flux-IaC Tofu-Controller could be challenging. We advise:
+
+  * Backing up your Terraform states (tfstates)
+  * Setting `spec.destroyResourcesOnDeletion=false` to avoid unintentional resource deletion
+  * Pausing all Terraform CRs
+
+before doing the upgrade.
+
+**BREAKING CHANGES**
+
+  * The renaming of the controller.
+  * Reorganization of CRDs in the Helm Chart, which may lead to their uninstallation and reinstallation.
+
+New Features and Bug Fixing:
+
+  * Pass missing build arg TARGETARCH to docker-build.
+  * Implement BLOB encryption within the tf-runner.
+  * Add `tfvars` feature and API.
+  * Generate checksum for cache blobs.
+  * Implement remediation retry.
+  * Add unique hash to cloned source to avoid conflict.
+  * Speed up compiling of binaries.
+  * Added config for building tf-runner image and using it in helloworld example.
+  * Bump version in manifest used in user guide to reflect latest RC.
+  * Document a fix to "terraform objects stuck on deletion" issue.
+  * Fix docker build breaking due to LIBCRYPTO_VERSION.
+  * Fix issues surfaced around the polling server.
+  * Add documentation about IPv6 support.
+  * Update branch planner default configuration.
+
 # v0.16.0-rc.3
 
 **Release date:** 2023-09-19
