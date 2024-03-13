@@ -30,7 +30,7 @@ spec:
       containers:
       - args:
         - --allow-cross-namespace-refs={{ .Values.allowCrossNamespaceRefs }}
-        - --watch-all-namespaces
+        - --watch-all-namespaces={{ .Values.watchAllNamespaces }}
         - --log-level={{ .Values.logLevel }}
         - --log-encoding={{ .Values.logEncoding }}
         - --enable-leader-election
