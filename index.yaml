@@ -3,9 +3,9 @@ entries:
   tf-controller:
   - apiVersion: v2
     appVersion: v0.16.0-rc.4
-    created: "2024-03-13T19:48:09.417099251Z"
+    created: "2024-03-14T11:39:53.026895926Z"
     description: The Helm chart for Weave GitOps Terraform Controller
-    digest: 3a856598b8ef3c8cc45ea6c666ffc77d50c086cd9d072b87ed26b57e4cb4e8bc
+    digest: 90e1181937c87f060aa50c7354ec9f4c75d3a34a52847105b2b8171ad3810b1a
     name: tf-controller
     type: application
     urls:
@@ -781,4 +781,4 @@ entries:
     urls:
     - https://flux-iac.github.io/tofu-controller/tf-controller-0.1.0.tgz
     version: 0.1.0
-generated: "2024-03-13T19:48:09.412712501Z"
+generated: "2024-03-14T11:39:53.02344455Z"
