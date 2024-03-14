@@ -77,7 +77,7 @@ With Helm by:
 
 ```shell
 # Add tf-controller helm repository
-helm repo add tf-controller https://weaveworks.github.io/tf-controller/
+helm repo add tf-controller https://flux-iac.github.io/tofu-controller
 
 # Install tf-controller
 helm upgrade -i tf-controller tf-controller/tf-controller \
