@@ -312,3 +312,12 @@ docker:
 .PHONY: serve-docs
 serve-docs: ## Run a local server to serve the docs
 	@docker run --rm -it -p 8000:8000 -v $(shell pwd):/docs squidfunk/mkdocs-material
+
+.PHONY: up
+up:
+	./tools/reboot.sh
+	tilt up
+
+down:
+	kind delete cluster --name tfdev
+	docker rm -f kind-registry
