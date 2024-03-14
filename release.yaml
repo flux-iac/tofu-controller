@@ -7,9 +7,9 @@ metadata:
 spec:
   interval: 1h0s
   type: oci
-  url: oci://ghcr.io/weaveworks/charts
+  url: oci://ghcr.io/flux-iac/charts
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
   name: tf-controller
@@ -21,7 +21,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: tf-controller
-      version: '>=0.16.0-rc.4'
+      version: '0.16.0-rc.4'
   interval: 1h0s
   releaseName: tf-controller
   targetNamespace: flux-system
