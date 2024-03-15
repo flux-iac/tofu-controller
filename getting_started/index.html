@@ -736,10 +736,10 @@
 <p>Before using TF-controller, you have to install Flux by using either <code>flux install</code> or <code>flux bootstrap</code> command.
 Please note that TF-controller now requires <strong>Flux v2.0</strong> or later, so please make sure you have the latest version of Flux.
 After that you can install TF-controller with Flux HelmRelease by:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/release.yaml
 </code></pre></div>
-<p>For the most recent release candidate of TF-controller, please use <a href="https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/rc.yaml">rc.yaml</a>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/rc.yaml
+<p>For the most recent release candidate of TF-controller, please use <a href="https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/rc.yaml">rc.yaml</a>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/rc.yaml
 </code></pre></div>
 <h3 id="installation-on-gke">Installation on GKE</h3>
 <p>As of September 2023, GKE Autopilot clusters will use Cloud DNS for internal DNS resolution.
@@ -758,21 +758,21 @@ This flag can be set by adding the following to the TF-controller HelmRelease:</
 Pod's subdomain resolution requires a Service to be created for the Pod.
 The HelmRelease above will create a Service named <code>tf-runner</code> in each namespace specified by the <code>runner.allowedNamespaces</code> value.</p>
 <p>We have provided a HelmRelease to install TF-controller on GKE Autopilot with Pod's subdomain resolution enabled here.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/rc-gke.yaml
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/rc-gke.yaml
 </code></pre></div>
 <p>Tested with GKE Autopilot v1.27.3-gke.100.</p>
 <h3 id="with-branch-planner">With Branch Planner</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch-planner/release.yaml
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/branch-planner/release.yaml
 </code></pre></div>
-<p>For the most recent release candidate of TF-controller with Branch Planner, please use <a href="https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch-planner/rc.yaml">branch-planner/rc.yaml</a>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch-planner/rc.yaml
+<p>For the most recent release candidate of TF-controller with Branch Planner, please use <a href="https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/branch-planner/rc.yaml">branch-planner/rc.yaml</a>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/branch-planner/rc.yaml
 </code></pre></div>
 <p>For more details about the Branch Planner, please visit the
 <a href="../branch-planner/branch-planner-getting-started/">Branch Planner documentation</a>.</p>
 <h3 id="manual-installation">Manual installation</h3>
 <p>With Helm by:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Add tf-controller helm repository</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>tf-controller<span class="w"> </span>https://weaveworks.github.io/tf-controller/
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>tf-controller<span class="w"> </span>https://flux-iac.github.io/tofu-controller
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Install tf-controller</span>
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>helm<span class="w"> </span>upgrade<span class="w"> </span>-i<span class="w"> </span>tf-controller<span class="w"> </span>tf-controller/tf-controller<span class="w"> </span><span class="se">\</span>
