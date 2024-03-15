@@ -2,14 +2,15 @@ package runner
 
 import (
 	"context"
-	. "github.com/onsi/gomega"
 	"testing"
 
+	. "github.com/onsi/gomega"
+
+	"github.com/flux-iac/tofu-controller/api/typeinfo"
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/hcl2/hcldec"
 	"github.com/hashicorp/hcl2/hclparse"
-	"github.com/weaveworks/tf-controller/api/typeinfo"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
 	corev1 "k8s.io/api/core/v1"

@@ -38,9 +38,9 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} \
         -o tf-runner \
         ./cmd/runner/main.go
 
-FROM alpine:3.18
+FROM alpine:3.19
 
-LABEL org.opencontainers.image.source="https://github.com/weaveworks/tf-controller"
+LABEL org.opencontainers.image.source="https://github.com/flux-iac/tofu-controller"
 
 ARG LIBCRYPTO_VERSION
 

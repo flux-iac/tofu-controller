@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/flux-iac/tofu-controller/runner"
 	"github.com/fluxcd/pkg/untar"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/tf-controller/runner"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

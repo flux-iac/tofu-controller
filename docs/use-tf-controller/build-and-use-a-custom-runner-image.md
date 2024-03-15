@@ -1,6 +1,6 @@
 # Build and Use a Custom Runner Image
 
-To build a custom runner image, you need a Dockerfile that extends the base image and that adds Terraform, plus any additional required tooling. The repository that contains the base images is [here](ghcr.io/weaveworks/tf-runner). All base image tags follow the following format: `${TF_CONTROLLER_VERSION}-base`.
+To build a custom runner image, you need a Dockerfile that extends the base image and that adds Terraform, plus any additional required tooling. The repository that contains the base images is [here](ghcr.io/flux-iac/tf-runner). All base image tags follow the following format: `${TF_CONTROLLER_VERSION}-base`.
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ ARG BASE_IMAGE
 FROM $BASE_IMAGE
 
 ARG TARGETARCH
-ARG TF_VERSION=1.3.9
+ARG TF_VERSION=1.5.7
 
 # Switch to root to have permissions for operations
 USER root
@@ -29,14 +29,14 @@ RUN unzip -q /terraform_${TF_VERSION}_linux_${TARGETARCH}.zip -d /usr/local/bin/
 USER 65532:65532
 ```
 
-Find the original Dockerfile for the runner [here](https://github.com/weaveworks/tf-controller/blob/89e0c7edde91efebba825b31e9f0ef3cc583684b/runner.Dockerfile).
+Find the original Dockerfile for the runner [here](https://github.com/flux-iac/tofu-controller/blob/main/runner.Dockerfile).
 
 2. Build the image from the directory containing the `Dockerfile` you created above:
 
 ```bash
 export TF_CONTROLLER_VERSION=v0.16.0-rc.3
-export TF_VERSION=1.3.9
-export BASE_IMAGE=ghcr.io/weaveworks/tf-runner:${TF_CONTROLLER_VERSION}-base
+export TF_VERSION=1.5.7
+export BASE_IMAGE=ghcr.io/flux-iac/tf-runner:${TF_CONTROLLER_VERSION}-base
 export TARGETARCH=amd64
 export REMOTE_REPO=ghcr.io/my-org/custom-runnner
 docker build \

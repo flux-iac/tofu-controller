@@ -1,0 +1,23 @@
+FROM alpine:3.19
+
+LABEL org.opencontainers.image.source="https://github.com/flux-iac/tofu-controller"
+
+ARG LIBCRYPTO_VERSION
+
+RUN apk update && \
+    apk add --no-cache \
+    libcrypto3=${LIBCRYPTO_VERSION} \
+    libssl3=${LIBCRYPTO_VERSION} \
+    ca-certificates tini git openssh-client gnupg \
+    libretls \
+    busybox
+
+COPY bin/tofu-controller /usr/local/bin/
+
+RUN addgroup --gid 65532 -S controller && adduser --uid 65532 -S controller -G controller
+
+USER 65532:65532
+
+ENV GNUPGHOME=/tmp
+
+ENTRYPOINT [ "/sbin/tini", "--", "tofu-controller" ]

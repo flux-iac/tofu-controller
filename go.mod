@@ -1,10 +1,10 @@
-module github.com/weaveworks/tf-controller
+module github.com/flux-iac/tofu-controller
 
 go 1.20
 
-replace github.com/weaveworks/tf-controller/api => ./api
+replace github.com/flux-iac/tofu-controller/api => ./api
 
-replace github.com/weaveworks/tf-controller/tfctl => ./tfctl
+replace github.com/flux-iac/tofu-controller/tfctl => ./tfctl
 
 require (
 	github.com/Masterminds/sprig/v3 v3.2.3
@@ -15,6 +15,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.38.5
 	github.com/cyphar/filepath-securejoin v0.2.4
 	github.com/elgohr/go-localstack v1.0.20
+	github.com/flux-iac/tofu-controller/api v0.0.0-00010101000000-000000000000
+	github.com/flux-iac/tofu-controller/tfctl v0.0.0-00010101000000-000000000000
 	github.com/fluxcd/pkg/apis/event v0.6.0
 	github.com/fluxcd/pkg/apis/meta v1.2.0
 	github.com/fluxcd/pkg/runtime v0.43.2
@@ -37,8 +39,6 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
-	github.com/weaveworks/tf-controller/api v0.0.0-00010101000000-000000000000
-	github.com/weaveworks/tf-controller/tfctl v0.0.0-00010101000000-000000000000
 	github.com/zclconf/go-cty v1.14.1
 	golang.org/x/net v0.19.0
 	google.golang.org/grpc v1.56.3

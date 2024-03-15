@@ -3,8 +3,8 @@ package polling_test
 import (
 	"fmt"
 
+	"github.com/flux-iac/tofu-controller/internal/git/provider"
 	giturl "github.com/kubescape/go-git-url"
-	"github.com/weaveworks/tf-controller/internal/git/provider"
 )
 
 func mockedProvider(gitProvider provider.Provider) provider.URLParserFn {

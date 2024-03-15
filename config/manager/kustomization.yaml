@@ -6,6 +6,6 @@ resources:
 generatorOptions:
   disableNameSuffixHash: true
 images:
-  - name: weaveworks/tf-controller
-    newName: ghcr.io/weaveworks/tf-controller
-    newTag: v0.16.0-rc.3
+  - name: flux-iac/tofu-controller
+    newName: ghcr.io/flux-iac/tofu-controller
+    newTag: v0.16.0-rc.4

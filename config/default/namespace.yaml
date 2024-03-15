@@ -3,4 +3,4 @@ kind: Namespace
 metadata:
   labels:
     control-plane: controller
-  name: tf-system
+  name: tofu-system

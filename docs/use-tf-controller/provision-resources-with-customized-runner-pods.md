@@ -51,7 +51,7 @@ spec:
       image: registry.io/tf-runner:xyz
 ```
 
-You can use [`runner.Dockerfile`](https://github.com/weaveworks/tf-controller/blob/main/runner.Dockerfile) as a basis of customizing runner pod image.
+You can use [`runner.Dockerfile`](https://github.com/flux-iac/tofu-controller/blob/main/runner.Dockerfile) as a basis of customizing runner pod image.
 
 ## Customize Runner Pod Specifications
 

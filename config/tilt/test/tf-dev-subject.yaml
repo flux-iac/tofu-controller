@@ -6,7 +6,7 @@ metadata:
   namespace: terraform
 spec:
   interval: 30s
-  url: https://github.com/tf-controller/helloworld
+  url: https://github.com/flux-iac/helloworld
   ref:
     branch: main
 ---
@@ -48,4 +48,4 @@ spec:
       labels:
         instance: helloworld-tf # This is the name of the Terraform resource
     spec:
-      image: ghcr.io/weaveworks/tf-runner
+      image: ghcr.io/flux-iac/tf-runner

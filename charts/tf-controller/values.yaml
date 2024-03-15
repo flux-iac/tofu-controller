@@ -1,7 +1,7 @@
-# -- If `true`, install CRDs as part of the helm installation
-installCRDs: true
 # -- If `true`, enable cross-namespace references for controller and branch-planner
 allowCrossNamespaceRefs: false
+# -- If `true`, controller will watch all namespaces for Terraform resources
+watchAllNamespaces: true
 # ServiceAccount
 serviceAccount:
   # -- If `true`, create a new service account
@@ -24,12 +24,12 @@ podLabels: {}
 replicaCount: 1
 image:
   # -- Controller image repository
-  repository: ghcr.io/weaveworks/tf-controller
+  repository: ghcr.io/flux-iac/tofu-controller
   # -- Controller image pull policy
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
   # @default -- `.Chart.AppVersion`
-  tag: "v0.16.0-rc.3"
+  tag: "v0.16.0-rc.4"
 # -- Controller image pull secret
 imagePullSecrets: []
 # -- Resource limits and requests
@@ -111,15 +111,15 @@ usePodSubdomainResolution: false
 awsPackage:
   install: true
   tag: v4.38.0-v1alpha11
-  repository: ghcr.io/tf-controller/aws-primitive-modules
+  repository: ghcr.io/flux-iac/aws-primitive-modules
 # -- Runner-specific configurations
 runner:
   image:
     # -- Runner image repository
-    repository: ghcr.io/weaveworks/tf-runner
+    repository: ghcr.io/flux-iac/tf-runner
     # -- Runner image tag
     # @default -- `.Chart.AppVersion`
-    tag: "v0.16.0-rc.3"
+    tag: "v0.16.0-rc.4"
   grpc:
     # -- Maximum GRPC message size (Controller)
     maxMessageSize: 4
@@ -177,7 +177,7 @@ metrics:
 branchPlanner:
   enabled: false
   image:
-    repository: ghcr.io/weaveworks/branch-planner
+    repository: ghcr.io/flux-iac/branch-planner
     pullPolicy: IfNotPresent
     tag: ""
   configMap: branch-planner

@@ -1,6 +1,6 @@
 runner:
   image:
-    repository: ghcr.io/weaveworks/tf-runner
+    repository: ghcr.io/flux-iac/tf-runner
   serviceAccount:
     allowedNamespaces:
       - flux-system

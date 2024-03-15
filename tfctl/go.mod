@@ -1,8 +1,8 @@
-module github.com/weaveworks/tf-controller/tfctl
+module github.com/flux-iac/tofu-controller/tfctl
 
 go 1.20
 
-replace github.com/weaveworks/tf-controller/api => ../api
+replace github.com/flux-iac/tofu-controller/api => ../api
 
 require (
 	github.com/fluxcd/cli-utils v0.36.0-flux.2
@@ -16,7 +16,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.13.0
 	github.com/theckman/yacspin v0.13.12
-	github.com/weaveworks/tf-controller/api v0.0.0-00010101000000-000000000000
+	github.com/flux-iac/tofu-controller/api v0.0.0-00010101000000-000000000000
 	k8s.io/api v0.28.4
 	k8s.io/apimachinery v0.28.4
 	k8s.io/cli-runtime v0.28.4

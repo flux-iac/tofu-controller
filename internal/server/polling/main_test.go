@@ -13,8 +13,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 )
 
 var (

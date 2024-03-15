@@ -15,6 +15,7 @@
   - [Use TF-controller with Terraform Runners enabled via Env Variables](with-tf-runner-logging.md)
   - [Use TF-controller to provision resources with **customized Runner Pods**](provision-resources-with-customized-runner-pods.md)
   - [Use TF-controller with **Terraform Enterprise**](integration-with-terraform-enterprise-or-cloud.md)
+  - [Use TF-controller with **Terraform Private Registries**](integration-with-terraform-private-registries.md)
   - [Use TF-controller with **primitive modules**](with-primitive-modules.md)
   - [Use TF-controller with **GitOps dependency management**](with-gitops-dependency-management.md)
   - [Use TF-controller with **the ready-to-use AWS package**](with-the-ready-to-use-aws-package.md)
