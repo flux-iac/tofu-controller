@@ -18,13 +18,13 @@ Please note that TF-controller now requires **Flux v2.0** or later, so please ma
 After that you can install TF-controller with Flux HelmRelease by:
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml
+kubectl apply -f https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/release.yaml
 ```
 
-For the most recent release candidate of TF-controller, please use [rc.yaml](https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/rc.yaml).
+For the most recent release candidate of TF-controller, please use [rc.yaml](https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/rc.yaml).
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/rc.yaml
+kubectl apply -f https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/rc.yaml
 ```
 
 ### Installation on GKE
@@ -51,7 +51,7 @@ The HelmRelease above will create a Service named `tf-runner` in each namespace 
 We have provided a HelmRelease to install TF-controller on GKE Autopilot with Pod's subdomain resolution enabled here.
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/rc-gke.yaml
+kubectl apply -f https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/rc-gke.yaml
 ```
 
 Tested with GKE Autopilot v1.27.3-gke.100.
@@ -59,13 +59,13 @@ Tested with GKE Autopilot v1.27.3-gke.100.
 ### With Branch Planner
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch-planner/release.yaml
+kubectl apply -f https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/branch-planner/release.yaml
 ```
 
-For the most recent release candidate of TF-controller with Branch Planner, please use [branch-planner/rc.yaml](https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch-planner/rc.yaml).
+For the most recent release candidate of TF-controller with Branch Planner, please use [branch-planner/rc.yaml](https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/branch-planner/rc.yaml).
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/branch-planner/rc.yaml
+kubectl apply -f https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/branch-planner/rc.yaml
 ```
 
 For more details about the Branch Planner, please visit the
@@ -77,7 +77,7 @@ With Helm by:
 
 ```shell
 # Add tf-controller helm repository
-helm repo add tf-controller https://weaveworks.github.io/tf-controller/
+helm repo add tf-controller https://flux-iac.github.io/tofu-controller
 
 # Install tf-controller
 helm upgrade -i tf-controller tf-controller/tf-controller \
