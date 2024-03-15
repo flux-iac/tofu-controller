@@ -131,7 +131,7 @@ runner:
     # -- Additional runner service Account annotations
     annotations: {}
     # -- Runner service account to be used
-    name: ""
+    name: "tf-runner"
     # -- List of namespaces that the runner may run within
     allowedNamespaces: []
 # EKS-specific configurations
