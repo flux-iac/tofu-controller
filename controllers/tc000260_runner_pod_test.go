@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	. "github.com/onsi/gomega"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -25,7 +25,7 @@ func Test_000260_runner_pod_test(t *testing.T) {
 		terraformName      = "runner-pod-test"
 		sourceName         = "runner-pod-test"
 		serviceAccountName = "helloworld-tf-runner"
-		runnerPodImage     = "ghcr.io/weaveworks/tf-runner:test"
+		runnerPodImage     = "ghcr.io/flux-iac/tf-runner:test"
 		revision           = "v2.6@sha256:c7fd0cc69b924aa5f9a6928477311737e439ca1b9e444855b0377e8a8ec65bb5"
 	)
 

@@ -16,7 +16,7 @@ theme:
     - content.code.annotate
     - content.code.copy
 
-repo_url: https://github.com/weaveworks/tf-controller
+repo_url: https://github.com/flux-iac/tofu-controller
 repo_name: weaveworks/tf-controller
 
 markdown_extensions:

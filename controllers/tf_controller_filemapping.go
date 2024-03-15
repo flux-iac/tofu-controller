@@ -3,8 +3,8 @@ package controllers
 import (
 	"context"
 
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
-	"github.com/weaveworks/tf-controller/runner"
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/flux-iac/tofu-controller/runner"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 )

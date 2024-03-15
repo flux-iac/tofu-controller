@@ -30,7 +30,7 @@ spec:
       containers:
       - args:
         - --allow-cross-namespace-refs={{ .Values.allowCrossNamespaceRefs }}
-        - --watch-all-namespaces
+        - --watch-all-namespaces={{ .Values.watchAllNamespaces }}
         - --log-level={{ .Values.logLevel }}
         - --log-encoding={{ .Values.logEncoding }}
         - --enable-leader-election
@@ -49,7 +49,7 @@ spec:
         command:
         - /sbin/tini
         - --
-        - tf-controller
+        - tofu-controller
         env:
           {{- include "pod-namespace" . | indent 8 }}
         - name: RUNNER_POD_IMAGE

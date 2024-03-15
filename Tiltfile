@@ -40,9 +40,9 @@ k8s_yaml(helm(
 # Add Example
 k8s_yaml("./config/tilt/test/tf-dev-subject.yaml")
 k8s_resource(
-  objects=['helloworld:GitRepository:terraform','helloworld-tf:Secret:terraform','helloworld-tf:Terraform:terraform'],
+  objects=['helloworld:GitRepository:terraform','helloworld-tf:Secret:terraform'],
   extra_pod_selectors={'instance': 'helloworld-tf'},
-  new_name="helloworld-tf",
+  new_name="helloworld-tf-runner",
   pod_readiness='ignore',
   labels=["resources"],
 )
@@ -58,36 +58,86 @@ k8s_yaml(namespace_inject(secret_from_dict("bbp-token", inputs = {
 # Add configMap
 k8s_yaml(namespace_inject("./config/tilt/configMap.yaml", namespace))
 
+local_resource(
+  'manager-compile',
+  'CGO_ENABLED=0 GOOS=linux GOARCH=$(go env GOARCH) go build -o bin/tofu-controller ./cmd/manager',
+  deps=[
+    'api/',
+    'tfctl/',
+    'cmd/manager/',
+    'controllers/',
+    'mtls/',
+    'runner/',
+    'internal/',
+    'utils/',
+    'go.mod',
+    'go.sum'
+  ],
+  labels = ['native-processes'],
+)
+
 # Images
 docker_build(
-  "ghcr.io/weaveworks/tf-controller",
+  "ghcr.io/flux-iac/tofu-controller",
   "",
-  dockerfile="Dockerfile",
+  dockerfile="Dockerfile.dev",
   build_args={
     'BUILD_SHA': buildSHA,
     'BUILD_VERSION': buildVersion,
     'LIBCRYPTO_VERSION': LIBCRYPTO_VERSION,
-  })
+  }
+)
+
+local_resource(
+  'branch-planner-compile',
+  'CGO_ENABLED=0 GOOS=linux GOARCH=$(go env GOARCH) go build -o bin/branch-planner ./cmd/branch-planner',
+  deps=[
+    'api/',
+    'tfctl/',
+    'cmd/branch-planner/',
+    'internal/',
+    'utils/',
+    'go.mod',
+    'go.sum'
+  ],
+  labels = ['native-processes'],
+)
 
 docker_build(
-  "ghcr.io/weaveworks/branch-planner",
+  "ghcr.io/flux-iac/branch-planner",
   "",
-  dockerfile="planner.Dockerfile",
+  dockerfile="planner.Dockerfile.dev",
   build_args={
     'BUILD_SHA': buildSHA,
     'BUILD_VERSION': buildVersion,
     'LIBCRYPTO_VERSION': LIBCRYPTO_VERSION,
-  })
+  }
+)
 
-# There are no resources using this image when tilt starts, but we still need
-# this image.
-update_settings(suppress_unused_image_warnings=["ghcr.io/weaveworks/tf-runner"])
+
+local_resource(
+  'runner-compile',
+  'CGO_ENABLED=0 GOOS=linux GOARCH=$(go env GOARCH) go build -o bin/tf-runner ./cmd/runner/main.go',
+  deps=[
+    'api/',
+    'tfctl/',
+    'cmd/runner',
+    'controllers/',
+    'mtls/',
+    'runner/',
+    'internal/',
+    'utils/',
+    'go.mod',
+    'go.sum'
+  ],
+  labels = ['native-processes'],
+)
+k8s_kind('Terraform', image_json_path='{.spec.runnerPodTemplate.spec.image}')
 docker_build(
-  'ghcr.io/weaveworks/tf-runner',
+  'ghcr.io/flux-iac/tf-runner',
   '',
-  dockerfile='runner.Dockerfile',
+  dockerfile='runner.Dockerfile.dev',
   build_args={
-    'BUILD_SHA': buildSHA,
-    'BUILD_VERSION': buildVersion,
     'LIBCRYPTO_VERSION': LIBCRYPTO_VERSION,
-  })
+  }
+)

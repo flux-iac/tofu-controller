@@ -32,11 +32,11 @@ COPY utils/ utils/
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} \
       go build -gcflags=all="-N -l" \
         -ldflags "-X main.BuildSHA='${BUILD_SHA}' -X main.BuildVersion='${BUILD_VERSION}'" \
-        -a -o tf-controller ./cmd/manager
+        -a -o tofu-controller ./cmd/manager
 
-FROM alpine:3.18
+FROM alpine:3.19
 
-LABEL org.opencontainers.image.source="https://github.com/weaveworks/tf-controller"
+LABEL org.opencontainers.image.source="https://github.com/flux-iac/tofu-controller"
 
 ARG LIBCRYPTO_VERSION
 
@@ -48,7 +48,7 @@ RUN apk update && \
     libretls \
     busybox
 
-COPY --from=builder /workspace/tf-controller /usr/local/bin/
+COPY --from=builder /workspace/tofu-controller /usr/local/bin/
 
 RUN addgroup --gid 65532 -S controller && adduser --uid 65532 -S controller -G controller
 
@@ -56,4 +56,4 @@ USER 65532:65532
 
 ENV GNUPGHOME=/tmp
 
-ENTRYPOINT [ "/sbin/tini", "--", "tf-controller" ]
+ENTRYPOINT [ "/sbin/tini", "--", "tofu-controller" ]

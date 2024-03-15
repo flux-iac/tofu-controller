@@ -1,14 +1,14 @@
-# tf-controller Security
+# Tofu-Controller Security
 
-This document defines security reporting, handling and disclosure information for the tf-controller project and community.
+This document defines security reporting, handling and disclosure information for the Tofu-Controller project and community.
 
 ## Security Process
 
 ### Report a Vulnerability
 
-We're very thankful for – and if desired happy to credit – security researchers and users who report vulnerabilities to the tf-controller community.
+We're very thankful for – and if desired happy to credit – security researchers and users who report vulnerabilities to the Tofu-Controller community.
 
-- To make a report please email the private security list at <security@weave.works> with the details.
+- To make a report please go to [Tofu-Controller's Security](https://github.com/flux-iac/tofu-controller/security) page and submit the details.
   We ask that reporters act in good faith by not disclosing the issue to others.
 - The Security Team will investigate the issue as soon as possible and where needed, coordinate a release date with relevant parties.
 - You will be able to choose if you want public acknowledgement of your effort and how you would like to be credited.
@@ -16,7 +16,7 @@ We're very thankful for – and if desired happy to credit – security researc
 
 ### Security Team
 
-Our Security Team consists of project maintainers and Weaveworks employees.
+Our Security Team consists of the Project's maintainers.
 
 ### Handling
 
@@ -28,7 +28,7 @@ Our Security Team consists of project maintainers and Weaveworks employees.
 
 ### Disclosures
 
-Vulnerability disclosures are announced publicly through our [security advisories](https://github.com/weaveworks/tf-controller/security/advisories).
+Vulnerability disclosures are announced publicly through our [security advisories](https://github.com/flux-iac/tofu-controller/security/advisories).
 Disclosures will contain an overview, details about the vulnerability, a fix that will typically be an update, and optionally a workaround if one is available.
 
 We will coordinate publishing disclosures and security releases in a way that is realistic and necessary for end users.

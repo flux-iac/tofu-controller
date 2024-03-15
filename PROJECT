@@ -2,7 +2,7 @@ domain: contrib.fluxcd.io
 layout:
 - go.kubebuilder.io/v3
 projectName: test-terraform-controller
-repo: github.com/weaveworks/tf-controller
+repo: github.com/flux-iac/tofu-controller
 resources:
 - api:
     crdVersion: v1
@@ -11,7 +11,7 @@ resources:
   domain: contrib.fluxcd.io
   group: infra
   kind: Terraform
-  path: github.com/weaveworks/tf-controller/api/v1alpha1
+  path: github.com/flux-iac/tofu-controller/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -20,6 +20,6 @@ resources:
   domain: contrib.fluxcd.io
   group: infra
   kind: Terraform
-  path: github.com/weaveworks/tf-controller/api/v1alpha2
+  path: github.com/flux-iac/tofu-controller/api/v1alpha2
   version: v1alpha2
 version: "3"

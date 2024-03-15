@@ -4,20 +4,20 @@ import (
 	"context"
 	"testing"
 
-	"github.com/weaveworks/tf-controller/internal/config"
-	bpconfig "github.com/weaveworks/tf-controller/internal/config"
+	"github.com/flux-iac/tofu-controller/internal/config"
+	bpconfig "github.com/flux-iac/tofu-controller/internal/config"
 	"k8s.io/apimachinery/pkg/labels"
 
-	"github.com/weaveworks/tf-controller/internal/git/provider/providerfakes"
+	"github.com/flux-iac/tofu-controller/internal/git/provider/providerfakes"
 
 	"github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/flux-iac/tofu-controller/internal/git/provider"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
-	"github.com/weaveworks/tf-controller/internal/git/provider"
 )
 
 // This checks poll can be called with a little setting-up, with no
@@ -33,7 +33,7 @@ func Test_poll_empty(t *testing.T) {
 			Namespace: ns.Name,
 		},
 		Spec: sourcev1.GitRepositorySpec{
-			URL: "https://github.com/weaveworks/tf-controller",
+			URL: "https://github.com/flux-iac/tofu-controller",
 			Reference: &sourcev1.GitRepositoryRef{
 				Branch: "main",
 			},
@@ -298,7 +298,7 @@ func Test_poll_noPathChanges(t *testing.T) {
 			Namespace: ns.Name,
 		},
 		Spec: sourcev1.GitRepositorySpec{
-			URL: "https://github.com/weaveworks/tf-controller",
+			URL: "https://github.com/flux-iac/tofu-controller",
 			Reference: &sourcev1.GitRepositoryRef{
 				Branch: "main",
 			},

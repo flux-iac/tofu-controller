@@ -3,13 +3,14 @@ package runner
 import (
 	"context"
 	"fmt"
-	"github.com/go-logr/logr"
 	"path/filepath"
+
+	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/flux-iac/tofu-controller/utils"
 	"github.com/spf13/afero"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
-	"github.com/weaveworks/tf-controller/utils"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"

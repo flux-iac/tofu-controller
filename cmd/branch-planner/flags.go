@@ -8,7 +8,7 @@ import (
 	"github.com/fluxcd/pkg/runtime/logger"
 	flag "github.com/spf13/pflag"
 
-	"github.com/weaveworks/tf-controller/internal/server/polling"
+	"github.com/flux-iac/tofu-controller/internal/server/polling"
 )
 
 type applicationOptions struct {

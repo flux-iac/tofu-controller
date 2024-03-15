@@ -6,12 +6,12 @@ import (
 	"os"
 	"testing"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/hashicorp/go-version"
 	hc "github.com/hashicorp/hc-install"
 	"github.com/hashicorp/hc-install/fs"
 	"github.com/hashicorp/hc-install/product"
 	"github.com/hashicorp/hc-install/src"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"

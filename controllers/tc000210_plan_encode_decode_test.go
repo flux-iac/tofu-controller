@@ -3,9 +3,10 @@ package controllers
 import (
 	"bytes"
 	"compress/gzip"
-	"github.com/weaveworks/tf-controller/utils"
 	"io/ioutil"
 	"testing"
+
+	"github.com/flux-iac/tofu-controller/utils"
 
 	. "github.com/onsi/gomega"
 )

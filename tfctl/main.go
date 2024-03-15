@@ -14,8 +14,8 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/fluxcd/cli-utils/pkg/kstatus/polling"
-	infrav1 "github.com/weaveworks/tf-controller/api/v1alpha2"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
