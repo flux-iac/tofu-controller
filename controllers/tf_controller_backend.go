@@ -421,6 +421,11 @@ terraform {
 		}
 	}
 
+	// Save workspace after init
+	if err := r.GetWorkspaceBlobCache(ctx, runnerClient, &terraform, tfInstance, workingDir); err != nil {
+		log.Error(err, "unable to get workspace blob cache")
+	}
+
 	return terraform, tfInstance, tmpDir, nil
 }
 
