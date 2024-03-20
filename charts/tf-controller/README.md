@@ -6,7 +6,7 @@ This is the Helm chart for the [Tofu Controller](https://github.com/flux-iac/tof
 
 ## Prerequisites
 
-Before using tofu-controller, you must to install Flux by using either `flux install` or `flux bootstrap` command. For full instructions see [Flux installation](https://fluxcd.io/flux/installation/)
+Before using tofu-controller, you must install Flux by using either `flux install` or `flux bootstrap` command. For full instructions see [Flux installation](https://fluxcd.io/flux/installation/)
 
 ## Installation
 
