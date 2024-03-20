@@ -1,17 +1,20 @@
-# Weave GitOps Terraform Controller
+# Tofu Controller
 
 ![Version: 0.16.0-rc.4](https://img.shields.io/badge/Version-0.16.0--rc.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.16.0-rc.4](https://img.shields.io/badge/AppVersion-v0.16.0--rc.4-informational?style=flat-square)
 
-The Helm chart for Weave GitOps Terraform Controller
+This is the Helm chart for the [Tofu Controller](https://github.com/flux-iac/tofu-controller), an IAC controller for Flux [Flux](https://fluxcd.io) to reconcile OpenTofu and Terraform resources in the GitOps way.
+
+## Prerequisites
+
+Before using tofu-controller, you must install Flux by using either `flux install` or `flux bootstrap` command. For full instructions see [Flux installation](https://fluxcd.io/flux/installation/)
 
 ## Installation
 
-Before using TF-controller, you have to install Flux by using either `flux install` or `flux bootstrap` command.
-After that you can install TF-controller manually with Helm by:
+To install tofu-controller manually using Helm:
 
 ```shell
-# Add tf-controller helm repository
-helm repo add tf-controller https://flux-iac.github.io/tofu-controller/
+# Add tofu-controller helm repository
+helm repo add tofu-controller https://flux-iac.github.io/tofu-controller/
 
 # Install tf-controller
 helm upgrade -i tofu-controller tofu-controller/tf-controller \
@@ -20,11 +23,11 @@ helm upgrade -i tofu-controller tofu-controller/tf-controller \
 
 ### Using cross-namespace references
 
-The Terraform CRD for TF-controller includes references to other objects, for example to a Flux source, which can be in a different namespace to the Terraform. However, being able to access objects in another namespace is usually considered a security risk, so references crossing namespaces are (since version 0.16.0) disallowed by default. If you want to allow them, set the Helm chart value `allowCrossNamespaceRefs: true` (see the table below).
+The Terraform CRDs for tofu-controller can include references to other objects, for example to a Flux source, which can be in a different namespace to the Terraform CRD. However, being able to access objects in another namespace is usually considered a security risk, so references crossing namespaces are (since version 0.16.0) disallowed by default. If you want to allow them, set the Helm chart value `allowCrossNamespaceRefs: true` (see the table below).
 
 ## Configuration
 
-The following table lists the configurable parameters of the TF-controller chart and their default values.
+The following table lists the configurable parameters of the tofu-controller chart and their default values.
 
 __Note__: If you need to use the `imagePullSecrets` it would be best to set `serviceAccount.create: true` and `runner.serviceAccount.create: true`
 
