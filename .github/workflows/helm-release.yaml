@@ -26,7 +26,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish Helm OCI
         run: |
-          VERSION=$(yq e '.version' charts/tf-controller/Chart.yaml)
+          VERSION=$(yq e '.version' charts/tofu-controller/Chart.yaml)
           mkdir helm-release
-          helm package charts/tf-controller/ -d helm-release
-          helm push helm-release/tf-controller-${VERSION}.tgz oci://ghcr.io/flux-iac/charts
+          helm package charts/tofu-controller/ -d helm-release
+          helm push helm-release/tofu-controller-${VERSION}.tgz oci://ghcr.io/flux-iac/charts
