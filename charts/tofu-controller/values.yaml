@@ -9,7 +9,7 @@ serviceAccount:
   # -- Additional Service Account annotations
   annotations: {}
   # -- Service account to be used
-  # @default -- tf-controller
+  # @default -- tofu-controller
   name: ""
 # Controller
 # -- Provide a name
@@ -20,7 +20,7 @@ fullnameOverride: ""
 podAnnotations: {}
 # -- Additional pod labels
 podLabels: {}
-# -- Number of TF-Controller pods to deploy
+# -- Number of tofu-controller pods to deploy
 replicaCount: 1
 image:
   # -- Controller image repository
@@ -59,25 +59,25 @@ securityContext:
 rbac:
   # -- If `true`, create and use RBAC resources
   create: true
-# -- Node Selector properties for the TF-Controller deployment
+# -- Node Selector properties for the tofu-controller deployment
 nodeSelector: {}
-# -- Tolerations properties for the TF-Controller deployment
+# -- Tolerations properties for the tofu-controller deployment
 tolerations: []
-# -- Affinity properties for the TF-Controller deployment
+# -- Affinity properties for the tofu-controller deployment
 affinity: {}
-# -- Volumes properties for the TF-Controller deployment
+# -- Volumes properties for the tofu-controller deployment
 volumes: []
 # - name: policy-agent
 #   secret:
 #     secretName: policy-agent-tls
 #     optional: false
-# -- Volume mounts properties for the TF-Controller deployment
+# -- Volume mounts properties for the tofu-controller deployment
 volumeMounts: []
 # - name: policy-agent
 #   mountPath: "/etc/certs/policy-agent.policy-system.svc/"
 #   readOnly: true
 
-# -- PriorityClassName property for the TF-Controller deployment
+# -- PriorityClassName property for the tofu-controller deployment
 priorityClassName: ""
 # -- Argument for `--log-encoding`. Can be 'json' or 'console'. (Controller)
 logEncoding: json
