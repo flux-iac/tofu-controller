@@ -287,10 +287,10 @@ endef
 release-manifests:
 	rm -rf ./config/release || true
 	mkdir ./config/release
-	kustomize build ./config/crd > ./config/release/tf-controller.crds.yaml
-	kustomize build ./config/rbac > ./config/release/tf-controller.rbac.yaml
-	kustomize build ./config/manager > ./config/release/tf-controller.deployment.yaml
-	kustomize build ./config/package > ./config/release/tf-controller.packages.yaml
+	kustomize build ./config/crd > ./config/release/tofu-controller.crds.yaml
+	kustomize build ./config/rbac > ./config/release/tofu-controller.rbac.yaml
+	kustomize build ./config/manager > ./config/release/tofu-controller.deployment.yaml
+	kustomize build ./config/package > ./config/release/tofu-controller.packages.yaml
 
 # Helm
 SRC_ROOT = $(shell git rev-parse --show-toplevel)
