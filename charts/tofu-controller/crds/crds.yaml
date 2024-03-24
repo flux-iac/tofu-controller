@@ -6,8 +6,8 @@ metadata:
   creationTimestamp: null
   name: terraforms.infra.contrib.fluxcd.io
   labels:
-    helm.sh/chart: tf-controller-0.16.0-rc.3
-    app.kubernetes.io/version: 0.16.0-rc.3
+    helm.sh/chart: tofu-controller-0.16.0-rc.4
+    app.kubernetes.io/version: 0.16.0-rc.4
 spec:
   group: infra.contrib.fluxcd.io
   names:
