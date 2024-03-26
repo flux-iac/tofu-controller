@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "tf-controller.name" -}}
+{{- define "tofu-controller.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "tf-controller.fullname" -}}
+{{- define "tofu-controller.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "tf-controller.chart" -}}
+{{- define "tofu-controller.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "tf-controller.labels" -}}
-helm.sh/chart: {{ include "tf-controller.chart" . }}
-{{ include "tf-controller.selectorLabels" . }}
+{{- define "tofu-controller.labels" -}}
+helm.sh/chart: {{ include "tofu-controller.chart" . }}
+{{ include "tofu-controller.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -46,17 +46,17 @@ control-plane: controller
 {{/*
 Selector labels
 */}}
-{{- define "tf-controller.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "tf-controller.name" . }}
+{{- define "tofu-controller.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "tofu-controller.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the controller service account to use
 */}}
-{{- define "tf-controller.serviceAccountName" -}}
+{{- define "tofu-controller.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "tf-controller.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "tofu-controller.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
@@ -65,7 +65,7 @@ Create the name of the controller service account to use
 {{/*
 Create the name of the runner service account to use
 */}}
-{{- define "tf-controller.runner.serviceAccountName" -}}
+{{- define "tofu-controller.runner.serviceAccountName" -}}
 {{- if .Values.runner.serviceAccount.create }}
 {{- default "tf-runner" .Values.runner.serviceAccount.name }}
 {{- else }}
@@ -77,7 +77,7 @@ Create the name of the runner service account to use
 {{/*
 Create a unique list of runner allowed namespaces
 */}}
-{{- define "tf-controller.runner.allowedNamespaces" -}}
+{{- define "tofu-controller.runner.allowedNamespaces" -}}
 {{- $allowedNamespaces := append .Values.runner.serviceAccount.allowedNamespaces .Release.Namespace -}}
 {{- $allowedNamespaces := append $allowedNamespaces "flux-system" -}}
 {{- $allowedNamespaces = $allowedNamespaces | uniq -}}
@@ -88,7 +88,7 @@ Create a unique list of runner allowed namespaces
 Expand the name of the chart.
 */}}
 {{- define "planner.name" -}}
-{{ include "tf-controller.name" . }}-branch-planner
+{{ include "tofu-controller.name" . }}-branch-planner
 {{- end }}
 
 {{/*
@@ -97,14 +97,14 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 If release name contains chart name it will be used as a full name.
 */}}
 {{- define "planner.fullname" -}}
-{{ include "tf-controller.fullname" . }}-branch-planner
+{{ include "tofu-controller.fullname" . }}-branch-planner
 {{- end }}
 
 {{/*
 Common labels
 */}}
 {{- define "planner.labels" -}}
-helm.sh/chart: {{ include "tf-controller.chart" . }}
+helm.sh/chart: {{ include "tofu-controller.chart" . }}
 {{ include "planner.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
