@@ -6,8 +6,8 @@ metadata:
   creationTimestamp: null
   name: terraforms.infra.contrib.fluxcd.io
   labels:
-    helm.sh/chart: tf-controller-0.16.0-rc.3
-    app.kubernetes.io/version: 0.16.0-rc.3
+    helm.sh/chart: tofu-controller-0.16.0-rc.4
+    app.kubernetes.io/version: 0.16.0-rc.4
 spec:
   group: infra.contrib.fluxcd.io
   names:
@@ -5268,13 +5268,13 @@ spec:
                   the apply step.
                 type: boolean
               remediation:
-                description: Remediation holds the remediation configuration for when
-                  the reconciliation fails. The default is to not perform any action.
+                description: Remediation specifies what the controller should do when
+                  reconciliation fails. The default is to not perform any action.
                 properties:
                   retries:
                     description: Retries is the number of retries that should be attempted
                       on failures before bailing. Defaults to '0', a negative integer
-                      equals to unlimited retries.
+                      denotes unlimited retries.
                     format: int64
                     type: integer
                 type: object
@@ -9812,6 +9812,12 @@ spec:
                 items:
                   type: string
                 type: array
+              tfVarsFiles:
+                description: TfVarsFiles loads all given .tfvars files. It copycats
+                  the -var-file functionality.
+                items:
+                  type: string
+                type: array
               tfstate:
                 description: TFStateSpec allows the user to set ForceUnlock
                 properties:
@@ -9837,6 +9843,15 @@ spec:
                       empty to do nothing, set this to the value of the `Lock Info:
                       ID: [value]`, e.g. `f2ab685b-f84d-ac0b-a125-378a22877e8d`, to
                       force unlock the state."
+                    type: string
+                  lockTimeout:
+                    default: 0s
+                    description: "LockTimeout is a Duration string that instructs
+                      Terraform to retry acquiring a lock for the specified period
+                      of time before returning an error. The duration syntax is a
+                      number followed by a time unit letter, such as `3s` for three
+                      seconds. \n Defaults to `0s` which will behave as though `LockTimeout`
+                      was not set"
                     type: string
                 type: object
               values:
@@ -10209,8 +10224,8 @@ spec:
                     type: string
                 type: object
               reconciliationFailures:
-                description: ReconciliationFailures is the counter to track the number
-                  of reconciliation failures.
+                description: ReconciliationFailures is the number of reconciliation
+                  failures since the last success or update.
                 format: int64
                 type: integer
             type: object

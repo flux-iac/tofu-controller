@@ -36,7 +36,7 @@ spec:
         - --branch-polling-interval={{ .Values.branchPlanner.sourceInterval }}
         - --polling-configmap={{ .Values.branchPlanner.configMap }}
         - --polling-interval={{ .Values.branchPlanner.pollingInterval }}
-        - --allowed-namespaces={{ include "tf-controller.runner.allowedNamespaces" . | fromJsonArray | join "," }}
+        - --allowed-namespaces={{ include "tofu-controller.runner.allowedNamespaces" . | fromJsonArray | join "," }}
         - --allow-cross-namespace-refs={{ .Values.allowCrossNamespaceRefs }}
         env:
           {{- include "pod-namespace" . | indent 8 }}
@@ -49,7 +49,7 @@ spec:
           {{- toYaml .Values.branchPlanner.securityContext | nindent 10 }}
       securityContext:
         {{- toYaml .Values.branchPlanner.podSecurityContext | nindent 8 }}
-      serviceAccountName: {{ include "tf-controller.serviceAccountName" . }}
+      serviceAccountName: {{ include "tofu-controller.serviceAccountName" . }}
       terminationGracePeriodSeconds: 10
       {{- with .Values.nodeSelector }}
       nodeSelector:
