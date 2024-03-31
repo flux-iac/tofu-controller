@@ -2,10 +2,10 @@
 
 VERSION=$1
 
-yq e -i ".version=\"${VERSION#v}\"" charts/tf-controller/Chart.yaml
-yq e -i ".appVersion=\"$VERSION\"" charts/tf-controller/Chart.yaml
-yq e -i ".image.tag=\"$VERSION\"" charts/tf-controller/values.yaml
-yq e -i ".runner.image.tag=\"$VERSION\"" charts/tf-controller/values.yaml
+yq e -i ".version=\"${VERSION#v}\"" charts/tofu-controller/Chart.yaml
+yq e -i ".appVersion=\"$VERSION\"" charts/tofu-controller/Chart.yaml
+yq e -i ".image.tag=\"$VERSION\"" charts/tofu-controller/values.yaml
+yq e -i ".runner.image.tag=\"$VERSION\"" charts/tofu-controller/values.yaml
 yq e -i ".images[0].newTag=\"$VERSION\"" config/manager/kustomization.yaml
 yq e -i ".images[0].newTag=\"$VERSION\"" config/branch-planner/kustomization.yaml
 

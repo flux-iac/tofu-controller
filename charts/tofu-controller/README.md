@@ -17,7 +17,7 @@ To install tofu-controller manually using Helm:
 helm repo add tofu-controller https://flux-iac.github.io/tofu-controller/
 
 # Install tf-controller
-helm upgrade -i tofu-controller tofu-controller/tf-controller \
+helm upgrade -i tofu-controller tofu-controller/tofu-controller \
     --namespace flux-system
 ```
 
@@ -33,7 +33,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| affinity | object | `{}` | Affinity properties for the TF-Controller deployment |
+| affinity | object | `{}` | Affinity properties for the tofu-controller deployment |
 | allowBreakTheGlass | bool | `false` | Argument for `--allow-break-the-glass` (Controller).  AllowBreakTheGlass allows the controller to break the glass and modify Terraform states when the sync loop is broken. |
 | allowCrossNamespaceRefs | bool | `false` | If `true`, enable cross-namespace references for controller and branch-planner |
 | awsPackage.install | bool | `true` |  |
@@ -71,13 +71,13 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | metrics.serviceMonitor.namespace | string | `.Release.Namespace` | Install the ServiceMonitor into a different Namespace, as the monitoring stack one |
 | metrics.serviceMonitor.targetLabels | list | `[]` | Set targetLabels for the serviceMonitor |
 | nameOverride | string | `""` | Provide a name |
-| nodeSelector | object | `{}` | Node Selector properties for the TF-Controller deployment |
+| nodeSelector | object | `{}` | Node Selector properties for the tofu-controller deployment |
 | podAnnotations | object | `{}` | Additional pod annotations |
 | podLabels | object | `{}` | Additional pod labels |
 | podSecurityContext | object | `{"fsGroup":1337}` | Pod-level security context |
-| priorityClassName | string | `""` | PriorityClassName property for the TF-Controller deployment |
+| priorityClassName | string | `""` | PriorityClassName property for the tofu-controller deployment |
 | rbac.create | bool | `true` | If `true`, create and use RBAC resources |
-| replicaCount | int | `1` | Number of TF-Controller pods to deploy |
+| replicaCount | int | `1` | Number of tofu-controller pods to deploy |
 | resources | object | `{"limits":{"cpu":"1000m","memory":"1Gi"},"requests":{"cpu":"200m","memory":"64Mi"}}` | Resource limits and requests |
 | runner | object | `{"creationTimeout":"5m0s","grpc":{"maxMessageSize":4},"image":{"repository":"ghcr.io/flux-iac/tf-runner","tag":"v0.16.0-rc.4"},"serviceAccount":{"allowedNamespaces":[],"annotations":{},"create":true,"name":""}}` | Runner-specific configurations |
 | runner.creationTimeout | string | `"5m0s"` | Timeout for runner-creation (Controller) |
@@ -91,11 +91,11 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"runAsUser":65532,"seccompProfile":{"type":"RuntimeDefault"}}` | Container-level security context |
 | serviceAccount.annotations | object | `{}` | Additional Service Account annotations |
 | serviceAccount.create | bool | `true` | If `true`, create a new service account |
-| serviceAccount.name | string | tf-controller | Service account to be used |
-| tolerations | list | `[]` | Tolerations properties for the TF-Controller deployment |
+| serviceAccount.name | string | tofu-controller | Service account to be used |
+| tolerations | list | `[]` | Tolerations properties for the tofu-controller deployment |
 | usePodSubdomainResolution | bool | `false` | Argument for `--use-pod-subdomain-resolution` (Controller).  UsePodSubdomainResolution allow pod hostname/subdomain DNS resolution for the pod runner instead of IP based DNS resolution. |
-| volumeMounts | list | `[]` | Volume mounts properties for the TF-Controller deployment |
-| volumes | list | `[]` | Volumes properties for the TF-Controller deployment |
+| volumeMounts | list | `[]` | Volume mounts properties for the tofu-controller deployment |
+| volumes | list | `[]` | Volumes properties for the tofu-controller deployment |
 | watchAllNamespaces | bool | `true` | If `true`, controller will watch all namespaces for Terraform resources |
 
 ----------------------------------------------

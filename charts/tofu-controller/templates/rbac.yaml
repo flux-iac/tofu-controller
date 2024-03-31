@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: tf-leader-election-role
+  name: tofu-leader-election-role
   namespace: {{ .Release.Namespace }}
 rules:
 - apiGroups:
@@ -47,7 +47,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: tf-cluster-reconciler-role
+  name: tofu-cluster-reconciler-role
 rules:
 - apiGroups:
   - infra.contrib.fluxcd.io
@@ -98,7 +98,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: tf-manager-role
+  name: tofu-manager-role
 rules:
 - apiGroups:
   - ""
@@ -200,41 +200,41 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: tf-leader-election-rolebinding
+  name: tofu-leader-election-rolebinding
   namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: tf-leader-election-role
+  name: tofu-leader-election-role
 subjects:
 - kind: ServiceAccount
-  name: {{ include "tf-controller.serviceAccountName" . }}
+  name: {{ include "tofu-controller.serviceAccountName" . }}
   namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: tf-cluster-reconciler
+  name: tofu-cluster-reconciler
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: tf-cluster-reconciler-role
+  name: tofu-cluster-reconciler-role
 subjects:
 - kind: ServiceAccount
-  name: {{ include "tf-controller.serviceAccountName" . }}
+  name: {{ include "tofu-controller.serviceAccountName" . }}
   namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: tf-manager-rolebinding
+  name: tofu-manager-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: tf-manager-role
+  name: tofu-manager-role
 subjects:
 - kind: ServiceAccount
-  name: {{ include "tf-controller.serviceAccountName" . }}
+  name: {{ include "tofu-controller.serviceAccountName" . }}
   namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -246,9 +246,9 @@ roleRef:
   kind: ClusterRole
   name: tf-runner-role
 subjects:
-{{- range include "tf-controller.runner.allowedNamespaces" . | fromJsonArray }}
+{{- range include "tofu-controller.runner.allowedNamespaces" . | fromJsonArray }}
 - kind: ServiceAccount
-  name: {{ include "tf-controller.runner.serviceAccountName" $ }}
+  name: {{ include "tofu-controller.runner.serviceAccountName" $ }}
   namespace: {{ . }}
 {{- end }}
 {{- end }}

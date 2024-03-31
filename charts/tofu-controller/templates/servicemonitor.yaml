@@ -2,10 +2,10 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "tf-controller.fullname" . }}
+  name: {{ include "tofu-controller.fullname" . }}
   namespace: {{ .Values.metrics.serviceMonitor.namespace | default .Release.Namespace }}
   labels:
-    {{- include "tf-controller.labels" . | nindent 4 }}
+    {{- include "tofu-controller.labels" . | nindent 4 }}
     {{- with .Values.metrics.serviceMonitor.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -37,7 +37,7 @@ spec:
     {{- if .Values.metrics.serviceMonitor.matchLabels }}
       {{- toYaml .Values.metrics.serviceMonitor.matchLabels | nindent 6 }}
     {{- else }}
-      {{- include "tf-controller.selectorLabels" . | nindent 6 }}
+      {{- include "tofu-controller.selectorLabels" . | nindent 6 }}
     {{- end }}
   namespaceSelector:
     matchNames:
