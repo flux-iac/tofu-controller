@@ -16,14 +16,14 @@ if os.path.exists('Tiltfile.local'):
 namespace_create(tfNamespace)
 
 # Download chart deps
-local_resource("helm-dep-update", "helm dep update charts/tf-controller", trigger_mode=TRIGGER_MODE_MANUAL, auto_init=True)
+local_resource("helm-dep-update", "helm dep update charts/tofu-controller", trigger_mode=TRIGGER_MODE_MANUAL, auto_init=True)
 
 # Define resources
-k8s_resource('chart-tf-controller',
+k8s_resource('chart-tofu-controller',
   labels=["deployments"],
   new_name='controller')
 
-k8s_resource('chart-tf-controller-branch-planner',
+k8s_resource('chart-tofu-controller-branch-planner',
   labels=["deployments"],
   new_name='branch-planner')
 
@@ -32,7 +32,7 @@ if os.path.exists('config/tilt/helm/dev-values-local.yaml'):
    helm_values.append('config/tilt/helm/dev-values-local.yaml')
 
 k8s_yaml(helm(
-   "charts/tf-controller",
+   "charts/tofu-controller",
    namespace=namespace,
    values=helm_values,
 ))
