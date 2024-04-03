@@ -173,6 +173,10 @@ metrics:
       metricRelabelings: []
       # -- Set relabelings for the endpoint of the serviceMonitor
       relabelings: []
+
+# -- ExecType specifies the type of executable used for the operations. It can be either `terraform` or `tofu`.
+execType: terraform
+
 # -- Branch Planner-specific configurations
 branchPlanner:
   enabled: false

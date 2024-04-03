@@ -82,6 +82,7 @@ type TerraformReconciler struct {
 	ClusterDomain             string
 	NoCrossNamespaceRefs      bool
 	UsePodSubdomainResolution bool
+	ExecPath                  string
 }
 
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete

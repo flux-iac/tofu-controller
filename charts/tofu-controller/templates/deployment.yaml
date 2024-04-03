@@ -46,6 +46,7 @@ spec:
         - --allow-break-the-glass={{ .Values.allowBreakTheGlass }}
         - --cluster-domain={{ .Values.clusterDomain }}
         - --use-pod-subdomain-resolution={{ .Values.usePodSubdomainResolution }}
+        - --exec-type={{ .Values.execType }}
         command:
         - /sbin/tini
         - --

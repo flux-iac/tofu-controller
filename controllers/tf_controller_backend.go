@@ -178,12 +178,17 @@ terraform {
 		tfrcFilepath = processCliConfigReply.FilePath
 	}
 
+	execType := r.ExecPath
+	if terraform.Spec.ExecType != "" && terraform.Spec.ExecType != r.ExecPath {
+		execType = terraform.Spec.ExecType
+	}
+
 	lookPathReply, err := runnerClient.LookPath(ctx,
 		&runner.LookPathRequest{
-			File: "terraform",
+			File: execType,
 		})
 	if err != nil {
-		err = fmt.Errorf("cannot find Terraform binary: %s in %s", err, os.Getenv("PATH"))
+		err = fmt.Errorf("cannot find binary: %s in %s: %w", execType, os.Getenv("PATH"), err)
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,

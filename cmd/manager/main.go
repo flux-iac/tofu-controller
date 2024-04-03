@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"errors"
 	"os"
 	"time"
 
@@ -97,6 +98,7 @@ func main() {
 		aclOptions                acl.Options
 		allowCrossNamespaceRefs   bool
 		usePodSubdomainResolution bool
+		execPath                  string
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
@@ -119,6 +121,7 @@ func main() {
 	flag.BoolVar(&allowBreakTheGlass, "allow-break-the-glass", false, "Allow break the glass mode.")
 	flag.StringVar(&clusterDomain, "cluster-domain", "cluster.local", "The cluster domain used by the cluster.")
 	flag.BoolVar(&usePodSubdomainResolution, "use-pod-subdomain-resolution", false, "Allow to use pod hostname/subdomain DNS resolution instead of IP based")
+	flag.StringVar(&execPath, "exec-type", "terraform", "ExecType specifies the type of executable used for the operations. It can either be 'terraform' or 'tofu'")
 
 	clientOptions.BindFlags(flag.CommandLine)
 	logOptions.BindFlags(flag.CommandLine)
@@ -138,6 +141,12 @@ func main() {
 	watchNamespace := ""
 	if !watchAllNamespaces {
 		watchNamespace = runtimeNamespace
+	}
+
+	switch execPath {
+	case "terraform", "tofu":
+	default:
+		setupLog.Error(errors.New("invalid --exec-type"), "'terraform' or 'tofu' is the only accepted values", "exec-path", execPath)
 	}
 
 	mgrConfig := ctrl.Options{
@@ -234,6 +243,7 @@ func main() {
 		ClusterDomain:             clusterDomain,
 		NoCrossNamespaceRefs:      !allowCrossNamespaceRefs,
 		UsePodSubdomainResolution: usePodSubdomainResolution,
+		ExecPath:                  execPath,
 	}
 
 	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {

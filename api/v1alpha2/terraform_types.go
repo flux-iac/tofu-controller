@@ -270,6 +270,13 @@ type TerraformSpec struct {
 	// fails. The default is to not perform any action.
 	// +optional
 	Remediation *Remediation `json:"remediation,omitempty"`
+
+	// ExecType specifies the type of executable used for the operations.
+	// It can be either 'terraform' or 'tofu'.
+	// If not specified, the default is set based on the global configuration.
+	// +kubebuilder:validation:Enum=terraform;tofu
+	// +optional
+	ExecType string `json:"execType,omitempty"`
 }
 
 type BranchPlanner struct {

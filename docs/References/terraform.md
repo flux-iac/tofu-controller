@@ -1918,6 +1918,20 @@ Remediation
 fails. The default is to not perform any action.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>execType</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>ExecType specifies the type of executable used for the operations.
+It can be either &lsquo;terraform&rsquo; or &lsquo;tofu&rsquo;.
+If not specified, the default is set based on the global configuration.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -2479,6 +2493,20 @@ Remediation
 <em>(Optional)</em>
 <p>Remediation specifies what the controller should do when reconciliation
 fails. The default is to not perform any action.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>execType</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>ExecType specifies the type of executable used for the operations.
+It can be either &lsquo;terraform&rsquo; or &lsquo;tofu&rsquo;.
+If not specified, the default is set based on the global configuration.</p>
 </td>
 </tr>
 </tbody>
