@@ -187,6 +187,7 @@ func TestMain(m *testing.M) {
 		RunnerCreationTimeout:     120 * time.Second,
 		RunnerGRPCMaxMessageSize:  4,
 		UsePodSubdomainResolution: false,
+		ExecPath:                  "terraform",
 	}
 
 	// We use 1 concurrent and 10s httpRetry in the test
