@@ -56,4 +56,4 @@ You can use [`runner.Dockerfile`](https://github.com/flux-iac/tofu-controller/bl
 ## Customize Runner Pod Specifications
 
 You can also customize various Runner Pod `spec` fields to control and configure how the Runner Pod runs. 
-For example, you can configure Runner Pod `spec` affinity and tolerations if you need to run in on a specific set of nodes. Please see [RunnerPodSpec](https://weaveworks.github.io/tf-controller/References/terraform/#infra.contrib.fluxcd.io/v1alpha2.RunnerPodSpec) for a list of the configurable Runner Pod `spec` fields.
+For example, you can configure Runner Pod `spec` affinity and tolerations if you need to run in on a specific set of nodes. Please see [RunnerPodSpec](https://flux-iac.github.io/tofu-controller/References/terraform/#infra.contrib.fluxcd.io/v1alpha2.RunnerPodSpec) for a list of the configurable Runner Pod `spec` fields.
