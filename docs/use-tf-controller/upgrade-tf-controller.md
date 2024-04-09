@@ -7,7 +7,7 @@ Please follow these steps to upgrade TF-Controller:
 3. To make sure you don't get new state changes, suspend Terraform resources (`tfctl suspend --all`) to minimize the impact on live systems.
 4. Back up Terraform tfstates to avoid losing data. If you're using the default backend with secrets in Kubernetes, use your backup toolset (i.e., Velero) to back up the state data.
 5. Upgrade Flux first, following [the Flux documentation](https://fluxcd.io/flux/installation/upgrade/).
-6. Disable [auto-approval](https://weaveworks.github.io/tf-controller/use_tf_controller/to_provision_resources_and_auto_approve/) by either removing the approvePlan value or setting it to "".
+6. Disable [auto-approval](https://flux-iac.github.io/tofu-controller/use-tf-controller/provision-resources-and-auto-approve/) by either removing the approvePlan value or setting it to "".
 7. To prevent unintentional resource deletions, set the `spec.destroyResourcesOnDeletion` flag to `false` for critical or production systems (the default value is `false`)
 8. If the Flux upgrade goes well, proceed to upgrade the TF-controller via its image tag. Adjust the values in the HelmRelease to match the new version to which you are upgrading.
 9. Check the pod logs for the TF-Controller deployment and any runner logs in order to identify potential issues. If you check the `warnings` in the logs, you can also identify any required API changes. For example:
