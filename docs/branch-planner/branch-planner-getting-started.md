@@ -9,7 +9,7 @@ any additional permissions. For private repositories, you need the following per
   changes, list comments, and create or update comments.
   - `Metadata` with Read-only access. This is automatically marked as "mandatory"
   because of the permissions listed above.
-3. General knowledge about TF-Controller [(see docs)](https://weaveworks.github.io/tf-controller/).
+3. General knowledge about Tofu-Controller [(see docs)](https://flux-iac.github.io/tofu-controller/).
 
 ## Quick Start
 
