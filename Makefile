@@ -187,7 +187,7 @@ install-rbac: manifests kustomize ## Install RBAC related manifests into the K8s
 	$(KUSTOMIZE) build config/rbac | kubectl apply --server-side -f -
 
 .PHONY: uninstall-rbac
-install-rbac: manifests kustomize ## Uninstall RBAC related manifests from the K8s cluster specified in ~/.kube/config.
+uninstall-rbac: manifests kustomize ## Uninstall RBAC related manifests from the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/rbac | kubectl delete --server-side --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: install
