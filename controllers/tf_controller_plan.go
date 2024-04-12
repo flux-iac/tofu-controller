@@ -51,10 +51,12 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 		SourceRefRootDir: sourceRefRootDir,
 	}
 
-	// if backend is disabled completely, there will be no plan output file (req.Out = "")
-	if r.backendCompletelyDisable(terraform) {
-		planRequest.Out = ""
-	}
+	// Our Terraform code may have its own backend and we want to keep using that
+	// However, we still want to see the generated plan
+	// // if backend is disabled completely, there will be no plan output file (req.Out = "")
+	// if r.backendCompletelyDisable(terraform) {
+	// 	planRequest.Out = ""
+	// }
 
 	// check if destroy is set to true or
 	// the object is being deleted and DestroyResourcesOnDeletion is set to true
