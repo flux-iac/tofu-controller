@@ -16,7 +16,7 @@ To install tofu-controller manually using Helm:
 # Add tofu-controller helm repository
 helm repo add tofu-controller https://flux-iac.github.io/tofu-controller/
 
-# Install tf-controller
+# Install tofu-controller
 helm upgrade -i tofu-controller tofu-controller/tofu-controller \
     --namespace flux-system
 ```
