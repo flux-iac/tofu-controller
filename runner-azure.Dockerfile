@@ -1,4 +1,7 @@
 ARG BASE_IMAGE
+
+FROM mcr.microsoft.com/azure-cli:2.50.0 as azcli
+
 FROM $BASE_IMAGE
 
 ARG TARGETARCH
@@ -12,12 +15,8 @@ RUN unzip -q /terraform_${TF_VERSION}_linux_${TARGETARCH}.zip -d /usr/local/bin/
     rm /terraform_${TF_VERSION}_linux_${TARGETARCH}.zip && \
     chmod +x /usr/local/bin/terraform
 
-# Install az cli
-ARG AZCLI_VERSION=2.50.0
-RUN apk add --no-cache py3-pip && \
-    apk add --no-cache gcc musl-dev python3-dev libffi-dev openssl-dev
-RUN pip install --break-system-packages --upgrade pip && \
-    pip install azure-cli==${AZCLI_VERSION} --break-system-packages
+# Copy az cli
+COPY --from=azcli /usr/local/bin/az /usr/local/bin/az 
 
 # Switch back to the non-root user after operations
 USER 65532:65532
