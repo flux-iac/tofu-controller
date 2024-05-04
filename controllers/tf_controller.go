@@ -136,7 +136,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 
 		// Record Prometheus metrics.
-		r.Metrics.RecordReadiness(ctx, &terraform)
 		r.Metrics.RecordSuspend(ctx, &terraform, terraform.Spec.Suspend)
 		r.Metrics.RecordDuration(ctx, &terraform, reconcileStart)
 	}()
