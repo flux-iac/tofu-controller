@@ -12,11 +12,13 @@ import (
 	"github.com/flux-iac/tofu-controller/runner"
 	"github.com/fluxcd/pkg/runtime/logger"
 	"google.golang.org/grpc"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/apimachinery/pkg/watch"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -452,38 +454,58 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	}
 
 	// wait for pod ip
-	traceLog.Info("Wait for pod to receive an IP and check for an error")
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		traceLog.Info("Get pod and check for an error")
-		if err := r.Get(ctx, runnerPodKey, &runnerPod); err != nil {
-			traceLog.Error(err, "Hit an error")
-			return false, fmt.Errorf("failed to get runner pod: %w", err)
-		}
 
-		traceLog.Info("Check if the pod has an IP")
-		if runnerPod.Status.PodIP != "" {
-			traceLog.Info("Success, pod has an IP")
-			return true, nil
-		}
-
-		traceLog.Info("Pod does not have an IP yet")
-		return false, nil
-	}); err != nil {
-		traceLog.Info("Failed to get the pod, force kill the pod")
-		traceLog.Error(err, "Error getting the Pod")
-
-		if err := r.Delete(ctx, &runnerPod,
-			client.GracePeriodSeconds(1), // force kill = 1 second
-			client.PropagationPolicy(metav1.DeletePropagationForeground),
-		); err != nil {
-			traceLog.Error(err, "Hit an error")
-			return "", fmt.Errorf("failed to obtain pod ip and delete runner pod: %w", err)
-		}
-
-		return "", fmt.Errorf("failed to create and obtain pod ip")
+	watcher, err := r.Clientset.CoreV1().Pods(runnerPodKey.Namespace).Watch(ctx, metav1.SingleObject(metav1.ObjectMeta{
+		Name:      runnerPodKey.Name,
+		Namespace: runnerPodKey.Namespace,
+	}))
+	if err != nil {
+		return "", fmt.Errorf("failed to create a watch on the pod: %w", err)
 	}
 
-	return runnerPod.Status.PodIP, nil
+	defer watcher.Stop()
+	// set a timeout for the watch
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	traceLog.Info("Wait for pod to receive an IP and check for an error")
+	for {
+		select {
+		case event, ok := <-watcher.ResultChan():
+			if !ok {
+				return "", fmt.Errorf("watch channel closed")
+			}
+
+			switch event.Type {
+			case watch.Added, watch.Modified:
+				runnerPod, ok := event.Object.(*corev1.Pod)
+				if !ok {
+					return "", fmt.Errorf("failed to cast object to pod: %v", event.Object)
+				}
+
+				traceLog.Info("Check if the pod has an IP")
+				if runnerPod.Status.PodIP != "" {
+					traceLog.Info("Success, pod has an IP")
+					return runnerPod.Status.PodIP, nil
+				}
+
+				traceLog.Info("Pod does not have an IP yet")
+			}
+		case <-ctx.Done():
+			traceLog.Info("Failed to get the pod, force kill the pod")
+			traceLog.Error(err, "Error getting the Pod")
+
+			if err := r.Delete(ctx, &runnerPod,
+				client.GracePeriodSeconds(1), // force kill = 1 second
+				client.PropagationPolicy(metav1.DeletePropagationForeground),
+			); err != nil {
+				traceLog.Error(err, "Hit an error")
+				return "", fmt.Errorf("failed to obtain pod ip and delete runner pod: %w", err)
+			}
+
+			return "", fmt.Errorf("failed to create and obtain pod ip")
+		}
+	}
 }
 
 // reconcileRunnerSecret reconciles the runner secret used for mTLS
