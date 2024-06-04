@@ -75,7 +75,7 @@ jobs:
           terraform --version
       - name: Setup Kustomize
         if: "!github.event.pull_request.head.repo.fork"
-        uses: fluxcd/pkg/actions/kustomize@6c0b4426ba7809a9406c1a4e07aa4be4984ea72f # main
+        uses: fluxcd/pkg/actions/kustomize@1bfad582060d2d6e464756fbd5d7a2b2fa4f75b9 # main
       - name: Run tests
         run: |
           make install-envtest
@@ -102,7 +102,7 @@ jobs:
           terraform --version
       - name: Setup Kustomize
         if: "!github.event.pull_request.head.repo.fork"
-        uses: fluxcd/pkg/actions/kustomize@6c0b4426ba7809a9406c1a4e07aa4be4984ea72f # main
+        uses: fluxcd/pkg/actions/kustomize@1bfad582060d2d6e464756fbd5d7a2b2fa4f75b9 # main
       - name: Run tests
         run: |
           make install-envtest
