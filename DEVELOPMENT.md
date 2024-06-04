@@ -32,7 +32,7 @@ Prerequisites:
 
 * go = 1.20.x
 * kubebuilder = 3.6.x
-* controller-gen = 0.8.x
+* controller-gen = 0.15.x
 * kustomize = 4.x
 * kubectl >= 1.21
 
