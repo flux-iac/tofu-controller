@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
       - name: Run FOSSA scan and upload build data
-        uses: fossa-contrib/fossa-action@6728dc6fe9a068c648d080c33829ffbe56565023 # v2.0.0
+        uses: fossa-contrib/fossa-action@cdc5065bcdee31a32e47d4585df72d66e8e941c2 # v3.0.0
         with:
           # FOSSA Push-Only API Token
           fossa-api-key: b429fea44d610229ac091ed8d1223bb9
@@ -32,13 +32,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@04daf014b50eaf774287bf3f0f1869d4b4c4b913 # v2.21.7
+        uses: github/codeql-action/init@f079b8493333aace61c81488f8bd40919487bd9f # v3.25.7
         with:
           languages: go
       - name: Autobuild
-        uses: github/codeql-action/autobuild@04daf014b50eaf774287bf3f0f1869d4b4c4b913 # v2.21.7
+        uses: github/codeql-action/autobuild@f079b8493333aace61c81488f8bd40919487bd9f # v3.25.7
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@04daf014b50eaf774287bf3f0f1869d4b4c4b913 # v2.21.7
+        uses: github/codeql-action/analyze@f079b8493333aace61c81488f8bd40919487bd9f # v3.25.7
 
   trivy:
     name: Trivy
