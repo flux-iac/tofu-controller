@@ -20,11 +20,18 @@ updates:
         update-types:
         - "major"
 
-
-  # maintain dependencies for github actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-    # Only do security updates not version updates.
-    open-pull-requests-limit: 0
+    groups:
+      gh-patch:
+        update-types:
+        - "patch"
+      gh-minor:
+        update-types:
+        - "minor"
+      gh-major:
+        update-types:
+        - "major"
+
