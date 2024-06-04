@@ -1,6 +1,6 @@
 module github.com/flux-iac/tofu-controller
 
-go 1.20
+go 1.22
 
 replace github.com/flux-iac/tofu-controller/api => ./api
 
