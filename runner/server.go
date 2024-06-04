@@ -382,6 +382,21 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 		applyOpt = append(applyOpt, tfexec.Parallelism(int(req.Parallelism)))
 	}
 
+	if os.Getenv("LOG_HUMAN_READABLE_PLAN") == "1" {
+		planName := TFPlanName
+		if req.DirOrPlan != "" {
+			planName = req.DirOrPlan
+		}
+
+		rawOutput, err := r.tfShowPlanFileRaw(ctx, planName)
+		if err != nil {
+			log.Error(err, "unable to get the plan output for human")
+			return nil, err
+		}
+
+		fmt.Println(rawOutput)
+	}
+
 	if err := r.tf.Apply(ctx, applyOpt...); err != nil {
 		st := status.New(codes.Internal, err.Error())
 		var stateErr *tfexec.ErrStateLocked
