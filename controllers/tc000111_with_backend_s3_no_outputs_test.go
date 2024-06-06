@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"testing"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	types2 "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/elgohr/go-localstack"
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
@@ -24,6 +26,32 @@ import (
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
+
+type staticResolverS3 struct {
+	localstackURL url.URL
+}
+
+func (r *staticResolverS3) ResolveEndpoint(ctx context.Context, params s3.EndpointParameters) (
+	smithyendpoints.Endpoint, error,
+) {
+	endpoint, err := s3.NewDefaultEndpointResolverV2().ResolveEndpoint(ctx, params)
+	endpoint.URI.Host = r.localstackURL.Host
+	endpoint.URI.Scheme = r.localstackURL.Scheme
+	return endpoint, err
+}
+
+type staticResolverDynamo struct {
+	localstackURL url.URL
+}
+
+func (r *staticResolverDynamo) ResolveEndpoint(ctx context.Context, params dynamodb.EndpointParameters) (
+	smithyendpoints.Endpoint, error,
+) {
+	endpoint, err := dynamodb.NewDefaultEndpointResolverV2().ResolveEndpoint(ctx, params)
+	endpoint.URI.Host = r.localstackURL.Host
+	endpoint.URI.Scheme = r.localstackURL.Scheme
+	return endpoint, err
+}
 
 func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 	Spec("This spec describes the behaviour of a Terraform resource with backend configured, and `auto` approve.")
@@ -113,10 +141,16 @@ func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 		defer cancel()
 
 		var err error
-		stack, err = localstack.NewInstance()
+		opt, err := localstack.WithClientFromEnv()
+		if err != nil {
+			log.Fatalf("Could not get localstack client opt: %v", err)
+		}
+
+		stack, err = localstack.NewInstance(opt)
 		if err != nil {
 			log.Fatalf("Could not connect to Docker %v", err)
 		}
+
 		if err := stack.StartWithContext(ctx,
 			localstack.S3,
 			localstack.DynamoDB,
@@ -126,21 +160,22 @@ func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 
 		cfg, err := config.LoadDefaultConfig(ctx,
 			config.WithRegion("us-east-1"),
-			config.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(func(_, _ string, _ ...interface{}) (aws.Endpoint, error) {
-				return aws.Endpoint{
-					PartitionID:       "aws",
-					URL:               stack.EndpointV2(localstack.SQS),
-					SigningRegion:     "us-east-1",
-					HostnameImmutable: true,
-				}, nil
-			})),
 			config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("test", "test", "test")),
 		)
 		if err != nil {
 			log.Fatalf("Could not get config %v", err)
 		}
 
-		s3Client := s3.NewFromConfig(cfg)
+		u, err := url.Parse(stack.EndpointV2(localstack.SQS))
+		if err != nil {
+			log.Fatalf("Could not parse URL %v", err)
+		}
+
+		s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+			o.EndpointResolverV2 = &staticResolverS3{localstackURL: *u}
+			o.UsePathStyle = true
+		})
+
 		By("creating the S3 bucket.")
 
 		_, err = s3Client.CreateBucket(context.TODO(), &s3.CreateBucketInput{
@@ -150,7 +185,9 @@ func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 
 		// create dynamo table
 		By("creating the DynamoDB table.")
-		dynamodbClient := dynamodb.NewFromConfig(cfg)
+		dynamodbClient := dynamodb.NewFromConfig(cfg, func(o *dynamodb.Options) {
+			o.EndpointResolverV2 = &staticResolverDynamo{localstackURL: *u}
+		})
 		_, err = dynamodbClient.CreateTable(ctx, &dynamodb.CreateTableInput{
 			TableName: aws.String("terraformlock"),
 			AttributeDefinitions: []types2.AttributeDefinition{
