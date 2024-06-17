@@ -14,7 +14,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.32.7
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.54.4
 	github.com/aws/smithy-go v1.20.2
-	github.com/cyphar/filepath-securejoin v0.2.4
+	github.com/cyphar/filepath-securejoin v0.2.5
 	github.com/elgohr/go-localstack v1.0.20
 	github.com/flux-iac/tofu-controller/api v0.0.0-00010101000000-000000000000
 	github.com/flux-iac/tofu-controller/tfctl v0.0.0-00010101000000-000000000000
