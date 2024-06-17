@@ -48,9 +48,9 @@ jobs:
           node_image: kindest/node:v1.24.12@sha256:1e12918b8bc3d4253bc08f640a231bb0d3b2c5a9b28aa3f2ca1aee93e1e8db16
           cluster_name: kind
       - name: Setup Kustomize
-        uses: fluxcd/pkg/actions/kustomize@1bfad582060d2d6e464756fbd5d7a2b2fa4f75b9 # main
+        uses: fluxcd/pkg/actions/kustomize@61276f4653ac73cd09659bed20dd4e592c3f2082 # main
       - name: Setup Kubectl
-        uses: fluxcd/pkg/actions/kubectl@1bfad582060d2d6e464756fbd5d7a2b2fa4f75b9 # main
+        uses: fluxcd/pkg/actions/kubectl@61276f4653ac73cd09659bed20dd4e592c3f2082 # main
       - name: Check if working tree is dirty
         run: |
           if [[ $(git diff --stat) != '' ]]; then
