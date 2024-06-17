@@ -31,7 +31,7 @@ require (
 	github.com/hashicorp/terraform-exec v0.16.1
 	github.com/hashicorp/terraform-json v0.17.1
 	github.com/jenkins-x/go-scm v1.14.11
-	github.com/kubescape/go-git-url v0.0.25
+	github.com/kubescape/go-git-url v0.0.30
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.7.0
 	github.com/onsi/gomega v1.30.0
 	github.com/pkg/errors v0.9.1
@@ -84,6 +84,7 @@ require (
 	github.com/bluekeyes/go-gitdiff v0.7.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chai2010/gettext-go v1.0.2 // indirect
+	github.com/chainguard-dev/git-urls v1.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/docker/docker v24.0.7+incompatible // indirect
@@ -165,7 +166,6 @@ require (
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/theckman/yacspin v0.13.12 // indirect
-	github.com/whilp/git-urls v1.0.0 // indirect
 	github.com/xlab/treeprint v1.2.0 // indirect
 	go.starlark.net v0.0.0-20231121155337-90ade8b19d09 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
