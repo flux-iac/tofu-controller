@@ -19,3 +19,8 @@ the `DISABLE_TF_LOGS` variable must also be set to "1".
 
 For more information on configuring the Terraform Runner and its environment variables,
 please consult the documentation on [customizing runners](provision-resources-with-customized-runner-pods.md) within the Weave TF-controller.
+
+## Logging human-readable plan
+
+The plan can be logged in a human-readable format just before the applying it in the `tf-runner`.
+To enable this, set the environment variable `LOG_HUMAN_READABLE_PLAN` to "1" on the runner.

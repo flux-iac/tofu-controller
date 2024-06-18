@@ -382,6 +382,11 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 		applyOpt = append(applyOpt, tfexec.Parallelism(int(req.Parallelism)))
 	}
 
+	if err := printHumanReadablePlanIfEnabled(ctx, req.DirOrPlan, r.tfShowPlanFileRaw); err != nil {
+		log.Error(err, "unable to print plan")
+		return nil, err
+	}
+
 	if err := r.tf.Apply(ctx, applyOpt...); err != nil {
 		st := status.New(codes.Internal, err.Error())
 		var stateErr *tfexec.ErrStateLocked
@@ -399,6 +404,23 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 	}
 
 	return &ApplyReply{Message: "ok"}, nil
+}
+
+func printHumanReadablePlanIfEnabled(ctx context.Context, planName string, tfShowPlanFileRaw func(ctx context.Context, planPath string, opts ...tfexec.ShowOption) (string, error)) error {
+	if os.Getenv("LOG_HUMAN_READABLE_PLAN") == "1" {
+		if planName == "" {
+			planName = TFPlanName
+		}
+
+		rawOutput, err := tfShowPlanFileRaw(ctx, planName)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(rawOutput)
+	}
+
+	return nil
 }
 
 func getInventoryFromTerraformModule(m *tfjson.StateModule) []*Inventory {
