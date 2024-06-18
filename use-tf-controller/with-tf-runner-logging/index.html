@@ -12,7 +12,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.26">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.27">
     
     
       
@@ -480,6 +480,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#logging-human-readable-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logging human-readable plan
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -518,6 +527,9 @@ the <code>DISABLE_TF_LOGS</code> variable must also be set to "1".</li>
 </ul>
 <p>For more information on configuring the Terraform Runner and its environment variables,
 please consult the documentation on <a href="../provision-resources-with-customized-runner-pods/">customizing runners</a> within the Weave TF-controller.</p>
+<h2 id="logging-human-readable-plan">Logging human-readable plan</h2>
+<p>The plan can be logged in a human-readable format just before the applying it in the <code>tf-runner</code>.
+To enable this, set the environment variable <code>LOG_HUMAN_READABLE_PLAN</code> to "1" on the runner.</p>
 
 
 
