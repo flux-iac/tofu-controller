@@ -30,6 +30,13 @@ func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, rev
 		return true
 	}
 
+	// new object
+	if terraform.Status.LastAppliedRevision == "" &&
+		terraform.Status.LastPlannedRevision == "" &&
+		terraform.Status.LastAttemptedRevision == "" {
+		return false
+	}
+
 	// thing worked normally, no change pending
 	// then, we do drift detection
 	if terraform.Status.LastAttemptedRevision == terraform.Status.LastAppliedRevision &&
