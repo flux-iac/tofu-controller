@@ -286,6 +286,12 @@ type Remediation struct {
 	// retries.
 	// +optional
 	Retries int64 `json:"retries,omitempty"`
+
+	// RemediateLastFailure tells the controller to remediate the last failure, when
+	// no retries remain. Defaults to 'false' unless 'Retries' is greater than 0.
+	// +optional
+	RemediateLastFailure *bool `json:"remediateLastFailure,omitempty"`
+
 }
 
 type CloudSpec struct {
@@ -952,6 +958,15 @@ func (in *Terraform) GetRetries() int64 {
 	}
 
 	return in.Spec.Remediation.Retries
+}
+
+// MustRemediateLastFailure returns whether to remediate the last failure when
+// no retries remain.
+func (in *Terraform) MustRemediateLastFailure() bool {
+	if in.Spec.Remediation.RemediateLastFailure == nil {
+		return false
+	}
+	return *in.Spec.Remediation.RemediateLastFailure
 }
 
 func (in *Terraform) GetReconciliationFailures() int64 {
