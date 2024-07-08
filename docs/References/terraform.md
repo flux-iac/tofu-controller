@@ -1347,6 +1347,16 @@ three seconds.</p>
 <p>Defaults to <code>0s</code> which will behave as though <code>LockTimeout</code> was not set</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>disablePlanLock</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
