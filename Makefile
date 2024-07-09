@@ -58,6 +58,7 @@ help: ## Display this help.
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config="config/crd/bases"
+	cp config/crd/bases/infra.contrib.fluxcd.io_terraforms.yaml charts/tofu-controller/crds/crds.yaml
 	cd api; $(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config="../config/crd/bases"
 
 .PHONY: generate
