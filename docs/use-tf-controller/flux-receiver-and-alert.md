@@ -20,21 +20,33 @@ resources:
   - gotk-sync.yaml
 patches:
   - patch: |
+      # v1beta1
       - op: add
         path: /spec/versions/0/schema/openAPIV3Schema/properties/spec/properties/eventSources/items/properties/kind/enum/-
         value: Terraform
+      # v1beta2
       - op: add
         path: /spec/versions/1/schema/openAPIV3Schema/properties/spec/properties/eventSources/items/properties/kind/enum/-
+        value: Terraform
+      # v1beta3
+      - op: add
+        path: /spec/versions/2/schema/openAPIV3Schema/properties/spec/properties/eventSources/items/properties/kind/enum/-
         value: Terraform
     target:
       kind: CustomResourceDefinition
       name:  alerts.notification.toolkit.fluxcd.io
   - patch: |
+      # v1
       - op: add
         path: /spec/versions/0/schema/openAPIV3Schema/properties/spec/properties/resources/items/properties/kind/enum/-
         value: Terraform
+      # v1beta1
       - op: add
         path: /spec/versions/1/schema/openAPIV3Schema/properties/spec/properties/resources/items/properties/kind/enum/-
+        value: Terraform
+      # v1beta2
+      - op: add
+        path: /spec/versions/2/schema/openAPIV3Schema/properties/spec/properties/resources/items/properties/kind/enum/-
         value: Terraform
     target:
       kind: CustomResourceDefinition
@@ -49,4 +61,12 @@ patches:
     target:
       kind: ClusterRole
       name:  crd-controller-flux-system
+```
+
+Each version of the Flux `Alert` and `Receiver` CRDs must be patched, so the JSON6902 patch statement should be repeated with a different `versions` index.
+
+The list of CRD versions on the cluster can be queried with Kubectl.
+For example, to use `jq` to get the count of versions for the `Alert` CRD:
+```sh
+kubectl get -ojson crd alerts.notification.toolkit.fluxcd.io | jq '.spec.versions | length'
 ```
