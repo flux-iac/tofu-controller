@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/fluxcd/pkg/ssa"
+	ssautils "github.com/fluxcd/pkg/ssa/utils"
 	"github.com/theckman/yacspin"
 )
 
@@ -61,7 +62,7 @@ func (c *CLI) Install(out io.Writer, version string, export bool) (err error) {
 			continue
 		}
 
-		objects, err := ssa.ReadObjects(bytes.NewReader(data))
+		objects, err := ssautils.ReadObjects(bytes.NewReader(data))
 		if err != nil {
 			return err
 		}
