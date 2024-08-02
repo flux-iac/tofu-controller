@@ -120,6 +120,9 @@ runner:
     # -- Runner image tag
     # @default -- `.Chart.AppVersion`
     tag: "v0.16.0-rc.4"
+  # Additional labels for the Deployment
+  additionalDeploymentLabels: {}
+    # foo: bar
   grpc:
     # -- Maximum GRPC message size (Controller)
     maxMessageSize: 4
@@ -181,6 +184,9 @@ branchPlanner:
     repository: ghcr.io/flux-iac/branch-planner
     pullPolicy: IfNotPresent
     tag: ""
+  # Additional labels for the Deployment
+  additionalDeploymentLabels: {}
+    # foo: bar
   configMap: branch-planner
   pollingInterval: 30s
   # Interval value to use for Source objects for branch planner Terraform objects.

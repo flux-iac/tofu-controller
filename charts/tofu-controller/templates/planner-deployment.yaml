@@ -4,6 +4,9 @@ kind: Deployment
 metadata:
   labels:
     {{- include "planner.labels" . | nindent 4 }}
+    {{- with .Values.branchPlanner.additionalDeploymentLabels }}
+    {{ toYaml . }}
+    {{- end }}
   name: {{ include "planner.fullname" . }}
 spec:
   # Planner can't be scaled yet.

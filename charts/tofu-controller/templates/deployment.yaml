@@ -3,6 +3,9 @@ kind: Deployment
 metadata:
   labels:
     {{- include "tofu-controller.labels" . | nindent 4 }}
+    {{- with .Values.runner.additionalDeploymentLabels }}
+    {{ toYaml . }}
+    {{- end }}
   name: {{ include "tofu-controller.fullname" . }}
 spec:
   replicas: {{ .Values.replicaCount }}
