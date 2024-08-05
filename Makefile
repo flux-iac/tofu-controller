@@ -13,7 +13,7 @@ BUILD_VERSION ?= $(shell git describe --tags $$(git rev-list --tags --max-count=
 # - .github/workflows/release-runners.yaml
 # - .github/workflows/release.yaml
 # - Tiltfile
-LIBCRYPTO_VERSION ?= 3.1.5-r0
+LIBCRYPTO_VERSION ?= 3.1.6-r2
 
 # source controller version
 SOURCE_VER ?= v1.0.0-rc.1
@@ -58,6 +58,7 @@ help: ## Display this help.
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config="config/crd/bases"
+	cp config/crd/bases/infra.contrib.fluxcd.io_terraforms.yaml charts/tofu-controller/crds/crds.yaml
 	cd api; $(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config="../config/crd/bases"
 
 .PHONY: generate

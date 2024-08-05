@@ -8,7 +8,7 @@ tfNamespace      = "terraform"
 buildSHA         = str(local('git rev-parse --short HEAD')).rstrip('\n')
 buildVersionRef  = str(local('git rev-list --tags --max-count=1')).rstrip('\n')
 buildVersion     = str(local("git describe --tags ${buildVersionRef}")).rstrip('\n')
-LIBCRYPTO_VERSION = "3.1.5-r0"
+LIBCRYPTO_VERSION = "3.1.6-r2"
 
 if os.path.exists('Tiltfile.local'):
    include('Tiltfile.local')
