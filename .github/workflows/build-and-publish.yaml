@@ -37,7 +37,7 @@ jobs:
         with:
           version: 4.14.1
       - name: Setup Kustomize
-        uses: fluxcd/pkg/actions/kustomize@1bfad582060d2d6e464756fbd5d7a2b2fa4f75b9 # main
+        uses: fluxcd/pkg/actions/kustomize@a703510d2c1cf143603ac963c0f9440bc84d69c5 # main
       - name: Get branch names
         id: branch-name
         uses: tj-actions/branch-names@6871f53176ad61624f978536bbf089c574dc19a2 # v8.0.1
