@@ -78,7 +78,11 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 		planRequest.Out = ""
 		planRequest.Refresh = true
 	}
-
+	if terraform.Spec.TFState != nil {
+		if terraform.Spec.TFState.DisablePlanLock == true {
+			planRequest.DisablePlanLock = true
+		}
+	}
 	eventSent := false
 	planReply, err := runnerClient.Plan(ctx, planRequest)
 	if err != nil {
@@ -98,7 +102,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 			r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
 		}
 
-		err = fmt.Errorf("error running Plan: %s", err)
+		err = fmt.Errorf("error running drift Plan: %s", err)
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
