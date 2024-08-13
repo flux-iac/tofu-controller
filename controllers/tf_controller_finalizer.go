@@ -142,10 +142,6 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 		log.Info(fmt.Sprintf("finalizing secrets: %s", finalizeSecretsReply.Message))
 	}
 
-	// Record deleted status
-	traceLog.Info("Record the deleted status")
-	r.RecordReadiness(ctx, &terraform)
-
 	traceLog.Info("Get the Terraform resource")
 	if err := r.Get(ctx, objectKey, &terraform); err != nil {
 		traceLog.Error(err, "Hit an error, return")
