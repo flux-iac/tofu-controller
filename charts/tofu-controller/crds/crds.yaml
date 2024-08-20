@@ -6743,6 +6743,10 @@ spec:
                       image:
                         description: Runner pod image to use other than default
                         type: string
+                      imagePullPolicy:
+                        description: Runner pod ImagePullPolicy to use other than
+                          default
+                        type: string
                       initContainers:
                         description: Set up Init Containers for the Runner
                         items:

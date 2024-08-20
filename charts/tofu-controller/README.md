@@ -85,6 +85,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | runner.grpc.maxMessageSize | int | `4` | Maximum GRPC message size (Controller) |
 | runner.image.repository | string | `"ghcr.io/flux-iac/tf-runner"` | Runner image repository |
 | runner.image.tag | string | `.Chart.AppVersion` | Runner image tag |
+| runner.imagePullPolicy | string | `IfNotPresent, Always, Never` | Runner image pull policy |
 | runner.serviceAccount.allowedNamespaces | list | `["flux-system"]` | List of namespaces that the runner may run within (in addition to namespace of the controller itself) |
 | runner.serviceAccount.annotations | object | `{}` | Additional runner service Account annotations |
 | runner.serviceAccount.create | bool | `true` | If `true`, create a new runner service account |

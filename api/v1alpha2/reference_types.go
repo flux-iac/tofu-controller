@@ -163,6 +163,10 @@ type RunnerPodSpec struct {
 	// +optional
 	Image string `json:"image,omitempty"`
 
+	// Runner pod ImagePullPolicy to use other than default
+	// +optional
+	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
+
 	// List of sources to populate environment variables in the container.
 	// The keys defined within a source must be a C_IDENTIFIER. All invalid keys
 	// will be reported as an event when the container is starting. When a key exists in multiple
