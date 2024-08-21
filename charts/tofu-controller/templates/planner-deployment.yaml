@@ -5,6 +5,7 @@ metadata:
   labels:
     {{- include "planner.labels" . | nindent 4 }}
   name: {{ include "planner.fullname" . }}
+  namespace: {{ .Release.Namespace }}
 spec:
   # Planner can't be scaled yet.
   replicas: 1
