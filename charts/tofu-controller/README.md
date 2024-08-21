@@ -36,6 +36,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | affinity | object | `{}` | Affinity properties for the tofu-controller deployment |
 | allowBreakTheGlass | bool | `false` | Argument for `--allow-break-the-glass` (Controller).  AllowBreakTheGlass allows the controller to break the glass and modify Terraform states when the sync loop is broken. |
 | allowCrossNamespaceRefs | bool | `false` | If `true`, enable cross-namespace references for controller and branch-planner |
+| annotations | object | `{}` | Additional deployment annotations for controller and branch-planner |
 | awsPackage.install | bool | `true` |  |
 | awsPackage.repository | string | `"ghcr.io/flux-iac/aws-primitive-modules"` |  |
 | awsPackage.tag | string | `"v4.38.0-v1alpha11"` |  |
@@ -72,7 +73,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | metrics.serviceMonitor.targetLabels | list | `[]` | Set targetLabels for the serviceMonitor |
 | nameOverride | string | `""` | Provide a name |
 | nodeSelector | object | `{}` | Node Selector properties for the tofu-controller deployment |
-| podAnnotations | object | `{}` | Additional pod annotations |
+| podAnnotations | object | `{}` | Additional pod annotations for controller and branch-planner |
 | podLabels | object | `{}` | Additional pod labels |
 | podSecurityContext | object | `{"fsGroup":1337}` | Pod-level security context |
 | priorityClassName | string | `""` | PriorityClassName property for the tofu-controller deployment |
