@@ -3,6 +3,7 @@ apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: OCIRepository
 metadata:
   name: aws-package
+  namespace: {{ .Release.Namespace }}
   annotations:
     metadata.weave.works/description: "This is the AWS package containing primitive modules for flux-iac tofu-controller."
     metadata.weave.works/docs-url: "https://github.com/flux-iac/aws-primitive-modules"
