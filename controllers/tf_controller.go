@@ -138,6 +138,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 
 		// Record Prometheus metrics.
+		r.Metrics.RecordReadiness(ctx, &terraform)
 		r.Metrics.RecordSuspend(ctx, &terraform, terraform.Spec.Suspend)
 		r.Metrics.RecordDuration(ctx, &terraform, reconcileStart)
 	}()
@@ -198,7 +199,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				log.Error(err, "unable to update status for source not found")
 				return ctrl.Result{Requeue: true}, err
 			}
-			r.RecordReadiness(ctx, &terraform)
 			log.Info(msg)
 			// do not requeue immediately, when the source is created the watcher should trigger a reconciliation
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
@@ -211,7 +211,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				log.Error(err, "unable to update status for source access denied")
 				return ctrl.Result{Requeue: true}, err
 			}
-			r.RecordReadiness(ctx, &terraform)
 			log.Info(msg)
 			// don't requeue to retry; it won't succeed unless the sourceRef changes
 			return ctrl.Result{}, nil
@@ -232,7 +231,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			log.Error(err, "unable to update status for artifact not found")
 			return ctrl.Result{Requeue: true}, err
 		}
-		r.RecordReadiness(ctx, &terraform)
 		log.Info(msg)
 		// do not requeue immediately, when the artifact is created the watcher should trigger a reconciliation
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
@@ -250,8 +248,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 					return ctrl.Result{Requeue: true}, err
 				}
 
-				r.RecordReadiness(ctx, &terraform)
-
 				// don't requeue to retry; it won't succeed unless the dependsOn changes
 				return ctrl.Result{}, nil
 			}
@@ -268,7 +264,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			msg := fmt.Sprintf("Dependencies do not meet ready condition, retrying in %s", terraform.GetRetryInterval().String())
 			log.Info(msg)
 			r.event(ctx, terraform, sourceObj.GetArtifact().Revision, eventv1.EventSeverityInfo, msg, nil)
-			r.RecordReadiness(ctx, &terraform)
 
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 		}
@@ -293,7 +288,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			return ctrl.Result{Requeue: true}, err
 		}
 		log.Info("before lookup runner: updated status", "ready", ready)
-		r.RecordReadiness(ctx, &terraform)
 	}
 
 	// Reset retry count if necessary.
@@ -477,20 +471,17 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	// Check remediation.
 	if reconcileErr == nil {
 		log.Info("Reset reconciliation failures count. Reason: successful reconciliation")
-		terraform := infrav1.TerraformResetRetry(*reconciledTerraform)
-		reconciledTerraform = &terraform
+		terraform = infrav1.TerraformResetRetry(*reconciledTerraform)
 	} else {
-		reconciledTerraform.IncrementReconciliationFailures()
+		terraform = *reconciledTerraform
+		terraform.IncrementReconciliationFailures()
 	}
 
 	traceLog.Info("Patch the status of the Terraform resource")
-	if err := r.patchStatus(ctx, req.NamespacedName, reconciledTerraform.Status); err != nil {
+	if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
 		log.Error(err, "unable to update status after the reconciliation is complete")
 		return ctrl.Result{Requeue: true}, err
 	}
-
-	traceLog.Info("Record the readiness metrics")
-	r.RecordReadiness(ctx, &*reconciledTerraform)
 
 	traceLog.Info("Check for reconciliation errors")
 	if reconcileErr != nil && reconcileErr.Error() == infrav1.DriftDetectedReason {
@@ -509,31 +500,31 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			"revision",
 			sourceObj.GetArtifact().Revision)
 		traceLog.Info("Record an event for the failure")
-		r.event(ctx, *reconciledTerraform, sourceObj.GetArtifact().Revision, eventv1.EventSeverityError, reconcileErr.Error(), nil)
+		r.event(ctx, terraform, sourceObj.GetArtifact().Revision, eventv1.EventSeverityError, reconcileErr.Error(), nil)
 
-		if reconciledTerraform.Spec.Remediation != nil {
+		if terraform.Spec.Remediation != nil {
 			log.Info(fmt.Sprintf(
 				"Reconciliation failed, retry (%d/%d) after %s. Generation: %d",
-				reconciledTerraform.GetReconciliationFailures(),
-				reconciledTerraform.Spec.Remediation.Retries,
-				reconciledTerraform.GetRetryInterval(),
-				reconciledTerraform.GetGeneration(),
+				terraform.GetReconciliationFailures(),
+				terraform.Spec.Remediation.Retries,
+				terraform.GetRetryInterval(),
+				terraform.GetGeneration(),
 			))
 		} else {
 			log.Info(fmt.Sprintf(
 				"Reconciliation failed, retry after %s. Generation: %d",
-				reconciledTerraform.GetRetryInterval(),
-				reconciledTerraform.GetGeneration(),
+				terraform.GetRetryInterval(),
+				terraform.GetGeneration(),
 			))
 		}
 
-		return ctrl.Result{RequeueAfter: reconciledTerraform.GetRetryInterval()}, nil
+		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	}
 
-	log.Info(fmt.Sprintf("Reconciliation completed. Generation: %d", reconciledTerraform.GetGeneration()))
+	log.Info(fmt.Sprintf("Reconciliation completed. Generation: %d", terraform.GetGeneration()))
 
 	traceLog.Info("Check for pending plan and forceOrAutoApply")
-	if reconciledTerraform.Status.Plan.Pending != "" && !r.forceOrAutoApply(*reconciledTerraform) {
+	if terraform.Status.Plan.Pending != "" && !r.forceOrAutoApply(terraform) {
 		log.Info("Reconciliation is stopped to wait for manual operations")
 		return ctrl.Result{}, nil
 	}
