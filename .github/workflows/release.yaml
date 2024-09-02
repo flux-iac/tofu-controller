@@ -32,7 +32,7 @@ jobs:
         with:
           version: 4.14.1
       - name: Setup Kustomize
-        uses: fluxcd/pkg/actions/kustomize@1bfad582060d2d6e464756fbd5d7a2b2fa4f75b9 # main
+        uses: fluxcd/pkg/actions/kustomize@f0eb8aa7c6df9577fa4e1e35c5ceb42cf32b6b0d # main
       - name: Setup Cosign
         uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
       - name: Setup Syft
