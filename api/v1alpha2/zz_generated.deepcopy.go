@@ -572,6 +572,13 @@ func (in *TerraformSpec) DeepCopyInto(out *TerraformSpec) {
 		*out = new(TFStateSpec)
 		**out = **in
 	}
+	if in.TFStateAnnotations != nil {
+		in, out := &in.TFStateAnnotations, &out.TFStateAnnotations
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	if in.Targets != nil {
 		in, out := &in.Targets, &out.Targets
 		*out = make([]string, len(*in))
