@@ -2,7 +2,7 @@ ARG BASE_IMAGE
 FROM $BASE_IMAGE
 
 ARG TARGETARCH
-ARG TF_VERSION=1.5.7
+ARG TF_VERSION=1.9.5
 
 # Switch to root to have permissions for operations
 USER root

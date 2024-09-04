@@ -5,7 +5,7 @@ IMAGE_NAME="ghcr.io/flux-iac/tf-runner"
 VERSION="${1}" # Assuming the desired version is passed as an argument to this script
 
 # Versions of Terraform to check
-TF_VERSIONS=(1.0.11 1.1.9 1.2.9 1.3.9 1.4.6 1.5.5 1.5.7)
+TF_VERSIONS=(1.0.11 1.1.9 1.2.9 1.3.9 1.4.6 1.5.7 1.6.6 1.7.5 1.8.5 1.9.5)
 
 # Loop over each Terraform version
 for TF_VERSION in "${TF_VERSIONS[@]}"; do
