@@ -16,7 +16,9 @@ serviceAccount:
 nameOverride: ""
 # -- Provide a fullname
 fullnameOverride: ""
-# -- Additional pod annotations
+# -- Additional deployment annotations for controller and branch-planner
+annotations: {}
+# -- Additional pod annotations for controller and branch-planner
 podAnnotations: {}
 # -- Additional pod labels
 podLabels: {}
