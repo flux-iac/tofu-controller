@@ -4,6 +4,8 @@ metadata:
   labels:
     {{- include "tofu-controller.labels" . | nindent 4 }}
   name: {{ include "tofu-controller.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
