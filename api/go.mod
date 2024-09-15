@@ -1,8 +1,6 @@
 module github.com/flux-iac/tofu-controller/api
 
-go 1.22.0
-
-toolchain go1.22.4
+go 1.22.7
 
 require (
 	github.com/fluxcd/pkg/apis/meta v1.5.0
