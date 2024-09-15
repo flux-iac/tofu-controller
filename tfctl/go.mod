@@ -1,6 +1,6 @@
 module github.com/flux-iac/tofu-controller/tfctl
 
-go 1.23.0
+go 1.22.7
 
 replace github.com/flux-iac/tofu-controller/api => ../api
 
