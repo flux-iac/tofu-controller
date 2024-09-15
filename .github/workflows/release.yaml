@@ -15,7 +15,7 @@ permissions:
 
 env:
   CONTROLLER: ${{ github.event.repository.name }}
-  LIBCRYPTO_VERSION: "3.1.6-r2"
+  LIBCRYPTO_VERSION: "3.3.2-r0"
 
 jobs:
   build-push:
