@@ -16,6 +16,8 @@ serviceAccount:
 nameOverride: ""
 # -- Provide a fullname
 fullnameOverride: ""
+# -- Additional deployment labels for the controller
+deploymentLabels: {}
 # -- Additional pod annotations
 podAnnotations: {}
 # -- Additional pod labels
@@ -181,6 +183,8 @@ branchPlanner:
     repository: ghcr.io/flux-iac/branch-planner
     pullPolicy: IfNotPresent
     tag: ""
+  # Additional deployment labels for the branch-planner
+  deploymentLabels: {}
   configMap: branch-planner
   pollingInterval: 30s
   # Interval value to use for Source objects for branch planner Terraform objects.
