@@ -4,6 +4,9 @@ kind: Deployment
 metadata:
   labels:
     {{- include "planner.labels" . | nindent 4 }}
+    {{- with .Values.branchPlanner.deploymentLabels }}
+    {{ toYaml . }}
+    {{- end }}
   name: {{ include "planner.fullname" . }}
   namespace: {{ .Release.Namespace }}
 spec:
