@@ -17,7 +17,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@b80ff79f1755d06ba70441c368a6fe801f5f3a62 # v4.0.0
+      - uses: actions/checkout@6d193bf28034eafb982f37bd894289fe649468fc # v4.0.0
       - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.1.0
         with:
           python-version: 3.x
@@ -25,7 +25,7 @@ jobs:
         run: pip install mkdocs-material 
       - name: Generate docs artifacts
         run: mkdocs build -d /tmp/docs
-      - uses: actions/checkout@b80ff79f1755d06ba70441c368a6fe801f5f3a62 # v4.0.0
+      - uses: actions/checkout@6d193bf28034eafb982f37bd894289fe649468fc # v4.0.0
         with:
           ref: gh-pages
           path: gh-pages
