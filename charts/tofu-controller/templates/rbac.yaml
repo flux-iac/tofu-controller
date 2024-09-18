@@ -157,6 +157,10 @@ rules:
   - get
   - list
   - watch
+  {{- if .Values.branchPlanner.enabled }}
+  - create
+  - delete
+  {{- end }}
 - apiGroups:
   - source.toolkit.fluxcd.io
   resources:
