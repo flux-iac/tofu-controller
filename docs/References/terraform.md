@@ -702,6 +702,19 @@ before bailing. Defaults to &lsquo;0&rsquo;, a negative integer denotes unlimite
 retries.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>remediateLastFailure</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>RemediateLastFailure tells the controller to remediate the last failure, when
+no retries remain. Defaults to &lsquo;false&rsquo; unless &lsquo;Retries&rsquo; is greater than 0.</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
