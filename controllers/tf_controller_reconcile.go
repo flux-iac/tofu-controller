@@ -206,6 +206,11 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 			return &terraform, err
 		}
 
+		if err := r.patchAnnotationsToTfstateSecret(ctx, terraform); err != nil {
+			log.Error(err, "unable to set annotations to tfstate secret")
+			// not a critical error, continue
+		}
+
 		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
 			log.Error(err, "unable to update status after applying")
 			return &terraform, err
