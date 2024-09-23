@@ -38,3 +38,41 @@ Flags:
 
 Use "tfctl [command] --help" for more information about a command.
 ```
+
+## Shell completion
+
+It works the same way as flux CLI:
+
+With **bash**:
+
+```shell
+# ~/.bashrc or ~/.profile
+command -v tfctl >/dev/null && . <(tfctl completion bash)
+```
+
+With **fish**:
+
+```shell
+tfctl completion fish > ~/.config/fish/completions/tfctl.fish
+```
+
+With **powershell**:
+
+```shell
+# Windows
+
+cd "$env:USERPROFILE\Documents\WindowsPowerShell\Modules"
+tfctl completion powershell >> tfctl-completion.ps1
+
+# Linux
+
+cd "${XDG_CONFIG_HOME:-"$HOME/.config/"}/powershell/modules"
+tfctl completion powershell >> tfctl-completions.ps1
+```
+
+With **zsh**:
+
+```shell
+# ~/.zshrc or ~/.profile
+command -v tfctl >/dev/null && . <(tfctl completion zsh)
+```
