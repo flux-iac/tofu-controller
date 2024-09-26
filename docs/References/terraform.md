@@ -183,6 +183,21 @@ transient error will still result in a reconciliation failure.</p>
 <tbody>
 <tr>
 <td>
+<code>dependencyPaths</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>DependecyPaths indicates directories that the branch planner should observe
+changes in when considering weather to generate a plan for a PR. The branch planner 
+will not attempt to plan terraform in these paths, but changes in them will signal
+to the planner that it should generate a plan for <code>.spec.path</code>.
+</td>
+</tr>
+<tr>
+<td>
 <code>enablePathScope</code><br>
 <em>
 bool
@@ -192,7 +207,8 @@ bool
 <em>(Optional)</em>
 <p>EnablePathScope specifies if the Branch Planner should or shouldn&rsquo;t check
 if a Pull Request has changes under <code>.spec.path</code>. If enabled extra
-resources will be created only if there are any changes in terraform files.</p>
+resources will be created only if there are any changes in terraform files. It should
+be used in conjunction with `enablePathScope`.</p>
 </td>
 </tr>
 </tbody>
