@@ -39,13 +39,13 @@ jobs:
             **/go.sum
             **/go.mod
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@f079b8493333aace61c81488f8bd40919487bd9f # v3.25.7
+        uses: github/codeql-action/init@461ef6c76dfe95d5c364de2f431ddbd31a417628 # v3.26.9
         with:
           languages: go
       - name: Autobuild
-        uses: github/codeql-action/autobuild@f079b8493333aace61c81488f8bd40919487bd9f # v3.25.7
+        uses: github/codeql-action/autobuild@461ef6c76dfe95d5c364de2f431ddbd31a417628 # v3.26.9
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@f079b8493333aace61c81488f8bd40919487bd9f # v3.25.7
+        uses: github/codeql-action/analyze@461ef6c76dfe95d5c364de2f431ddbd31a417628 # v3.26.9
 
   trivy:
     name: Trivy
@@ -57,7 +57,7 @@ jobs:
         run: |
           make docker-buildx
       - name: Run Trivy vulnerability scanner on controller image
-        uses: aquasecurity/trivy-action@595be6a0f6560a0a8fc419ddf630567fc623531d # v0.22.0
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
         with:
           image-ref: 'ghcr.io/flux-iac/tofu-controller:latest'
           format: 'table'
@@ -66,7 +66,7 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
       - name: Run Trivy vulnerability scanner on runner image
-        uses: aquasecurity/trivy-action@595be6a0f6560a0a8fc419ddf630567fc623531d # v0.22.0
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
         with:
           image-ref: 'ghcr.io/flux-iac/tf-runner:latest'
           format: 'table'
@@ -76,7 +76,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
           skip-files: '/usr/local/bin/terraform' # false positive
       - name: Run Trivy vulnerability scanner on runner image
-        uses: aquasecurity/trivy-action@595be6a0f6560a0a8fc419ddf630567fc623531d # v0.22.0
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
         with:
           image-ref: 'ghcr.io/flux-iac/tf-runner-azure:latest'
           format: 'table'
@@ -86,7 +86,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
           skip-files: '/usr/local/bin/terraform' # false positive
       - name: Run Trivy vulnerability scanner on planner image
-        uses: aquasecurity/trivy-action@595be6a0f6560a0a8fc419ddf630567fc623531d # v0.22.0
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
         with:
           image-ref: 'ghcr.io/flux-iac/branch-planner:latest'
           format: 'table'
