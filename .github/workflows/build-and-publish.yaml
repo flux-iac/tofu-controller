@@ -9,8 +9,12 @@ permissions:
   contents: read # for actions/checkout to fetch code
 
 env:
-  CONTROLLER: ${{ github.event.repository.name }}
   LIBCRYPTO_VERSION: "3.3.2-r0"
+  ECR_REGISTRY: 167290662341.dkr.ecr.us-west-2.amazonaws.com
+  TF_CONTROLLER_REPOSITORY: ${{ github.event.repository.name }}
+  TF_RUNNER_REPOSITORY: tf-runner
+  BRANCH_PLANNER_REPOSITORY: branch-planner
+  AWS_REGION: us-west-2
 
 jobs:
   test:
@@ -56,6 +60,14 @@ jobs:
           echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "BUILD_VERSION=${BUILD_VERSION}" >> "$GITHUB_OUTPUT"
           echo "BUILD_SHA=${BUILD_SHA}" >> "$GITHUB_OUTPUT"
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
       - name: Setup QEMU
         uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
         with:
@@ -65,12 +77,6 @@ jobs:
         uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb # v3.3.0
         with:
           buildkitd-flags: "--debug"
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish multi-arch tf-controller container image
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
         with:
@@ -82,7 +88,7 @@ jobs:
             LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
-            ghcr.io/flux-iac/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
+            ${{ env.ECR_REGISTRY }}/${{ env.TF_CONTROLLER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -103,7 +109,7 @@ jobs:
             BUILD_SHA=${{ steps.prep.outputs.BUILD_SHA }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
-            ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}-base
+            ${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}-base
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -120,9 +126,9 @@ jobs:
           file: ./runner.Dockerfile
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           build-args: |
-            BASE_IMAGE=ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}-base
+            BASE_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}-base
           tags: |
-            ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}
+            ${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -141,7 +147,7 @@ jobs:
           build-args: |
             LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           tags: |
-            ghcr.io/flux-iac/branch-planner:${{ steps.prep.outputs.VERSION }}
+            ${{ env.ECR_REGISTRY }}/${{ env.BRANCH_PLANNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}

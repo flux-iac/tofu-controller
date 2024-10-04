@@ -5,6 +5,13 @@ on:
 permissions:
   contents: read # for actions/checkout to fetch code
 
+env:
+  ORG: limebike
+  LIBCRYPTO_VERSION: "3.3.2-r0"
+  ECR_REGISTRY: 167290662341.dkr.ecr.us-west-2.amazonaws.com
+  ECR_REPOSITORY: ${{ github.event.repository.name }}
+  AWS_REGION: us-west-2
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -14,19 +21,24 @@ jobs:
       packages: write # needed for ghcr access
     steps:
       - uses: actions/checkout@b80ff79f1755d06ba70441c368a6fe801f5f3a62 # v4.0.0
+      - name: Configure AWS credentials
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
       - name: Publish Helm chart in GitHub Pages
         uses: stefanprodan/helm-gh-pages@0ad2bb377311d61ac04ad9eb6f252fb68e207260 # v1.7.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Publish Helm OCI
         run: |
           VERSION=$(yq e '.version' charts/tofu-controller/Chart.yaml)
           mkdir helm-release
           helm package charts/tofu-controller/ -d helm-release
-          helm push helm-release/tofu-controller-${VERSION}.tgz oci://ghcr.io/flux-iac/charts
+          helm push oci://${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}/charts helm-release/tofu-controller-${VERSION}.tgz

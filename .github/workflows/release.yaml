@@ -14,8 +14,12 @@ permissions:
   contents: read # for actions/checkout to fetch code
 
 env:
-  CONTROLLER: ${{ github.event.repository.name }}
   LIBCRYPTO_VERSION: "3.3.2-r0"
+  ECR_REGISTRY: 167290662341.dkr.ecr.us-west-2.amazonaws.com
+  TF_CONTROLLER_REPOSITORY: ${{ github.event.repository.name }}
+  TF_RUNNER_REPOSITORY: tf-runner
+  BRANCH_PLANNER_REPOSITORY: branch-planner
+  AWS_REGION: us-west-2
 
 jobs:
   build-push:
@@ -46,6 +50,14 @@ jobs:
           fi
           echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
           echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
       - name: Setup QEMU
         uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
         with:
@@ -55,12 +67,6 @@ jobs:
         uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb # v3.3.0
         with:
           buildkitd-flags: "--debug"
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish multi-arch tofu-controller container image
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
         with:
@@ -73,8 +79,8 @@ jobs:
             LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
-            ghcr.io/flux-iac/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
-            ghcr.io/flux-iac/${{ env.CONTROLLER }}:latest
+            ${{ env.ECR_REGISTRY }}/${{ env.TF_CONTROLLER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}
+            ${{ env.ECR_REGISTRY }}/${{ env.TF_CONTROLLER_REPOSITORY }}:latest
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -93,7 +99,7 @@ jobs:
             LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
-            ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}-base
+            ${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}-base
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -111,10 +117,10 @@ jobs:
           file: ./runner.Dockerfile
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           build-args: |
-            BASE_IMAGE=ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}-base
+            BASE_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}-base
           tags: |
-            ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}
-            ghcr.io/flux-iac/tf-runner:latest
+            ${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}
+            ${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}:latest
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -132,10 +138,10 @@ jobs:
           file: ./runner-azure.Dockerfile
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7 - azure-cli does not install correctly on 32 bit arm
           build-args: |
-            BASE_IMAGE=ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}-base
+            BASE_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}-base
           tags: |
-            ghcr.io/flux-iac/tf-runner-azure:${{ steps.prep.outputs.VERSION }}
-            ghcr.io/flux-iac/tf-runner-azure:latest
+            ${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}-azure:${{ steps.prep.outputs.VERSION }}
+            ${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}-azure:latest
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -155,8 +161,8 @@ jobs:
             LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7 - azure-cli does not install correctly on 32 bit arm
           tags: |
-            ghcr.io/flux-iac/branch-planner:${{ steps.prep.outputs.VERSION }}
-            ghcr.io/flux-iac/branch-planner:latest
+            ${{ env.ECR_REGISTRY }}/${{ env.BRANCH_PLANNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}
+            ${{ env.ECR_REGISTRY }}/${{ env.BRANCH_PLANNER_REPOSITORY }}:latest
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -166,35 +172,35 @@ jobs:
             org.opencontainers.image.created=${{ steps.prep.outputs.BUILD_DATE }}
       - name: Check images
         run: |
-          docker buildx imagetools inspect ghcr.io/flux-iac/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
-          docker pull ghcr.io/flux-iac/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
+          docker buildx imagetools inspect ${{ env.ECR_REGISTRY }}/${{ env.TF_CONTROLLER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}
+          docker pull ${{ env.ECR_REGISTRY }}/${{ env.TF_CONTROLLER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}
 
-          docker buildx imagetools inspect ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}
-          docker pull ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}
+          docker buildx imagetools inspect ${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}
+          docker pull ${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}
 
-          docker buildx imagetools inspect ghcr.io/flux-iac/tf-runner-azure:${{ steps.prep.outputs.VERSION }}
-          docker pull ghcr.io/flux-iac/tf-runner-azure:${{ steps.prep.outputs.VERSION }}
+          docker buildx imagetools inspect ${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}-azure:${{ steps.prep.outputs.VERSION }}
+          docker pull ${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}-azure:${{ steps.prep.outputs.VERSION }}
 
-          docker buildx imagetools inspect ghcr.io/flux-iac/branch-planner:${{ steps.prep.outputs.VERSION }}
-          docker pull ghcr.io/flux-iac/branch-planner:${{ steps.prep.outputs.VERSION }}
+          docker buildx imagetools inspect ${{ env.ECR_REGISTRY }}/${{ env.BRANCH_PLANNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}
+          docker pull ${{ env.ECR_REGISTRY }}/${{ env.BRANCH_PLANNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}
       - name: Sign images
         env:
           COSIGN_EXPERIMENTAL: 1
         run: |
-          cosign sign --yes ghcr.io/flux-iac/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
-          cosign sign --yes ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}-base
-          cosign sign --yes ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}
-          cosign sign --yes ghcr.io/flux-iac/tf-runner-azure:${{ steps.prep.outputs.VERSION }}
-          cosign sign --yes ghcr.io/flux-iac/branch-planner:${{ steps.prep.outputs.VERSION }}
+          cosign sign --yes ${{ env.ECR_REGISTRY }}/${{ env.TF_CONTROLLER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}
+          cosign sign --yes ${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}-base
+          cosign sign --yes ${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}
+          cosign sign --yes ${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}-azure:${{ steps.prep.outputs.VERSION }}
+          cosign sign --yes ${{ env.ECR_REGISTRY }}/${{ env.BRANCH_PLANNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}
       - name: Generate release manifests
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           mkdir -p config/release
           kustomize build ./config/crd > ./config/release/${{ env.CONTROLLER }}.crds.yaml
           kustomize build ./config/rbac > ./config/release/${{ env.CONTROLLER }}.rbac.yaml
-          kustomize build ./config/manager | yq e '.spec.template.spec.containers[0].env[1].value="ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}"' - > ./config/release/${{ env.CONTROLLER }}.deployment.yaml
-          kustomize build ./config/package > ./config/release/${{ env.CONTROLLER }}.packages.yaml
-          echo '[CHANGELOG](https://github.com/flux-iac/${{ env.CONTROLLER }}/blob/main/CHANGELOG.md)' > ./config/release/notes.md
+          kustomize build ./config/manager | yq e '.spec.template.spec.containers[0].env[1].value="${{ env.ECR_REGISTRY }}/${{ env.TF_RUNNER_REPOSITORY }}:${{ steps.prep.outputs.VERSION }}"' - > ./config/release/${{ env.TF_CONTROLLER_REPOSITORY }}.deployment.yaml
+          kustomize build ./config/package > ./config/release/${{ env.TF_CONTROLLER_REPOSITORY }}.packages.yaml
+          echo '[CHANGELOG](https://github.com/limebike/${{ env.TF_CONTROLLER_REPOSITORY }}/blob/main/CHANGELOG.md)' > ./config/release/notes.md
       - name: Setup Go
         uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
         with:
@@ -207,7 +213,6 @@ jobs:
           args: release --release-notes=./config/release/notes.md --skip-validate
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.TF_CONTROLLER_WEAVEWORKSBOT }}
       - name: Publish Helm chart
         uses: stefanprodan/helm-gh-pages@0ad2bb377311d61ac04ad9eb6f252fb68e207260 # v1.7.0
         with:
@@ -220,7 +225,6 @@ jobs:
             -d '{
             "event_type": "release-runners",
             "client_payload": {
-              "controller": "${{ env.CONTROLLER }}",
               "version": "${{ steps.prep.outputs.VERSION }}",
               "build_date": "${{ steps.prep.outputs.BUILD_DATE }}",
               "sha": "${{ github.sha }}",
