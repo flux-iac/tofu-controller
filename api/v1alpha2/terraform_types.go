@@ -273,6 +273,11 @@ type TerraformSpec struct {
 }
 
 type BranchPlanner struct {
+	// DependencyPaths specifies the paths to the directories that should be
+	// checked for changes. If any of the paths have changes, the Branch Planner
+	// will create extra resources for the Pull Request.
+	// +optional
+	DependencyPaths []string `json:"dependencyPaths"`
 	// EnablePathScope specifies if the Branch Planner should or shouldn't check
 	// if a Pull Request has changes under `.spec.path`. If enabled extra
 	// resources will be created only if there are any changes in terraform files.

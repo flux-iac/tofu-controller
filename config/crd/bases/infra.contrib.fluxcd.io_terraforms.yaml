@@ -5360,6 +5360,14 @@ spec:
               branchPlanner:
                 description: BranchPlanner configuration.
                 properties:
+                  dependencyPaths:
+                    description: |-
+                      DependencyPaths specifies the paths that the Branch Planner should
+                      consider when checking if a Pull Request has changes under `.spec.path`.
+                      It should be used in conjunction with `enablePathScope`.
+                    items:
+                      type: string
+                    type: array
                   enablePathScope:
                     description: |-
                       EnablePathScope specifies if the Branch Planner should or shouldn't check

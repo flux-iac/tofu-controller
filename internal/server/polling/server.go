@@ -178,9 +178,26 @@ func (s *Server) filterPullRequestsByPath(ctx context.Context, tf *infrav1.Terra
 		return prs
 	}
 
+	prefixesToMatch := []string{}
 	prefix := strings.TrimLeft(tf.Spec.Path, "./")
 	if prefix == "" {
 		return prs
+	}
+
+	prefixesToMatch = append(prefixesToMatch, prefix)
+
+	if tf.Spec.BranchPlanner.DependencyPaths != nil {
+		for _, dep := range tf.Spec.BranchPlanner.DependencyPaths {
+			trimmed := strings.TrimLeft(dep, "./")
+			if trimmed != "" {
+				prefixesToMatch = append(prefixesToMatch, strings.TrimLeft(dep, "./"))
+			}
+		}
+	}
+
+	trie := NewTrie()
+	for _, prefix := range prefixesToMatch {
+		trie.Insert(prefix)
 	}
 
 	filteredPRs := []provider.PullRequest{}
@@ -192,7 +209,7 @@ func (s *Server) filterPullRequestsByPath(ctx context.Context, tf *infrav1.Terra
 		}
 
 		for _, change := range changes {
-			if strings.HasPrefix(change.Path, prefix) {
+			if trie.StartsWith(change.Path) {
 				s.log.Info("has terraform changed", "path", change.Path)
 
 				filteredPRs = append(filteredPRs, pr)
