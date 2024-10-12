@@ -26,7 +26,7 @@ jobs:
       packages: write # needed for ghcr access
     steps:
       - name: Check out
-        uses: actions/checkout@b80ff79f1755d06ba70441c368a6fe801f5f3a62 # v4.0.0
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.0.0
       - name: Set up yq
         uses: frenck/action-setup-yq@c4b5be8b4a215c536a41d436757d9feb92836d4f # v1.0.2
         with:
