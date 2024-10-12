@@ -23,8 +23,6 @@ import (
 	"github.com/flux-iac/tofu-controller/mtls"
 	"github.com/flux-iac/tofu-controller/runner"
 
-	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
-	"github.com/flux-iac/tofu-controller/controllers"
 	"github.com/fluxcd/pkg/runtime/acl"
 	"github.com/fluxcd/pkg/runtime/client"
 	runtimeCtrl "github.com/fluxcd/pkg/runtime/controller"
@@ -44,6 +42,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/flux-iac/tofu-controller/controllers"
+
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -52,7 +53,7 @@ import (
 	//+kubebuilder:scaffold:imports
 )
 
-const controllerName = "tf-controller"
+const controllerName = "tofu-controller"
 
 var (
 	scheme   = runtime.NewScheme()
@@ -183,9 +184,9 @@ func main() {
 	certsReady := make(chan struct{})
 	rotator := &mtls.CertRotator{
 		Ready:                         certsReady,
-		CAName:                        "tf-controller",
-		CAOrganization:                "weaveworks",
-		DNSName:                       "tf-controller",
+		CAName:                        "tofu-controller",
+		CAOrganization:                "flux-iac",
+		DNSName:                       "tofu-controller",
 		CAValidityDuration:            caValidityDuration,
 		RotationCheckFrequency:        rotationCheckFrequency,
 		LookaheadInterval:             4 * rotationCheckFrequency, // we do 4 rotation checks ahead

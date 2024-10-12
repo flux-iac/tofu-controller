@@ -18,7 +18,7 @@ to merge them for you after reviews.
 
 ## Protobuf Setup
 
-TF-controller requires a specific version of Protobuf compiler and its Go plugins.
+Tofu-controller requires a specific version of Protobuf compiler and its Go plugins.
 
 * Protoc: version [3.19.4](https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip)
 * Go plugin: `go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.27.1`
@@ -103,7 +103,7 @@ Tilt will automatically detect code changes which will retrigger a build and red
 Set the name of the container image to be created from the source code. This will be used when building, pushing and referring to the image on YAML files:
 
 ```sh
-export MANAGER_IMG=registry-path/tf-controller
+export MANAGER_IMG=registry-path/tofu-controller
 ```
 
 Build the container image, tagging it as `$MANAGER_IMG:latest`:
@@ -122,7 +122,7 @@ make docker-push
 
 ### Deploying into a cluster
 
-Deploy `tf-controller` into the cluster that is configured in the local kubeconfig file (i.e. `~/.kube/config`):
+Deploy `tofu-controller` into the cluster that is configured in the local kubeconfig file (i.e. `~/.kube/config`):
 
 ```sh
 make deploy
@@ -132,11 +132,11 @@ Running the above will also deploy `source-controller` and its CRDs to the clust
 
 ### Debug
 
-`sudo dlv --listen=:2345 --headless=true --api-version=2 attach $(pgrep tf-controller)`
+`sudo dlv --listen=:2345 --headless=true --api-version=2 attach $(pgrep tofu-controller)`
 
 ## Communications
 
-For realtime communications we use Slack: To join the conversation, simply join the [Weave Users](https://weave-community.slack.com/) Slack workspace and use the [#tf-controller](https://weave-community.slack.com/messages/tf-controller/) channel.
+For realtime communications we use Slack: To join the conversation, simply join the [Weave Users](https://weave-community.slack.com/) Slack workspace and use the [#tofu-controller](https://weave-community.slack.com/messages/tofu-controller/) channel.
 
 To discuss ideas and specifications we use [Github Discussions](https://github.com/flux-iac/tofu-controller/discussions).
 

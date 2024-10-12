@@ -24,7 +24,7 @@ If you have a feature request to share or a bug to report, please file an issue.
 
 To get started check out this [guide](https://flux-iac.github.io/tofu-controller/getting_started/) on how to GitOps your Terraform resources with Tofu Controller and Flux.
 
-Check out the [documentation](https://flux-iac.github.io/tofu-controller/) and [use cases](https://flux-iac.github.io/tofu-controller/use-tf-controller/).
+Check out the [documentation](https://flux-iac.github.io/tofu-controller/) and [use cases](https://flux-iac.github.io/tofu-controller/use-tofu-controller/).
 
 ## Roadmap
 

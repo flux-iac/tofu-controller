@@ -1,4 +1,4 @@
-## Use TF-Controller to detect drifts only without plan or apply
+## Use tofu-controller to detect drifts only without plan or apply
 
 We can set `.spec.approvePlan` to `disable` to tell the controller to detect drifts of your Terraform resources only. Doing so will skip the `plan` and `apply` stages.
 

@@ -49,7 +49,7 @@ docker push $REMOTE_REPO:${TF_CONTROLLER_VERSION}
 
 Replace the relevant values above with the corresponding values in your organisation/implementation.
 
-3. Update the `values.runner.image` values in the TF-Controller Helm chart values to point to the new image:
+3. Update the `values.runner.image` values in the tofu-controller Helm chart values to point to the new image:
 
 ```yaml
 values:
@@ -62,7 +62,7 @@ values:
 4. Commit and push the changes to Git. Confirm that the HelmRelease has been updated:
 
 ```bash
-kubectl get deployments.apps -n flux-system tf-controller -o jsonpath='{.spec.template.spec.containers[*]}' | jq '.env[] | select(.name == "RUNNER_POD_IMAGE")'
+kubectl get deployments.apps -n flux-system tofu-controller -o jsonpath='{.spec.template.spec.containers[*]}' | jq '.env[] | select(.name == "RUNNER_POD_IMAGE")'
 {
   "name": "RUNNER_POD_IMAGE",
   "value": "ghcr.io/my-org/custom-runner:v0.16.0-rc3"
@@ -71,4 +71,4 @@ kubectl get deployments.apps -n flux-system tf-controller -o jsonpath='{.spec.te
 
 ### References
 
-A [set of GitHub actions in the TF-Controller community repo](https://github.com/tf-controller/tf-runner-images/blob/main/.github/workflows/release-runner-images.yaml) facilitates a process similar to the above, but uses GitHub Actions to build and push the image.
+A [set of GitHub actions in the tofu-controller community repo](https://github.com/flux-iac/tf-runner-images/blob/main/.github/workflows/release-runner-images.yaml) facilitates a process similar to the above, but uses GitHub Actions to build and push the image.

@@ -1,4 +1,4 @@
-## Aligning TF-Controller with Terraform's Init Workflow Stage
+## Aligning tofu-controller with Terraform's Init Workflow Stage
 
 This page covers required and optional steps you should take in alignment with Terraform's "init" workflow stage. We cover "plan," "apply," and "destroy" steps in subsequent pages. 
 
@@ -14,7 +14,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 30s
-  url: https://github.com/tf-controller/helloworld
+  url: https://github.com/flux-iac/helloworld
   ref:
     branch: main
 ```
@@ -23,21 +23,21 @@ Here's guidance for [when your source is an OCI artifact](with-an-oci-artifact-a
 
 ### Optional Steps 
 
-At this point you have options to enhance your use of TF-Controller:
-- Optional: [Use TF-Controller with GitOps Dependency Management](with-gitops-dependency-management.md)
+At this point you have options to enhance your use of tofu-controller:
+- Optional: [Use tofu-controller with GitOps Dependency Management](with-gitops-dependency-management.md)
     - This is to avoid the Kustomization controller's variable substitution
-- Optional: [Using TF-Controller with Primitive Modules](with-primitive-modules.md) for an optional way to write Terraform code.
+- Optional: [Using tofu-controller with Primitive Modules](with-primitive-modules.md) for an optional way to write Terraform code.
 
 ### Resource Provisioning
 
 Related resources, with optional steps noted:
 
-- [Use TF-Controller to Provision Resources and Auto-Approve](provision-resources-and-auto-approve.md)
+- [Use tofu-controller to Provision Resources and Auto-Approve](provision-resources-and-auto-approve.md)
 - Optional: [Provision Resources and Destroy Them When the Terraform Object Gets Deleted](provision-resources-and-destroy-them-when-terraform-object-gets-deleted.md)
 - Optional: [Provision Terraform Resources That Are Required Health Checks](provision-Terraform-resources-that-are-required-health-checks.md)
     - You would check these during the "apply" workflow stage
 - Optional, operations-related: [Using a Custom Backend](with-a-custom-backend.md)
-    - TF-Controller uses the Kubernetes backend by default
+    - tofu-controller uses the Kubernetes backend by default
 
 Be mindful of locking mechanism when pursuing these steps.
 
@@ -45,7 +45,7 @@ Be mindful of locking mechanism when pursuing these steps.
 - [Working with Terraform Cloud and Terraform Enterprise](integration-with-terraform-enterprise-or-cloud.md); see also: [Terraform Cloud and Branch Planner](../branch-planner/branch-planner-tfc-integration-getting-started.md)
 
 ### Context-Related Steps
-- Optional: [Use TF-Controller with Terraform Runners enabled via Env Variables](with-tf-runner-logging.md)
+- Optional: [Use tofu-controller with Terraform Runners enabled via Env Variables](with-tf-runner-logging.md)
 - Optional: [Set variables for Terraform resources](set-variables-for-terraform-resources.md)
 - Optional: [Provision resources and obtain outputs](provision-resources-obtain-outputs.md)
 - [Provision resources with customized Runner Pods](provision-resources-with-customized-runner-pods.md)

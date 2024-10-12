@@ -190,7 +190,7 @@ func getPods(ctx context.Context, c *kubernetes.Clientset, ns string) ([]corev1.
 	var ret []corev1.Pod
 
 	opts := metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("%s=%s", "app.kubernetes.io/name", "tf-controller"),
+		LabelSelector: fmt.Sprintf("%s=%s", "app.kubernetes.io/name", "tofu-controller"),
 	}
 	deployList, err := c.AppsV1().Deployments(ns).List(ctx, opts)
 	if err != nil {

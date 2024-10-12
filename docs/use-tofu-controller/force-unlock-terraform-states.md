@@ -1,4 +1,4 @@
-# Use TF-Controller to force unlock Terraform states
+# Use tofu-controller to force unlock Terraform states
 
 In some situations, you may need to perform the Terraform [force-unlock](https://www.terraform.io/language/state/locking#force-unlock) operation on the tfstate inside the cluster. 
 

@@ -1,10 +1,10 @@
-# Use TF-controller with GitOps dependency management
+# Use tofu-controller with GitOps dependency management
 
-TF-controller supports GitOps dependency management.
+Tofu-controller supports GitOps dependency management.
 The GitOps dependency management feature is based on the similar technique implemented in the Kustomization controller of Flux.
 
-This means that you can use TF-controller to provision resources that depend on other resources at the GitOps level.
-For example, you can use TF-controller to provision an S3 bucket, and then use TF-controller to provision another resource to configure ACL for that bucket.
+This means that you can use tofu-controller to provision resources that depend on other resources at the GitOps level.
+For example, you can use tofu-controller to provision an S3 bucket, and then use tofu-controller to provision another resource to configure ACL for that bucket.
 
 GitOps dependency management is different from Terraform's HCL dependency management in the way that it is not based on Terraform's mechanism, which is controlled by the Terraform binary.
 Instead, it is implemented at the controller level, which means that each Terraform module is reconciled and can be managed independently, while still being able to depend on other modules.
@@ -31,7 +31,7 @@ metadata:
 spec:
   path: aws_s3_bucket
   values:
-    bucket: my-tf-controller-test-bucket
+    bucket: my-tofu-controller-test-bucket
     tags:
       Environment: Dev
       Name: My bucket

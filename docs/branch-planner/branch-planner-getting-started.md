@@ -36,13 +36,13 @@ kubectl create secret generic branch-planner-token \
     --from-literal="token=${GITHUB_TOKEN}"
 ```
 
-4. Install Branch Planner from a HelmRelease provided by the TF-Controller repository. Use TF-Controller v0.16.0-rc.2 or later.
+4. Install Branch Planner from a HelmRelease provided by the Tofu-Controller repository. Use Tofu-Controller v0.16.0-rc.2 or later.
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/fa4b3b85d316340d897fda4fed757265ba2cd30e/docs/branch_planner/release.yaml
 ```
 
-5. Create a Terraform object with a Source pointing to a repository. Your repository must contain a Terraform file—for example, `main.tf`. Check out [this demo](https://github.com/tf-controller/branch-planner-demo) for an example.
+5. Create a Terraform object with a Source pointing to a repository. Your repository must contain a Terraform file—for example, `main.tf`. Check out [this demo](https://github.com/flux-iac/branch-planner-demo) for an example.
 
 ```bash
 export GITHUB_USER=<your user>
@@ -85,7 +85,7 @@ Branch Planner uses a ConfigMap as configuration. The ConfigMap is optional but 
 
 ### Configuration
 
-By default, Branch Planner will look for the `branch-planner` ConfigMap in the same namespace as where the TF-Controller is installed.
+By default, Branch Planner will look for the `branch-planner` ConfigMap in the same namespace as where the Tofu-Controller is installed.
 That ConfigMap allows users to specify which Terraform resources in a cluster the Brach Planner should monitor.
 
 The ConfigMap has two fields:

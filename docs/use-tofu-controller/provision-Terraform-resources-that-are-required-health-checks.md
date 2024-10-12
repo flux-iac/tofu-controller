@@ -1,4 +1,4 @@
-# Use TF-Controller to provision Terraform resources that are required health checks
+# Use tofu-controller to provision Terraform resources that are required health checks
 
 For some Terraform resources, it may be useful to perform health checks on them to verify that they are ready to accept connection before the terraform goes into `Ready` state:
 

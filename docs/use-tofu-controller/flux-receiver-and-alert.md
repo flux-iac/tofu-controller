@@ -10,7 +10,7 @@ installation's bootstrap manifests. Find it under the `flux-system` directory.
 <!-- <a id="enable-notifications-for-third-party-controllers">&nbsp;</a> -->
 ### Enable Notifications for Third-Party Controllers
 
-Enable notifications for 3rd party Flux controllers such as [tf-controller](https://github.com/flux-iac/tofu-controller):
+Enable notifications for 3rd party Flux controllers such as [tofu-controller](https://github.com/flux-iac/tofu-controller):
 
 ```yaml
 apiVersion: kustomize.config.k8s.io/v1beta1

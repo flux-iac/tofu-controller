@@ -1,7 +1,7 @@
-# Use TF-Controller with primitive modules
+# Use tofu-controller with primitive modules
 
-This document describes how to use TF-Controller with a primitive module.
-It requires TF-Controller v0.13+ to run the example.
+This document describes how to use tofu-controller with a primitive module.
+It requires tofu-controller v0.13+ to run the example.
 
 ## What is a primitive module?
 
@@ -17,7 +17,7 @@ It's a Terraform module that contains only a single resource.
 
 Here is an example of how a primitive module can be defined in YAML.
 Assume that we have a ready-to-use OCI image with a primitive module for the imaginary resource `aws_hello_world`,
-and the image is tagged as `ghcr.io/tf-controller/hello-primitive-modules/v4.32.0:v1`.
+and the image is tagged as `ghcr.io/flux-iac/hello-primitive-modules/v4.32.0:v1`.
 
 We'll use the following Terraform object definition to provision the resource.
 
@@ -39,7 +39,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 30s
-  url: oci://ghcr.io/tf-controller/hello-primitive-modules/v4.32.0
+  url: oci://ghcr.io/flux-iac/hello-primitive-modules/v4.32.0
   ref:
     tag: v1
 ---

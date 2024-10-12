@@ -3,7 +3,7 @@
 ## What is break the glass?
 
 "Break the glass" refers to a troubleshooting mode specifically designed
-to provide a manual solution when TF-Controller is not performing as expected. This feature is available in the Terraform controller *v0.15.0* and above.
+to provide a manual solution when tofu-controller is not performing as expected. This feature is available in the Terraform controller *v0.15.0* and above.
 
 ~> **WARNING:** Please note that you cannot use this feature to fix the Terraform resources with `v1alpha1` version of the Terraform CRD.  It works only with `v1alpha2` version of the Terraform CRD.
 

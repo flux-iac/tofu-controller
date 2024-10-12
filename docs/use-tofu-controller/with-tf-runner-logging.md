@@ -18,7 +18,7 @@ the `DISABLE_TF_LOGS` variable must also be set to "1".
 - For `Plan` calls made on the runner, error messages are sanitized as a part of the default configuration.
 
 For more information on configuring the Terraform Runner and its environment variables,
-please consult the documentation on [customizing runners](provision-resources-with-customized-runner-pods.md) within the Weave TF-controller.
+please consult the documentation on [customizing runners](provision-resources-with-customized-runner-pods.md) within the FluxIaC Tofu-controller.
 
 ## Logging human-readable plan
 

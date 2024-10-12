@@ -1,6 +1,6 @@
 ## Branch Planner and Terraform Cloud Integration: Getting Started
 
-With Branch Planner, you can provision the `main` branch directly on Terraform Cloud. TF-Controller communicates with Terraform Cloud to run the necessary plans and apply your approved code. The state is securely stored on Terraform Cloud.
+With Branch Planner, you can provision the `main` branch directly on Terraform Cloud. Tofu-Controller communicates with Terraform Cloud to run the necessary plans and apply your approved code. The state is securely stored on Terraform Cloud.
 
 **Note:** For now, Branch Planner only supports GitHub as the Git provider. We plan to add other Git providers in time.
 
@@ -36,7 +36,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 30s
-  url: https://github.com/tf-controller/branch-planner-demo
+  url: https://github.com/flux-iac/branch-planner-demo
   ref:
     branch: main
 ---
@@ -49,7 +49,7 @@ spec:
   interval: 2m
   approvePlan: auto
   cloud:
-    organization: weaveworks
+    organization: flux-iac
     workspaces:
       name: branch-planner-tfc
   cliConfigSecretRef:
@@ -68,7 +68,7 @@ spec:
 ### Step 3: Edit File, Create a Branch, and Open a Pull Request
 
 1. **Navigate to Your Repository:** Open a web browser and visit your GitHub repository. 
-For our example, navigate [here](https://github.com/tf-controller/branch-planner-demo).
+For our example, navigate [here](https://github.com/flux-iac/branch-planner-demo).
 
 2. **Locate the File to Edit:** Browse through the repository's file structure and 
 click on the Terraform configuration file you wish to edit.
@@ -104,7 +104,7 @@ This enables you and your team to review the expected changes before they're app
 
 2. **Iterate on Changes if Necessary**:
     - If you spot any discrepancies or wish to make further adjustments, click on the file in the `Files changed` section.
-    - After making the desired edits, commit the changes to the same branch. This will automatically prompt TF-Controller and Branch Planner to generate a new plan.
+    - After making the desired edits, commit the changes to the same branch. This will automatically prompt Tofu-Controller and Branch Planner to generate a new plan.
     - If, for any reason, the automatic replan doesn't occur or you believe there might be an inconsistency, you can manually trigger a new plan by commenting `!replan` on the PR. Branch Planner will then process the request and display the new plan results.
 
 3. **Approve the Changes**:
@@ -116,4 +116,4 @@ This enables you and your team to review the expected changes before they're app
     - With the changes approved, click on the `Merge pull request` button.
     - Choose your desired merge strategy from the options provided, such as "Squash and merge" or "Rebase and merge".
     - Click `Confirm merge`.
-    - Following the merge, TF-Controller will take over. It will send the updated Terraform configuration to Terraform Cloud, where the changes will be planned and then applied. The resulting infrastructure state will be securely stored within your Terraform Cloud workspace.
+    - Following the merge, Tofu-Controller will take over. It will send the updated Terraform configuration to Terraform Cloud, where the changes will be planned and then applied. The resulting infrastructure state will be securely stored within your Terraform Cloud workspace.

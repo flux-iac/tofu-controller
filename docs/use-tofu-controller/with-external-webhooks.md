@@ -1,6 +1,6 @@
-# Use TF-Controller with External Webhooks
+# Use tofu-controller with External Webhooks
 
-The TF-Controller provides a way to integrate with webhooks to further validate Terraform plans and manage the Terraform execution process. 
+The tofu-controller provides a way to integrate with webhooks to further validate Terraform plans and manage the Terraform execution process. 
 With the webhook feature, you can implement custom policy checks, validations, and other logic to determine if the Terraform process should proceed.
 
 ## Setting up the Webhook
@@ -48,7 +48,7 @@ spec:
 
 Important Considerations:
 
-- Ensure that your webhook endpoint is secure, as the TF-Controller will be sending potentially sensitive Terraform plan data to it.
+- Ensure that your webhook endpoint is secure, as the tofu-controller will be sending potentially sensitive Terraform plan data to it.
 - Test your webhook implementation thoroughly before deploying to production, as any issues could interrupt or halt your Terraform process.
 
 With the webhook feature, you can create a more robust and flexible GitOps Terraform pipeline that respects custom organizational policies and other requirements.

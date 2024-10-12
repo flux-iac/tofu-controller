@@ -1,4 +1,4 @@
-# Use TF-Controller to provision resources and destroy them when the Terraform object gets deleted
+# Use tofu-controller to provision resources and destroy them when the Terraform object gets deleted
 
 The resources provisioned by a Terraform object are not destroyed by default, and the tfstate of that Terraform object still remains in the cluster.
 

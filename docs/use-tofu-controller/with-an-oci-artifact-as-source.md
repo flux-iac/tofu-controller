@@ -1,4 +1,4 @@
-# Use TF-Controller with an OCI Artifact as Source
+# Use tofu-controller with an OCI Artifact as Source
 
 To use OCI artifacts as the source of Terraform objects, you need Flux 2 version **v0.32.0** or higher.
 
@@ -7,12 +7,12 @@ you can use Flux CLI to create an OCI artifact for your Terraform modules
 by running the following commands:
 
 ```bash
-flux push artifact oci://ghcr.io/tf-controller/helloworld:$(git rev-parse --short HEAD) \
+flux push artifact oci://ghcr.io/flux-iac/helloworld:$(git rev-parse --short HEAD) \
     --path="./modules" \
     --source="$(git config --get remote.origin.url)" \
     --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
 
-flux tag artifact oci://ghcr.io/tf-controller/helloworld:$(git rev-parse --short HEAD) \
+flux tag artifact oci://ghcr.io/flux-iac/helloworld:$(git rev-parse --short HEAD) \
     --tag main
 ```
 
@@ -26,7 +26,7 @@ metadata:
   name: helloworld-oci
 spec:
   interval: 1m
-  url: oci://ghcr.io/tf-controller/helloworld
+  url: oci://ghcr.io/flux-iac/helloworld
   ref:
     tag: main
 ---

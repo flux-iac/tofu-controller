@@ -5,10 +5,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/flux-iac/tofu-controller/tfctl"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+
+	"github.com/flux-iac/tofu-controller/tfctl"
 )
 
 var (
@@ -75,13 +76,13 @@ func newRootCommand() *cobra.Command {
 func buildVersionCmd(app *tfctl.CLI) *cobra.Command {
 	install := &cobra.Command{
 		Use:   "version",
-		Short: "Prints tf-controller and tfctl version information",
+		Short: "Prints tofu-controller and tfctl version information",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.Version(os.Stdout)
 		},
 	}
-	install.Flags().String("version", "", "The version of tf-controller to install.")
+	install.Flags().String("version", "", "The version of tofu-controller to install.")
 	viper.BindPFlag("version", install.Flags().Lookup("version"))
 	return install
 }
@@ -100,15 +101,15 @@ var installExamples = `
 func buildInstallCmd(app *tfctl.CLI) *cobra.Command {
 	install := &cobra.Command{
 		Use:     "install",
-		Short:   "Install the tf-controller",
-		Long:    "Install the tf-controller resources in the specified namespace",
+		Short:   "Install the tofu-controller",
+		Long:    "Install the tofu-controller resources in the specified namespace",
 		Example: strings.Trim(installExamples, "\n"),
 		Args:    cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.Install(os.Stdout, viper.GetString("version"), viper.GetBool("export"))
 		},
 	}
-	install.Flags().String("version", "", "The version of tf-controller to install.")
+	install.Flags().String("version", "", "The version of tofu-controller to install.")
 	install.Flags().Bool("export", false, "Print installation manifests to stdout")
 	viper.BindPFlags(install.Flags())
 	return install
@@ -117,7 +118,7 @@ func buildInstallCmd(app *tfctl.CLI) *cobra.Command {
 func buildUninstallCmd(app *tfctl.CLI) *cobra.Command {
 	return &cobra.Command{
 		Use:   "uninstall",
-		Short: "Uninstall the tf-controller",
+		Short: "Uninstall the tofu-controller",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return app.Uninstall(os.Stdout)

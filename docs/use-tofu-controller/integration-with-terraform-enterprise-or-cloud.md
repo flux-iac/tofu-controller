@@ -4,7 +4,7 @@ Terraform is a secure and robust platform designed to store the Terraform states
 for your production systems. When working with Infrastructure as Code, 
 managing and ensuring the state is both secure and consistent is critical. 
 
-TF-Controller supports both Terraform Cloud and Terraform Enterprise. The `spec.cloud` in the Terraform CRD enables users to integrate their Kubernetes configurations with Terraform workflows.
+Tofu-controller supports both Terraform Cloud and Terraform Enterprise. The `spec.cloud` in the Terraform CRD enables users to integrate their Kubernetes configurations with Terraform workflows.
 
 To get started, simply place your Terraform Cloud token in a Kubernetes Secret
 and specify it in the `spec.cliConfigSecretRef` field of the Terraform CR.
@@ -12,7 +12,7 @@ The `spec.cloud` field specifies the organization and workspace name.
 
 ## Terraform Enterprise
 
-Here are the steps to set up TF-Controller for your TFE instance.
+Here are the steps to set up tofu-controller for your TFE instance.
 
 ![](tfe_integration_01.png)
 
@@ -38,7 +38,7 @@ Content of the file will look like this:
 ```
 
 ### Prepare an TFRC file
-TF-Controller accepts an TFRC file in the HCL format. So you have to prepare `terraform.tfrc` file using contents from above.
+Tofu-controller accepts an TFRC file in the HCL format. So you have to prepare `terraform.tfrc` file using contents from above.
 ```hcl
 credentials "tfe.dev.example.com" {
   token = "mXXXXXXXXX.atlasv1.ixXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
@@ -97,7 +97,7 @@ terraform {
   required_version = ">= 1.1.0"
   cloud {
     hostname = "tfe.dev.example.com"
-    organization = "weaveworks"
+    organization = "flux-iac"
 
     workspaces {
       name = "dev"
@@ -118,9 +118,9 @@ output "greeting" {
 
 ### Terraform Cloud
 
-TF-Controller can send your Terraform resources to be planned and applied via Terraform Cloud. 
+Tofu-controller can send your Terraform resources to be planned and applied via Terraform Cloud. 
 States are automatically stored in your Terraform Cloud's workspace. 
-To use TF-Controller with Terraform Cloud, replace your hostname to `app.terraform.io`. Also, set `spec.approvalPlan` to `auto`. 
+To use tofu-controller with Terraform Cloud, replace your hostname to `app.terraform.io`. Also, set `spec.approvalPlan` to `auto`. 
 
 Here's how the configuration looks:
 
@@ -134,7 +134,7 @@ spec:
   interval: 2m
   approvePlan: auto
   cloud:
-    organization: weaveworks
+    organization: flux-iac
     workspaces:
       name: branch-planner-tfc
   cliConfigSecretRef:

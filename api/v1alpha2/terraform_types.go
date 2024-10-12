@@ -24,7 +24,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/flux-iac/tofu-controller/api/planid"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -33,10 +32,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+
+	"github.com/flux-iac/tofu-controller/api/planid"
 )
 
 const (
-	CACertSecretName = "tf-controller.tls"
+	CACertSecretName = "tofu-controller.tls"
 	// RunnerTLSSecretName is the name of the secret containing a TLS cert that will be written to
 	// the namespace in which a terraform runner is created
 	RunnerTLSSecretName     = "terraform-runner.tls"
