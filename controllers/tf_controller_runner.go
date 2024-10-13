@@ -7,9 +7,6 @@ import (
 	"strings"
 	"time"
 
-	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
-	"github.com/flux-iac/tofu-controller/mtls"
-	"github.com/flux-iac/tofu-controller/runner"
 	"github.com/fluxcd/pkg/runtime/logger"
 	"google.golang.org/grpc"
 	corev1 "k8s.io/api/core/v1"
@@ -22,6 +19,10 @@ import (
 	controllerruntime "sigs.k8s.io/controller-runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/flux-iac/tofu-controller/mtls"
+	"github.com/flux-iac/tofu-controller/runner"
 )
 
 func getRunnerPodObjectKey(terraform infrav1.Terraform) types.NamespacedName {
@@ -347,7 +348,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 
 		runnerPod := *runnerPodTemplate.DeepCopy()
 		runnerPodKey := client.ObjectKeyFromObject(&runnerPod)
-		err = wait.PollImmediate(interval, timeout, func() (bool, error) {
+		err = wait.PollUntilContextTimeout(ctx, interval, timeout, true, func(ctx context.Context) (bool, error) {
 			err := r.Get(ctx, runnerPodKey, &runnerPod)
 			if err != nil && errors.IsNotFound(err) {
 				return true, nil

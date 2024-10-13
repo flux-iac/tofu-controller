@@ -6,7 +6,6 @@ import (
 	"io"
 	"time"
 
-	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/fluxcd/pkg/apis/meta"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,6 +13,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 )
 
 // clear plan pending
@@ -22,25 +23,25 @@ import (
 // print the plan output
 
 // Replan re-plans the given Terraform resource
-func (c *CLI) Replan(out io.Writer, resource string) error {
+func (c *CLI) Replan(ctx context.Context, out io.Writer, resource string) error {
 	key := types.NamespacedName{
 		Name:      resource,
 		Namespace: c.namespace,
 	}
 
-	if err := replan(context.TODO(), c.client, key); err != nil {
+	if err := replan(ctx, c.client, key); err != nil {
 		return err
 	}
 
-	if err := requestReconciliation(context.TODO(), c.client, key); err != nil {
+	if err := requestReconciliation(ctx, c.client, key); err != nil {
 		return err
 	}
 	fmt.Fprintf(out, " Replan requested for %s/%s\n", c.namespace, resource)
 
 	// wait for the plan to be ready, 4 loops, 30 seconds each
-	if err := wait.Poll(1*time.Second, 120*time.Second, func() (bool, error) {
+	if err := wait.PollUntilContextTimeout(ctx, 1*time.Second, 120*time.Second, true, func(ctx context.Context) (bool, error) {
 		terraform := &infrav1.Terraform{}
-		if err := c.client.Get(context.TODO(), key, terraform); err != nil {
+		if err := c.client.Get(ctx, key, terraform); err != nil {
 			return false, err
 		}
 
