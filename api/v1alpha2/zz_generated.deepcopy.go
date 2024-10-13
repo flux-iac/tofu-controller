@@ -533,6 +533,11 @@ func (in *TerraformSpec) DeepCopyInto(out *TerraformSpec) {
 		*out = new(v1.Duration)
 		**out = **in
 	}
+	if in.MaxRetryInterval != nil {
+		in, out := &in.MaxRetryInterval, &out.MaxRetryInterval
+		*out = new(v1.Duration)
+		**out = **in
+	}
 	out.SourceRef = in.SourceRef
 	if in.ReadInputsFromSecrets != nil {
 		in, out := &in.ReadInputsFromSecrets, &out.ReadInputsFromSecrets
