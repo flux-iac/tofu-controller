@@ -5,10 +5,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/flux-iac/tofu-controller/tfctl"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+
+	"github.com/flux-iac/tofu-controller/tfctl"
 )
 
 var (
@@ -385,7 +386,7 @@ func buildReplanCmd(app *tfctl.CLI) *cobra.Command {
 		Example: strings.Trim(replanExamples, "\n"),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Replan(os.Stdout, args[0])
+			return app.Replan(cmd.Context(), os.Stdout, args[0])
 		},
 	}
 	return replan
@@ -398,7 +399,7 @@ func buildBreakTheGlassCmd(app *tfctl.CLI) *cobra.Command {
 		Short:   "Break the glass",
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.BreakTheGlass(os.Stdout, args[0])
+			return app.BreakTheGlass(cmd.Context(), os.Stdout, args[0])
 		},
 	}
 	return breakTheGlass

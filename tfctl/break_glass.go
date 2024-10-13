@@ -8,38 +8,39 @@ import (
 	"os/exec"
 	"time"
 
-	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 )
 
-func (c *CLI) BreakTheGlass(out io.Writer, resource string) error {
+func (c *CLI) BreakTheGlass(ctx context.Context, out io.Writer, resource string) error {
 	tfObject := types.NamespacedName{
 		Name:      resource,
 		Namespace: c.namespace,
 	}
 
-	if err := requestBreakingTheGlass(context.TODO(), c.client, tfObject); err != nil {
+	if err := requestBreakingTheGlass(ctx, c.client, tfObject); err != nil {
 		return err
 	}
 	fmt.Fprintf(out, " Break the glass requested for %s/%s\n", c.namespace, resource)
-	if err := requestReconciliation(context.TODO(), c.client, tfObject); err != nil {
+	if err := requestReconciliation(ctx, c.client, tfObject); err != nil {
 		return err
 	}
 
 	defer func() {
-		err := removeBreakingTheGlass(context.TODO(), c.client, tfObject)
+		err := removeBreakingTheGlass(ctx, c.client, tfObject)
 		if err != nil {
 			fmt.Fprintf(out, " Failed to remove break the glass annotation for %s/%s\n", c.namespace, resource)
 		}
 	}()
 
 	terraform := &infrav1.Terraform{}
-	err := wait.PollImmediate(5*time.Second, 5*time.Minute, func() (bool, error) {
-		err := c.client.Get(context.TODO(), tfObject, terraform)
+	err := wait.PollUntilContextTimeout(ctx, 5*time.Second, 5*time.Minute, true, func(ctx context.Context) (bool, error) {
+		err := c.client.Get(ctx, tfObject, terraform)
 		if err != nil {
 			return false, nil
 		}
@@ -63,7 +64,7 @@ func (c *CLI) BreakTheGlass(out io.Writer, resource string) error {
 		return err
 	}
 
-	shell(context.TODO(), c.kubeconfigArgs, tfObject)
+	shell(ctx, c.kubeconfigArgs, tfObject)
 
 	return nil
 }
