@@ -923,7 +923,7 @@ func (in Terraform) GetRetryInterval() time.Duration {
 
 	if in.Spec.RetryStrategy == ExponentialBackoff {
 		retryInterval *= time.Duration(math.Pow(2, float64(in.Status.ReconciliationFailures)))
-		maxRetryInterval := 60 * time.Minute
+		maxRetryInterval := 24 * time.Hour
 		if in.Spec.MaxRetryInterval != nil {
 			maxRetryInterval = in.Spec.MaxRetryInterval.Duration
 		}
