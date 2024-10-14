@@ -19,12 +19,12 @@ package v1alpha2
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"net"
 	"strings"
 	"time"
 	"unicode/utf8"
 
-	"github.com/flux-iac/tofu-controller/api/planid"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -33,6 +33,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+
+	"github.com/flux-iac/tofu-controller/api/planid"
 )
 
 const (
@@ -144,6 +146,21 @@ type TerraformSpec struct {
 	// The default value is 15 when not specified.
 	// +optional
 	RetryInterval *metav1.Duration `json:"retryInterval,omitempty"`
+
+	// The strategy to use when retrying a previously failed reconciliation.
+	// The default strategy is StaticInterval and the retry interval is based on the RetryInterval value.
+	// The ExponentialBackoff strategy uses the formula: 2^reconciliationFailures * RetryInterval with a
+	// maximum requeue duration of MaxRetryInterval.
+	// +kubebuilder:validation:Enum=StaticInterval;ExponentialBackoff
+	// +kubebuilder:default:string=StaticInterval
+	// +optional
+	RetryStrategy RetryStrategyEnum `json:"retryStrategy,omitempty"`
+
+	// The maximum requeue duration after  a previously failed reconciliation.
+	// Only applicable when RetryStrategy is set to ExponentialBackoff.
+	// The default value is 24 hours when not specified.
+	// +optional
+	MaxRetryInterval *metav1.Duration `json:"maxRetryInterval,omitempty"`
 
 	// Path to the directory containing Terraform (.tf) files.
 	// Defaults to 'None', which translates to the root path of the SourceRef.
@@ -521,6 +538,13 @@ const (
 	ForceUnlockEnumNo   ForceUnlockEnum = "no"
 )
 
+type RetryStrategyEnum string
+
+const (
+	StaticInterval     RetryStrategyEnum = "StaticInterval"
+	ExponentialBackoff RetryStrategyEnum = "ExponentialBackoff"
+)
+
 const (
 	TerraformKind             = "Terraform"
 	TerraformFinalizer        = "finalizers.tf.contrib.fluxcd.io"
@@ -892,12 +916,24 @@ func (in Terraform) GetDependsOn() []meta.NamespacedObjectReference {
 
 // GetRetryInterval returns the retry interval
 func (in Terraform) GetRetryInterval() time.Duration {
+	retryInterval := 15 * time.Second
 	if in.Spec.RetryInterval != nil {
-		return in.Spec.RetryInterval.Duration
+		retryInterval = in.Spec.RetryInterval.Duration
 	}
 
-	// The default retry interval is 15 seconds.
-	return 15 * time.Second
+	if in.Spec.RetryStrategy == ExponentialBackoff {
+		retryInterval *= time.Duration(math.Pow(2, float64(in.Status.ReconciliationFailures)))
+		maxRetryInterval := 24 * time.Hour
+		if in.Spec.MaxRetryInterval != nil {
+			maxRetryInterval = in.Spec.MaxRetryInterval.Duration
+		}
+
+		if retryInterval > maxRetryInterval {
+			return maxRetryInterval
+		}
+	}
+
+	return retryInterval
 }
 
 // GetStatusConditions returns a pointer to the Status.Conditions slice.
