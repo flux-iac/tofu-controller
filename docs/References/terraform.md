@@ -794,6 +794,12 @@ string
 </table>
 </div>
 </div>
+<h3 id="infra.contrib.fluxcd.io/v1alpha2.RetryStrategyEnum">RetryStrategyEnum
+(<code>string</code> alias)</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#infra.contrib.fluxcd.io/v1alpha2.TerraformSpec">TerraformSpec</a>)
+</p>
 <h3 id="infra.contrib.fluxcd.io/v1alpha2.RunnerPodMetadata">RunnerPodMetadata
 </h3>
 <p>
@@ -1568,6 +1574,39 @@ The default value is 15 when not specified.</p>
 </tr>
 <tr>
 <td>
+<code>retryStrategy</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha2.RetryStrategyEnum">
+RetryStrategyEnum
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>The strategy to use when retrying a previously failed reconciliation.
+The default strategy is StaticInterval and the retry interval is based on the RetryInterval value.
+The ExponentialBackoff strategy uses the formula: 2^reconciliationFailures * RetryInterval with a
+maximum requeue duration of MaxRetryInterval.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>maxRetryInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>The maximum requeue duration after  a previously failed reconciliation.
+Only applicable when RetryStrategy is set to ExponentialBackoff.
+The default value is 24 hours when not specified.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>path</code><br>
 <em>
 string
@@ -2127,6 +2166,39 @@ Kubernetes meta/v1.Duration
 <em>(Optional)</em>
 <p>The interval at which to retry a previously failed reconciliation.
 The default value is 15 when not specified.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>retryStrategy</code><br>
+<em>
+<a href="#infra.contrib.fluxcd.io/v1alpha2.RetryStrategyEnum">
+RetryStrategyEnum
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>The strategy to use when retrying a previously failed reconciliation.
+The default strategy is StaticInterval and the retry interval is based on the RetryInterval value.
+The ExponentialBackoff strategy uses the formula: 2^reconciliationFailures * RetryInterval with a
+maximum requeue duration of MaxRetryInterval.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>maxRetryInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>The maximum requeue duration after  a previously failed reconciliation.
+Only applicable when RetryStrategy is set to ExponentialBackoff.
+The default value is 24 hours when not specified.</p>
 </td>
 </tr>
 <tr>

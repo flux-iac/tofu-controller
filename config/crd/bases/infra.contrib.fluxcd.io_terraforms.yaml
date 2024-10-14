@@ -5536,6 +5536,12 @@ spec:
               interval:
                 description: The interval at which to reconcile the Terraform.
                 type: string
+              maxRetryInterval:
+                description: |-
+                  The maximum requeue duration after  a previously failed reconciliation.
+                  Only applicable when RetryStrategy is set to ExponentialBackoff.
+                  The default value is 24 hours when not specified.
+                type: string
               parallelism:
                 default: 0
                 description: Parallelism limits the number of concurrent operations
@@ -5586,6 +5592,17 @@ spec:
                 description: |-
                   The interval at which to retry a previously failed reconciliation.
                   The default value is 15 when not specified.
+                type: string
+              retryStrategy:
+                default: StaticInterval
+                description: |-
+                  The strategy to use when retrying a previously failed reconciliation.
+                  The default strategy is StaticInterval and the retry interval is based on the RetryInterval value.
+                  The ExponentialBackoff strategy uses the formula: 2^reconciliationFailures * RetryInterval with a
+                  maximum requeue duration of MaxRetryInterval.
+                enum:
+                - StaticInterval
+                - ExponentialBackoff
                 type: string
               runnerPodTemplate:
                 properties:
