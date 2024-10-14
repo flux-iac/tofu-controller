@@ -27,8 +27,6 @@ import (
 	"strings"
 	"time"
 
-	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
-	"github.com/flux-iac/tofu-controller/mtls"
 	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/fluxcd/pkg/runtime/acl"
@@ -61,6 +59,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/flux-iac/tofu-controller/mtls"
 )
 
 // TerraformReconciler reconciles a Terraform object
@@ -388,7 +389,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				timeout  = time.Second * 120
 			)
 			traceLog.Info("Poll function that will clean up the Runner pod")
-			err := wait.PollImmediate(interval, timeout, func() (bool, error) {
+			err := wait.PollUntilContextTimeout(ctx, interval, timeout, true, func(ctx context.Context) (bool, error) {
 				traceLog.Info("Get the Runner pod")
 				var runnerPod corev1.Pod
 				err := r.Get(ctx, getRunnerPodObjectKey(terraform), &runnerPod)

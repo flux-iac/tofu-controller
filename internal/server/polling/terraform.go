@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/flux-iac/tofu-controller/internal/config"
-	bpconfig "github.com/flux-iac/tofu-controller/internal/config"
 	"github.com/fluxcd/pkg/runtime/acl"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -16,6 +14,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
+	"github.com/flux-iac/tofu-controller/internal/config"
+	bpconfig "github.com/flux-iac/tofu-controller/internal/config"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 )
@@ -213,7 +214,7 @@ func (s *Server) deleteTerraformAndSource(ctx context.Context, tf *infrav1.Terra
 	}
 
 	// We have to wait for the Terraform object to be deleted before deleting the source
-	err = wait.PollImmediate(pollInterval, pollTimeout, func() (bool, error) {
+	err = wait.PollUntilContextTimeout(ctx, pollInterval, pollTimeout, true, func(ctx context.Context) (bool, error) {
 		if err := s.clusterClient.Get(ctx, client.ObjectKey{Name: tf.Name, Namespace: tf.Namespace}, tf); err != nil {
 			if errors.IsNotFound(err) {
 				return true, nil // Terraform object is deleted
