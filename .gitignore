@@ -46,3 +46,5 @@ example/
 # Local dev files
 Tiltfile.local
 /config/tilt/helm/dev-values-local.yaml
+
+dist/
