@@ -229,6 +229,11 @@ type TerraformSpec struct {
 	// +optional
 	RunnerTerminationGracePeriodSeconds *int64 `json:"runnerTerminationGracePeriodSeconds,omitempty"`
 
+	// UpgradeOnInit configures to upgrade modules and providers on initialization of a stack
+	// +kubebuilder:default:=true
+	// +optional
+	UpgradeOnInit bool `json:"upgradeOnInit,omitempty"`
+
 	// RefreshBeforeApply forces refreshing of the state before the apply step.
 	// +kubebuilder:default:=false
 	// +optional
