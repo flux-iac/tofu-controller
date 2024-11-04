@@ -13,7 +13,7 @@ jobs:
       id-token: write # needed for keyless signing
       packages: write # needed for ghcr access
     steps:
-      - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.0.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.0.0
       - name: Publish Helm chart in GitHub Pages
         uses: stefanprodan/helm-gh-pages@0ad2bb377311d61ac04ad9eb6f252fb68e207260 # v1.7.0
         with:
