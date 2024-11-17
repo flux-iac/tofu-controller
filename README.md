@@ -25,26 +25,3 @@ If you have a feature request to share or a bug to report, please file an issue.
 To get started check out this [guide](https://flux-iac.github.io/tofu-controller/getting_started/) on how to GitOps your Terraform resources with Tofu Controller and Flux.
 
 Check out the [documentation](https://flux-iac.github.io/tofu-controller/) and [use cases](https://flux-iac.github.io/tofu-controller/use-tf-controller/).
-
-## Roadmap
-
-### Q2 2024
-  * [ ] Write back and show plan in PRs (Atlantis-like experience)
-  * [ ] CLI to GitOpsify existing Terraform workflows (UX improvement for CLI) 
-  * [ ] Type safety for custom backends
-
-### Q3 2024
-  * [ ] Improvement GitOps dependency management 
-  * [ ] External drift detector
-  * [ ] Cloud cost estimation 
-
-### Q4 2024
-  * [ ] Observability - logging from the different stages of the runner
-  * [ ] `v1alpha3` API  
-  * [ ] ARM64 & Gravitron support
-
-### Q1 2025
-  * [ ] `v1beta1` API (stabilization)
-
-### Q2 2025
-  * [ ] `v1beta2` API
