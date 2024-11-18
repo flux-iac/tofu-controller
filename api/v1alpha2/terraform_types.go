@@ -528,6 +528,16 @@ type TFStateSpec struct {
 	// +optional
 	// +kubebuilder:default:string="0s"
 	LockTimeout metav1.Duration `json:"lockTimeout,omitempty"`
+
+	// DisablePlanLock is an option to disableb Terraform state lock for a plan action
+	//
+	// By default terraform will lock state but in case you want to avoid the default behaviour, 
+	// you need to set this vale to `true`
+	//
+	// Defaults to `false` which will lock Terraform state during the plan stage
+	// +optional
+
+	DisablePlanLock bool `json:"disablePlanLock,omitempty"`
 }
 
 type ForceUnlockEnum string
