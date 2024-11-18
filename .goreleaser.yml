@@ -1,3 +1,6 @@
+---
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+version: 2
 project_name: tf-controller
 
 release:
@@ -28,8 +31,8 @@ builds:
       - arm64
       - arm
     goarm:
-      - 6
-      - 7
+      - "6"
+      - "7"
 
 archives:
   - id: tfctl
@@ -69,14 +72,54 @@ brews:
   - name: tfctl
     ids:
     - tfctl
-    tap:
+    repository:
       owner: flux-iac
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     commit_author:
       name: flux-iac
       email: noreply@github.com
-    folder: Formula
+    directory: Formula
     homepage: https://flux-iac.github.io/tofu-controller
     install: |
       bin.install "tfctl"
+
+dockers:
+  - image_templates:
+      - "ghcr.io/flux-iac/{{.ProjectName}}:v{{.Version}}-amd64"
+    use: buildx
+    dockerfile: tfctl.Dockerfile
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.url=https://github.com/flux-iac/{{.ProjectName}}"
+      - "--label=org.opencontainers.image.source=https://github.com/flux-iac/{{.ProjectName}}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+  - image_templates:
+      - "ghcr.io/flux-iac/{{.ProjectName}}:v{{.Version}}-arm64v8"
+    use: buildx
+    goarch: arm64
+    dockerfile: tfctl.Dockerfile
+    build_flag_templates:
+      - "--platform=linux/arm64/v8"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.url=https://github.com/flux-iac/{{.ProjectName}}"
+      - "--label=org.opencontainers.image.source=https://github.com/flux-iac/{{.ProjectName}}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+
+docker_manifests:
+  - name_template: "ghcr.io/flux-iac/{{.ProjectName}}:v{{.Version}}"
+    image_templates:
+      - "ghcr.io/flux-iac/{{.ProjectName}}:v{{.Version}}-amd64"
+      - "ghcr.io/flux-iac/{{.ProjectName}}:v{{.Version}}-arm64v8"
+
+  - name_template: "ghcr.io/flux-iac/{{.ProjectName}}:latest"
+    image_templates:
+      - "ghcr.io/flux-iac/{{.ProjectName}}:v{{.Version}}-amd64"
+      - "ghcr.io/flux-iac/{{.ProjectName}}:v{{.Version}}-arm64v8"
