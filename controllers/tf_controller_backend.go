@@ -344,7 +344,7 @@ terraform {
 
 	initRequest := &runner.InitRequest{
 		TfInstance: tfInstance,
-		Upgrade:    true,
+		Upgrade:    terraform.Spec.UpgradeOnInit,
 		ForceCopy:  true,
 		// Terraform:  terraformBytes,
 	}
