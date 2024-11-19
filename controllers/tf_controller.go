@@ -817,6 +817,38 @@ func (r *TerraformReconciler) patchStatus(ctx context.Context, objectKey types.N
 	return r.Status().Patch(ctx, &terraform, patch, statusOpts)
 }
 
+func (r *TerraformReconciler) patchAnnotationsToTfstateSecret(ctx context.Context, terraform infrav1.Terraform) error {
+	if len(terraform.Spec.TFStateAnnotations) == 0 {
+		// skip if no annotations are provided
+		return nil
+	}
+	secretSuffix := terraform.Name
+	if terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.SecretSuffix != "" {
+		secretSuffix = terraform.Spec.BackendConfig.SecretSuffix
+	}
+
+	secret := &corev1.Secret{}
+	err := r.Client.Get(ctx, types.NamespacedName{
+		Namespace: terraform.Namespace,
+		Name:      fmt.Sprintf(`tfstate-%s-%s`, terraform.WorkspaceName(), secretSuffix),
+	}, secret)
+	if err != nil {
+		return err
+	}
+
+	// set annotations to the secret
+	for key, value := range terraform.Spec.TFStateAnnotations {
+		secret.Annotations[key] = value
+	}
+
+	err = r.Client.Update(ctx, secret)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *TerraformReconciler) IndexBy(kind string) func(o client.Object) []string {
 	return func(o client.Object) []string {
 		terraform, ok := o.(*infrav1.Terraform)

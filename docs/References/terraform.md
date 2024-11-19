@@ -1828,6 +1828,18 @@ TFStateSpec
 </tr>
 <tr>
 <td>
+<code>tfstateAnnotations</code><br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>annotations to add to the tfstate secret</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>targets</code><br>
 <em>
 []string
@@ -2420,6 +2432,18 @@ TFStateSpec
 </td>
 <td>
 <em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>tfstateAnnotations</code><br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>annotations to add to the tfstate secret</p>
 </td>
 </tr>
 <tr>
