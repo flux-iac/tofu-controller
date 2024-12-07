@@ -73,8 +73,8 @@ jobs:
             LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
-            ghcr.io/flux-iac/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
-            ghcr.io/flux-iac/${{ env.CONTROLLER }}:latest
+            ghcr.io/darrylweaver/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
+            ghcr.io/darrylweaver/${{ env.CONTROLLER }}:latest
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -93,7 +93,7 @@ jobs:
             LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
-            ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}-base
+            ghcr.io/darrylweaver/tf-runner:${{ steps.prep.outputs.VERSION }}-base
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -111,10 +111,10 @@ jobs:
           file: ./runner.Dockerfile
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           build-args: |
-            BASE_IMAGE=ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}-base
+            BASE_IMAGE=ghcr.io/darrylweaver/tf-runner:${{ steps.prep.outputs.VERSION }}-base
           tags: |
-            ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}
-            ghcr.io/flux-iac/tf-runner:latest
+            ghcr.io/darrylweaver/tf-runner:${{ steps.prep.outputs.VERSION }}
+            ghcr.io/darrylweaver/tf-runner:latest
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -132,10 +132,10 @@ jobs:
           file: ./runner-azure.Dockerfile
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7 - azure-cli does not install correctly on 32 bit arm
           build-args: |
-            BASE_IMAGE=ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}-base
+            BASE_IMAGE=ghcr.io/darrylweaver/tf-runner:${{ steps.prep.outputs.VERSION }}-base
           tags: |
-            ghcr.io/flux-iac/tf-runner-azure:${{ steps.prep.outputs.VERSION }}
-            ghcr.io/flux-iac/tf-runner-azure:latest
+            ghcr.io/darrylweaver/tf-runner-azure:${{ steps.prep.outputs.VERSION }}
+            ghcr.io/darrylweaver/tf-runner-azure:latest
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -155,8 +155,8 @@ jobs:
             LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7 - azure-cli does not install correctly on 32 bit arm
           tags: |
-            ghcr.io/flux-iac/branch-planner:${{ steps.prep.outputs.VERSION }}
-            ghcr.io/flux-iac/branch-planner:latest
+            ghcr.io/darrylweaver/branch-planner:${{ steps.prep.outputs.VERSION }}
+            ghcr.io/darrylweaver/branch-planner:latest
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -166,35 +166,35 @@ jobs:
             org.opencontainers.image.created=${{ steps.prep.outputs.BUILD_DATE }}
       - name: Check images
         run: |
-          docker buildx imagetools inspect ghcr.io/flux-iac/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
-          docker pull ghcr.io/flux-iac/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
+          docker buildx imagetools inspect ghcr.io/darrylweaver/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
+          docker pull ghcr.io/darrylweaver/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
 
-          docker buildx imagetools inspect ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}
-          docker pull ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}
+          docker buildx imagetools inspect ghcr.io/darrylweaver/tf-runner:${{ steps.prep.outputs.VERSION }}
+          docker pull ghcr.io/darrylweaver/tf-runner:${{ steps.prep.outputs.VERSION }}
 
-          docker buildx imagetools inspect ghcr.io/flux-iac/tf-runner-azure:${{ steps.prep.outputs.VERSION }}
-          docker pull ghcr.io/flux-iac/tf-runner-azure:${{ steps.prep.outputs.VERSION }}
+          docker buildx imagetools inspect ghcr.io/darrylweaver/tf-runner-azure:${{ steps.prep.outputs.VERSION }}
+          docker pull ghcr.io/darrylweaver/tf-runner-azure:${{ steps.prep.outputs.VERSION }}
 
-          docker buildx imagetools inspect ghcr.io/flux-iac/branch-planner:${{ steps.prep.outputs.VERSION }}
-          docker pull ghcr.io/flux-iac/branch-planner:${{ steps.prep.outputs.VERSION }}
+          docker buildx imagetools inspect ghcr.io/darrylweaver/branch-planner:${{ steps.prep.outputs.VERSION }}
+          docker pull ghcr.io/darrylweaver/branch-planner:${{ steps.prep.outputs.VERSION }}
       - name: Sign images
         env:
           COSIGN_EXPERIMENTAL: 1
         run: |
-          cosign sign --yes ghcr.io/flux-iac/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
-          cosign sign --yes ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}-base
-          cosign sign --yes ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}
-          cosign sign --yes ghcr.io/flux-iac/tf-runner-azure:${{ steps.prep.outputs.VERSION }}
-          cosign sign --yes ghcr.io/flux-iac/branch-planner:${{ steps.prep.outputs.VERSION }}
+          cosign sign --yes ghcr.io/darrylweaver/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
+          cosign sign --yes ghcr.io/darrylweaver/tf-runner:${{ steps.prep.outputs.VERSION }}-base
+          cosign sign --yes ghcr.io/darrylweaver/tf-runner:${{ steps.prep.outputs.VERSION }}
+          cosign sign --yes ghcr.io/darrylweaver/tf-runner-azure:${{ steps.prep.outputs.VERSION }}
+          cosign sign --yes ghcr.io/darrylweaver/branch-planner:${{ steps.prep.outputs.VERSION }}
       - name: Generate release manifests
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           mkdir -p config/release
           kustomize build ./config/crd > ./config/release/${{ env.CONTROLLER }}.crds.yaml
           kustomize build ./config/rbac > ./config/release/${{ env.CONTROLLER }}.rbac.yaml
-          kustomize build ./config/manager | yq e '.spec.template.spec.containers[0].env[1].value="ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}"' - > ./config/release/${{ env.CONTROLLER }}.deployment.yaml
+          kustomize build ./config/manager | yq e '.spec.template.spec.containers[0].env[1].value="ghcr.io/darrylweaver/tf-runner:${{ steps.prep.outputs.VERSION }}"' - > ./config/release/${{ env.CONTROLLER }}.deployment.yaml
           kustomize build ./config/package > ./config/release/${{ env.CONTROLLER }}.packages.yaml
-          echo '[CHANGELOG](https://github.com/flux-iac/${{ env.CONTROLLER }}/blob/main/CHANGELOG.md)' > ./config/release/notes.md
+          echo '[CHANGELOG](https://github.com/darrylweaver/${{ env.CONTROLLER }}/blob/main/CHANGELOG.md)' > ./config/release/notes.md
       - name: Setup Go
         uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
         with:

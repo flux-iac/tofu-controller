@@ -82,7 +82,7 @@ jobs:
             LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
-            ghcr.io/flux-iac/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
+            ghcr.io/darrylweaver/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -103,7 +103,7 @@ jobs:
             BUILD_SHA=${{ steps.prep.outputs.BUILD_SHA }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
-            ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}-base
+            ghcr.io/darrylweaver/tf-runner:${{ steps.prep.outputs.VERSION }}-base
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -120,9 +120,9 @@ jobs:
           file: ./runner.Dockerfile
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           build-args: |
-            BASE_IMAGE=ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}-base
+            BASE_IMAGE=ghcr.io/darrylweaver/tf-runner:${{ steps.prep.outputs.VERSION }}-base
           tags: |
-            ghcr.io/flux-iac/tf-runner:${{ steps.prep.outputs.VERSION }}
+            ghcr.io/darrylweaver/tf-runner:${{ steps.prep.outputs.VERSION }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
@@ -141,7 +141,7 @@ jobs:
           build-args: |
             LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           tags: |
-            ghcr.io/flux-iac/branch-planner:${{ steps.prep.outputs.VERSION }}
+            ghcr.io/darrylweaver/branch-planner:${{ steps.prep.outputs.VERSION }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
