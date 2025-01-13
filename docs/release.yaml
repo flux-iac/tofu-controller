@@ -21,7 +21,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: tf-controller
-      version: '0.16.0-rc.4'
+      version: '>=0.16.0-rc.5'
   interval: 1h0s
   releaseName: tf-controller
   targetNamespace: flux-system
@@ -46,9 +46,9 @@ spec:
     caCertValidityDuration: 24h
     certRotationCheckFrequency: 30m
     image:
-      tag: v0.16.0-rc.4
+      tag: v0.16.0-rc.5
     runner:
       image:
-        tag: v0.16.0-rc.4
+        tag: v0.16.0-rc.5
       grpc:
         maxMessageSize: 30
