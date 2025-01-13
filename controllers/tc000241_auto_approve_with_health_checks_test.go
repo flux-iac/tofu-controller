@@ -8,12 +8,13 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	. "github.com/onsi/gomega"
 	gs "github.com/onsi/gomega/gstruct"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
@@ -187,7 +188,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 	expectedOutputValue := map[string]string{
 		"Name":        "tf-output-" + terraformName,
 		"Namespace":   "flux-system",
-		"FooValue":    "weave.works",
+		"FooValue":    "google.com",
 		"BarValue":    "/get",
 		"PortValue":   "80",
 		"OwnerRef[0]": string(createdhealthCheckTF.UID),
