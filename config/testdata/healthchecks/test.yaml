@@ -15,4 +15,4 @@ spec:
       url: "http://httpbin.org/get"
     - name: tcp
       type: http
-      url: "weave.works:80"
+      url: "google.com:80"
