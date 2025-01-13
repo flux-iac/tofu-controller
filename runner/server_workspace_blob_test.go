@@ -8,11 +8,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/flux-iac/tofu-controller/runner"
-	"github.com/fluxcd/pkg/untar"
+	"github.com/fluxcd/pkg/tar"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/flux-iac/tofu-controller/runner"
 )
 
 const encryptionToken = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImJVM0xaLXN3OUJYRFNEejF3THl2X3VvSGxoOWlHdXhYNHdTdV9Vc2w4QjAifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJ0ZXJyYWZvcm0iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlY3JldC5uYW1lIjoidGYtcnVubmVyLWVuY3J5cHRpb24iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoidGYtcnVubmVyIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiYjJiMTc4MjMtMWI5Yi00YzEzLThhMDctNmE0OThmNjUwYjM3Iiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OnRlcnJhZm9ybTp0Zi1ydW5uZXIifQ.s2T3_Yd-PNF0dJO-7sP_yKbohCP-GTWrHPACUQs0nQrD3hMjZTXm-CgQdtzuKPN0fPHp_GJ8iDpWrqMRcZSqHKVSXscfCI7-QnGjqwSvt-8KBMGE7J29tFgFy6-K6uvP_kYAaA5i4bDWPXHytLmOHJj7GL_D4-0XXVB3EmCfzwREl19FdjZnmEf8lB4gJ7aOZQnW6FzJHcdzo3bUwh-S0zrjGkGsBbrBBu5hyhCKoyZP1ufn8X9NQfkdtC29rEYgI_6o2gbQrGZRdIujAVgh3HJaU2bodV4sGAdgqsMDHEeoyGzp4LSlSrR2kAYJJznF0bMFY18eojbNXnmoIpkMEQ"
@@ -68,7 +69,7 @@ func TestCreateWorkspaceBlob(t *testing.T) {
 	blobReader := bytes.NewReader(blob)
 
 	outputTempDir := t.TempDir()
-	_, err = untar.Untar(blobReader, outputTempDir)
+	err = tar.Untar(blobReader, outputTempDir)
 	g.Expect(err).To(BeNil())
 
 	outputFilePath := filepath.Join(outputTempDir, ".terraform", "random.txt")
