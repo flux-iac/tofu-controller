@@ -38,7 +38,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} \
         -o tf-runner \
         ./cmd/runner/main.go
 
-FROM alpine:3.20
+FROM alpine:3.21
 
 LABEL org.opencontainers.image.source="https://github.com/flux-iac/tofu-controller"
 
