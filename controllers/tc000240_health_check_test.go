@@ -24,7 +24,7 @@ func Test_000240_health_check_test(t *testing.T) {
 	}{
 		{
 			name:    "testTCP",
-			address: "weave.works:80",
+			address: "google.com:80",
 			timeout: time.Second * 10,
 			wantErr: false,
 		},
@@ -36,7 +36,7 @@ func Test_000240_health_check_test(t *testing.T) {
 		},
 		{
 			name:    "testTCPAddress",
-			address: "weave.works",
+			address: "google.com",
 			timeout: time.Second * 10,
 			wantErr: true,
 		},
