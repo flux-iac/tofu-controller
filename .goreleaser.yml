@@ -1,3 +1,4 @@
+version: 2
 project_name: tofu-controller
 
 release:
@@ -28,8 +29,8 @@ builds:
       - arm64
       - arm
     goarm:
-      - 6
-      - 7
+      - "6"
+      - "7"
 
 archives:
   - id: tfctl
@@ -69,14 +70,14 @@ brews:
   - name: tfctl
     ids:
     - tfctl
-    tap:
+    repository:
       owner: flux-iac
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     commit_author:
       name: flux-iac
       email: noreply@github.com
-    folder: Formula
+    directory: Formula
     homepage: https://flux-iac.github.io/tofu-controller
     install: |
       bin.install "tfctl"
