@@ -1,4 +1,4 @@
-project_name: tf-controller
+project_name: tofu-controller
 
 release:
   prerelease: "true"

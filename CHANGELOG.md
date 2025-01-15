@@ -2,6 +2,60 @@
 
 All notable changes of this project are documented in this file.
 
+# v0.16.0-rc.5
+
+**Release date:** 2025-01-14
+
+This release introduces several enhancements, fixes, and updates to improve functionality and stability. It also addresses ongoing community feedback and includes dependency updates to keep the project secure and up-to-date.
+
+We would like to thank our contributors for their continued support and effort in improving the Tofu-Controller.
+
+Please follow the [upgrade guide in the documentation](https://flux-iac.github.io/tofu-controller/use-tf-controller/upgrade-tf-controller/) to ensure a smooth transition to the latest version.
+
+**BREAKING CHANGES**
+
+* Helm Chart Renaming: The Helm chart has been renamed from tf-controller to tofu-controller.
+
+New Features and Bug Fixing:
+
+  * add private registries integration docs by @ArieLevs in https://github.com/flux-iac/tofu-controller/pull/1237
+  * helm-chart: add watchAllNamespaces argument by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1239
+  * bump chart and doc yamls to v0.16.0-rc.4 by @chanwit in https://github.com/flux-iac/tofu-controller/pull/1242
+  * Fix runner-serviceaccount helm template by @ayanevbg in https://github.com/flux-iac/tofu-controller/pull/1251
+  * Update Repo URLs in Docs by @tech1ndex in https://github.com/flux-iac/tofu-controller/pull/1253
+  * Update development docs by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1248
+  * Add Aksel Skaar Leirvaag (@akselleirv) as a MAINTAINER by @chanwit in https://github.com/flux-iac/tofu-controller/pull/1258
+  * #1247 helm readme update to tofo-controller by @dgem in https://github.com/flux-iac/tofu-controller/pull/1260
+  * Helm chart rename by @ilithanos in https://github.com/flux-iac/tofu-controller/pull/1264
+  * Tilt: fix references to helm chart after renaming by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1272
+  * branch planner is now checking for both PostPlanningWebhookFailedReason and TFExecInitFailedReason for failing PR by @raz-bn in https://github.com/flux-iac/tofu-controller/pull/1271
+  * docs: remove weaveworks.github.io references from docs by @zonorti in https://github.com/flux-iac/tofu-controller/pull/1276
+  * Improve docs by @vishu42 in https://github.com/flux-iac/tofu-controller/pull/1275
+  * fix(helm-chart): missing renamings by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1282
+  * fix: build of tf-runner-azure by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1290
+  * Fix Incorrect Metric Reporting Post-Update in Terraform Controller by @TarasLykhenko in https://github.com/flux-iac/tofu-controller/pull/1287
+  * Removed mentions of team wild-watermelon by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1299
+  * Speedup wait for pod ip by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1302
+  * Move hardcoded "flux-system" namespace from templates to default values by @artem-nefedov in https://github.com/flux-iac/tofu-controller/pull/1303
+  * Enable non-security dependency upgrades by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1305
+  * Enable dependabot for github actions by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1311
+  * Upgrade go version to 1.22 and set version via go.mod in workflow by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1310
+  * Bump aws-sdk-go-v2 deps and fix deprecated usage by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1331
+  * Print plan before apply by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1304
+  * Bump controller-runtime and k8s.io/* by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1334
+  * bump libcrypto to 3.1.6-r2 by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1401
+  * bump github.com/fluxcd/pkg/ssa to v0.39.1 by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1402
+  * Delete stale metrics on object delete  by @TarasLykhenko in https://github.com/flux-iac/tofu-controller/pull/1362
+  * fix(helm-chart): ensure helm release namespace is applied by @mloiseleur in https://github.com/flux-iac/tofu-controller/pull/1425
+  * Bump alpine and libcrypto by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1439
+  * feat(helm-chart): Add additionalLabels for deployments by @adberger in https://github.com/flux-iac/tofu-controller/pull/1400
+  * docs: provide instructions for autocomplete by @mloiseleur in https://github.com/flux-iac/tofu-controller/pull/1448
+  * fix(helm-chart): rbac for branch planner by @mloiseleur in https://github.com/flux-iac/tofu-controller/pull/1447
+  * Added exponential backoff on reconciliation failure by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1460
+  * Fix deprecated usage of the k8s.io/apimachinery/pkg/util/wait package by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1461
+  * README.md: remove roadmap by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1459
+  * Upgrade Go version to 1.23.4 and deps by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1502
+
 # v0.16.0-rc.4
 
 **Release date:** 2024-03-14
