@@ -76,11 +76,11 @@ For more details about the Branch Planner, please visit the
 With Helm by:
 
 ```shell
-# Add tf-controller helm repository
-helm repo add tf-controller https://flux-iac.github.io/tofu-controller
+# Add tofu-controller helm repository
+helm repo add tofu-controller https://flux-iac.github.io/tofu-controller
 
-# Install tf-controller
-helm upgrade -i tf-controller tf-controller/tf-controller \
+# Install tofu-controller
+helm upgrade -i tofu-controller tofu-controller/tofu-controller \
     --namespace flux-system
 ```
 
