@@ -49,6 +49,7 @@ RUN apk update && \
     busybox \
     ca-certificates \
     git \
+    libc6-compat \
     gnupg \
     libcrypto3=${LIBCRYPTO_VERSION} \
     libssl3=${LIBCRYPTO_VERSION} \
