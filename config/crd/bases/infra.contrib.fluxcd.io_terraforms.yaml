@@ -10452,6 +10452,11 @@ spec:
                       Defaults to `0s` which will behave as though `LockTimeout` was not set
                     type: string
                 type: object
+              upgradeOnInit:
+                default: true
+                description: UpgradeOnInit configures to upgrade modules and providers
+                  on initialization of a stack
+                type: boolean
               values:
                 description: |-
                   Values map to the Terraform variable "values", which is an object of arbitrary values.

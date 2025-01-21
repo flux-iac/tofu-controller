@@ -1778,6 +1778,18 @@ large, complex or slow-moving Terraform managed resources.</p>
 </tr>
 <tr>
 <td>
+<code>upgradeOnInit</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>UpgradeOnInit configures to upgrade modules and providers on initialization of a stack</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>refreshBeforeApply</code><br>
 <em>
 bool
@@ -2370,6 +2382,18 @@ int64
 <p>Configure the termination grace period for the runner pod. Use this parameter
 to allow the Terraform process to gracefully shutdown. Consider increasing for
 large, complex or slow-moving Terraform managed resources.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>upgradeOnInit</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>UpgradeOnInit configures to upgrade modules and providers on initialization of a stack</p>
 </td>
 </tr>
 <tr>
