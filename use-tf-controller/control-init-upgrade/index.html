@@ -9,25 +9,21 @@
       
       
       
-        <link rel="prev" href="../getting_started/">
       
       
-        <link rel="next" href="../branch-planner/">
-      
-      
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.50">
     
     
       
-        <title>Use TF-Controller - Weave GitOps Terraform Controller</title>
+        <title>Control Tofu-Controller behaviour on terraform init - Weave GitOps Terraform Controller</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.a40c8224.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.a40c8224.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -46,7 +42,7 @@
       
     
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -72,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#use-tf-controller" class="md-skip">
+        <a href="#control-tofu-controller-behaviour-on-terraform-init" class="md-skip">
           Skip to content
         </a>
       
@@ -88,7 +84,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Weave GitOps Terraform Controller" class="md-header__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
+    <a href="../.." title="Weave GitOps Terraform Controller" class="md-header__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -108,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Use TF-Controller
+              Control Tofu-Controller behaviour on terraform init
             
           </span>
         </div>
@@ -221,7 +217,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Weave GitOps Terraform Controller" class="md-nav__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
+    <a href="../.." title="Weave GitOps Terraform Controller" class="md-nav__button md-logo" aria-label="Weave GitOps Terraform Controller" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -251,7 +247,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -271,7 +267,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting_started/" class="md-nav__link">
+      <a href="../../getting_started/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -288,19 +284,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -309,7 +296,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -356,7 +342,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../branch-planner/" class="md-nav__link">
+      <a href="../../branch-planner/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -377,7 +363,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../branch-planner/branch-planner-getting-started/" class="md-nav__link">
+      <a href="../../branch-planner/branch-planner-getting-started/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -398,7 +384,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../branch-planner/branch-planner-tfc-integration-getting-started/" class="md-nav__link">
+      <a href="../../branch-planner/branch-planner-tfc-integration-getting-started/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -426,7 +412,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../References/terraform/" class="md-nav__link">
+      <a href="../../References/terraform/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -446,7 +432,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tfctl/" class="md-nav__link">
+      <a href="../../tfctl/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -479,6 +465,23 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#inject-a-terraformlockhcl-to-pin-a-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inject a .terraform.lock.hcl to pin a provider
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -495,41 +498,74 @@
   
 
 
-<h1 id="use-tf-controller">Use TF-controller</h1>
-<ul>
-<li><a href="provision-resources-and-auto-approve/">Use TF-controller to provision resources and <strong>auto approve</strong></a></li>
-<li><a href="plan-and-manually-apply-terraform-resources/">Use TF-controller to <strong>plan and manually apply</strong> Terraform resources</a></li>
-<li><a href="provision-resources-obtain-outputs/">Use TF-controller to provision resources and <strong>obtain outputs</strong></a></li>
-<li><a href="detect-drifts-only-without-plan-or-apply/">Use TF-controller to <strong>detect drifts only</strong> without plan or apply</a></li>
-<li><a href="with-drift-detection-disabled/">Use TF-controller with <strong>drift detection disabled</strong></a></li>
-<li><a href="with-aws-eks-irsa/">Use TF-controller with <strong>AWS EKS IRSA</strong></a></li>
-<li><a href="set-variables-for-terraform-resources/">Use TF-controller to <strong>set variables</strong> for Terraform resources</a></li>
-<li><a href="with-a-custom-backend/">Use TF-controller with a <strong>custom backend</strong></a></li>
-<li><a href="with-an-oci-artifact-as-source/">Use TF-controller with an <strong>OCI Artifact as Source</strong></a></li>
-<li><a href="provision-Terraform-resources-that-are-required-health-checks/">Use TF-controller to provision Terraform resources that are required <strong>health checks</strong></a></li>
-<li><a href="provision-resources-and-destroy-them-when-terraform-object-gets-deleted/">Use TF-controller to provision resources and <strong>destroy them when the Terraform object gets deleted</strong></a></li>
-<li><a href="force-unlock-terraform-states/">Use TF-controller to <strong>force unlock</strong> Terraform states</a></li>
-<li><a href="with-tf-runner-logging/">Use TF-controller with Terraform Runners enabled via Env Variables</a></li>
-<li><a href="provision-resources-with-customized-runner-pods/">Use TF-controller to provision resources with <strong>customized Runner Pods</strong></a></li>
-<li><a href="integration-with-terraform-enterprise-or-cloud/">Use TF-controller with <strong>Terraform Enterprise</strong></a></li>
-<li><a href="integration-with-terraform-private-registries/">Use TF-controller with <strong>Terraform Private Registries</strong></a></li>
-<li><a href="with-primitive-modules/">Use TF-controller with <strong>primitive modules</strong></a></li>
-<li><a href="with-gitops-dependency-management/">Use TF-controller with <strong>GitOps dependency management</strong></a></li>
-<li><a href="with-the-ready-to-use-aws-package/">Use TF-controller with <strong>the ready-to-use AWS package</strong></a></li>
-<li><a href="with-plan-only-mode/">User TF-controller with <strong>plan-only mode</strong></a></li>
-<li><a href="with-external-webhooks/">Use TF-controller with <strong>external webhooks</strong></a></li>
-<li><a href="with-tf-runner-exposed-using-hostname-subdomain/">Use TF-controller with Terraform Runners <strong>exposed via hostname/subdomain</strong></a></li>
-<li><a href="backup-and-restore-a-Terraform-state/">How to <strong>backup and restore</strong> a Terraform state</a></li>
-<li><a href="build-and-use-a-custom-runner-image/">How to <strong>build and use</strong> a custom runner image</a></li>
-<li><a href="flux-receiver-and-alert/">How to integrate with Flux Receivers and Alerts?</a></li>
-<li><a href="interval-and-retryInterval/">How does the interval and retryInterval work?</a></li>
-<li><a href="resource-deletion/">How does the resource deletion work?</a></li>
-<li><a href="troubleshooting-with-break-the-glass-mode/">How to troubleshoot with <strong>Break the Glass</strong> mode</a></li>
-<li><a href="use-cross-namespace-refs/">How to enable cross-namespace references</a></li>
-<li><a href="with-azure/">How to run TF-controller in Azure Kubernetes Service</a></li>
-<li><a href="upgrade-tf-controller/">How to upgrade TF-controller to a newer version</a></li>
-<li><a href="control-init-upgrade/">How to control the <code>init -upgrade</code> behaviour</a></li>
-</ul>
+<h1 id="control-tofu-controller-behaviour-on-terraform-init">Control Tofu-Controller behaviour on <code>terraform init</code></h1>
+<p>...and pin your providers via <code>.terraform.lock.hcl</code></p>
+<p>You may or may not ship <code>.terraform.lock.hcl</code> with your stack, which pins the used providers.</p>
+<p>The Tofu-Controller, by default, does a <code>tofu init -upgrade</code> when starting a runner pod and updates the used providers
+to their latest available version, as specified in your code.</p>
+<p>To disable the automatic upgrade, simply add the flag <code>upgradeOnInit: false</code> 
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha2</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Terraform</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">helloworld</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-system</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="hll"><span class="w">  </span><span class="c1"># [...]</span>
+</span><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nt">upgradeOnInit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</code></pre></div></p>
+<h2 id="inject-a-terraformlockhcl-to-pin-a-provider">Inject a <code>.terraform.lock.hcl</code> to pin a provider</h2>
+<p>At certain times you want to pin a provider to a certain version. Simply combine multiple features of the controller here - <code>FileMapping</code> and <code>upgradeOnInit</code></p>
+<ol>
+<li>example <code>.terraform.lock.hcl</code>
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="err">provider</span><span class="w"> </span><span class="s2">&quot;registry.terraform.io/hashicorp/aws&quot;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w"> </span><span class="na">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;5.70.0&quot;</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w"> </span><span class="na">hashes</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">   </span><span class="s2">&quot;h1:LKnWZnujHcQPm3MAk4elP3H9VXNjlO6rNqlO5s330Yg=&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">   </span><span class="s2">&quot;zh:09cbec93c324e6f03a866244ecb2bae71fdf1f5d3d981e858b745c90606b6b6d&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">   </span><span class="s2">&quot;zh:19685d9f4c9ddcfa476a9a428c6c612be4a1b4e8e1198fbcbb76436b735284ee&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">   </span><span class="s2">&quot;zh:3358ee6a2b24c982b7c83fac0af6898644d1bbdabf9c4e0589e91e427641ba88&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">   </span><span class="s2">&quot;zh:34f9f2936de7384f8ed887abdbcb54aea1ce7b0cf2e85243a3fd3904d024747f&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">   </span><span class="s2">&quot;zh:4a99546cc2140304c90d9ccb9db01589d4145863605a0fcd90027a643ea3ec5d&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">   </span><span class="s2">&quot;zh:4da32fec0e10dab5aa3dea3c9fe57adc973cc73a71f5d59da3f65d85d925dc3f&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">   </span><span class="s2">&quot;zh:659cf94522bc38ce0af70f7b0371b2941a0e0bcad02d17c1a7b264575fe07224&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">   </span><span class="s2">&quot;zh:6f1c172c9b98bc86e4f0526872098ee3246c2620f7b323ce0c2ce6427987f7d2&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">   </span><span class="s2">&quot;zh:79bf8fb8f37c308742e287694a9de081ff8502b065a390d1bcfbd241b4eca203&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">   </span><span class="s2">&quot;zh:9b12af85486a96aedd8d7984b0ff811a4b42e3d88dad1a3fb4c0b580d04fa425&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">   </span><span class="s2">&quot;zh:b7a5e1dfd9e179d70a169ddd4db44b56da90309060e27d36b329fe5fb3528e29&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">   </span><span class="s2">&quot;zh:c2cc728cb18ffd5c4814a10c203452c71f5ab0c46d68f9aa9183183fa60afd87&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">   </span><span class="s2">&quot;zh:c89bb37d2b8947c9a0d62b0b86ace51542f3327970f4e56a68bf81d9d0b8b65b&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">   </span><span class="s2">&quot;zh:ef2a61e8112c3b5e70095508aadaadf077e904b62b9cfc22030337f773bba041&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">   </span><span class="s2">&quot;zh:f714550b858d141ea88579f25247bda2a5ba461337975e77daceaf0bb7a9c358&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w"> </span><span class="p">]</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="p">}</span>
+</code></pre></div></li>
+<li>Kubernetes secret <code>terraform-lock-hcl</code>
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Secret</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nt">data</span><span class="p">:</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">lock</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;base64 encoded data of above&gt;</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">terraform-lock-hcl</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-system</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Opaque</span>
+</code></pre></div></li>
+<li>Add a <code>FileMapping</code> + disable upgrade on init
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha2</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Terraform</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">helloworld</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-system</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="c1"># [...]</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="nt">upgradeOnInit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="nt">FileMapping</span><span class="p">:</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">location</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">workspace</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.terraform.lock.hcl</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">      </span><span class="nt">secretRef</span><span class="p">:</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">        </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lock</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">terraform-lock-hcl</span>
+</code></pre></div></li>
+</ol>
 
 
 
@@ -576,10 +612,10 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate", "content.code.copy"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.60a45f97.min.js"></script>
+      <script src="../../assets/javascripts/bundle.60a45f97.min.js"></script>
       
     
   </body>
