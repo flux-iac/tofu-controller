@@ -8,17 +8,17 @@ replace github.com/flux-iac/tofu-controller/tfctl => ./tfctl
 
 require (
 	github.com/Masterminds/sprig/v3 v3.3.0
-	github.com/aws/aws-sdk-go-v2 v1.32.8
-	github.com/aws/aws-sdk-go-v2/config v1.28.10
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.51
+	github.com/aws/aws-sdk-go-v2 v1.34.0
+	github.com/aws/aws-sdk-go-v2/config v1.29.2
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.55
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.39.2
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.72.2
-	github.com/aws/smithy-go v1.22.1
-	github.com/cyphar/filepath-securejoin v0.3.5
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.74.1
+	github.com/aws/smithy-go v1.22.2
+	github.com/cyphar/filepath-securejoin v0.4.0
 	github.com/elgohr/go-localstack v1.0.119
 	github.com/flux-iac/tofu-controller/api v0.0.0-00010101000000-000000000000
 	github.com/flux-iac/tofu-controller/tfctl v0.0.0-00010101000000-000000000000
-	github.com/fluxcd/pkg/apis/event v0.13.0
+	github.com/fluxcd/pkg/apis/event v0.15.0
 	github.com/fluxcd/pkg/apis/meta v1.9.0
 	github.com/fluxcd/pkg/runtime v0.52.0
 	github.com/fluxcd/pkg/tar v0.10.0
@@ -42,7 +42,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/zclconf/go-cty v1.16.0
 	golang.org/x/net v0.34.0
-	google.golang.org/grpc v1.69.4
+	google.golang.org/grpc v1.70.0
 	google.golang.org/protobuf v1.36.2
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.32.0
@@ -52,7 +52,7 @@ require (
 	k8s.io/client-go v0.32.0
 	k8s.io/kubectl v0.32.0
 	sigs.k8s.io/cli-utils v0.37.2
-	sigs.k8s.io/controller-runtime v0.19.4
+	sigs.k8s.io/controller-runtime v0.20.1
 	sigs.k8s.io/kustomize/kyaml v0.18.1
 )
 
@@ -68,12 +68,12 @@ require (
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg v1.0.0 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.7 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.23 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.27 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.27 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.1 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.27 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.8 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.25 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.29 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.29 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.2 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.29 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.53.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.40.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchevents v1.25.7 // indirect
@@ -83,11 +83,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/elasticsearchservice v1.30.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/firehose v1.32.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/iam v1.35.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.12.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.4.8 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.12.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.5.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.10.8 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.8 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.18.8 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.10 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.18.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/kinesis v1.29.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.58.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/redshift v1.46.8 // indirect
@@ -98,9 +98,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sns v1.31.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.34.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.52.8 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.24.9 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.8 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.33.6 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.24.12 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.11 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.33.10 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bluekeyes/go-gitdiff v0.8.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -190,10 +190,10 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xlab/treeprint v1.2.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.54.0 // indirect
-	go.opentelemetry.io/otel v1.31.0 // indirect
+	go.opentelemetry.io/otel v1.32.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.31.0 // indirect
-	go.opentelemetry.io/otel/metric v1.31.0 // indirect
-	go.opentelemetry.io/otel/trace v1.31.0 // indirect
+	go.opentelemetry.io/otel/metric v1.32.0 // indirect
+	go.opentelemetry.io/otel/trace v1.32.0 // indirect
 	go.starlark.net v0.0.0-20231121155337-90ade8b19d09 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
