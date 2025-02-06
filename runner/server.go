@@ -79,7 +79,8 @@ func (r *TerraformRunnerServer) UploadAndExtract(ctx context.Context, req *Uploa
 	}
 
 	buf := bytes.NewBuffer(req.TarGz)
-	if err = tar.Untar(buf, tmpDir); err != nil {
+	opts := tar.WithMaxUntarSize(tar.UnlimitedUntarSize)
+	if err = tar.Untar(buf, tmpDir, opts); err != nil {
 		log.Error(err, "unable to extract tar file", "namespace", req.Namespace, "name", req.Name)
 		return nil, fmt.Errorf("failed to untar artifact, error: %w", err)
 	}
