@@ -13,7 +13,7 @@ BUILD_VERSION ?= $(shell git describe --tags $$(git rev-list --tags --max-count=
 # - .github/workflows/release-runners.yaml
 # - .github/workflows/release.yaml
 # - Tiltfile
-LIBCRYPTO_VERSION ?= 3.3.2-r0
+LIBCRYPTO_VERSION ?= 3.3.2-r4
 
 # source controller version
 SOURCE_VER ?= v1.0.0-rc.1
@@ -248,7 +248,7 @@ protoc-gen-go-grpc: ## Download controller-gen locally if necessary.
 CONTROLLER_GEN = $(GOBIN)/controller-gen
 .PHONY: controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
-	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.15.0)
+	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.17.0)
 
 # Find or download gen-crd-api-reference-docs
 GEN_CRD_API_REFERENCE_DOCS = $(GOBIN)/gen-crd-api-reference-docs

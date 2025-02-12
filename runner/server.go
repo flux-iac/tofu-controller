@@ -11,9 +11,7 @@ import (
 	"strings"
 
 	securejoin "github.com/cyphar/filepath-securejoin"
-	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
-	"github.com/flux-iac/tofu-controller/utils"
-	"github.com/fluxcd/pkg/untar"
+	"github.com/fluxcd/pkg/tar"
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/terraform-exec/tfexec"
 	tfjson "github.com/hashicorp/terraform-json"
@@ -25,6 +23,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/flux-iac/tofu-controller/utils"
 )
 
 const (
@@ -78,7 +79,7 @@ func (r *TerraformRunnerServer) UploadAndExtract(ctx context.Context, req *Uploa
 	}
 
 	buf := bytes.NewBuffer(req.TarGz)
-	if _, err = untar.Untar(buf, tmpDir); err != nil {
+	if err = tar.Untar(buf, tmpDir); err != nil {
 		log.Error(err, "unable to extract tar file", "namespace", req.Namespace, "name", req.Name)
 		return nil, fmt.Errorf("failed to untar artifact, error: %w", err)
 	}

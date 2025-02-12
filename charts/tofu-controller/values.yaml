@@ -31,7 +31,7 @@ image:
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
   # @default -- `.Chart.AppVersion`
-  tag: "v0.16.0-rc.4"
+  tag: "v0.16.0-rc.5"
 # -- Controller image pull secret
 imagePullSecrets: []
 # -- Resource limits and requests
@@ -121,7 +121,7 @@ runner:
     repository: ghcr.io/flux-iac/tf-runner
     # -- Runner image tag
     # @default -- `.Chart.AppVersion`
-    tag: "v0.16.0-rc.4"
+    tag: "v0.16.0-rc.5"
   grpc:
     # -- Maximum GRPC message size (Controller)
     maxMessageSize: 4
@@ -136,7 +136,7 @@ runner:
     name: ""
     # -- List of namespaces that the runner may run within (in addition to namespace of the controller itself)
     allowedNamespaces:
-    - flux-system
+      - flux-system
 # EKS-specific configurations
 # -- Create an AWS EKS Security Group Policy with the supplied Security Group IDs [See](https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html#deploy-securitygrouppolicy)
 eksSecurityGroupPolicy:
