@@ -134,7 +134,6 @@ func Test_000012_src_ocirepository_no_outputs_test(t *testing.T) {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			fmt.Printf("Conditions: %+v \n", c)
 			if c.Type == "Plan" {
 				return map[string]interface{}{
 					"Type":    c.Type,
