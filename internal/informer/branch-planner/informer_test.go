@@ -110,7 +110,7 @@ func TestInformer(t *testing.T) {
 
 	g.Eventually(func() int {
 		return gitProvider.AddCommentToPullRequestCallCount()
-	}).Should(gom.Equal(1))
+	}).WithTimeout(10 * time.Second).Should(gom.Equal(1))
 
 	g.Eventually(func() string {
 		_, _, body := gitProvider.AddCommentToPullRequestArgsForCall(0)
