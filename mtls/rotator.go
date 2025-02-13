@@ -9,6 +9,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"math/big"
 	"os"
@@ -16,7 +17,6 @@ import (
 	"time"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
-	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -495,12 +495,12 @@ func buildArtifactsFromSecret(secret *corev1.Secret) (caArtifacts *KeyPairArtifa
 func parseArtifacts(certName, keyName string, secret *corev1.Secret) (*KeyPairArtifacts, error) {
 	certPem, ok := secret.Data[certName]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("Cert Secret is not well-formed, missing %s", caCertName))
+		return nil, fmt.Errorf("cert Secret is not well-formed, missing %s", caCertName)
 	}
 
 	keyPem, ok := secret.Data[keyName]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("Cert Secret is not well-formed, missing %s", caKeyName))
+		return nil, fmt.Errorf("cert Secret is not well-formed, missing %s", caKeyName)
 	}
 
 	certDer, _ := pem.Decode(certPem)
@@ -510,7 +510,7 @@ func parseArtifacts(certName, keyName string, secret *corev1.Secret) (*KeyPairAr
 
 	cert, err := x509.ParseCertificate(certDer.Bytes)
 	if err != nil {
-		return nil, errors.Wrap(err, "while parsing CA cert")
+		return nil, fmt.Errorf("while parsing CA cert: %w", err)
 	}
 
 	keyDer, _ := pem.Decode(keyPem)
@@ -520,7 +520,7 @@ func parseArtifacts(certName, keyName string, secret *corev1.Secret) (*KeyPairAr
 
 	key, err := x509.ParsePKCS1PrivateKey(keyDer.Bytes)
 	if err != nil {
-		return nil, errors.Wrap(err, "while parsing key")
+		return nil, fmt.Errorf("while parsing key: %w", err)
 	}
 
 	return &KeyPairArtifacts{
@@ -552,19 +552,19 @@ func (cr *CertRotator) createCACert(begin, end time.Time) (*KeyPairArtifacts, er
 	}
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		return nil, errors.Wrap(err, "generating key")
+		return nil, fmt.Errorf("generating key: %w", err)
 	}
 	der, err := x509.CreateCertificate(rand.Reader, certTemplate, certTemplate, key.Public(), key)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating certificate")
+		return nil, fmt.Errorf("creating certificate: %w", err)
 	}
 	certPEM, keyPEM, err := pemEncode(der, key)
 	if err != nil {
-		return nil, errors.Wrap(err, "encoding PEM")
+		return nil, fmt.Errorf("encoding PEM: %w", err)
 	}
 	cert, err := x509.ParseCertificate(der)
 	if err != nil {
-		return nil, errors.Wrap(err, "parsing certificate")
+		return nil, fmt.Errorf("parsing certificate: %w", err)
 	}
 
 	return &KeyPairArtifacts{Cert: cert, Key: key, CertPEM: certPEM, KeyPEM: keyPEM, validUntil: end}, nil
@@ -592,15 +592,15 @@ func (cr *CertRotator) createCertPEM(ca *KeyPairArtifacts, hostnames []string, b
 	}
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "generating key")
+		return nil, nil, fmt.Errorf("generating key: %w", err)
 	}
 	der, err := x509.CreateCertificate(rand.Reader, certTemplate, ca.Cert, key.Public(), ca.Key)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "creating certificate")
+		return nil, nil, fmt.Errorf("creating certificate: %w", err)
 	}
 	certPEM, keyPEM, err := pemEncode(der, key)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "encoding PEM")
+		return nil, nil, fmt.Errorf("encoding PEM: %w", err)
 	}
 	return certPEM, keyPEM, nil
 }
@@ -609,33 +609,17 @@ func (cr *CertRotator) createCertPEM(ca *KeyPairArtifacts, hostnames []string, b
 func pemEncode(certificateDER []byte, key *rsa.PrivateKey) ([]byte, []byte, error) {
 	certBuf := &bytes.Buffer{}
 	if err := pem.Encode(certBuf, &pem.Block{Type: "CERTIFICATE", Bytes: certificateDER}); err != nil {
-		return nil, nil, errors.Wrap(err, "encoding cert")
+		return nil, nil, fmt.Errorf("encoding cert: %w", err)
 	}
 	keyBuf := &bytes.Buffer{}
 	if err := pem.Encode(keyBuf, &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)}); err != nil {
-		return nil, nil, errors.Wrap(err, "encoding key")
+		return nil, nil, fmt.Errorf("encoding key: %w", err)
 	}
 	return certBuf.Bytes(), keyBuf.Bytes(), nil
 }
 
 func (cr *CertRotator) lookaheadTime() time.Time {
 	return time.Now().Add(cr.LookaheadInterval)
-}
-
-func (cr *CertRotator) validServerCert(caCert, cert, key []byte) bool {
-	valid, err := ValidCert(caCert, cert, key, cr.DNSName, cr.extKeyUsages, cr.lookaheadTime())
-	if err != nil {
-		return false
-	}
-	return valid
-}
-
-func (cr *CertRotator) validCACert(cert, key []byte) bool {
-	valid, err := ValidCert(cert, cert, key, cr.CAName, nil, cr.lookaheadTime())
-	if err != nil {
-		return false
-	}
-	return valid
 }
 
 func (cr *CertRotator) generateNamespaceTLS(namespace string) (*corev1.Secret, error) {
@@ -698,13 +682,13 @@ func ValidCert(caCert, cert, key []byte, dnsName string, keyUsages *[]x509.ExtKe
 	}
 	cac, err := x509.ParseCertificate(caDer.Bytes)
 	if err != nil {
-		return false, errors.Wrap(err, "parsing CA cert")
+		return false, fmt.Errorf("parsing CA cert: %w", err)
 	}
 	pool.AddCert(cac)
 
 	_, err = tls.X509KeyPair(cert, key)
 	if err != nil {
-		return false, errors.Wrap(err, "building key pair")
+		return false, fmt.Errorf("building key pair: %w", err)
 	}
 
 	b, _ := pem.Decode(cert)
@@ -714,7 +698,7 @@ func ValidCert(caCert, cert, key []byte, dnsName string, keyUsages *[]x509.ExtKe
 
 	crt, err := x509.ParseCertificate(b.Bytes)
 	if err != nil {
-		return false, errors.Wrap(err, "parsing cert")
+		return false, fmt.Errorf("parsing cert: %w", err)
 	}
 
 	opt := x509.VerifyOptions{
@@ -728,7 +712,7 @@ func ValidCert(caCert, cert, key []byte, dnsName string, keyUsages *[]x509.ExtKe
 
 	_, err = crt.Verify(opt)
 	if err != nil {
-		return false, errors.Wrap(err, "verifying cert")
+		return false, fmt.Errorf("verifying cert: %w", err)
 	}
 	return true, nil
 }
