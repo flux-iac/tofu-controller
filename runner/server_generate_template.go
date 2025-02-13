@@ -3,12 +3,12 @@ package runner
 import (
 	"context"
 	"encoding/json"
-	"github.com/Masterminds/sprig/v3"
-	"io/ioutil"
 	"os"
 	"path/filepath"
-	"sigs.k8s.io/controller-runtime"
 	"text/template"
+
+	"github.com/Masterminds/sprig/v3"
+	controllerruntime "sigs.k8s.io/controller-runtime"
 )
 
 func (r *TerraformRunnerServer) GenerateTemplate(ctx context.Context, req *GenerateTemplateRequest) (*GenerateTemplateReply, error) {
@@ -28,7 +28,7 @@ func (r *TerraformRunnerServer) GenerateTemplate(ctx context.Context, req *Gener
 	vars := make(map[string]interface{})
 
 	varFilePath := filepath.Join(req.WorkingDir, "generated.auto.tfvars.json")
-	jsonBytes, err := ioutil.ReadFile(varFilePath)
+	jsonBytes, err := os.ReadFile(varFilePath)
 	if err != nil {
 		log.Error(err, "unable to read the file", "filePath", varFilePath)
 		return nil, err
