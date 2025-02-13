@@ -221,6 +221,7 @@ func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 		endpoint                    = "%s"
 		skip_credentials_validation = true
 		skip_metadata_api_check     = true
+		skip_requesting_account_id  = true
 		force_path_style            = true
 		dynamodb_table              = "terraformlock"
 		dynamodb_endpoint           = "%s"
