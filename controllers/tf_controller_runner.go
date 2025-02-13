@@ -40,6 +40,14 @@ func getRunnerPodImage(image string) string {
 	return runnerPodImage
 }
 
+func getRunnerImagePullPolicy(imagePullPolicy string) v1.PullPolicy {
+	runnerImagePullPolicy := v1.PullPolicy(imagePullPolicy)
+	if runnerImagePullPolicy == "" {
+		runnerImagePullPolicy = v1.PullIfNotPresent
+	}
+	return runnerImagePullPolicy
+}
+
 func runnerPodTemplate(terraform infrav1.Terraform, secretName string, revision string) (v1.Pod, error) {
 	podNamespace := terraform.Namespace
 	podName := fmt.Sprintf("%s-tf-runner", terraform.Name)
@@ -273,7 +281,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 					"--grpc-max-message-size", fmt.Sprintf("%d", r.RunnerGRPCMaxMessageSize),
 				},
 				Image:           getRunnerPodImage(terraform.Spec.RunnerPodTemplate.Spec.Image),
-				ImagePullPolicy: v1.PullIfNotPresent,
+				ImagePullPolicy: getRunnerImagePullPolicy(terraform.Spec.RunnerPodTemplate.Spec.ImagePullPolicy),
 				Ports: []v1.ContainerPort{
 					{
 						Name:          "grpc",
