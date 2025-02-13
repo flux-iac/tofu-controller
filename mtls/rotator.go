@@ -495,12 +495,12 @@ func buildArtifactsFromSecret(secret *corev1.Secret) (caArtifacts *KeyPairArtifa
 func parseArtifacts(certName, keyName string, secret *corev1.Secret) (*KeyPairArtifacts, error) {
 	certPem, ok := secret.Data[certName]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("Cert Secret is not well-formed, missing %s", caCertName))
+		return nil, fmt.Errorf("cert Secret is not well-formed, missing %s", caCertName)
 	}
 
 	keyPem, ok := secret.Data[keyName]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("Cert Secret is not well-formed, missing %s", caKeyName))
+		return nil, fmt.Errorf("cert Secret is not well-formed, missing %s", caKeyName)
 	}
 
 	certDer, _ := pem.Decode(certPem)
@@ -620,22 +620,6 @@ func pemEncode(certificateDER []byte, key *rsa.PrivateKey) ([]byte, []byte, erro
 
 func (cr *CertRotator) lookaheadTime() time.Time {
 	return time.Now().Add(cr.LookaheadInterval)
-}
-
-func (cr *CertRotator) validServerCert(caCert, cert, key []byte) bool {
-	valid, err := ValidCert(caCert, cert, key, cr.DNSName, cr.extKeyUsages, cr.lookaheadTime())
-	if err != nil {
-		return false
-	}
-	return valid
-}
-
-func (cr *CertRotator) validCACert(cert, key []byte) bool {
-	valid, err := ValidCert(cert, cert, key, cr.CAName, nil, cr.lookaheadTime())
-	if err != nil {
-		return false
-	}
-	return valid
 }
 
 func (cr *CertRotator) generateNamespaceTLS(namespace string) (*corev1.Secret, error) {
