@@ -108,9 +108,18 @@ func TestInformer(t *testing.T) {
 	tf.Status.LastPlanAt = &metav1.Time{Time: time.Now()}
 	expectToSucceed(t, g, k8sClient.Status().Patch(ctx, tf, patch))
 
+	// verify that the last plan time is updated
+	g.Eventually(func() *metav1.Time {
+		err = k8sClient.Get(ctx, client.ObjectKeyFromObject(tf), tf)
+		if err != nil {
+			return nil
+		}
+		return tf.Status.LastPlanAt
+	}).ShouldNot(gom.BeNil())
+
 	g.Eventually(func() int {
 		return gitProvider.AddCommentToPullRequestCallCount()
-	}).WithTimeout(10 * time.Second).Should(gom.Equal(1))
+	}).Should(gom.Equal(1))
 
 	g.Eventually(func() string {
 		_, _, body := gitProvider.AddCommentToPullRequestArgsForCall(0)
