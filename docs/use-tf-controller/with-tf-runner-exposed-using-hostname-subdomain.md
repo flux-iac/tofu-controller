@@ -30,7 +30,7 @@ For such setup, you can switch the DNS resolution mode to [Hostname/Subdomain](h
 
 - Create a `Headless service` named `tf-runner` in each allowed namespace
 
-```yaml hl_lines="4-5,8-10"
+```yaml hl_lines="4-5 8-10"
 apiVersion: v1
 kind: Service
 metadata:
@@ -103,4 +103,4 @@ The Runner's pod can then be targeted by TF-Controller using `<terraform_object_
 
 The switch is performed by setting the following _Helm value_ `usePodSubdomainResolution: true` or running directly TF-controller with the option `--use-pod-subdomain-resolution=true`
 
-IMPORTANT: The gRPC communication between TF-Controller and Runner's pod is secured with mTLS. TF-controller generates a valid wildcard TLS certificate for `*.<namespace>.pod.<cluster-domain>` and `*.tf-runner.<namespace>.svc.<cluster-domain>` hosts on the Runner's namespace. The Runner's pod present this certificate during TLS handshake with TF-Controller. 
+IMPORTANT: The gRPC communication between TF-Controller and Runner's pod is secured with mTLS. TF-controller generates a valid wildcard TLS certificate for `*.<namespace>.pod.<cluster-domain>` and `*.tf-runner.<namespace>.svc.<cluster-domain>` hosts on the Runner's namespace. The Runner's pod present this certificate during TLS handshake with TF-Controller.
