@@ -34,9 +34,9 @@ jobs:
       - name: Setup Kustomize
         uses: fluxcd/pkg/actions/kustomize@30c101fc7c9fac4d84937ff4890a3da46a9db2dd # main
       - name: Setup Cosign
-        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
+        uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a # v3.8.1
       - name: Setup Syft
-        uses: anchore/sbom-action/download-syft@f5e124a5e5e1d497a692818ae907d3c45829d033 # v0.17.3
+        uses: anchore/sbom-action/download-syft@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0.18.0
       - name: Prepare
         id: prep
         run: |
@@ -47,22 +47,22 @@ jobs:
           echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
           echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
       - name: Setup QEMU
-        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
         with:
           platforms: all
       - name: Setup Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3.7.1
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
         with:
           buildkitd-flags: "--debug"
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish multi-arch tofu-controller container image
-        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         with:
           push: true
           no-cache: true
@@ -83,7 +83,7 @@ jobs:
             org.opencontainers.image.version=${{ steps.prep.outputs.VERSION }}
             org.opencontainers.image.created=${{ steps.prep.outputs.BUILD_DATE }}
       - name: Publish multi-arch tf-runner base image
-        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         with:
           push: true
           builder: ${{ steps.buildx.outputs.name }}
@@ -102,7 +102,7 @@ jobs:
             org.opencontainers.image.version=${{ steps.prep.outputs.VERSION }}
             org.opencontainers.image.created=${{ steps.prep.outputs.BUILD_DATE }}
       - name: Publish multi-arch tf-runner container image
-        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         with:
           push: true
           no-cache: true
@@ -123,7 +123,7 @@ jobs:
             org.opencontainers.image.version=${{ steps.prep.outputs.VERSION }}
             org.opencontainers.image.created=${{ steps.prep.outputs.BUILD_DATE }}
       - name: Publish multi-arch tf-runner-azure container image
-        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         with:
           push: true
           no-cache: true
@@ -144,7 +144,7 @@ jobs:
             org.opencontainers.image.version=${{ steps.prep.outputs.VERSION }}
             org.opencontainers.image.created=${{ steps.prep.outputs.BUILD_DATE }}
       - name: Publish multi-arch branch-planner container image
-        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         with:
           push: true
           no-cache: true
@@ -196,12 +196,12 @@ jobs:
           kustomize build ./config/package > ./config/release/${{ env.CONTROLLER }}.packages.yaml
           echo '[CHANGELOG](https://github.com/flux-iac/${{ env.CONTROLLER }}/blob/main/CHANGELOG.md)' > ./config/release/notes.md
       - name: Setup Go
-        uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
         with:
           go-version-file: go.mod
       - name: Create release
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: goreleaser/goreleaser-action@286f3b13b1b49da4ac219696163fb8c1c93e1200 # v6.0.0
+        uses: goreleaser/goreleaser-action@90a3faa9d0182683851fbfa97ca1a2cb983bfca3 # v6.2.1
         with:
           version: '~> v2'
           args: release --release-notes=./config/release/notes.md --skip=validate
