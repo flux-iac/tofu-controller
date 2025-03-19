@@ -1,4 +1,4 @@
-site_name: Weave GitOps Terraform Controller
+site_name: "Tofu Controller: An IAC Controller for Flux"
 theme:
   name: material
   icon:
@@ -17,7 +17,7 @@ theme:
     - content.code.copy
 
 repo_url: https://github.com/flux-iac/tofu-controller
-repo_name: weaveworks/tf-controller
+repo_name: flux-iac/tofu-controller
 
 markdown_extensions:
   - pymdownx.highlight:
