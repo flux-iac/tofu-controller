@@ -10451,6 +10451,11 @@ spec:
 
                       Defaults to `0s` which will behave as though `LockTimeout` was not set
                     type: string
+                  disablePlanLock:
+                    default: true
+                    description: |-
+                      Disables state locking for a plan action. If set to true Terraform plan will be running win -lock=false parameter
+                    type: boolean
                 type: object
               upgradeOnInit:
                 default: true
