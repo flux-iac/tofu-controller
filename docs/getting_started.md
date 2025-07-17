@@ -85,7 +85,7 @@ helm upgrade -i tofu-controller tofu-controller/tofu-controller \
 ```
 
 For details on configurable parameters of the TF-controller chart,
-please see [chart readme](https://github.com/flux-iac/tofu-controller/tree/main/charts/tf-controller#tf-controller-for-flux).
+please see [chart readme](https://github.com/flux-iac/tofu-controller/tree/main/charts/tofu-controller).
 
 Alternatively, you can install TF-controller via `kubectl`:
 
