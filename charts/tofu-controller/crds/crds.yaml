@@ -5575,6 +5575,12 @@ spec:
                       retries.
                     format: int64
                     type: integer
+                  remediateLastFailure:
+                    default: false
+                    description: |-
+                      remediateLastFailure instructs the controller to remediate the last failure
+                      when no retries remain. Defaults to false
+                    type: boolean
                 type: object
               retryInterval:
                 description: |-
