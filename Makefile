@@ -13,7 +13,7 @@ BUILD_VERSION ?= $(shell git describe --tags $$(git rev-list --tags --max-count=
 # - .github/workflows/release-runners.yaml
 # - .github/workflows/release.yaml
 # - Tiltfile
-LIBCRYPTO_VERSION ?= 3.3.3-r0
+LIBCRYPTO_VERSION ?= 3.3.4-r0
 
 # source controller version
 SOURCE_VER ?= v1.0.0-rc.1
