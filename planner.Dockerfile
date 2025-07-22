@@ -35,7 +35,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} \
       -o branch-planner \
       ./cmd/branch-planner
 
-FROM alpine:3.21
+FROM alpine:3.22
 
 LABEL org.opencontainers.image.source="https://github.com/flux-iac/tofu-controller"
 

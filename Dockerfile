@@ -34,7 +34,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} \
         -ldflags "-X main.BuildSHA='${BUILD_SHA}' -X main.BuildVersion='${BUILD_VERSION}'" \
         -a -o tofu-controller ./cmd/manager
 
-FROM alpine:3.21
+FROM alpine:3.22
 
 LABEL org.opencontainers.image.source="https://github.com/flux-iac/tofu-controller"
 
