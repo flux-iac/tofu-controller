@@ -707,24 +707,6 @@ func (fake *FakeProvider) UpdateCommentOfPullRequestReturnsOnCall(i int, result1
 func (fake *FakeProvider) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.addCommentToPullRequestMutex.RLock()
-	defer fake.addCommentToPullRequestMutex.RUnlock()
-	fake.getLastCommentsMutex.RLock()
-	defer fake.getLastCommentsMutex.RUnlock()
-	fake.listPullRequestChangesMutex.RLock()
-	defer fake.listPullRequestChangesMutex.RUnlock()
-	fake.listPullRequestsMutex.RLock()
-	defer fake.listPullRequestsMutex.RUnlock()
-	fake.setHostnameMutex.RLock()
-	defer fake.setHostnameMutex.RUnlock()
-	fake.setLoggerMutex.RLock()
-	defer fake.setLoggerMutex.RUnlock()
-	fake.setTokenMutex.RLock()
-	defer fake.setTokenMutex.RUnlock()
-	fake.setupMutex.RLock()
-	defer fake.setupMutex.RUnlock()
-	fake.updateCommentOfPullRequestMutex.RLock()
-	defer fake.updateCommentOfPullRequestMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

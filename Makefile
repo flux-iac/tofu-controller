@@ -113,7 +113,7 @@ test-internal: manifests generate download-crd-deps fmt vet envtest api-docs ## 
 	$(TEST_SETTINGS) go test ./internal/... -coverprofile cover.out -v
 
 .PHONY: gen-grpc
-gen-grpc:
+gen-grpc: protoc protoc-gen-go protoc-gen-go-grpc
 	env PATH=$(shell pwd)/bin:$$PATH $(PROJECT_DIR)/bin/protoc --go_out=. --go_opt=Mrunner/runner.proto=runner/ --go-grpc_out=. --go-grpc_opt=Mrunner/runner.proto=runner/ runner/runner.proto
 
 ##@ Build
@@ -222,33 +222,34 @@ tools: kustomize protoc protoc-gen-go protoc-gen-go-grpc controller-gen envtest 
 KUSTOMIZE = $(shell pwd)/bin/kustomize
 .PHONY: kustomize
 kustomize: ## Download kustomize locally if necessary.
-	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.7)
+	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v5@v5.7.1)
 
 PROTOC = $(PROJECT_DIR)/protoc
+PROTOC_V ?= 31.1
 .PHONY: protoc
 protoc: ## Download protoc locally if necessary.
 	# download and unzip protoc
 	mkdir -p $(PROJECT_DIR)
-	curl -qLO https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-	unzip -q -o protoc-3.19.4-linux-x86_64.zip bin/protoc -d $(PROJECT_DIR)
-	rm protoc-3.19.4-linux-x86_64.zip
+	curl -qLO https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_V)/protoc-$(PROTOC_V)-linux-x86_64.zip
+	unzip -q -o protoc-$(PROTOC_V)-linux-x86_64.zip bin/protoc -d $(PROJECT_DIR)
+	rm protoc-$(PROTOC_V)-linux-x86_64.zip
 
 # Find or download controller-gen
 PROTOC_GEN_GO = $(GOBIN)/protoc-gen-go
 .PHONY: protoc-gen-go
 protoc-gen-go: ## Download controller-gen locally if necessary.
-	$(call go-install-tool,$(PROTOC_GEN_GO),google.golang.org/protobuf/cmd/protoc-gen-go@v1.27.1)
+	$(call go-install-tool,$(PROTOC_GEN_GO),google.golang.org/protobuf/cmd/protoc-gen-go@1.36.6)
 
 PROTOC_GEN_GO_GRPC = $(GOBIN)/protoc-gen-go-grpc
 .PHONY: protoc-gen-go-grpc
 protoc-gen-go-grpc: ## Download controller-gen locally if necessary.
-	$(call go-install-tool,$(PROTOC_GEN_GO_GRPC),google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2)
+	$(call go-install-tool,$(PROTOC_GEN_GO_GRPC),google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1)
 
 # Find or download controller-gen
 CONTROLLER_GEN = $(GOBIN)/controller-gen
 .PHONY: controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
-	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.17.0)
+	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.18.0)
 
 # Find or download gen-crd-api-reference-docs
 GEN_CRD_API_REFERENCE_DOCS = $(GOBIN)/gen-crd-api-reference-docs
@@ -268,7 +269,7 @@ install-envtest: setup-envtest
 ENVTEST = $(shell pwd)/bin/setup-envtest
 .PHONY: envtest
 setup-envtest: ## Download envtest-setup locally if necessary.
-	$(call go-install-tool,$(ENVTEST),sigs.k8s.io/controller-runtime/tools/setup-envtest@release-0.16)
+	$(call go-install-tool,$(ENVTEST),sigs.k8s.io/controller-runtime/tools/setup-envtest@release-0.21)
 
 # go-install-tool will 'go install' any package $2 and install it to $1.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
@@ -296,11 +297,11 @@ release-manifests:
 # Helm
 SRC_ROOT = $(shell git rev-parse --show-toplevel)
 
-helm-docs: HELMDOCS_VERSION := v1.13.0
+helm-docs: HELMDOCS_VERSION := v1.14.2
 helm-docs: docker
 	@docker run -v "$(SRC_ROOT):/helm-docs" jnorwood/helm-docs:$(HELMDOCS_VERSION) --chart-search-root /helm-docs
 
-helm-lint: CT_VERSION := v3.3.1
+helm-lint: CT_VERSION := v3.13.0
 helm-lint: docker
 	@docker run -v "$(SRC_ROOT):/workdir" --entrypoint /bin/sh quay.io/helmpack/chart-testing:$(CT_VERSION) -c "cd /workdir; ct lint --config ct.yaml --lint-conf lintconf.yaml --all --debug"
 
