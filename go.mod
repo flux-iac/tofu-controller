@@ -134,11 +134,9 @@ require (
 	github.com/go-openapi/swag v0.23.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/gnostic-models v0.7.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
@@ -166,8 +164,6 @@ require (
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
-	github.com/olekukonko/errors v0.0.0-20250405072817-4e6d85265da6 // indirect
-	github.com/olekukonko/ll v0.0.8 // indirect
 	github.com/olekukonko/tablewriter v1.0.8 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
@@ -234,7 +230,7 @@ replace (
 	github.com/hashicorp/terraform-exec v0.16.1 => github.com/tf-controller/terraform-exec v0.15.1-0.20220809152546-4850a69faedb
 
 	// Lock down k8s.io/kube-openapi to a specific commit
-	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20231206194836-bf4651e18aa8
+	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20250627150254-e9823e99808e
 )
 
 // Pin kustomize to v5.3.0
@@ -246,3 +242,6 @@ replace (
 // Pin terraform-exec to v0.17.3
 // breaking changes in terraform-exec v0.18.0 - https://github.com/hashicorp/terraform-exec/blob/main/CHANGELOG.md#0180-february-20-2023
 replace github.com/hashicorp/terraform-exec => github.com/hashicorp/terraform-exec v0.17.3
+
+// indirect - breaking changes in v1.0.x
+replace github.com/olekukonko/tablewriter => github.com/olekukonko/tablewriter v0.0.5
