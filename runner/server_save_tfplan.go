@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/flux-iac/tofu-controller/api/planid"
@@ -32,7 +32,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 		tfplan = []byte("dummy plan")
 	} else {
 		var err error
-		tfplan, err = ioutil.ReadFile(filepath.Join(r.tf.WorkingDir(), TFPlanName))
+		tfplan, err = os.ReadFile(filepath.Join(r.tf.WorkingDir(), TFPlanName))
 		if err != nil {
 			err = fmt.Errorf("error reading plan file: %s", err)
 			log.Error(err, "unable to complete SaveTFPlan function")
