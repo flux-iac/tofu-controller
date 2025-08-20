@@ -6,8 +6,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -149,7 +149,7 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, t
 
 			caCertPath := "/etc/certs/" + u.Hostname() + "/ca.crt"
 			caCertPool := x509.NewCertPool()
-			caCert, err := ioutil.ReadFile(caCertPath)
+			caCert, err := os.ReadFile(caCertPath)
 			if err == nil {
 				caCertPool.AppendCertsFromPEM(caCert)
 			}
@@ -253,7 +253,7 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, t
 		log.Info("webhook error message template executed")
 
 		terraform = infrav1.TerraformPostPlanningWebhookFailed(terraform, revision, errorMessage.String())
-		webhookErr := fmt.Errorf(errorMessage.String())
+		webhookErr := errors.New(errorMessage.String())
 		return terraform, webhookErr
 	}
 
