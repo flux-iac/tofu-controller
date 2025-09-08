@@ -1,13 +1,15 @@
 package controllers
 
 import (
+	"testing"
+	"time"
+
+	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
-	"testing"
-	"time"
 )
 
 func TestSourceRevisionChangePredicate_Update(t *testing.T) {
@@ -63,7 +65,7 @@ func TestSourceRevisionChangePredicate_Update(t *testing.T) {
 				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
-		Artifact: &sourcev1.Artifact{
+		Artifact: &meta.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/file.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
@@ -84,7 +86,7 @@ func TestSourceRevisionChangePredicate_Update(t *testing.T) {
 				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
-		Artifact: &sourcev1.Artifact{
+		Artifact: &meta.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/file.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",

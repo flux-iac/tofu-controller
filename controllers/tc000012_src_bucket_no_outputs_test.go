@@ -10,7 +10,7 @@ import (
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	. "github.com/onsi/gomega"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -64,7 +64,7 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 				Message:            "Fetched revision: 822c3dd335579b435b5ada924d6f38b227412a5c",
 			},
 		},
-		Artifact: &sourcev1.Artifact{
+		Artifact: &meta.Artifact{
 			Path:           fmt.Sprintf("bucket/flux-system/%s/822c3dd335579b435b5ada924d6f38b227412a5c.tar.gz", sourceName),
 			URL:            server.URL() + "/file.tar.gz",
 			Revision:       "822c3dd335579b435b5ada924d6f38b227412a5c",

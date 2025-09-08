@@ -11,6 +11,7 @@ import (
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/utils"
+	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -65,7 +66,7 @@ func Test_000131_destroy_no_changes_test(t *testing.T) {
 			},
 		},
 
-		Artifact: &sourcev1.Artifact{
+		Artifact: &meta.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/tf-k8s-configmap.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
