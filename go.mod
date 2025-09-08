@@ -28,7 +28,7 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/hashicorp/hcl2 v0.0.0-20191002203319-fb75b3253c80
-	github.com/hashicorp/terraform-exec v0.23.0
+	github.com/hashicorp/terraform-exec v0.16.1
 	github.com/hashicorp/terraform-json v0.25.0
 	github.com/jenkins-x/go-scm v1.15.1
 	github.com/kubescape/go-git-url v0.0.30
@@ -233,10 +233,6 @@ replace (
 	sigs.k8s.io/kustomize/api => sigs.k8s.io/kustomize/api v0.16.0
 	sigs.k8s.io/kustomize/kyaml => sigs.k8s.io/kustomize/kyaml v0.16.0
 )
-
-// Pin terraform-exec to v0.17.3
-// breaking changes in terraform-exec v0.18.0 - https://github.com/hashicorp/terraform-exec/blob/main/CHANGELOG.md#0180-february-20-2023
-replace github.com/hashicorp/terraform-exec => github.com/hashicorp/terraform-exec v0.17.3
 
 // indirect - breaking changes in v1.0.x
 replace github.com/olekukonko/tablewriter => github.com/olekukonko/tablewriter v0.0.5
