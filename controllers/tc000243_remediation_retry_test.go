@@ -64,7 +64,7 @@ func Test_000243_remediation_retry_test(t *testing.T) {
 				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
-		Artifact: &sourcev1.Artifact{
+		Artifact: &meta.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/bad.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
@@ -230,7 +230,7 @@ spec:
 				Message:            "Fetched revision: master/aaabbbccc6e3d0cbb7ed22ced771a0056455a2fb",
 			},
 		},
-		Artifact: &sourcev1.Artifact{
+		Artifact: &meta.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/aaabbbccc6e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/bad.tar.gz",
 			Revision:       "master/aaabbbccc6e3d0cbb7ed22ced771a0056455a2fb",
