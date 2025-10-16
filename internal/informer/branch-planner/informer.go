@@ -307,12 +307,18 @@ func (i *Informer) isNewPlan(old, new *infrav1.Terraform) bool {
 		return false
 	}
 
+	if new.Status.LastPlannedRevision == "" {
+		return false
+	}
+
 	if old.Status.LastPlanAt == nil && new.Status.LastPlanAt != nil {
 		return true
 	}
 
 	if new.Status.LastPlanAt.After(old.Status.LastPlanAt.Time) {
-		return true
+		if old.Status.LastPlannedRevision != new.Status.LastPlannedRevision {
+			return true
+		}
 	}
 
 	return false
