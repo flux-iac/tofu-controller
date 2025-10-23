@@ -149,6 +149,7 @@ message PlanRequest {
   repeated string targets = 5;
   string lockTimeout = 6;
   string sourceRefRootDir = 7;
+  bool disablePlanLock = 8;
 }
 
 message PlanReply {
