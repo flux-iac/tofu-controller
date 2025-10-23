@@ -73,6 +73,7 @@ func Test_000260_runner_pod_test(t *testing.T) {
 	spec := reconciler.runnerPodSpec(helloWorldTF, "runner.tls-123")
 	g.Expect(spec.ServiceAccountName).To(Equal(serviceAccountName))
 	g.Expect(spec.Containers[0].Image).To(Equal(runnerPodImage))
+	g.Expect(spec.Containers[0].ImagePullPolicy).To(Equal(corev1.PullIfNotPresent))
 	g.Expect(spec.HostAliases[0].Hostnames).To(Equal([]string{"foo", "bar"}))
 
 	podTemplate, err := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
@@ -160,6 +161,76 @@ func Test_000260_runner_pod_test_env_vars(t *testing.T) {
 	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Value", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[0].Value)))
 	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Name", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Name)))
 	g.Expect(spec.Containers[0].Env).Should(ContainElements(HaveField("Value", helloWorldTF.Spec.RunnerPodTemplate.Spec.Env[1].Value)))
+
+	podTemplate, err := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(func() bool {
+		for k, v := range stringMap {
+			if v != podTemplate.ObjectMeta.Labels[k] {
+				return false
+			}
+		}
+		for k, v := range stringMap {
+			if v != podTemplate.ObjectMeta.Annotations[k] {
+				return false
+			}
+		}
+		return true
+	}()).To(BeTrue())
+}
+
+func Test_000260_runner_pod_a_test_image_pull_policy(t *testing.T) {
+	Spec("This spec describes a runner pod creation process")
+
+	const (
+		terraformName      = "runner-pod-test"
+		sourceName         = "runner-pod-test"
+		serviceAccountName = "helloworld-tf-runner"
+		runnerPodImage     = "ghcr.io/weaveworks/tf-runner:test"
+		revision           = "v2.6@sha256:c7fd0cc69b924aa5f9a6928477311737e439ca1b9e444855b0377e8a8ec65bb5"
+	)
+
+	var stringMap = map[string]string{
+		"company.com/abc":                "xyz",
+		"company.com/xyz":                "abc",
+		"tf.weave.works/tls-secret-name": "runner.tls-123",
+	}
+
+	g := NewWithT(t)
+
+	It("generate a runner pod template")
+	By("passing a terraform object, the runner pod template should be accurate")
+	helloWorldTF := infrav1.Terraform{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      terraformName,
+			Namespace: "flux-system",
+		},
+		Spec: infrav1.TerraformSpec{
+			ApprovePlan: "auto",
+			Path:        "./terraform-hello-world-example",
+			SourceRef: infrav1.CrossNamespaceSourceReference{
+				Kind:      "GitRepository",
+				Name:      sourceName,
+				Namespace: "flux-system",
+			},
+			ServiceAccountName: serviceAccountName,
+			RunnerPodTemplate: infrav1.RunnerPodTemplate{
+				Metadata: infrav1.RunnerPodMetadata{
+					Labels:      stringMap,
+					Annotations: stringMap,
+				},
+				Spec: infrav1.RunnerPodSpec{
+					Image:           runnerPodImage,
+					ImagePullPolicy: "Always",
+				},
+			},
+		},
+	}
+
+	spec := reconciler.runnerPodSpec(helloWorldTF, "runner.tls-123")
+	g.Expect(spec.ServiceAccountName).To(Equal(serviceAccountName))
+	g.Expect(spec.Containers[0].Image).To(Equal(runnerPodImage))
+	g.Expect(spec.Containers[0].ImagePullPolicy).To(Equal(corev1.PullAlways))
 
 	podTemplate, err := runnerPodTemplate(helloWorldTF, "runner.tls-123", revision)
 	g.Expect(err).ToNot(HaveOccurred())
