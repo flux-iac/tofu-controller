@@ -662,7 +662,7 @@ func (r *TerraformReconciler) requestsForRevisionChangeOf(indexKey string) handl
 	return func(ctx context.Context, obj client.Object) []reconcile.Request {
 		log := ctrl.LoggerFrom(ctx)
 		repo, ok := obj.(interface {
-			GetArtifact() *sourcev1.Artifact
+			GetArtifact() *meta.Artifact
 		})
 		if !ok {
 			log.Error(fmt.Errorf("expected an object conformed with GetArtifact() method, but got a %T", obj), "failed to get reconcile requests for revision change")
@@ -758,7 +758,7 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform infrav1.T
 	return sourceObj, nil
 }
 
-func (r *TerraformReconciler) downloadAsBytes(artifact *sourcev1.Artifact) (*bytes.Buffer, error) {
+func (r *TerraformReconciler) downloadAsBytes(artifact *meta.Artifact) (*bytes.Buffer, error) {
 	artifactURL := artifact.URL
 	if hostname := os.Getenv("SOURCE_CONTROLLER_LOCALHOST"); hostname != "" {
 		u, err := url.Parse(artifactURL)
