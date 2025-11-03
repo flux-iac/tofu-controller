@@ -15,7 +15,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.84.1
 	github.com/aws/smithy-go v1.22.4
 	github.com/cyphar/filepath-securejoin v0.4.1
-	github.com/elgohr/go-localstack v1.0.133
+	github.com/elgohr/go-localstack v1.0.143
 	github.com/flux-iac/tofu-controller/api v0.0.0-20250321074822-67198a27f35b
 	github.com/flux-iac/tofu-controller/tfctl v0.0.0-20250321074822-67198a27f35b
 	github.com/fluxcd/pkg/apis/event v0.18.0
@@ -30,19 +30,19 @@ require (
 	github.com/hashicorp/hcl2 v0.0.0-20191002203319-fb75b3253c80
 	github.com/hashicorp/terraform-exec v0.23.0
 	github.com/hashicorp/terraform-json v0.25.0
-	github.com/jenkins-x/go-scm v1.15.1
+	github.com/jenkins-x/go-scm v1.15.16
 	github.com/kubescape/go-git-url v0.0.30
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.11.3
-	github.com/onsi/gomega v1.38.0
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.0
+	github.com/onsi/gomega v1.38.2
 	github.com/spf13/afero v1.14.0
 	github.com/spf13/cobra v1.9.1
-	github.com/spf13/pflag v1.0.7
+	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.20.1
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	github.com/zclconf/go-cty v1.16.3
-	golang.org/x/net v0.42.0
+	golang.org/x/net v0.43.0
 	google.golang.org/grpc v1.74.2
-	google.golang.org/protobuf v1.36.6
+	google.golang.org/protobuf v1.36.7
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.33.3
 	k8s.io/apiextensions-apiserver v0.33.3
@@ -58,7 +58,7 @@ require (
 require (
 	code.gitea.io/sdk/gitea v0.20.0 // indirect
 	dario.cat/mergo v1.0.1 // indirect
-	fortio.org/safecast v1.0.0 // indirect
+	fortio.org/safecast v1.2.0 // indirect
 	github.com/42wim/httpsig v1.2.2 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
 	github.com/MakeNowJust/heredoc v1.0.0 // indirect
@@ -112,8 +112,8 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/davidmz/go-pageant v1.0.2 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/docker v28.3.3+incompatible // indirect
-	github.com/docker/go-connections v0.5.0 // indirect
+	github.com/docker/docker v28.5.1+incompatible // indirect
+	github.com/docker/go-connections v0.6.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.12.2 // indirect
 	github.com/evanphx/json-patch/v5 v5.9.11 // indirect
@@ -199,15 +199,15 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.40.0 // indirect
-	golang.org/x/mod v0.26.0 // indirect
-	golang.org/x/oauth2 v0.30.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
-	golang.org/x/term v0.33.0 // indirect
-	golang.org/x/text v0.27.0 // indirect
+	golang.org/x/crypto v0.41.0 // indirect
+	golang.org/x/mod v0.27.0 // indirect
+	golang.org/x/oauth2 v0.31.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/sys v0.35.0 // indirect
+	golang.org/x/term v0.34.0 // indirect
+	golang.org/x/text v0.29.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
-	golang.org/x/tools v0.35.0 // indirect
+	golang.org/x/tools v0.36.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
