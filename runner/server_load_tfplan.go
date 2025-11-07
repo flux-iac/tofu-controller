@@ -21,8 +21,9 @@ func (r *TerraformRunnerServer) LoadTFPlan(ctx context.Context, req *LoadTFPlanR
 	log.Info("loading plan from secret")
 
 	if req.TfInstance != r.InstanceID {
-		err := fmt.Errorf("no TF instance found")
-		log.Error(err, "no terraform")
+		err := &TerraformSessionMismatchError{RequestedInstanceID: req.TfInstance, CurrentInstanceID: r.InstanceID}
+		log.Error(err, "terraform session mismatch when loading the plan")
+
 		return nil, err
 	}
 

@@ -15,7 +15,7 @@ import (
 	tfjson "github.com/hashicorp/terraform-json"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"sigs.k8s.io/controller-runtime"
+	controllerruntime "sigs.k8s.io/controller-runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -106,8 +106,9 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 	}()
 
 	if req.TfInstance != r.InstanceID {
-		err := fmt.Errorf("no TF instance found")
-		log.Error(err, "no terraform")
+		err := &TerraformSessionMismatchError{RequestedInstanceID: req.TfInstance, CurrentInstanceID: r.InstanceID}
+		log.Error(err, "terraform session mismatch when creating a plan")
+
 		return nil, err
 	}
 
