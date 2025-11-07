@@ -10,6 +10,7 @@ import (
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
+	"github.com/google/uuid"
 
 	. "github.com/onsi/gomega"
 
@@ -105,6 +106,7 @@ func Test_000082_varsfrom_accepts_many_configmaps_with_last_supplied_precedence(
 	ntResp, err := runnerServer.NewTerraform(ctx, &runner.NewTerraformRequest{
 		WorkingDir: workDir,
 		ExecPath:   execPath,
+		InstanceID: uuid.New().String(),
 		Terraform:  terraformBytes,
 	})
 	g.Expect(err).Should(BeNil())
