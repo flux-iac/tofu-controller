@@ -11,8 +11,7 @@ func (r *TerraformRunnerServer) ShowPlanFileRaw(ctx context.Context, req *ShowPl
 	log := controllerruntime.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("show the raw plan file")
 
-	if req.TfInstance != r.InstanceID {
-		err := &TerraformSessionMismatchError{RequestedInstanceID: req.TfInstance, CurrentInstanceID: r.InstanceID}
+	if err := r.ValidateInstanceID(req.TfInstance); err != nil {
 		log.Error(err, "terraform session mismatch when showing the raw plan file")
 
 		return nil, err
@@ -31,8 +30,7 @@ func (r *TerraformRunnerServer) ShowPlanFile(ctx context.Context, req *ShowPlanF
 	log := controllerruntime.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("show the plan file")
 
-	if req.TfInstance != r.InstanceID {
-		err := &TerraformSessionMismatchError{RequestedInstanceID: req.TfInstance, CurrentInstanceID: r.InstanceID}
+	if err := r.ValidateInstanceID(req.TfInstance); err != nil {
 		log.Error(err, "terraform session mismatch when showing the plan file")
 
 		return nil, err

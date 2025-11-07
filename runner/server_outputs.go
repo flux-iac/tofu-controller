@@ -31,8 +31,7 @@ func (r *TerraformRunnerServer) Output(ctx context.Context, req *OutputRequest) 
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("creating outputs")
 
-	if req.TfInstance != r.InstanceID {
-		err := &TerraformSessionMismatchError{RequestedInstanceID: req.TfInstance, CurrentInstanceID: r.InstanceID}
+	if err := r.ValidateInstanceID(req.TfInstance); err != nil {
 		log.Error(err, "terraform session mismatch when creating outputs")
 
 		return nil, err

@@ -21,8 +21,7 @@ const EncryptionKeyLength = 32
 func (r *TerraformRunnerServer) CreateWorkspaceBlob(ctx context.Context, req *CreateWorkspaceBlobRequest) (*CreateWorkspaceBlobReply, error) {
 	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
 
-	if req.TfInstance != r.InstanceID {
-		err := &TerraformSessionMismatchError{RequestedInstanceID: req.TfInstance, CurrentInstanceID: r.InstanceID}
+	if err := r.ValidateInstanceID(req.TfInstance); err != nil {
 		log.Error(err, "terraform session mismatch when creating workspace blob")
 
 		return nil, err

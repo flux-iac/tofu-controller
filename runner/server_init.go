@@ -42,8 +42,7 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("initializing")
 
-	if req.TfInstance != r.InstanceID {
-		err := &TerraformSessionMismatchError{RequestedInstanceID: req.TfInstance, CurrentInstanceID: r.InstanceID}
+	if err := r.ValidateInstanceID(req.TfInstance); err != nil {
 		log.Error(err, "terraform session mismatch when initializing")
 
 		return nil, err
