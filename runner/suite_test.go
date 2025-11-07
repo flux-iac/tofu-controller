@@ -3,15 +3,35 @@ package runner_test
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"io/ioutil"
 	"math/rand"
+	"net"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
 	"time"
 
 	"github.com/flux-iac/tofu-controller/controllers"
 	"github.com/flux-iac/tofu-controller/runner"
+	grpc "google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"k8s.io/apimachinery/pkg/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/fluxcd/pkg/runtime/logger"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"k8s.io/client-go/rest"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -41,7 +61,7 @@ var (
 	logBuffer bytes.Buffer
 )
 
-/*func TestMain(m *testing.M) {
+func TestMain(m *testing.M) {
 	var err error
 
 	if os.Getenv("WITH_STDOUT_LOGGER") != "" {
@@ -215,4 +235,3 @@ func getGrpcClient(ctx context.Context, addr string) (runner.RunnerClient, error
 
 	return runner.NewRunnerClient(grpcConn), nil
 }
-*/
