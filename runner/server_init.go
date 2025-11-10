@@ -41,9 +41,10 @@ func (r *TerraformRunnerServer) tfInit(ctx context.Context, opts ...tfexec.InitO
 func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*InitReply, error) {
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("initializing")
-	if req.TfInstance != r.InstanceID {
-		err := fmt.Errorf("no TF instance found")
-		log.Error(err, "no terraform")
+
+	if err := r.ValidateInstanceID(req.TfInstance); err != nil {
+		log.Error(err, "terraform session mismatch when initializing")
+
 		return nil, err
 	}
 
