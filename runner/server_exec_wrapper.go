@@ -83,9 +83,6 @@ func (t *TerraformExecWrapper) NormalizeError(err error) error {
 	trimmedError := strings.TrimSpace(err.Error())
 
 	switch {
-	case stateLockErrRegexp.MatchString(trimmedError):
-		return &StateLockError{originalError: err}
-
 	case stateLockInfoRegexp.MatchString(trimmedError):
 		matches := stateLockInfoRegexp.FindStringSubmatch(trimmedError)
 
@@ -98,6 +95,8 @@ func (t *TerraformExecWrapper) NormalizeError(err error) error {
 			Version:       matches[5],
 			Created:       matches[6],
 		}
+	case stateLockErrRegexp.MatchString(trimmedError):
+		return &StateLockError{originalError: err}
 	}
 
 	return err
