@@ -3,16 +3,17 @@ package runner
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"sigs.k8s.io/controller-runtime"
+
+	controllerruntime "sigs.k8s.io/controller-runtime"
 )
 
 func (r *TerraformRunnerServer) ShowPlanFileRaw(ctx context.Context, req *ShowPlanFileRawRequest) (*ShowPlanFileRawReply, error) {
 	log := controllerruntime.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("show the raw plan file")
-	if req.TfInstance != r.InstanceID {
-		err := fmt.Errorf("no TF instance found")
-		log.Error(err, "no terraform")
+
+	if err := r.ValidateInstanceID(req.TfInstance); err != nil {
+		log.Error(err, "terraform session mismatch when showing the raw plan file")
+
 		return nil, err
 	}
 
@@ -27,10 +28,11 @@ func (r *TerraformRunnerServer) ShowPlanFileRaw(ctx context.Context, req *ShowPl
 
 func (r *TerraformRunnerServer) ShowPlanFile(ctx context.Context, req *ShowPlanFileRequest) (*ShowPlanFileReply, error) {
 	log := controllerruntime.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
-	log.Info("show the raw plan file")
-	if req.TfInstance != r.InstanceID {
-		err := fmt.Errorf("no TF instance found")
-		log.Error(err, "no terraform")
+	log.Info("show the plan file")
+
+	if err := r.ValidateInstanceID(req.TfInstance); err != nil {
+		log.Error(err, "terraform session mismatch when showing the plan file")
+
 		return nil, err
 	}
 

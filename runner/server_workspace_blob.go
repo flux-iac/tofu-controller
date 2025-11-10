@@ -6,7 +6,6 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -21,9 +20,10 @@ const EncryptionKeyLength = 32
 // CreateWorkspaceBlob archives and compresses using tar and gzip the .terraform directory and returns the tarball as a byte array
 func (r *TerraformRunnerServer) CreateWorkspaceBlob(ctx context.Context, req *CreateWorkspaceBlobRequest) (*CreateWorkspaceBlobReply, error) {
 	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
-	if req.TfInstance != r.InstanceID {
-		err := fmt.Errorf("no TF instance found")
-		log.Error(err, "no terraform")
+
+	if err := r.ValidateInstanceID(req.TfInstance); err != nil {
+		log.Error(err, "terraform session mismatch when creating workspace blob")
+
 		return nil, err
 	}
 

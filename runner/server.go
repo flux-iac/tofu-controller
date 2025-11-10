@@ -38,6 +38,25 @@ const (
 	HomePath                              = "/home/runner"
 )
 
+// TerraformSessionNotInitializedError indicates that the current Terraform instance ID is empty.
+type TerraformSessionNotInitializedError struct {
+	RequestedInstanceID string
+}
+
+func (e *TerraformSessionNotInitializedError) Error() string {
+	return fmt.Sprintf("terraform session error: instance id is empty, expected '%s'", e.RequestedInstanceID)
+}
+
+// TerraformSessionMismatchError indicates that the requested Terraform instance ID does not match the current instance ID.
+type TerraformSessionMismatchError struct {
+	RequestedInstanceID string
+	CurrentInstanceID   string
+}
+
+func (e *TerraformSessionMismatchError) Error() string {
+	return fmt.Sprintf("terraform session mismatch: requested instance id '%s' does not match the current instance '%s'", e.RequestedInstanceID, e.CurrentInstanceID)
+}
+
 type LocalPrintfer struct {
 	logger logr.Logger
 }
@@ -57,6 +76,23 @@ type TerraformRunnerServer struct {
 }
 
 const loggerName = "runner.terraform"
+
+func (r *TerraformRunnerServer) ValidateInstanceID(requestedInstanceID string) error {
+	if r.InstanceID == "" {
+		return &TerraformSessionNotInitializedError{
+			RequestedInstanceID: requestedInstanceID,
+		}
+	}
+
+	if requestedInstanceID != r.InstanceID {
+		return &TerraformSessionMismatchError{
+			RequestedInstanceID: requestedInstanceID,
+			CurrentInstanceID:   r.InstanceID,
+		}
+	}
+
+	return nil
+}
 
 func (r *TerraformRunnerServer) LookPath(ctx context.Context, req *LookPathRequest) (*LookPathReply, error) {
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
@@ -214,9 +250,9 @@ func (r *TerraformRunnerServer) SetEnv(ctx context.Context, req *SetEnvRequest) 
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("setting envvars")
 
-	if req.TfInstance != r.InstanceID {
-		err := fmt.Errorf("no TF instance found")
-		log.Error(err, "no terraform")
+	if err := r.ValidateInstanceID(req.TfInstance); err != nil {
+		log.Error(err, "terraform session mismatch when setting environment variables")
+
 		return nil, err
 	}
 
@@ -283,9 +319,10 @@ func (r *TerraformRunnerServer) CreateFileMappings(ctx context.Context, req *Cre
 func (r *TerraformRunnerServer) SelectWorkspace(ctx context.Context, req *WorkspaceRequest) (*WorkspaceReply, error) {
 	log := ctrl.LoggerFrom(ctx).WithName(loggerName)
 	log.Info("workspace select")
-	if req.TfInstance != r.InstanceID {
-		err := fmt.Errorf("no TF instance found")
-		log.Error(err, "no terraform")
+
+	if err := r.ValidateInstanceID(req.TfInstance); err != nil {
+		log.Error(err, "terraform session mismatch when selecting workspace")
+
 		return nil, err
 	}
 
@@ -310,6 +347,7 @@ func (r *TerraformRunnerServer) SelectWorkspace(ctx context.Context, req *Worksp
 func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest) (*DestroyReply, error) {
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("running destroy")
+
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
 		select {
@@ -319,9 +357,9 @@ func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest
 		}
 	}()
 
-	if req.TfInstance != r.InstanceID {
-		err := fmt.Errorf("no TF instance found")
-		log.Error(err, "no terraform")
+	if err := r.ValidateInstanceID(req.TfInstance); err != nil {
+		log.Error(err, "terraform session mismatch when running destroy")
+
 		return nil, err
 	}
 
@@ -352,6 +390,7 @@ func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest
 func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*ApplyReply, error) {
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("running apply")
+
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
 		select {
@@ -361,9 +400,9 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 		}
 	}()
 
-	if req.TfInstance != r.InstanceID {
-		err := fmt.Errorf("no TF instance found")
-		log.Error(err, "no terraform")
+	if err := r.ValidateInstanceID(req.TfInstance); err != nil {
+		log.Error(err, "terraform session mismatch when running apply")
+
 		return nil, err
 	}
 
@@ -454,11 +493,13 @@ func getInventoryFromTerraformModule(m *tfjson.StateModule) []*Inventory {
 func (r *TerraformRunnerServer) GetInventory(ctx context.Context, req *GetInventoryRequest) (*GetInventoryReply, error) {
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("get inventory")
-	if req.TfInstance != r.InstanceID {
-		err := fmt.Errorf("no TF instance found")
-		log.Error(err, "get inventory: no terraform")
+
+	if err := r.ValidateInstanceID(req.TfInstance); err != nil {
+		log.Error(err, "terraform session mismatch when getting inventory")
+
 		return nil, err
 	}
+
 	state, err := r.tf.Show(ctx)
 	if err != nil {
 		log.Error(err, "get inventory: unable to get state via show command")
