@@ -67,7 +67,7 @@ func (l LocalPrintfer) Printf(format string, v ...interface{}) {
 
 type TerraformRunnerServer struct {
 	UnimplementedRunnerServer
-	tf *tfexec.Terraform
+	tf *TerraformExecWrapper
 	client.Client
 	Scheme     *runtime.Scheme
 	Done       chan os.Signal
@@ -230,7 +230,7 @@ func (r *TerraformRunnerServer) NewTerraform(ctx context.Context, req *NewTerraf
 	}
 
 	// hold only 1 instance
-	r.tf = tf
+	r.tf = NewTerraformExecWrapper(tf)
 
 	var terraform infrav1.Terraform
 	if err := terraform.FromBytes(req.Terraform, r.Scheme); err != nil {
@@ -370,7 +370,7 @@ func (r *TerraformRunnerServer) Destroy(ctx context.Context, req *DestroyRequest
 
 	if err := r.tf.Destroy(ctx, destroyOpt...); err != nil {
 		st := status.New(codes.Internal, err.Error())
-		var stateErr *tfexec.ErrStateLocked
+		var stateErr *StateLockError
 
 		if errors.As(err, &stateErr) {
 			st, err = st.WithDetails(&DestroyReply{Message: "not ok", StateLockIdentifier: stateErr.ID})
@@ -430,7 +430,7 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 
 	if err := r.tf.Apply(ctx, applyOpt...); err != nil {
 		st := status.New(codes.Internal, err.Error())
-		var stateErr *tfexec.ErrStateLocked
+		var stateErr *StateLockError
 
 		if errors.As(err, &stateErr) {
 			st, err = st.WithDetails(&ApplyReply{Message: "not ok", StateLockIdentifier: stateErr.ID})
