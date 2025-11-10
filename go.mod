@@ -28,8 +28,8 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/hashicorp/hcl2 v0.0.0-20191002203319-fb75b3253c80
-	github.com/hashicorp/terraform-exec v0.23.0
-	github.com/hashicorp/terraform-json v0.25.0
+	github.com/hashicorp/terraform-exec v0.24.0
+	github.com/hashicorp/terraform-json v0.27.1
 	github.com/jenkins-x/go-scm v1.15.1
 	github.com/kubescape/go-git-url v0.0.30
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.11.3
@@ -39,7 +39,7 @@ require (
 	github.com/spf13/pflag v1.0.7
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
-	github.com/zclconf/go-cty v1.16.3
+	github.com/zclconf/go-cty v1.16.4
 	golang.org/x/net v0.42.0
 	google.golang.org/grpc v1.74.2
 	google.golang.org/protobuf v1.36.6
@@ -225,23 +225,14 @@ require (
 	sigs.k8s.io/yaml v1.5.0 // indirect
 )
 
-replace (
-	// v0.15.1-0.20220809152546-4850a69faedb is actually the v0.16.1a tag of the fork
-	github.com/hashicorp/terraform-exec v0.16.1 => github.com/tf-controller/terraform-exec v0.15.1-0.20220809152546-4850a69faedb
-
-	// Lock down k8s.io/kube-openapi to a specific commit
-	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20250627150254-e9823e99808e
-)
+// Lock down k8s.io/kube-openapi to a specific commit
+replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20250627150254-e9823e99808e
 
 // Pin kustomize to v5.3.0
 replace (
 	sigs.k8s.io/kustomize/api => sigs.k8s.io/kustomize/api v0.16.0
 	sigs.k8s.io/kustomize/kyaml => sigs.k8s.io/kustomize/kyaml v0.16.0
 )
-
-// Pin terraform-exec to v0.17.3
-// breaking changes in terraform-exec v0.18.0 - https://github.com/hashicorp/terraform-exec/blob/main/CHANGELOG.md#0180-february-20-2023
-replace github.com/hashicorp/terraform-exec => github.com/hashicorp/terraform-exec v0.17.3
 
 // indirect - breaking changes in v1.0.x
 replace github.com/olekukonko/tablewriter => github.com/olekukonko/tablewriter v0.0.5

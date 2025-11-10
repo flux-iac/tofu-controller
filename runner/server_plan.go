@@ -15,7 +15,6 @@ import (
 	tfjson "github.com/hashicorp/terraform-json"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	controllerruntime "sigs.k8s.io/controller-runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -84,8 +83,8 @@ func (r *TerraformRunnerServer) tfPlan(ctx context.Context, opts ...tfexec.PlanO
 
 	diff, err := r.tf.Plan(ctx, opts...)
 	// sanitize the error message only if it's not a state lock error
-	var sl *tfexec.ErrStateLocked
-	if err != nil && errors.As(err, &sl) == false {
+	var sl *StateLockError
+	if err != nil && !errors.As(err, &sl) {
 		fmt.Fprint(os.Stderr, sanitizeLog(errBuf.String()))
 		err = errors.New(sanitizeLog(err.Error()))
 	}
@@ -94,7 +93,7 @@ func (r *TerraformRunnerServer) tfPlan(ctx context.Context, opts ...tfexec.PlanO
 }
 
 func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*PlanReply, error) {
-	log := controllerruntime.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
+	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("creating a plan")
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
@@ -160,7 +159,7 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 	drifted, err := r.tfPlan(ctx, planOpt...)
 	if err != nil {
 		st := status.New(codes.Internal, err.Error())
-		var stateErr *tfexec.ErrStateLocked
+		var stateErr *StateLockError
 
 		if errors.As(err, &stateErr) {
 			st, err = st.WithDetails(&PlanReply{Message: "not ok", StateLockIdentifier: stateErr.ID})

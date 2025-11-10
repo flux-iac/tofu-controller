@@ -29,8 +29,8 @@ func (r *TerraformRunnerServer) tfInit(ctx context.Context, opts ...tfexec.InitO
 
 	err := r.tf.Init(ctx, opts...)
 
-	var sl *tfexec.ErrStateLocked
-	if err != nil && errors.As(err, &sl) == false {
+	var sl *StateLockError
+	if err != nil && !errors.As(err, &sl) {
 		fmt.Fprint(os.Stderr, errBuf.String())
 		err = errors.New(errBuf.String())
 	}
@@ -107,7 +107,7 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 	initOpts = append(initOpts, backendConfigsOpts...)
 	if err := r.tfInit(ctx, initOpts...); err != nil {
 		st := status.New(codes.Internal, err.Error())
-		var stateErr *tfexec.ErrStateLocked
+		var stateErr *StateLockError
 
 		if errors.As(err, &stateErr) {
 			st, err = st.WithDetails(&InitReply{Message: "not ok", StateLockIdentifier: stateErr.ID})
