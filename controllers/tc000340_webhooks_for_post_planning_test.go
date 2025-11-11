@@ -67,7 +67,6 @@ kind: Terraform
 metadata:
   name: helloworld
   namespace: flux-system
-  creationTimestamp: null
 spec:
   approvePlan: auto
   path: ./terraform-hello-world-example
@@ -141,7 +140,6 @@ kind: Terraform
 metadata:
   name: helloworld
   namespace: flux-system
-  creationTimestamp: null
 spec:
   approvePlan: auto
   path: ./terraform-hello-world-example
