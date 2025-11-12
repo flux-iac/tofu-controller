@@ -20,9 +20,9 @@ require (
 	github.com/flux-iac/tofu-controller/tfctl v0.0.0-00010101000000-000000000000
 	github.com/fluxcd/pkg/apis/event v0.19.0
 	github.com/fluxcd/pkg/apis/meta v1.21.0
-	github.com/fluxcd/pkg/runtime v0.83.0
+	github.com/fluxcd/pkg/runtime v0.84.0
 	github.com/fluxcd/pkg/tar v0.14.0
-	github.com/fluxcd/source-controller/api v1.7.0-rc.3
+	github.com/fluxcd/source-controller/api v1.7.0
 	github.com/go-logr/logr v1.4.3
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
@@ -51,7 +51,7 @@ require (
 	k8s.io/client-go v0.34.0
 	k8s.io/kubectl v0.34.0
 	sigs.k8s.io/cli-utils v0.37.2
-	sigs.k8s.io/controller-runtime v0.22.0
+	sigs.k8s.io/controller-runtime v0.22.1
 	sigs.k8s.io/kustomize/kyaml v0.20.1
 )
 
