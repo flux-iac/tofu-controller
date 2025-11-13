@@ -10,7 +10,7 @@ import (
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	. "github.com/onsi/gomega"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -74,7 +74,7 @@ func Test_000012_src_ocirepository_no_outputs_test(t *testing.T) {
 				Message:            "stored artifact for digest 'v4.38.0-v1alpha11@sha256:6033f3b9fb6458dda7f432ea5ce1a8dbb9560c2388d612f0d1036ba03cf2e063'",
 			},
 		},
-		Artifact: &sourcev1.Artifact{
+		Artifact: &meta.Artifact{
 			Path:           fmt.Sprintf("ocirepository/flux-system/%s/sha256:6033f3b9fb6458dda7f432ea5ce1a8dbb9560c2388d612f0d1036ba03cf2e063.tar.gz", sourceName),
 			URL:            server.URL() + "/file.tar.gz",
 			Revision:       "v4.38.0-v1alpha11@sha256:6033f3b9fb6458dda7f432ea5ce1a8dbb9560c2388d612f0d1036ba03cf2e063",

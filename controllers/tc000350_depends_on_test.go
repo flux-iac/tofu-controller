@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -55,7 +56,7 @@ func dependencyObject(t *testing.T) (*sourcev1.GitRepository, *infrav1.Terraform
 			},
 		},
 
-		Artifact: &sourcev1.Artifact{
+		Artifact: &meta.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/tf-hcl-values-advanced-example.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
@@ -165,7 +166,7 @@ func Test_000350_depends_on_test(t *testing.T) {
 			},
 		},
 
-		Artifact: &sourcev1.Artifact{
+		Artifact: &meta.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/file.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",

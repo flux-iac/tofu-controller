@@ -12,6 +12,7 @@ import (
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
+	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"google.golang.org/grpc"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -66,7 +67,6 @@ kind: Terraform
 metadata:
   name: helloworld
   namespace: flux-system
-  creationTimestamp: null
 spec:
   approvePlan: auto
   path: ./terraform-hello-world-example
@@ -140,7 +140,6 @@ kind: Terraform
 metadata:
   name: helloworld
   namespace: flux-system
-  creationTimestamp: null
 spec:
   approvePlan: auto
   path: ./terraform-hello-world-example
@@ -274,7 +273,7 @@ func Test_000340_webhooks_for_post_planning_test(t *testing.T) {
 			},
 		},
 
-		Artifact: &sourcev1.Artifact{
+		Artifact: &meta.Artifact{
 			Path:           "gitrepository/flux-system/test-tf-controller/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
 			URL:            server.URL() + "/file.tar.gz",
 			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",

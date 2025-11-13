@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.24 as builder
+FROM golang:1.25 AS builder
 
 ARG TARGETARCH
 ARG BUILD_SHA
@@ -30,9 +30,9 @@ COPY utils/ utils/
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} \
-      go build -gcflags=all="-N -l" \
-        -ldflags "-X main.BuildSHA='${BUILD_SHA}' -X main.BuildVersion='${BUILD_VERSION}'" \
-        -a -o tofu-controller ./cmd/manager
+  go build -gcflags=all="-N -l" \
+  -ldflags "-X main.BuildSHA='${BUILD_SHA}' -X main.BuildVersion='${BUILD_VERSION}'" \
+  -a -o tofu-controller ./cmd/manager
 
 FROM alpine:3.22
 
@@ -41,12 +41,12 @@ LABEL org.opencontainers.image.source="https://github.com/flux-iac/tofu-controll
 ARG LIBCRYPTO_VERSION
 
 RUN apk update && \
-    apk add --no-cache \
-    libcrypto3=${LIBCRYPTO_VERSION} \
-    libssl3=${LIBCRYPTO_VERSION} \
-    ca-certificates tini git openssh-client gnupg \
-    libretls \
-    busybox
+  apk add --no-cache \
+  libcrypto3=${LIBCRYPTO_VERSION} \
+  libssl3=${LIBCRYPTO_VERSION} \
+  ca-certificates tini git openssh-client gnupg \
+  libretls \
+  busybox
 
 COPY --from=builder /workspace/tofu-controller /usr/local/bin/
 
