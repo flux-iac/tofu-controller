@@ -1,6 +1,6 @@
 ARG BASE_IMAGE
 
-FROM mcr.microsoft.com/azure-cli:2.50.0 as azcli
+FROM mcr.microsoft.com/azure-cli:2.50.0 AS azcli
 
 FROM $BASE_IMAGE
 
