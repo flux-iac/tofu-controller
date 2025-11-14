@@ -85,6 +85,9 @@ jobs:
           # All of these old cert would be cleaned up by GC at the start of the test
           kubectl -n tofu-system apply -f config/testdata/gc-old-certs/test.yaml
 
+          # Sleep so the secrets and deployment don't end up creating during the same second
+          sleep 2
+
           # Increase the concurrency of the controller to speed up tests
           # --cert-rotation-check-frequency=6m0s, then GC will run every 1 minute
           kubectl patch deployment \
