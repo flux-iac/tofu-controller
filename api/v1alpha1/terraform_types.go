@@ -467,41 +467,6 @@ const (
 	DefaultWorkspaceName      = "default"
 )
 
-// The potential reasons that are associated with condition types
-const (
-	ArtifactFailedReason            = "ArtifactFailed"
-	DeletionBlockedByDependants     = "DeletionBlockedByDependantsReason"
-	DependencyNotReadyReason        = "DependencyNotReady"
-	DriftDetectedReason             = "DriftDetected"
-	DriftDetectionFailedReason      = "DriftDetectionFailed"
-	HealthChecksFailedReason        = "HealthChecksFailed"
-	NoDriftReason                   = "NoDrift"
-	OutputsWritingFailedReason      = "OutputsWritingFailed"
-	PlannedNoChangesReason          = "TerraformPlannedNoChanges"
-	PlannedWithChangesReason        = "TerraformPlannedWithChanges"
-	PostPlanningWebhookFailedReason = "PostPlanningWebhookFailed"
-	TFExecApplyFailedReason         = "TFExecApplyFailed"
-	TFExecApplySucceedReason        = "TerraformAppliedSucceed"
-	TFExecForceUnlockReason         = "ForceUnlock"
-	TFExecInitFailedReason          = "TFExecInitFailed"
-	TFExecLockHeldReason            = "LockHeld"
-	TFExecNewFailedReason           = "TFExecNewFailed"
-	TFExecOutputFailedReason        = "TFExecOutputFailed"
-	TFExecPlanFailedReason          = "TFExecPlanFailed"
-	TemplateGenerationFailedReason  = "TemplateGenerationFailed"
-	VarsGenerationFailedReason      = "VarsGenerationFailed"
-	WorkspaceSelectFailedReason     = "SelectWorkspaceFailed"
-)
-
-// These constants are the Condition Types that the Terraform Resource works with
-const (
-	ConditionTypeApply       = "Apply"
-	ConditionTypeHealthCheck = "HealthCheck"
-	ConditionTypeOutput      = "Output"
-	ConditionTypePlan        = "Plan"
-	ConditionTypeStateLocked = "StateLocked"
-)
-
 // Webhook stages
 const (
 	PostPlanningWebhook = "post-planning"
