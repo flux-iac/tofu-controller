@@ -52,7 +52,6 @@ RUN apk update && \
     gnupg \
     libcrypto3=${LIBCRYPTO_VERSION} \
     libssl3=${LIBCRYPTO_VERSION} \
-    libretls \
     openssh-client \
     tini
 

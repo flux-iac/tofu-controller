@@ -45,7 +45,6 @@ RUN apk update && \
   libcrypto3=${LIBCRYPTO_VERSION} \
   libssl3=${LIBCRYPTO_VERSION} \
   ca-certificates tini git openssh-client gnupg \
-  libretls \
   busybox
 
 COPY --from=builder /workspace/tofu-controller /usr/local/bin/
