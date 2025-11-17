@@ -29,9 +29,7 @@ COPY internal internal
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} \
     go build \
-    -gcflags=all="-N -l" \
     -ldflags "-X main.BuildSHA=${BUILD_SHA} -X main.BuildVersion=${BUILD_VERSION}" \
-    -a \
     -o branch-planner \
     ./cmd/branch-planner
 
