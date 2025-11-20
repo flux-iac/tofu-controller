@@ -234,3 +234,6 @@ replace (
 
 // indirect - breaking changes in v1.0.x
 replace github.com/olekukonko/tablewriter => github.com/olekukonko/tablewriter v0.0.5
+
+// https://github.com/maxbrunsfeld/counterfeiter/issues/344
+replace golang.org/x/tools => golang.org/x/tools v0.37.0
