@@ -46,7 +46,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, patchHelper *patch.S
 		// TODO There's a case of sourceObj got deleted before finalize is called.
 		revision := sourceObj.GetArtifact().Revision
 		traceLog.Info("Setup the terraform instance")
-		terraform, tfInstance, tmpDir, err := r.setupTerraform(ctx, patchHelper, runnerClient, terraform, sourceObj, revision, objectKey, reconciliationLoopID)
+		terraform, tfInstance, tmpDir, err := r.setupTerraform(ctx, patchHelper, runnerClient, terraform, sourceObj, revision, reconciliationLoopID)
 
 		traceLog.Info("Defer function for cleanup")
 		defer func() {

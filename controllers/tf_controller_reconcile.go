@@ -28,14 +28,12 @@ import (
 	"github.com/fluxcd/pkg/runtime/patch"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 func (r *TerraformReconciler) reconcile(ctx context.Context, patchHelper *patch.SerialPatcher, runnerClient runner.RunnerClient, terraform *infrav1.Terraform, sourceObj sourcev1.Source, reconciliationLoopID string) (*infrav1.Terraform, error) {
 	log := ctrl.LoggerFrom(ctx)
 	revision := sourceObj.GetArtifact().Revision
-	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
 
 	var (
 		tfInstance string
@@ -45,7 +43,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, patchHelper *patch.
 		lastKnownAction string
 	)
 	log.Info("setting up terraform")
-	terraform, tfInstance, tmpDir, err = r.setupTerraform(ctx, patchHelper, runnerClient, terraform, sourceObj, revision, objectKey, reconciliationLoopID)
+	terraform, tfInstance, tmpDir, err = r.setupTerraform(ctx, patchHelper, runnerClient, terraform, sourceObj, revision, reconciliationLoopID)
 
 	lastKnownAction = "Setup"
 
