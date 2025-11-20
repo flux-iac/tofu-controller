@@ -242,6 +242,7 @@ func main() {
 		NoCrossNamespaceRefs:      !allowCrossNamespaceRefs,
 		UsePodSubdomainResolution: usePodSubdomainResolution,
 		Clientset:                 clientset,
+		FieldManager:              "tf-controller",
 	}
 
 	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {

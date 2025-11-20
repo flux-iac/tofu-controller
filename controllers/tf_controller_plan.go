@@ -6,15 +6,15 @@ import (
 
 	"github.com/flux-iac/tofu-controller/api/planid"
 	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
+	"github.com/fluxcd/pkg/runtime/patch"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
 	"google.golang.org/grpc/status"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
+func (r *TerraformReconciler) shouldPlan(terraform *infrav1.Terraform) bool {
 	// Please do not optimize this logic, as we'd like others to easily understand the logics behind this behaviour.
 	if terraform.Spec.Force {
 		return true
@@ -28,15 +28,14 @@ func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
 	return false
 }
 
-func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, sourceRefRootDir string) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) plan(ctx context.Context, patchHelper *patch.SerialPatcher, terraform *infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, sourceRefRootDir string) (*infrav1.Terraform, error) {
 
 	log := ctrl.LoggerFrom(ctx)
 
 	log.Info("calling plan ...")
 
-	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
 	terraform = infrav1.TerraformProgressing(terraform, "Terraform Planning")
-	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+	if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 		log.Error(err, "unable to update status before Terraform planning")
 		return terraform, err
 	}

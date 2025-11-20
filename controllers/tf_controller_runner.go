@@ -25,7 +25,7 @@ import (
 	"github.com/flux-iac/tofu-controller/runner"
 )
 
-func getRunnerPodObjectKey(terraform infrav1.Terraform) types.NamespacedName {
+func getRunnerPodObjectKey(terraform *infrav1.Terraform) types.NamespacedName {
 	return types.NamespacedName{Namespace: terraform.Namespace, Name: fmt.Sprintf("%s-tf-runner", terraform.Name)}
 }
 
@@ -40,7 +40,7 @@ func getRunnerPodImage(image string) string {
 	return runnerPodImage
 }
 
-func runnerPodTemplate(terraform infrav1.Terraform, secretName string, revision string) (v1.Pod, error) {
+func runnerPodTemplate(terraform *infrav1.Terraform, secretName string, revision string) (v1.Pod, error) {
 	podNamespace := terraform.Namespace
 	podName := fmt.Sprintf("%s-tf-runner", terraform.Name)
 	podInstance, err := runnerPodInstance(revision)
@@ -72,12 +72,12 @@ func runnerPodTemplate(terraform infrav1.Terraform, secretName string, revision 
 	return runnerPodTemplate, nil
 }
 
-func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terraform infrav1.Terraform, revision string) (runner.RunnerClient, func() error, error) {
+func (r *TerraformReconciler) LookupOrCreateRunner(ctx context.Context, terraform *infrav1.Terraform, revision string) (runner.RunnerClient, func() error, error) {
 	log := ctrl.LoggerFrom(ctx)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.lookupOrCreateRunner_000")
 	// we have to make sure that the secret is valid before we can create the runner.
 	traceLog.Info("Validate the secret used for the Terraform resource")
-	secret, err := r.reconcileRunnerSecret(ctx, &terraform)
+	secret, err := r.reconcileRunnerSecret(ctx, terraform)
 	traceLog.Info("Check for an error")
 	if err != nil {
 		traceLog.Error(err, "Hit an error")
@@ -160,7 +160,7 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret
 	)
 }
 
-func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecretName string) v1.PodSpec {
+func (r *TerraformReconciler) runnerPodSpec(terraform *infrav1.Terraform, tlsSecretName string) v1.PodSpec {
 	serviceAccountName := terraform.Spec.ServiceAccountName
 	if serviceAccountName == "" {
 		serviceAccountName = "tf-runner"
@@ -304,7 +304,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform infrav1.Terraform, tlsSecr
 	return podSpec
 }
 
-func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform infrav1.Terraform, tlsSecret *v1.Secret, revision string) (string, error) {
+func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform *infrav1.Terraform, tlsSecret *v1.Secret, revision string) (string, error) {
 	log := controllerruntime.LoggerFrom(ctx)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.reconcileRunnerPod")
 	traceLog.Info("Begin reconcile of the runner pod")

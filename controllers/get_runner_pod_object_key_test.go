@@ -12,7 +12,7 @@ import (
 
 func TestGetRunnerPodObjectKey(t *testing.T) {
 	g := NewWithT(t)
-	tf := infrav1.Terraform{
+	tf := &infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "flux-system",
 			Name:      "test",

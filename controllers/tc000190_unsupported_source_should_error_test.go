@@ -24,7 +24,7 @@ func Test_000190_unsupported_source_should_error(t *testing.T) {
 	ctx := context.Background()
 
 	By("submitting a new TF with an unsupported source")
-	tfResource := infrav1.Terraform{
+	tfResource := &infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
 			Namespace: "flux-system",

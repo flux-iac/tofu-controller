@@ -13,7 +13,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, revision string) bool {
+func (r *TerraformReconciler) shouldDetectDrift(terraform *infrav1.Terraform, revision string) bool {
 	// Please do not optimize this logic, as we'd like others to easily understand the logics behind this behaviour.
 
 	// return false when drift detection is disabled
@@ -57,7 +57,7 @@ func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, rev
 	return false
 }
 
-func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, sourceRefRootDir string) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform *infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, sourceRefRootDir string) (*infrav1.Terraform, error) {
 
 	log := ctrl.LoggerFrom(ctx)
 

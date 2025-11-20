@@ -16,6 +16,15 @@ limitations under the License.
 
 package v1alpha2
 
+import "github.com/fluxcd/pkg/apis/meta"
+
+// OwnedConditions are the Condition Types that the Terraform Resource owns
+var OwnedConditions = []string{
+	meta.ReconcilingCondition,
+	meta.ReadyCondition,
+	meta.StalledCondition,
+}
+
 // These constants are the Condition Types that the Terraform Resource works with
 const (
 	ConditionTypeApply       = "Apply"
