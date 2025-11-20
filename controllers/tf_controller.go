@@ -226,6 +226,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 		msg := fmt.Sprintf("could not get Source object: %s", err.Error())
 		conditions.MarkFalse(terraform, meta.ReadyCondition, infrav1.ArtifactFailedReason, "%s", msg)
+		conditions.Delete(terraform, meta.ReconcilingCondition)
 		return ctrl.Result{}, err
 	}
 
@@ -238,6 +239,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if sourceObj.GetArtifact() == nil {
 		msg := "Source is not ready, artifact not found"
 		conditions.MarkFalse(terraform, meta.ReadyCondition, infrav1.ArtifactFailedReason, "%s", msg)
+		conditions.Delete(terraform, meta.ReconcilingCondition)
 
 		log.Info(msg)
 		// do not requeue immediately, when the artifact is created the watcher should trigger a reconciliation
@@ -460,6 +462,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		))
 
 		terraform = infrav1.TerraformReachedLimit(terraform)
+		conditions.Delete(terraform, meta.ReconcilingCondition)
 
 		traceLog.Info("Patch the status of the Terraform resource")
 		if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
