@@ -412,7 +412,7 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 	}
 
 	if req.RefreshBeforeApply {
-		applyOpt = []tfexec.ApplyOption{tfexec.Refresh(true)}
+		applyOpt = append(applyOpt, tfexec.Refresh(true))
 	}
 
 	for _, target := range req.Targets {
