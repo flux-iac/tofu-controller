@@ -215,6 +215,13 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			// The controller must restart or sourceRef to change
 			// for this to be recoverable
 			return ctrl.Result{}, reconcile.TerminalError(err)
+		} else if apierrors.IsNotFound(err) {
+			conditions.MarkStalled(terraform, infrav1.ArtifactFailedReason, "%s", err)
+			conditions.MarkFalse(terraform, meta.ReadyCondition, infrav1.ArtifactFailedReason, "%s", err)
+			conditions.Delete(terraform, meta.ReconcilingCondition)
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.ArtifactFailedReason, err.Error())
+
+			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 		}
 
 		msg := fmt.Sprintf("could not get Source object: %s", err.Error())
