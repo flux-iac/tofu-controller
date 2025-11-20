@@ -110,14 +110,22 @@ spec:
 	}, timeout, interval).Should(BeTrue())
 
 	It("should be reconciled and contain some status conditions.")
-	By("checking that the TF resource's status conditions has 1 element.")
-	g.Eventually(func() int {
+	By("checking that the TF resource's status conditions include Reconciling and Ready.")
+	g.Eventually(func() []string {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
-			return -1
+			return nil
 		}
-		return len(createdHelloWorldTF.Status.Conditions)
-	}, timeout, interval).Should(Equal(1))
+
+		var conditionTypes []string
+
+		for _, c := range createdHelloWorldTF.Status.Conditions {
+			conditionTypes = append(conditionTypes, c.Type)
+		}
+
+		return conditionTypes
+
+	}, timeout, interval).Should(Equal([]string{"Reconciling", "Ready"}))
 
 	It("should be an error")
 	By("checking that the Ready's reason of the TF resource become `ArtifactFailed`.")
