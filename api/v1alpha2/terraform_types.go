@@ -701,6 +701,7 @@ func TerraformProgressing(terraform *Terraform, message string) *Terraform {
 // TerraformNotReady registers a failed apply attempt of the given Terraform.
 func TerraformNotReady(terraform *Terraform, revision, reason, message string) *Terraform {
 	SetTerraformReadiness(terraform, metav1.ConditionFalse, reason, trimString(message, MaxConditionMessageLength), revision)
+	conditions.Delete(terraform, meta.ReconcilingCondition)
 	return terraform
 }
 

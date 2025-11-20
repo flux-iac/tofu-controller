@@ -201,6 +201,28 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, patchHelper *patch.
 
 	// if we should apply the generated plan, do so
 	if r.shouldApply(terraform) {
+		if !r.forceOrAutoApply(terraform) &&
+			terraform.Spec.ApprovePlan != "" &&
+			terraform.Spec.ApprovePlan != infrav1.ApprovePlanAutoValue {
+			approvedPlan := terraform.Spec.ApprovePlan
+
+			terraform, err = r.plan(ctx, patchHelper, terraform, tfInstance, runnerClient, revision, tmpDir)
+			if err != nil {
+				log.Error(err, "error planning before manual apply")
+				return terraform, err
+			}
+
+			if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
+				log.Error(err, "unable to update status after planning before manual apply")
+				return terraform, err
+			}
+
+			if terraform.Status.Plan.Pending == "" || terraform.Status.Plan.Pending != approvedPlan {
+				log.Info("plan changed while waiting for manual approval, waiting for new approval", "approvedPlan", approvedPlan, "pendingPlan", terraform.Status.Plan.Pending)
+				return terraform, nil
+			}
+		}
+
 		terraform, err = r.apply(ctx, patchHelper, terraform, tfInstance, runnerClient, revision)
 		if err != nil {
 			log.Error(err, "error applying")
