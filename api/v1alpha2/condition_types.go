@@ -23,6 +23,11 @@ var OwnedConditions = []string{
 	meta.ReconcilingCondition,
 	meta.ReadyCondition,
 	meta.StalledCondition,
+	ConditionTypeApply,
+	ConditionTypePlan,
+	ConditionTypeHealthCheck,
+	ConditionTypeOutput,
+	ConditionTypeStateLocked,
 }
 
 // These constants are the Condition Types that the Terraform Resource works with
