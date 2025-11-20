@@ -172,6 +172,12 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, nil
 	}
 
+	// Mark the resource as under reconciliation.
+	conditions.MarkReconciling(terraform, meta.ProgressingReason, "Fulfilling prerequisites")
+	if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
+		return ctrl.Result{}, err
+	}
+
 	// Examine if the object is under deletion
 	if isBeingDeleted(terraform) {
 		dependants := []string{}
@@ -267,6 +273,10 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 		}
 		log.Info("All dependencies are ready, proceeding with reconciliation")
+	}
+
+	if conditions.HasAnyReason(terraform, meta.ReadyCondition, infrav1.AccessDeniedReason, infrav1.DependencyNotReadyReason) {
+		conditions.MarkUnknown(terraform, meta.ReadyCondition, meta.ProgressingReason, "Reconciliation in progress")
 	}
 
 	// Skip update the status if the ready condition is still unknown
