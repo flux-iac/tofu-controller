@@ -23,7 +23,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *TerraformReconciler) shouldDoHealthChecks(terraform infrav1.Terraform) bool {
+func (r *TerraformReconciler) shouldDoHealthChecks(terraform *infrav1.Terraform) bool {
 	if terraform.Spec.HealthChecks == nil || len(terraform.Spec.HealthChecks) < 1 {
 		return false
 	}
@@ -54,7 +54,7 @@ func (r *TerraformReconciler) shouldDoHealthChecks(terraform infrav1.Terraform) 
 	return false
 }
 
-func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infrav1.Terraform, revision string, runnerClient runner.RunnerClient) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform *infrav1.Terraform, revision string, runnerClient runner.RunnerClient) (*infrav1.Terraform, error) {
 	log := ctrl.LoggerFrom(ctx)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.doHealthChecks")
 	log.Info("calling doHealthChecks ...")

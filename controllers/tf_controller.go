@@ -71,7 +71,8 @@ type TerraformReconciler struct {
 	runtimeCtrl.Metrics
 
 	httpClient        *retryablehttp.Client
-	statusManager     string
+	FieldManager      string
+	patchOptions      []patch.Option
 	requeueDependency time.Duration
 
 	StatusPoller              *polling.StatusPoller
@@ -105,9 +106,9 @@ type TerraformReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
 func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (result ctrl.Result, retErr error) {
-	reconcileStart := time.Now()
+	startTime := time.Now()
 	reconciliationLoopID := uuid.New().String()
-	log := ctrl.LoggerFrom(ctx, "reconciliation-loop-id", reconciliationLoopID, "start-time", reconcileStart)
+	log := ctrl.LoggerFrom(ctx, "reconciliation-loop-id", reconciliationLoopID, "start-time", startTime)
 	ctx = ctrl.LoggerInto(ctx, log)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.Reconcile")
 	traceLog.Info("Reconcile Start")
@@ -126,35 +127,42 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	traceLog.Info("Fetch Terraform Resource", "namespacedName", req.NamespacedName)
-	var terraform infrav1.Terraform
-	if err := r.Get(ctx, req.NamespacedName, &terraform); err != nil {
-		traceLog.Error(err, "Hit an error", "namespacedName", req.NamespacedName)
+	// Get the Terraform object
+	terraform := &infrav1.Terraform{}
+	if err := r.Get(ctx, req.NamespacedName, terraform); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	log.Info(fmt.Sprintf(">> Started Generation: %d", terraform.GetGeneration()))
 
+	// Initialize the patch helper with the current version of the object.
+	patchHelper := patch.NewSerialPatcher(terraform, r.Client)
+
 	defer func() {
-		if err := r.finalizeStatus(ctx, &terraform); err != nil {
+		if v, ok := meta.ReconcileAnnotationValue(terraform.GetAnnotations()); ok {
+			terraform.Status.SetLastHandledReconcileRequest(v)
+		}
+
+		if conditions.IsTrue(terraform, meta.ReadyCondition) {
+			terraform.Status.ObservedGeneration = terraform.Generation
+		}
+
+		if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
+			if !terraform.DeletionTimestamp.IsZero() {
+				err = kerrors.FilterOut(err, func(e error) bool { return apierrors.IsNotFound(e) })
+			}
 			retErr = kerrors.NewAggregate([]error{retErr, err})
 		}
 
-		// Record Prometheus metrics.
-		r.Metrics.RecordReadiness(ctx, &terraform)
-		r.Metrics.RecordSuspend(ctx, &terraform, terraform.Spec.Suspend)
-		r.Metrics.RecordDuration(ctx, &terraform, reconcileStart)
+		r.Metrics.RecordReadiness(ctx, terraform)
+		r.Metrics.RecordSuspend(ctx, terraform, terraform.Spec.Suspend)
+		r.Metrics.RecordDuration(ctx, terraform, startTime)
 	}()
 
-	// Add our finalizer if it does not exist
+	// Make sure the Finalizer exists
 	traceLog.Info("Check Terraform resource for a finalizer")
-	if !controllerutil.ContainsFinalizer(&terraform, infrav1.TerraformFinalizer) {
-		traceLog.Info("No finalizer set, setting now")
-		patch := client.MergeFrom(terraform.DeepCopy())
-		controllerutil.AddFinalizer(&terraform, infrav1.TerraformFinalizer)
-		traceLog.Info("Update the Terraform resource with the new finalizer")
-		if err := r.Patch(ctx, &terraform, patch, client.FieldOwner(r.statusManager)); err != nil {
-			log.Error(err, "unable to register finalizer")
-			return ctrl.Result{}, err
-		}
+	if !controllerutil.ContainsFinalizer(terraform, infrav1.TerraformFinalizer) {
+		controllerutil.AddFinalizer(terraform, infrav1.TerraformFinalizer)
+		return ctrl.Result{Requeue: true}, nil
 	}
 
 	// Return early if the Terraform is suspended.
@@ -162,6 +170,12 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if terraform.Spec.Suspend {
 		log.Info("Reconciliation is suspended for this object")
 		return ctrl.Result{}, nil
+	}
+
+	// Mark the resource as under reconciliation.
+	conditions.MarkReconciling(terraform, meta.ProgressingReason, "Fulfilling prerequisites")
+	if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
+		return ctrl.Result{}, err
 	}
 
 	// Examine if the object is under deletion
@@ -176,7 +190,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		if len(dependants) > 0 {
 			msg := fmt.Sprintf("Deletion in progress, but blocked. Please delete %s to resume ...", strings.Join(dependants, ", "))
 			terraform = infrav1.TerraformNotReady(terraform, "", infrav1.DeletionBlockedByDependants, msg)
-			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+			if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 				log.Error(err, "unable to update status")
 				return ctrl.Result{Requeue: true}, err
 			}
@@ -191,60 +205,59 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	traceLog.Info("Did we get an error trying to get the source")
 	if err != nil {
 		traceLog.Info("Is the error a NotFound error")
-		if apierrors.IsNotFound(err) {
-			traceLog.Info("The Source was not found")
-			msg := fmt.Sprintf("Source '%s' not found", terraform.Spec.SourceRef.String())
-			terraform = infrav1.TerraformNotReady(terraform, "", infrav1.ArtifactFailedReason, msg)
-			traceLog.Info("Patch the Terraform resource Status with NotReady")
-			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
-				log.Error(err, "unable to update status for source not found")
-				return ctrl.Result{Requeue: true}, err
-			}
-			log.Info(msg)
-			// do not requeue immediately, when the source is created the watcher should trigger a reconciliation
-			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
-		} else if acl.IsAccessDenied(err) {
+		if acl.IsAccessDenied(err) {
 			traceLog.Info("The cross-namespace Source was denied by reconciler.NoCrossNamespaceRefs")
-			msg := fmt.Sprintf("Source '%s' access denied", terraform.Spec.SourceRef.String())
-			terraform = infrav1.TerraformNotReady(terraform, "", infrav1.AccessDeniedReason, msg)
-			traceLog.Info("Patch the Terraform resource Status with NotReady")
-			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
-				log.Error(err, "unable to update status for source access denied")
-				return ctrl.Result{Requeue: true}, err
-			}
-			log.Info(msg)
-			// don't requeue to retry; it won't succeed unless the sourceRef changes
-			return ctrl.Result{}, nil
-		} else {
-			// retry on transient errors
-			log.Error(err, "retry")
-			return ctrl.Result{Requeue: true}, err
+			conditions.MarkStalled(terraform, infrav1.AccessDeniedReason, "%s", err)
+			conditions.MarkFalse(terraform, meta.ReadyCondition, infrav1.AccessDeniedReason, "%s", err)
+			conditions.Delete(terraform, meta.ReconcilingCondition)
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.AccessDeniedReason, err.Error())
+
+			// The controller must restart or sourceRef to change
+			// for this to be recoverable
+			return ctrl.Result{}, reconcile.TerminalError(err)
+		} else if apierrors.IsNotFound(err) {
+			conditions.MarkStalled(terraform, infrav1.ArtifactFailedReason, "%s", err)
+			conditions.MarkFalse(terraform, meta.ReadyCondition, infrav1.ArtifactFailedReason, "%s", err)
+			conditions.Delete(terraform, meta.ReconcilingCondition)
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.ArtifactFailedReason, err.Error())
+
+			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 		}
+
+		msg := fmt.Sprintf("could not get Source object: %s", err.Error())
+		conditions.MarkFalse(terraform, meta.ReadyCondition, infrav1.ArtifactFailedReason, "%s", msg)
+		conditions.Delete(terraform, meta.ReconcilingCondition)
+		return ctrl.Result{}, err
+	}
+
+	if conditions.HasAnyReason(terraform, meta.ReadyCondition, infrav1.AccessDeniedReason, infrav1.ArtifactFailedReason) {
+		conditions.MarkUnknown(terraform, meta.ReadyCondition, meta.ProgressingReason, "Reconciliation in progress")
 	}
 
 	// sourceObj does not exist, return early
 	traceLog.Info("Check we have a source object")
 	if sourceObj.GetArtifact() == nil {
 		msg := "Source is not ready, artifact not found"
-		terraform = infrav1.TerraformNotReady(terraform, "", infrav1.ArtifactFailedReason, msg)
-		traceLog.Info("Patch the Terraform resource Status with NotReady")
-		if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
-			log.Error(err, "unable to update status for artifact not found")
-			return ctrl.Result{Requeue: true}, err
-		}
+		conditions.MarkFalse(terraform, meta.ReadyCondition, infrav1.ArtifactFailedReason, "%s", msg)
+		conditions.Delete(terraform, meta.ReconcilingCondition)
+
 		log.Info(msg)
 		// do not requeue immediately, when the artifact is created the watcher should trigger a reconciliation
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 	}
 
+	if conditions.HasAnyReason(terraform, meta.ReadyCondition, infrav1.ArtifactFailedReason) {
+		conditions.MarkUnknown(terraform, meta.ReadyCondition, meta.ProgressingReason, "Reconciliation in progress")
+	}
+
 	// check dependencies, if not being deleted
 	if len(terraform.Spec.DependsOn) > 0 && !isBeingDeleted(terraform) {
-		if err := r.checkDependencies(sourceObj, terraform); err != nil {
+		if err := r.checkDependencies(ctx, terraform, sourceObj); err != nil {
 			if acl.IsAccessDenied(err) {
 				traceLog.Info("The cross-namespace dependency was denied by reconciler.NoCrossNamespaceRefs")
 
 				terraform = infrav1.TerraformNotReady(terraform, sourceObj.GetArtifact().Revision, infrav1.AccessDeniedReason, err.Error())
-				if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+				if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 					log.Error(err, "unable to update status for dependsOn access denied")
 					return ctrl.Result{Requeue: true}, err
 				}
@@ -256,7 +269,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			terraform = infrav1.TerraformNotReady(
 				terraform, sourceObj.GetArtifact().Revision, infrav1.DependencyNotReadyReason, err.Error())
 
-			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+			if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 				log.Error(err, "unable to update status for dependency not ready")
 				return ctrl.Result{Requeue: true}, err
 			}
@@ -269,6 +282,10 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 		}
 		log.Info("All dependencies are ready, proceeding with reconciliation")
+	}
+
+	if conditions.HasAnyReason(terraform, meta.ReadyCondition, infrav1.AccessDeniedReason, infrav1.DependencyNotReadyReason) {
+		conditions.MarkUnknown(terraform, meta.ReadyCondition, meta.ProgressingReason, "Reconciliation in progress")
 	}
 
 	// Skip update the status if the ready condition is still unknown
@@ -284,7 +301,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 		log.Info("before lookup runner: updating status", "ready", ready)
 		terraform = infrav1.TerraformProgressing(terraform, msg)
-		if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+		if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 			log.Error(err, "unable to update status before Terraform initialization")
 			return ctrl.Result{Requeue: true}, err
 		}
@@ -297,7 +314,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if revisionChanged || generationChanges {
 		log.Info("Reset reconciliation failures count. Reason: resource changed")
 		terraform = infrav1.TerraformResetRetry(terraform)
-		if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+		if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 			log.Error(err, "unable to update status after planning")
 			return ctrl.Result{Requeue: true}, err
 		}
@@ -316,7 +333,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			strings.HasPrefix("re"+terraform.Status.Plan.Pending, terraform.Spec.ApprovePlan) {
 			traceLog.Info("Update the status of the Terraform resource")
 			terraform.Status.Plan.Pending = ""
-			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+			if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 				log.Error(err, "unable to update status to clear pending plan (revision != last attempted)")
 				return ctrl.Result{Requeue: true}, err
 			}
@@ -330,7 +347,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			terraform.Spec.PlanOnly {
 			traceLog.Info("Update the status of the Terraform resource")
 			terraform.Status.Plan.Pending = ""
-			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+			if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 				log.Error(err, "unable to update status to clear pending plan (revision != last attempted)")
 				return ctrl.Result{Requeue: true}, err
 			}
@@ -364,7 +381,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	log.Info("runner is running")
 
 	traceLog.Info("Defer function to handle clean up")
-	defer func(ctx context.Context, cli client.Client, terraform infrav1.Terraform) {
+	defer func(ctx context.Context, cli client.Client, terraform *infrav1.Terraform) {
 		traceLog.Info("Check for closeConn function")
 		// make sure defer does not affect the return value
 		if closeConn != nil {
@@ -382,7 +399,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 
 		traceLog.Info("Check if we need to clean up the Runner pod")
-		if terraform.Spec.GetAlwaysCleanupRunnerPod() == true {
+		if terraform.Spec.GetAlwaysCleanupRunnerPod() {
 			// wait for runner pod complete termination
 			var (
 				interval = time.Second * 5
@@ -424,9 +441,9 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	traceLog.Info("Check for deletion timestamp to finalize")
 	if !terraform.ObjectMeta.DeletionTimestamp.IsZero() {
 		traceLog.Info("Calling finalize function")
-		if terraform, result, err := r.finalize(ctx, terraform, runnerClient, sourceObj, reconciliationLoopID); err != nil {
+		if terraform, result, err := r.finalize(ctx, patchHelper, terraform, runnerClient, sourceObj, reconciliationLoopID); err != nil {
 			traceLog.Info("Patch the status of the Terraform resource")
-			if patchErr := r.patchStatus(ctx, req.NamespacedName, terraform.Status); patchErr != nil {
+			if patchErr := patchHelper.Patch(ctx, terraform, r.patchOptions...); patchErr != nil {
 				log.Error(patchErr, "unable to update status after the finalize is complete")
 				return ctrl.Result{Requeue: true}, patchErr
 			}
@@ -445,9 +462,10 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		))
 
 		terraform = infrav1.TerraformReachedLimit(terraform)
+		conditions.Delete(terraform, meta.ReconcilingCondition)
 
 		traceLog.Info("Patch the status of the Terraform resource")
-		if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+		if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 			log.Error(err, "unable to update status after the reconciliation is complete")
 			return ctrl.Result{Requeue: true}, err
 		}
@@ -457,19 +475,19 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// reconcile Terraform by applying the latest revision
 	traceLog.Info("Run reconcile for the Terraform resource")
-	reconciledTerraform, reconcileErr := r.reconcile(ctx, runnerClient, *terraform.DeepCopy(), sourceObj, reconciliationLoopID)
+	reconciledTerraform, reconcileErr := r.reconcile(ctx, patchHelper, runnerClient, terraform.DeepCopy(), sourceObj, reconciliationLoopID)
 
 	// Check remediation.
 	if reconcileErr == nil {
 		log.Info("Reset reconciliation failures count. Reason: successful reconciliation")
-		terraform = infrav1.TerraformResetRetry(*reconciledTerraform)
+		terraform = infrav1.TerraformResetRetry(reconciledTerraform)
 	} else {
-		terraform = *reconciledTerraform
+		terraform = reconciledTerraform
 		terraform.IncrementReconciliationFailures()
 	}
 
 	traceLog.Info("Patch the status of the Terraform resource")
-	if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+	if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 		log.Error(err, "unable to update status after the reconciliation is complete")
 		return ctrl.Result{Requeue: true}, err
 	}
@@ -477,7 +495,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	traceLog.Info("Check for reconciliation errors")
 	if reconcileErr != nil && reconcileErr.Error() == infrav1.DriftDetectedReason {
 		log.Error(reconcileErr, fmt.Sprintf("Drift detected after %s, next try in %s",
-			time.Since(reconcileStart).String(),
+			time.Since(startTime).String(),
 			terraform.GetRetryInterval().String()),
 			"revision",
 			sourceObj.GetArtifact().Revision)
@@ -486,7 +504,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	} else if reconcileErr != nil {
 		// broadcast the reconciliation failure and requeue at the specified retry interval
 		log.Error(reconcileErr, fmt.Sprintf("Reconciliation failed after %s, next try in %s",
-			time.Since(reconcileStart).String(),
+			time.Since(startTime).String(),
 			terraform.GetRetryInterval().String()),
 			"revision",
 			sourceObj.GetArtifact().Revision)
@@ -525,7 +543,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	return ctrl.Result{RequeueAfter: terraform.Spec.Interval.Duration}, nil
 }
 
-func isBeingDeleted(terraform infrav1.Terraform) bool {
+func isBeingDeleted(terraform *infrav1.Terraform) bool {
 	return !terraform.ObjectMeta.DeletionTimestamp.IsZero()
 }
 
@@ -557,7 +575,7 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 	httpClient.RetryMax = httpRetry
 	httpClient.Logger = nil
 	r.httpClient = httpClient
-	r.statusManager = "tf-controller"
+	r.patchOptions = []patch.Option{patch.WithOwnedConditions{Conditions: infrav1.OwnedConditions}, patch.WithFieldOwner(r.FieldManager)}
 	r.requeueDependency = 30 * time.Second
 	recoverPanic := true
 
@@ -592,67 +610,67 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 		Complete(r)
 }
 
-func (r *TerraformReconciler) checkDependencies(source sourcev1.Source, terraform infrav1.Terraform) error {
-	dependantFinalizer := infrav1.TFDependencyOfPrefix + terraform.GetName()
+func (r *TerraformReconciler) checkDependencies(ctx context.Context, terraform *infrav1.Terraform, source sourcev1.Source) error {
+	finalizerKey := infrav1.TFDependencyOfPrefix + terraform.GetName()
+
 	for _, d := range terraform.Spec.DependsOn {
-		dName := types.NamespacedName{
+		dependencyName := types.NamespacedName{
 			Namespace: d.Namespace,
 			Name:      d.Name,
 		}
 
-		if dName.Namespace == "" {
-			dName.Namespace = terraform.GetNamespace()
+		if dependencyName.Namespace == "" {
+			dependencyName.Namespace = terraform.GetNamespace()
 		}
 
-		if r.NoCrossNamespaceRefs && dName.Namespace != terraform.GetNamespace() {
+		if r.NoCrossNamespaceRefs && dependencyName.Namespace != terraform.GetNamespace() {
 			return acl.AccessDeniedError(
-				fmt.Sprintf("cannot access %s/%s, cross-namespace references have been disabled", d.Namespace, d.Name),
+				fmt.Sprintf("cannot access %s/%s, cross-namespace references have been disabled", dependencyName.Namespace, dependencyName.Name),
 			)
 		}
 
-		var tf infrav1.Terraform
-		err := r.Get(context.Background(), dName, &tf)
-		if err != nil {
-			return fmt.Errorf("unable to get '%s' dependency: %w", dName, err)
+		tDep := &infrav1.Terraform{}
+		if err := r.Get(ctx, dependencyName, tDep); err != nil {
+			return fmt.Errorf("unable to get '%s' dependency: %w", dependencyName, err)
 		}
 
-		// add finalizer to the dependency only if object is not being deleted
-		if tf.ObjectMeta.DeletionTimestamp.IsZero() && !controllerutil.ContainsFinalizer(&tf, dependantFinalizer) {
-			patch := client.MergeFrom(tf.DeepCopy())
-			controllerutil.AddFinalizer(&tf, dependantFinalizer)
-			if err := r.Patch(context.Background(), &tf, patch, client.FieldOwner(r.statusManager)); err != nil {
-				return fmt.Errorf("unable to add finalizer to '%s' dependency: %w", dName, err)
+		// Check whether the dependent Terraform isn't being deleted, and then add a
+		// a finalizer if it is missing
+		if tDep.ObjectMeta.DeletionTimestamp.IsZero() && !controllerutil.ContainsFinalizer(tDep, finalizerKey) {
+			patch := client.MergeFrom(tDep.DeepCopy())
+			controllerutil.AddFinalizer(tDep, finalizerKey)
+			if err := r.Patch(context.Background(), tDep, patch, client.FieldOwner(r.FieldManager)); err != nil {
+				return fmt.Errorf("unable to add finalizer to '%s/%s' dependency: %w", dependencyName.Namespace, dependencyName.Name, err)
 			}
 		}
 
-		if len(tf.Status.Conditions) == 0 || tf.Generation != tf.Status.ObservedGeneration {
-			return fmt.Errorf("dependency '%s' is not ready", dName)
+		// Check whether the dependent Terraform is ready
+		if tDep.Generation != tDep.Status.ObservedGeneration || !conditions.IsTrue(tDep, meta.ReadyCondition) {
+			return fmt.Errorf("dependency '%s' is not ready", dependencyName)
 		}
 
-		if !apimeta.IsStatusConditionTrue(tf.Status.Conditions, meta.ReadyCondition) {
-			return fmt.Errorf("dependency '%s' is not ready", dName)
+		// Compare the source revisions
+		sourceRevision := source.GetArtifact().Revision
+
+		if tDep.Spec.SourceRef.Name == terraform.Spec.SourceRef.Name &&
+			tDep.Spec.SourceRef.Namespace == terraform.Spec.SourceRef.Namespace &&
+			tDep.Spec.SourceRef.Kind == terraform.Spec.SourceRef.Kind &&
+			sourceRevision != tDep.Status.LastAppliedRevision &&
+			sourceRevision != tDep.Status.LastPlannedRevision {
+			return fmt.Errorf("dependency '%s' is not updated yet", dependencyName)
 		}
 
-		revision := source.GetArtifact().Revision
-		if tf.Spec.SourceRef.Name == terraform.Spec.SourceRef.Name &&
-			tf.Spec.SourceRef.Namespace == terraform.Spec.SourceRef.Namespace &&
-			tf.Spec.SourceRef.Kind == terraform.Spec.SourceRef.Kind &&
-			revision != tf.Status.LastAppliedRevision &&
-			revision != tf.Status.LastPlannedRevision {
-			return fmt.Errorf("dependency '%s' is not updated yet", dName)
-		}
-
-		if tf.Spec.WriteOutputsToSecret != nil {
-			outputSecret := tf.Spec.WriteOutputsToSecret.Name
+		// If WriteOutputsToSecret is set, check whether we can access the secret
+		if tDep.Spec.WriteOutputsToSecret != nil {
 			outputSecretName := types.NamespacedName{
-				Namespace: tf.GetNamespace(),
-				Name:      outputSecret,
+				Namespace: tDep.GetNamespace(),
+				Name:      tDep.Spec.WriteOutputsToSecret.Name,
 			}
+
 			if err := r.Get(context.Background(), outputSecretName, &corev1.Secret{}); err != nil {
-				return fmt.Errorf("dependency output secret: '%s' of '%s' is not ready yet", outputSecret, dName)
+				return fmt.Errorf("dependency output secret: '%s' of '%s' is not ready yet", outputSecretName, dependencyName)
 			}
 		}
-
 	}
 
 	return nil
@@ -704,57 +722,61 @@ func (r *TerraformReconciler) requestsForRevisionChangeOf(indexKey string) handl
 
 }
 
-func (r *TerraformReconciler) getSource(ctx context.Context, terraform infrav1.Terraform) (sourcev1.Source, error) {
+func (r *TerraformReconciler) getSource(ctx context.Context, terraform *infrav1.Terraform) (sourcev1.Source, error) {
 	var sourceObj sourcev1.Source
-	sourceNamespace := terraform.GetNamespace()
-	if terraform.Spec.SourceRef.Namespace != "" {
-		sourceNamespace = terraform.Spec.SourceRef.Namespace
+
+	name, namespace := terraform.Spec.SourceRef.Name, terraform.Spec.SourceRef.Namespace
+	if namespace == "" {
+		namespace = terraform.GetNamespace()
 	}
-	namespacedName := types.NamespacedName{
-		Namespace: sourceNamespace,
-		Name:      terraform.Spec.SourceRef.Name,
+
+	sourceReference := types.NamespacedName{
+		Namespace: namespace,
+		Name:      name,
 	}
-	if r.NoCrossNamespaceRefs && namespacedName.Namespace != terraform.GetNamespace() {
-		return sourceObj, acl.AccessDeniedError(
-			fmt.Sprintf("cannot access %s/%s, cross-namespace references have been disabled", terraform.Spec.SourceRef.Kind, namespacedName),
+
+	if r.NoCrossNamespaceRefs && sourceReference.Namespace != terraform.GetNamespace() {
+		return nil, acl.AccessDeniedError(
+			fmt.Sprintf("cannot access %s/%s, cross-namespace references have been disabled", terraform.Spec.SourceRef.Kind, sourceReference),
 		)
 	}
 
 	switch terraform.Spec.SourceRef.Kind {
 	case sourcev1.GitRepositoryKind:
 		var repository sourcev1.GitRepository
-		err := r.Client.Get(ctx, namespacedName, &repository)
+		err := r.Client.Get(ctx, sourceReference, &repository)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				return sourceObj, err
 			}
-			return sourceObj, fmt.Errorf("unable to get source '%s': %w", namespacedName, err)
+			return sourceObj, fmt.Errorf("unable to get source '%s': %w", sourceReference, err)
 		}
 		sourceObj = &repository
 	case sourcev1b2.BucketKind:
 		var bucket sourcev1b2.Bucket
-		err := r.Client.Get(ctx, namespacedName, &bucket)
+		err := r.Client.Get(ctx, sourceReference, &bucket)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				return sourceObj, err
 			}
-			return sourceObj, fmt.Errorf("unable to get source '%s': %w", namespacedName, err)
+			return sourceObj, fmt.Errorf("unable to get source '%s': %w", sourceReference, err)
 		}
 		sourceObj = &bucket
 	case sourcev1b2.OCIRepositoryKind:
 		var repository sourcev1b2.OCIRepository
-		err := r.Client.Get(ctx, namespacedName, &repository)
+		err := r.Client.Get(ctx, sourceReference, &repository)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				return sourceObj, err
 			}
-			return sourceObj, fmt.Errorf("unable to get source '%s': %w", namespacedName, err)
+			return sourceObj, fmt.Errorf("unable to get source '%s': %w", sourceReference, err)
 		}
 		sourceObj = &repository
 	default:
 		return sourceObj, fmt.Errorf("source `%s` kind '%s' not supported",
 			terraform.Spec.SourceRef.Name, terraform.Spec.SourceRef.Kind)
 	}
+
 	return sourceObj, nil
 }
 
@@ -797,26 +819,6 @@ func (r *TerraformReconciler) downloadAsBytes(artifact *meta.Artifact) (*bytes.B
 	return bytes.NewBuffer(buf), nil
 }
 
-func (r *TerraformReconciler) patchStatus(ctx context.Context, objectKey types.NamespacedName, newStatus infrav1.TerraformStatus) error {
-	log := ctrl.LoggerFrom(ctx)
-	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.patchStatus")
-	traceLog.Info("Get Terraform resource")
-	var terraform infrav1.Terraform
-	if err := r.Get(ctx, objectKey, &terraform); err != nil {
-		return err
-	}
-
-	traceLog.Info("Update data and send Patch request")
-	patch := client.MergeFrom(terraform.DeepCopy())
-	terraform.Status = newStatus
-	statusOpts := &client.SubResourcePatchOptions{
-		PatchOptions: client.PatchOptions{
-			FieldManager: "tf-controller",
-		},
-	}
-	return r.Status().Patch(ctx, &terraform, patch, statusOpts)
-}
-
 func (r *TerraformReconciler) IndexBy(kind string) func(o client.Object) []string {
 	return func(o client.Object) []string {
 		terraform, ok := o.(*infrav1.Terraform)
@@ -836,7 +838,7 @@ func (r *TerraformReconciler) IndexBy(kind string) func(o client.Object) []strin
 	}
 }
 
-func (r *TerraformReconciler) event(ctx context.Context, terraform infrav1.Terraform, revision, severity, msg string, metadata map[string]string) {
+func (r *TerraformReconciler) event(ctx context.Context, terraform *infrav1.Terraform, revision, severity, msg string, metadata map[string]string) {
 	log := ctrl.LoggerFrom(ctx)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.event")
 	traceLog.Info("If metadata is nil set to an empty map")
@@ -867,28 +869,5 @@ func (r *TerraformReconciler) event(ctx context.Context, terraform infrav1.Terra
 	}
 
 	traceLog.Info("Add new annotated event")
-	r.EventRecorder.AnnotatedEventf(&terraform, metadata, eventType, reason, msg)
-}
-
-func (r *TerraformReconciler) finalizeStatus(ctx context.Context, obj *infrav1.Terraform) error {
-	// Initialize the runtime patcher with the current version of the object.
-	patcher := patch.NewSerialPatcher(obj, r.Client)
-
-	if v, ok := meta.ReconcileAnnotationValue(obj.GetAnnotations()); ok {
-		obj.Status.LastHandledReconcileAt = v
-	}
-
-	if conditions.IsTrue(obj, meta.ReadyCondition) {
-		obj.Status.ObservedGeneration = obj.Generation
-	}
-
-	if err := patcher.Patch(ctx, obj); err != nil {
-		if !obj.GetDeletionTimestamp().IsZero() {
-			err = kerrors.FilterOut(err, func(e error) bool { return apierrors.IsNotFound(e) })
-		}
-
-		return err
-	}
-
-	return nil
+	r.EventRecorder.AnnotatedEventf(terraform, metadata, eventType, reason, msg)
 }

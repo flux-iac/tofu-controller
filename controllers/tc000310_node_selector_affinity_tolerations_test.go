@@ -110,9 +110,9 @@ spec:
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
-	createdHelloWorldTF := infrav1.Terraform{}
+	createdHelloWorldTF := &infrav1.Terraform{}
 	g.Eventually(func() bool {
-		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		err := k8sClient.Get(ctx, helloWorldTFKey, createdHelloWorldTF)
 		if err != nil {
 			return false
 		}
@@ -229,9 +229,9 @@ spec:
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
-	createdHelloWorldTF := infrav1.Terraform{}
+	createdHelloWorldTF := &infrav1.Terraform{}
 	g.Eventually(func() bool {
-		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		err := k8sClient.Get(ctx, helloWorldTFKey, createdHelloWorldTF)
 		if err != nil {
 			return false
 		}
@@ -359,9 +359,9 @@ spec:
 
 	By("checking that the TF resource existed inside the cluster.")
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
-	createdHelloWorldTF := infrav1.Terraform{}
+	createdHelloWorldTF := &infrav1.Terraform{}
 	g.Eventually(func() bool {
-		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		err := k8sClient.Get(ctx, helloWorldTFKey, createdHelloWorldTF)
 		if err != nil {
 			return false
 		}

@@ -25,7 +25,7 @@ func Test_000191_missing_source_should_error(t *testing.T) {
 	ctx := context.Background()
 
 	By("submitting a Terraform resource referencing a git source which does not exist")
-	tfResource := infrav1.Terraform{
+	tfResource := &infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
 			Namespace: "flux-system",
@@ -44,7 +44,7 @@ func Test_000191_missing_source_should_error(t *testing.T) {
 	g.Expect(apierrors.IsNotFound(err)).Should(BeTrue())
 
 	By("submitting a Terraform resource referencing a bucket source which does not exist")
-	tfResource = infrav1.Terraform{
+	tfResource = &infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
 			Namespace: "flux-system",

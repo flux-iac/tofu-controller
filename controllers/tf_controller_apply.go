@@ -6,19 +6,19 @@ import (
 	"strings"
 
 	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
+	"github.com/fluxcd/pkg/runtime/patch"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
 	"google.golang.org/grpc/status"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *TerraformReconciler) forceOrAutoApply(terraform infrav1.Terraform) bool {
+func (r *TerraformReconciler) forceOrAutoApply(terraform *infrav1.Terraform) bool {
 	return terraform.Spec.Force || terraform.Spec.ApprovePlan == infrav1.ApprovePlanAutoValue
 }
 
-func (r *TerraformReconciler) shouldApply(terraform infrav1.Terraform) bool {
+func (r *TerraformReconciler) shouldApply(terraform *infrav1.Terraform) bool {
 	// Please do not optimize this logic, as we'd like others to easily understand the logics behind this behaviour.
 	if terraform.Spec.Force {
 		return true
@@ -40,17 +40,16 @@ func (r *TerraformReconciler) shouldApply(terraform infrav1.Terraform) bool {
 	return false
 }
 
-func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) apply(ctx context.Context, patchHelper *patch.SerialPatcher, terraform *infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string) (*infrav1.Terraform, error) {
 
 	const (
 		TFPlanName = "tfplan"
 	)
 
 	log := ctrl.LoggerFrom(ctx)
-	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
 
 	terraform = infrav1.TerraformProgressing(terraform, "Applying")
-	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+	if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 		log.Error(err, "unable to update status before Terraform applying")
 		return terraform, err
 	}
@@ -78,7 +77,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	log.Info(fmt.Sprintf("load tf plan: %s", loadTFPlanReply.Message))
 
 	terraform = infrav1.TerraformApplying(terraform, revision, "Apply started")
-	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+	if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 		log.Error(err, "error recording apply status: %s", err)
 		return terraform, err
 	}
