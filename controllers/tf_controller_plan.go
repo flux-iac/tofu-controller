@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/flux-iac/tofu-controller/api/planid"
-	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"github.com/fluxcd/pkg/runtime/patch"
+	corev1 "k8s.io/api/core/v1"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
@@ -77,7 +77,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, patchHelper *patch.Seria
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
 					msg := fmt.Sprintf("Plan error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-					r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
+					r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecPlanFailedReason, msg)
 					eventSent = true
 					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
@@ -86,7 +86,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, patchHelper *patch.Seria
 
 		if eventSent == false {
 			msg := fmt.Sprintf("Plan error: %s", err.Error())
-			r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecPlanFailedReason, msg)
 		}
 		err = fmt.Errorf("error running Plan: %s", err)
 		return infrav1.TerraformNotReady(
@@ -149,7 +149,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, patchHelper *patch.Seria
 			planId := planid.GetPlanID(revision)
 			approveMessage := planid.GetApproveMessage(planId, "Plan generated")
 			msg := fmt.Sprintf("Planned.\n%s", approveMessage)
-			r.event(ctx, terraform, revision, eventv1.EventSeverityInfo, msg, nil)
+			r.Eventf(terraform, corev1.EventTypeNormal, infrav1.TFExecPlanSucceedReason, msg)
 		}
 		terraform = infrav1.TerraformPlannedWithChanges(terraform, revision, forceOrAutoApply, "Plan generated")
 	} else {

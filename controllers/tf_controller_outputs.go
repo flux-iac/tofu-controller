@@ -9,7 +9,6 @@ import (
 	"github.com/flux-iac/tofu-controller/api/typeinfo"
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
-	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"github.com/fluxcd/pkg/runtime/patch"
 	"github.com/hashicorp/terraform-exec/tfexec"
 	"github.com/zclconf/go-cty/cty"
@@ -198,7 +197,7 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform *infrav
 			keysWritten = append(keysWritten, k)
 		}
 		msg := fmt.Sprintf("Outputs written.\n%d output(s): %s", len(keysWritten), strings.Join(keysWritten, ", "))
-		r.event(ctx, terraform, revision, eventv1.EventSeverityInfo, msg, nil)
+		r.Eventf(terraform, corev1.EventTypeNormal, infrav1.OutputsWritingFailedReason, msg)
 	}
 
 	return infrav1.TerraformOutputsWritten(terraform, revision, "Outputs written"), nil

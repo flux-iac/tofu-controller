@@ -101,6 +101,14 @@ const (
 	// of 'terraform apply' succeeded.
 	TFExecApplySucceedReason = "TerraformAppliedSucceed"
 
+	// TFExecDestroyFailedReason represents the fact that the execution
+	// of 'terraform destroy' failed.
+	TFExecDestroyFailedReason = "TFExecDestroyFailed"
+
+	// TFExecDestroySucceedReason represents the fact that the execution
+	// of 'terraform destroy' succeeded.
+	TFExecDestroySucceedReason = "TerraformDestroySucceed"
+
 	// TFExecForceUnlockReason represents the fact that the controller
 	// is attempting to force unlock the Terraform state.
 	TFExecForceUnlockReason = "ForceUnlock"
@@ -125,6 +133,10 @@ const (
 	// of 'terraform plan' failed.
 	TFExecPlanFailedReason = "TFExecPlanFailed"
 
+	// TFExecPlanSucceedReason represents the fact that the execution
+	// of 'terraform plan' succeeded.
+	TFExecPlanSucceedReason = "TerraformPlanSucceed"
+
 	// TemplateGenerationFailedReason represents the fact that
 	// the generation of the Terraform .tf template failed.
 	TemplateGenerationFailedReason = "TemplateGenerationFailed"
@@ -136,4 +148,8 @@ const (
 	// WorkspaceSelectFailedReason represents the fact that selecting
 	// a Terraform workspace failed.
 	WorkspaceSelectFailedReason = "SelectWorkspaceFailed"
+
+	// ReconciliationFailureReason represents the fact that
+	// the reconciliation of the Terraform resource failed.
+	ReconciliationFailureReason = "ReconciliationFailed"
 )

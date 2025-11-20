@@ -27,7 +27,6 @@ import (
 	"strings"
 	"time"
 
-	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/fluxcd/pkg/runtime/acl"
 	"github.com/fluxcd/pkg/runtime/conditions"
@@ -277,7 +276,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			// instead we requeue on a fix interval.
 			msg := fmt.Sprintf("Dependencies do not meet ready condition, retrying in %s", terraform.GetRetryInterval().String())
 			log.Info(msg)
-			r.event(ctx, terraform, sourceObj.GetArtifact().Revision, eventv1.EventSeverityInfo, msg, nil)
+			r.Eventf(terraform, corev1.EventTypeNormal, infrav1.DependencyNotReadyReason, msg)
 
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 		}
@@ -509,7 +508,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			"revision",
 			sourceObj.GetArtifact().Revision)
 		traceLog.Info("Record an event for the failure")
-		r.event(ctx, terraform, sourceObj.GetArtifact().Revision, eventv1.EventSeverityError, reconcileErr.Error(), nil)
+		r.Eventf(terraform, corev1.EventTypeWarning, infrav1.ReconciliationFailureReason, reconcileErr.Error())
 
 		if terraform.Spec.Remediation != nil {
 			log.Info(fmt.Sprintf(
@@ -836,38 +835,4 @@ func (r *TerraformReconciler) IndexBy(kind string) func(o client.Object) []strin
 
 		return nil
 	}
-}
-
-func (r *TerraformReconciler) event(ctx context.Context, terraform *infrav1.Terraform, revision, severity, msg string, metadata map[string]string) {
-	log := ctrl.LoggerFrom(ctx)
-	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.event")
-	traceLog.Info("If metadata is nil set to an empty map")
-	if metadata == nil {
-		traceLog.Info("Is nil, set to an empty map")
-		metadata = map[string]string{}
-	}
-	traceLog.Info("Check if the revision is empty")
-	if revision != "" {
-		traceLog.Info("Not empty set the metadata revision key")
-		metadata[infrav1.GroupVersion.Group+"/revision"] = revision
-	}
-
-	traceLog.Info("Set reason to severity")
-	reason := severity
-	traceLog.Info("Check if we have a status condition")
-	if c := apimeta.FindStatusCondition(terraform.Status.Conditions, meta.ReadyCondition); c != nil {
-		traceLog.Info("Set the reason to the status condition reason")
-		reason = c.Reason
-	}
-
-	traceLog.Info("Set the event type to Normal")
-	eventType := "Normal"
-	traceLog.Info("Check if severity is EventSeverityError")
-	if severity == eventv1.EventSeverityError {
-		traceLog.Info("Set event type to Warning")
-		eventType = "Warning"
-	}
-
-	traceLog.Info("Add new annotated event")
-	r.EventRecorder.AnnotatedEventf(terraform, metadata, eventType, reason, msg)
 }
