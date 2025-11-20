@@ -199,50 +199,40 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	traceLog.Info("Did we get an error trying to get the source")
 	if err != nil {
 		traceLog.Info("Is the error a NotFound error")
-		if apierrors.IsNotFound(err) {
-			traceLog.Info("The Source was not found")
-			msg := fmt.Sprintf("Source '%s' not found", terraform.Spec.SourceRef.String())
-			terraform = infrav1.TerraformNotReady(terraform, "", infrav1.ArtifactFailedReason, msg)
-			traceLog.Info("Patch the Terraform resource Status with NotReady")
-			if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
-				log.Error(err, "unable to update status for source not found")
-				return ctrl.Result{Requeue: true}, err
-			}
-			log.Info(msg)
-			// do not requeue immediately, when the source is created the watcher should trigger a reconciliation
-			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
-		} else if acl.IsAccessDenied(err) {
+		if acl.IsAccessDenied(err) {
 			traceLog.Info("The cross-namespace Source was denied by reconciler.NoCrossNamespaceRefs")
-			msg := fmt.Sprintf("Source '%s' access denied", terraform.Spec.SourceRef.String())
-			terraform = infrav1.TerraformNotReady(terraform, "", infrav1.AccessDeniedReason, msg)
-			traceLog.Info("Patch the Terraform resource Status with NotReady")
-			if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
-				log.Error(err, "unable to update status for source access denied")
-				return ctrl.Result{Requeue: true}, err
-			}
-			log.Info(msg)
-			// don't requeue to retry; it won't succeed unless the sourceRef changes
-			return ctrl.Result{}, nil
-		} else {
-			// retry on transient errors
-			log.Error(err, "retry")
-			return ctrl.Result{Requeue: true}, err
+			conditions.MarkStalled(terraform, infrav1.AccessDeniedReason, "%s", err)
+			conditions.MarkFalse(terraform, meta.ReadyCondition, infrav1.AccessDeniedReason, "%s", err)
+			conditions.Delete(terraform, meta.ReconcilingCondition)
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.AccessDeniedReason, err.Error())
+
+			// The controller must restart or sourceRef to change
+			// for this to be recoverable
+			return ctrl.Result{}, reconcile.TerminalError(err)
 		}
+
+		msg := fmt.Sprintf("could not get Source object: %s", err.Error())
+		conditions.MarkFalse(terraform, meta.ReadyCondition, infrav1.ArtifactFailedReason, "%s", msg)
+		return ctrl.Result{}, err
+	}
+
+	if conditions.HasAnyReason(terraform, meta.ReadyCondition, infrav1.AccessDeniedReason, infrav1.ArtifactFailedReason) {
+		conditions.MarkUnknown(terraform, meta.ReadyCondition, meta.ProgressingReason, "Reconciliation in progress")
 	}
 
 	// sourceObj does not exist, return early
 	traceLog.Info("Check we have a source object")
 	if sourceObj.GetArtifact() == nil {
 		msg := "Source is not ready, artifact not found"
-		terraform = infrav1.TerraformNotReady(terraform, "", infrav1.ArtifactFailedReason, msg)
-		traceLog.Info("Patch the Terraform resource Status with NotReady")
-		if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
-			log.Error(err, "unable to update status for artifact not found")
-			return ctrl.Result{Requeue: true}, err
-		}
+		conditions.MarkFalse(terraform, meta.ReadyCondition, infrav1.ArtifactFailedReason, "%s", msg)
+
 		log.Info(msg)
 		// do not requeue immediately, when the artifact is created the watcher should trigger a reconciliation
 		return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
+	}
+
+	if conditions.HasAnyReason(terraform, meta.ReadyCondition, infrav1.ArtifactFailedReason) {
+		conditions.MarkUnknown(terraform, meta.ReadyCondition, meta.ProgressingReason, "Reconciliation in progress")
 	}
 
 	// check dependencies, if not being deleted
