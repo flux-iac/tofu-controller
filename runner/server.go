@@ -408,17 +408,14 @@ func (r *TerraformRunnerServer) Apply(ctx context.Context, req *ApplyRequest) (*
 
 	var applyOpt []tfexec.ApplyOption
 	if req.DirOrPlan != "" {
-		applyOpt = []tfexec.ApplyOption{tfexec.DirOrPlan(req.DirOrPlan)}
+		applyOpt = append(applyOpt, tfexec.DirOrPlan(req.DirOrPlan))
 	}
-
 	if req.RefreshBeforeApply {
 		applyOpt = append(applyOpt, tfexec.Refresh(true))
 	}
-
 	for _, target := range req.Targets {
 		applyOpt = append(applyOpt, tfexec.Target(target))
 	}
-
 	if req.Parallelism > 0 {
 		applyOpt = append(applyOpt, tfexec.Parallelism(int(req.Parallelism)))
 	}
