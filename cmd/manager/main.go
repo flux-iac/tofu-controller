@@ -40,7 +40,9 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/utils/ptr"
 	ctrlcache "sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
@@ -98,6 +100,7 @@ func main() {
 		aclOptions                acl.Options
 		allowCrossNamespaceRefs   bool
 		usePodSubdomainResolution bool
+		usePriorityQueue          bool
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
@@ -120,6 +123,7 @@ func main() {
 	flag.BoolVar(&allowBreakTheGlass, "allow-break-the-glass", false, "Allow break the glass mode.")
 	flag.StringVar(&clusterDomain, "cluster-domain", "cluster.local", "The cluster domain used by the cluster.")
 	flag.BoolVar(&usePodSubdomainResolution, "use-pod-subdomain-resolution", false, "Allow to use pod hostname/subdomain DNS resolution instead of IP based")
+	flag.BoolVar(&usePriorityQueue, "use-priority-queue", true, "Enable the priority queue feature.")
 
 	clientOptions.BindFlags(flag.CommandLine)
 	logOptions.BindFlags(flag.CommandLine)
@@ -155,6 +159,9 @@ func main() {
 		RetryPeriod:                   &leaderElectionOptions.RetryPeriod,
 		LeaderElectionID:              "1953de50.contrib.fluxcd.io",
 		Logger:                        ctrl.Log,
+		Controller: config.Controller{
+			UsePriorityQueue: ptr.To(usePriorityQueue),
+		},
 	}
 
 	if watchNamespace != "" {
