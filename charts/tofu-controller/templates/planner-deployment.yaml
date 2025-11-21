@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "planner.labels" . | nindent 4 }}
     {{- with .Values.branchPlanner.deploymentLabels }}
-    {{ toYaml . }}
+    {{ toYaml . | nindent 4 }}
     {{- end }}
   name: {{ include "planner.fullname" . }}
   namespace: {{ .Release.Namespace }}
