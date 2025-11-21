@@ -152,10 +152,10 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret
   }
 }]}`
 
-	traceLog.Info("Return dial context")
-	return grpc.DialContext(ctx, addr,
+	traceLog.Info("Return gRPC new client")
+	return grpc.NewClient(
+		fmt.Sprintf("%s:%d", hostname, port),
 		grpc.WithTransportCredentials(credentials),
-		grpc.WithBlock(),
 		grpc.WithDefaultServiceConfig(retryPolicy),
 	)
 }
