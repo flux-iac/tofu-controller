@@ -1,7 +1,6 @@
 # Build the manager binary
-FROM golang:1.25 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.25 AS builder
 
-ARG TARGETARCH
 ARG BUILD_SHA
 ARG BUILD_VERSION
 
@@ -29,10 +28,12 @@ COPY internal/ internal/
 COPY utils/ utils/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} \
-  go build -gcflags=all="-N -l" \
-  -ldflags "-X main.BuildSHA='${BUILD_SHA}' -X main.BuildVersion='${BUILD_VERSION}'" \
-  -a -o tofu-controller ./cmd/manager
+ARG TARGETOS TARGETARCH
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build \
+    -ldflags "-X main.BuildSHA=${BUILD_SHA} -X main.BuildVersion=${BUILD_VERSION}" \
+    -o tofu-controller \
+    ./cmd/manager
 
 FROM alpine:3.22
 
@@ -45,7 +46,6 @@ RUN apk update && \
   libcrypto3=${LIBCRYPTO_VERSION} \
   libssl3=${LIBCRYPTO_VERSION} \
   ca-certificates tini git openssh-client gnupg \
-  libretls \
   busybox
 
 COPY --from=builder /workspace/tofu-controller /usr/local/bin/
