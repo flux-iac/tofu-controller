@@ -51,6 +51,7 @@ spec:
         - --allow-break-the-glass={{ .Values.allowBreakTheGlass }}
         - --cluster-domain={{ .Values.clusterDomain }}
         - --use-pod-subdomain-resolution={{ .Values.usePodSubdomainResolution }}
+        - --use-priority-queue={{ .Values.usePriorityQueue }}
         command:
         - /sbin/tini
         - --
