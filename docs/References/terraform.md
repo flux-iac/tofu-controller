@@ -874,6 +874,18 @@ string
 </tr>
 <tr>
 <td>
+<code>imagePullPolicy</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Runner pod ImagePullPolicy to use other than default</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>envFrom</code><br>
 <em>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#envfromsource-v1-core">
@@ -1099,6 +1111,18 @@ string
 <td>
 <em>(Optional)</em>
 <p>Runner pod image to use other than default</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>imagePullPolicy</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Runner pod ImagePullPolicy to use other than default</p>
 </td>
 </tr>
 <tr>
