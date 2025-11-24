@@ -26,15 +26,15 @@ func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, rev
 		return false
 	}
 
+	if terraform.Spec.ApprovePlan == infrav1.ApprovePlanDisableValue {
+		return true
+	}
+
 	// new object
 	if terraform.Status.LastAppliedRevision == "" &&
 		terraform.Status.LastPlannedRevision == "" &&
 		terraform.Status.LastAttemptedRevision == "" {
 		return false
-	}
-
-	if terraform.Spec.ApprovePlan == infrav1.ApprovePlanDisableValue {
-		return true
 	}
 
 	// thing worked normally, no change pending
