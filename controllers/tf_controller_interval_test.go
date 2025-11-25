@@ -10,6 +10,9 @@ import (
 )
 
 func TestShouldReconcileSkipsWhenIntervalNotElapsed(t *testing.T) {
+	Spec("This spec covers skipping reconciliation when the last plan is still within the interval window.")
+	It("should return false with a positive requeue duration.")
+
 	g := NewWithT(t)
 	reconciler := &TerraformReconciler{}
 
@@ -36,6 +39,9 @@ func TestShouldReconcileSkipsWhenIntervalNotElapsed(t *testing.T) {
 }
 
 func TestShouldReconcileWhenIntervalElapsed(t *testing.T) {
+	Spec("This spec covers reconciling once the interval has fully elapsed.")
+	It("should return true with zero requeue duration.")
+
 	g := NewWithT(t)
 	reconciler := &TerraformReconciler{}
 
@@ -59,6 +65,9 @@ func TestShouldReconcileWhenIntervalElapsed(t *testing.T) {
 }
 
 func TestShouldReconcileWhenGenerationChanged(t *testing.T) {
+	Spec("This spec covers reconciling when the object generation has changed.")
+	It("should return true even if the interval has not elapsed.")
+
 	g := NewWithT(t)
 	reconciler := &TerraformReconciler{}
 
@@ -81,6 +90,9 @@ func TestShouldReconcileWhenGenerationChanged(t *testing.T) {
 }
 
 func TestShouldReconcileWhenPendingPlan(t *testing.T) {
+	Spec("This spec covers reconciling when there is a pending plan or an apply should run.")
+	It("should return true without delay.")
+
 	g := NewWithT(t)
 	reconciler := &TerraformReconciler{}
 
@@ -106,6 +118,9 @@ func TestShouldReconcileWhenPendingPlan(t *testing.T) {
 }
 
 func TestShouldReconcileWhenNeverPlanned(t *testing.T) {
+	Spec("This spec covers reconciling when no plan has been performed yet.")
+	It("should return true without delay.")
+
 	g := NewWithT(t)
 	reconciler := &TerraformReconciler{}
 
@@ -124,6 +139,9 @@ func TestShouldReconcileWhenNeverPlanned(t *testing.T) {
 }
 
 func TestShouldReconcileWhenDeleting(t *testing.T) {
+	Spec("This spec covers reconciling while the object is being deleted.")
+	It("should return true without delay.")
+
 	g := NewWithT(t)
 	reconciler := &TerraformReconciler{}
 
@@ -147,6 +165,9 @@ func TestShouldReconcileWhenDeleting(t *testing.T) {
 }
 
 func TestShouldReconcileWhenForceEnabled(t *testing.T) {
+	Spec("This spec covers reconciling when force is enabled.")
+	It("should return true without delay.")
+
 	g := NewWithT(t)
 	reconciler := &TerraformReconciler{}
 
