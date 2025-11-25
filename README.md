@@ -18,7 +18,9 @@ Tofu Controller offers many GitOps models:
 
 ## Get in touch
 
-If you have a feature request to share or a bug to report, please file an issue. You can also reach out via our [Tofu Controller Slack channel](https://weave-community.slack.com/archives/C054MR4UP88) — get there by first joining the [Weave Community Slack space](https://weave-community.slack.com).
+If you have a feature request to share or a bug to report, please file an issue.
+
+You can also reach out via our [Tofu Controller Slack channel](https://cloud-native.slack.com/messages/tofu-controller) — get there by first joining the [CNCF Slack space](https://slack.cncf.io/).
 
 ## Quickstart and documentation
 
