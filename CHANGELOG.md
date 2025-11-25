@@ -2,7 +2,51 @@
 
 All notable changes of this project are documented in this file.
 
-# v0.16.0-rc.5
+## v0.16.0-rc.6
+
+**Release date:** 2025-11-25
+
+This is the second release candidate of Tofu Controller this calendar year, and contains various new features and bug fixes.
+
+We would like to thank our contributors for their continued support and effort in improving the Tofu-Controller.
+
+Please follow the [upgrade guide in the documentation](https://flux-iac.github.io/tofu-controller/use-tf-controller/upgrade-tf-controller/) to ensure a smooth transition to the latest version.
+
+New Features and Bug Fixes:
+
+- feat: controller refactoring ([#1640](https://github.com/flux-iac/tofu-controller/pull/1640)) ([38a6bd1c](https://github.com/flux-iac/tofu-controller/commit/38a6bd1cf87bafa196b8b92dd62bd7bf7572cf2a))
+- chore(docs): update docs to refer to CNCF Slack Channel ([#1644](https://github.com/flux-iac/tofu-controller/pull/1644)) ([be1c0445](https://github.com/flux-iac/tofu-controller/commit/be1c044561e286a6f7ce224832b14dd3166a4353))
+- feat: enable controller priority queue ([13b5f452](https://github.com/flux-iac/tofu-controller/commit/13b5f452a75fff5ad3fb67f7688fd91b576ce838))
+- fix(docker): use native build platform for go build stages ([#1636](https://github.com/flux-iac/tofu-controller/pull/1636)) ([516a098f](https://github.com/flux-iac/tofu-controller/commit/516a098f87b3e3f4544d4e1bf023cf56440abe38))
+- chore: add self to MAINTAINERS ([#1637](https://github.com/flux-iac/tofu-controller/pull/1637)) ([59238cae](https://github.com/flux-iac/tofu-controller/commit/59238caefa011e4b57cf0a5493c4abbfe599bf01))
+- fix(ci): speed up docker builds ([#1635](https://github.com/flux-iac/tofu-controller/pull/1635)) ([96eb5290](https://github.com/flux-iac/tofu-controller/commit/96eb52904bb8103bac13a8f11cf322d4b85fb75b))
+- docker: drop unused libretls ([#1634](https://github.com/flux-iac/tofu-controller/pull/1634)) ([3b1e6953](https://github.com/flux-iac/tofu-controller/commit/3b1e69535ea0540ae2a888d566fa8889d94cc391))
+- chore: move condition types and reasons, and add comments ([#1633](https://github.com/flux-iac/tofu-controller/pull/1633)) ([0eaef3b6](https://github.com/flux-iac/tofu-controller/commit/0eaef3b6509d1bc4cadb5bc24a3074460fb7f0dd))
+- fix(chart): handling additional deployment labels ([#1632](https://github.com/flux-iac/tofu-controller/pull/1632)) ([f6ee8377](https://github.com/flux-iac/tofu-controller/commit/f6ee837716a58339a6911ec270b53540c351fc98))
+- docs: fix code display on exposed using hostname subdomain page ([#1540](https://github.com/flux-iac/tofu-controller/pull/1540)) ([bc4ee033](https://github.com/flux-iac/tofu-controller/commit/bc4ee0338bba14ef5e3a8c2fb3b80f23fa2d4110))
+- fix(ci): avoid e2e race condition on cert gc ([978bf29e](https://github.com/flux-iac/tofu-controller/commit/978bf29e2410df398051efe8a4694b03fb5ebca5))
+- chore: upgrade controller-runtime to v0.22.0 and their dependencies ([#1602](https://github.com/flux-iac/tofu-controller/pull/1602)) ([e4060875](https://github.com/flux-iac/tofu-controller/commit/e4060875faa130171f4759750ab1be4f2d5416d8))
+- fix: implement a Terraform Exec Wrapper to detect State Lock Errors ([#1623](https://github.com/flux-iac/tofu-controller/pull/1623)) ([b67e9c7a](https://github.com/flux-iac/tofu-controller/commit/b67e9c7a93cefb80c902b261060b95e8b1e6477f))
+- fix: implement more descriptive errors during instance id mismatches ([#1622](https://github.com/flux-iac/tofu-controller/pull/1622)) ([536b9b4a](https://github.com/flux-iac/tofu-controller/commit/536b9b4a415575ffaa12565468d1400f21d0d815))
+- Bump the deprecated FluxCD versions ([#1539](https://github.com/flux-iac/tofu-controller/pull/1539)) ([446d3b13](https://github.com/flux-iac/tofu-controller/commit/446d3b139c48afe0d7bd34f561fdcb609227efce))
+- Bump github.com/docker/docker ([#1594](https://github.com/flux-iac/tofu-controller/pull/1594)) ([13c7438d](https://github.com/flux-iac/tofu-controller/commit/13c7438d4d46cdb5ed57e781b37fd3397b40e6aa))
+- chore: upgrade to go 1.24 + upgrade deps and tooling ([#1588](https://github.com/flux-iac/tofu-controller/pull/1588)) ([7d88a637](https://github.com/flux-iac/tofu-controller/commit/7d88a6374fd329be36a8085a2b7491c52eb1132a))
+- Bump golang.org/x/net from 0.34.0 to 0.38.0 ([#1562](https://github.com/flux-iac/tofu-controller/pull/1562)) ([d0b0910a](https://github.com/flux-iac/tofu-controller/commit/d0b0910ad33d432046aaa47850552cfbf3f9bc38))
+- Bump golang.org/x/crypto from 0.32.0 to 0.35.0 ([#1561](https://github.com/flux-iac/tofu-controller/pull/1561)) ([358235ee](https://github.com/flux-iac/tofu-controller/commit/358235eeeac210ec21e47fb8c6ac082cfc9094dd))
+- chore: bump libcrypto to 3.3.5-r0 and alpine to 3.22 ([#1583](https://github.com/flux-iac/tofu-controller/pull/1583)) ([d3d858be](https://github.com/flux-iac/tofu-controller/commit/d3d858bebc26d844357df8d7fa16b26f3ae9b9b8))
+- Fix broken github link ([#1578](https://github.com/flux-iac/tofu-controller/pull/1578)) ([5c7c6420](https://github.com/flux-iac/tofu-controller/commit/5c7c64209d12e3127cd9dddf391b9c88095e45f2))
+- Bump the gh-minor group across 1 directory with 17 updates ([#1548](https://github.com/flux-iac/tofu-controller/pull/1548)) ([67198a27](https://github.com/flux-iac/tofu-controller/commit/67198a27f35b97119492965ea1fe7a9034cc4476))
+- Rename Weave GitOps to tofu-controller ([#1549](https://github.com/flux-iac/tofu-controller/pull/1549)) ([da8f516a](https://github.com/flux-iac/tofu-controller/commit/da8f516a6569a925bea6645fa4a3e766eeec91af))
+- Replace github.com/pkg/errors with errors wrapping using stdlib ([#1526](https://github.com/flux-iac/tofu-controller/pull/1526)) ([90ae7db8](https://github.com/flux-iac/tofu-controller/commit/90ae7db8a627e37ff77409e8a0fbd9227dfd7781))
+- chore: bump libcrypto to 3.3.3-r0 ([#1525](https://github.com/flux-iac/tofu-controller/pull/1525)) ([88287639](https://github.com/flux-iac/tofu-controller/commit/88287639ba5c5605279250e79dab96856f76bd9b))
+- fix(oci): allow unlimited layer size ([#1519](https://github.com/flux-iac/tofu-controller/pull/1519)) ([a5c2ca77](https://github.com/flux-iac/tofu-controller/commit/a5c2ca77acabe8d937ca7304b3f4ba4232ef5fc7))
+- Bump the go-patch group across 3 directories with 11 updates ([#1518](https://github.com/flux-iac/tofu-controller/pull/1518)) ([36cfee53](https://github.com/flux-iac/tofu-controller/commit/36cfee53c18d9b19bc03f958a2a6cc09b157a139))
+- Bump actions/checkout from 4.2.0 to 4.2.2 in the gh-patch group across 1 directory ([#1517](https://github.com/flux-iac/tofu-controller/pull/1517)) ([b07f185a](https://github.com/flux-iac/tofu-controller/commit/b07f185a253f8fe32123e6b343ddd6aad55e0c47))
+- fix(ci): setup terraform ([#1510](https://github.com/flux-iac/tofu-controller/pull/1510)) ([f4893afd](https://github.com/flux-iac/tofu-controller/commit/f4893afda8d7e1dec36299216852bc9fef39e3ad))
+- Control init -upgrade behaviour ([#1471](https://github.com/flux-iac/tofu-controller/pull/1471)) ([7ca23dc1](https://github.com/flux-iac/tofu-controller/commit/7ca23dc1c64f15bb6ca69ef3c8173eaca7313667))
+- Fix the HelmRelease scripts to install the latest helm chart ([#1509](https://github.com/flux-iac/tofu-controller/pull/1509)) ([4c3c1552](https://github.com/flux-iac/tofu-controller/commit/4c3c1552346f3171f0735429e4dae6b2be69789b))
+
+## v0.16.0-rc.5
 
 **Release date:** 2025-01-14
 
@@ -56,7 +100,7 @@ New Features and Bug Fixing:
   * README.md: remove roadmap by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1459
   * Upgrade Go version to 1.23.4 and deps by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1502
 
-# v0.16.0-rc.4
+## v0.16.0-rc.4
 
 **Release date:** 2024-03-14
 
@@ -94,7 +138,7 @@ New Features and Bug Fixing:
   * Add documentation about IPv6 support.
   * Update branch planner default configuration.
 
-# v0.16.0-rc.3
+## v0.16.0-rc.3
 
 **Release date:** 2023-09-19
 
@@ -141,7 +185,7 @@ New Features and Bug Fixing:
   * Build(deps): bump the ci group with 5 updates @chanwit
   * Bump libcrypto3 and libssl3 @yitsushi
 
-# v0.16.0-rc.2
+## v0.16.0-rc.2
 
 New Features and Bug Fixing:
 
@@ -149,7 +193,7 @@ New Features and Bug Fixing:
   * Capture StdErr from Terraform Init and send it back to the controller @chanwit
   * Implementing the Branch Planner system @yitsushi @luizbafilho @squaremo @yiannistri @chanwit
 
-# v0.16.0-rc.1
+## v0.16.0-rc.1
 
 New Features and Bug Fixing:
   * patch: static replica count for branch planner @yitsushi
@@ -161,7 +205,7 @@ New Features and Bug Fixing:
   * Fix source deletion when using branch planner @luizbafilho
   * Improve the Plan Only mode @yitsushi
 
-# v0.15.1
+## v0.15.1
 
 **Release date:** 2023-06-06
 
@@ -171,7 +215,7 @@ Bug Fixing:
   * Fix type information suffix (@chanwit)
   * Update gRPC dependency for CVE-2023-32731 (@chanwit)
 
-# v0.15.0
+## v0.15.0
 
 **Release date:** 2023-06-04
 
@@ -181,7 +225,7 @@ Bug Fixing:
   * Add OIDC go-client plugin to `tfctl` (@chanwit)
   * Update documents for v0.15.0 (@chanwit)
 
-# v0.15.0-rc.6
+## v0.15.0-rc.6
 
 **Release date:** 2023-06-01
 
@@ -199,7 +243,7 @@ New Features and Bug Fixing:
    * Pending plan not equal plan id in the plan storage (@chanwit)
    * Add plan log sanitization (@chanwit)
 
-# v0.15.0-rc.5
+## v0.15.0-rc.5
 
 New Features and Bug Fixing:
    * Fix logging in tf-runner (@chanwit)
@@ -207,18 +251,18 @@ New Features and Bug Fixing:
    * Upgrade Alpine to v3.18 (@chanwit)
    * Fix logging in terraform output (@chanwit)
 
-# v0.15.0-rc.4
+## v0.15.0-rc.4
 
 New Features and Bug Fixing:
    * Upgrade Flux to v2.0.0-rc.4 (@chanwit)
 
-# v0.15.0-rc.3
+## v0.15.0-rc.3
 
 New Features and Bug Fixing:
    * Allow passing cluster domain (default is cluster.local) (@chanwit)
    * Add host aliases to the runner pod template (@chanwit)
 
-# v0.15.0-rc.2
+## v0.15.0-rc.2
 
 New Features and Bug Fixing:
    * Update Flux APIs and use OCI HelmRepository (@stefanprodan)
@@ -233,7 +277,7 @@ New Features and Bug Fixing:
    * Support renaming keys in varsFrom (@chanwit)
    * Support multiple version of Terraform Runners (@chanwit)
 
-# v0.15.0-rc.1
+## v0.15.0-rc.1
 
 **Release date:** 2023-04-15
 
@@ -245,7 +289,7 @@ Breaking changes:
   * Upgrade Flux to v2.0.0-rc.1 (@chanwit)
   * Bump Terraform API to v1alpha2 and deprecated v1alpha1 (@chanwit)
 
-# v0.14.0
+## v0.14.0
 
 **Release date:** 2023-02-25
 
@@ -279,7 +323,7 @@ New Features and Bug Fixing:
   * Upgrade Terraform to v1.3.9 and Alpine to v3.16.4 (@chanwit)
   * Upgrade Flux to v0.40 (@chanwit)
 
-# v0.13.1
+## v0.13.1
 
 **Release date:** 2022-11-06
 
@@ -287,7 +331,7 @@ New Features and Bug Fixing:
   * Update Source controller to v0.31.0 / Flux v0.36.0 (@chanwit)
   * Improve `tfctl` commands (@chanwit)
 
-# v0.13.0
+## v0.13.0
 
 **Release date:** 2022-10-27
 
@@ -329,7 +373,7 @@ New Features and Bug Fixing:
   * Implement "replan" to avoid double planning (@chanwit)
   * Add SHA and version information to the binaries (@chanwit)
 
-# v0.12.0
+## v0.12.0
 
 **Release date:** 2022-09-07
 
@@ -349,7 +393,7 @@ New Features and Bug Fixing:
   * Fix Plan prompt being overridden by the progressing message (@chanwit)
   * Support storing human-readable plan output in a ConfigMap (@chanwit)
 
-# v0.11.0
+## v0.11.0
 
 **Release date:** 2022-08-12
 
@@ -363,7 +407,7 @@ New Features and Bug Fixing:
   * Updated tfexec to v0.16.1 for the force-lock option (@chanwit)
   * Updated the Source controller to v0.26.1 (@chanwit)
 
-# v0.10.1
+## v0.10.1
 
 **Release date:** 2022-08-05
 
@@ -377,7 +421,7 @@ Bug Fixing:
   * Fix another race condition secret (@chanwit)
   * Map runner's home to a volume to make it writeable (@chanwit)
 
-# v0.10.0
+## v0.10.0
 
 **Release date:** 2022-08-02
 
@@ -394,7 +438,7 @@ New Features and Bug Fixing:
   * Add pprof to the /debug/pprof endpoint (@chanwit)
   * Fix race condition to make sure that gRPC client and the runner use the same TLS (@chanwit)
 
-# v0.9.5
+## v0.9.5
 
 **Release date:** 2022-05-30
 
@@ -412,7 +456,7 @@ Bug Fixing:
   * Fix insertion of sensitive information to runner pod logging (@chanwit)
   * Fix nil reference for in writeBackendConfig (@chanwit)
 
-# v0.9.4
+## v0.9.4
 
 **Release date:** 2022-04-15
 
@@ -427,7 +471,7 @@ New Features and Bug Fixing:
   * Update images to include fix for CVE-2022-28391 (@chanwit)
   * Update Terraform binary to 1.1.8 (@chanwit)
 
-# v0.9.3
+## v0.9.3
 
 **Release date:** 2022-03-28
 
@@ -436,7 +480,7 @@ This pre-release contains the following changes.
 Bug Fixing:
   * Fix runner pod pointer variables so that getting pods works correctly (@chanwit)
 
-# v0.9.2
+## v0.9.2
 
 **Release date:** 2022-03-25
 
@@ -445,7 +489,7 @@ This pre-release contains the following changes.
 Bug Fixing:
   * Wait for runner pods to be completely terminated before reconcile a new one (@chanwit)
 
-# v0.9.0
+## v0.9.0
 
 **Release date:** 2022-03-21
 
@@ -483,7 +527,7 @@ New Features and Bug Fixing:
   * Add concurrency to the Helm chart (@chanwit)
   * Fix CVE-2022-0778 (@chanwit)
 
-# v0.8.0
+## v0.8.0
 
 **Release date:** 2022-01-24
 
@@ -501,7 +545,7 @@ New Features:
 Improvements:
   * Fix recording the status of destroy plans (@chanwit)
 
-# v0.7.0
+## v0.7.0
 
 **Release date:** 2022-01-16
 
