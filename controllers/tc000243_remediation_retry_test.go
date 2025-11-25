@@ -185,6 +185,7 @@ spec:
 	// After changing the resource, retry count should be set back to 0.
 	// With setting Retries lower than the previous one, we can check if it was
 	// reset to 0 as it would never reach 2 from 3.
+	g.Expect(k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)).Should(Succeed())
 	createdHelloWorldTF.Spec.Remediation.Retries = 2
 	g.Expect(k8sClient.Update(ctx, &createdHelloWorldTF)).Should(Succeed())
 

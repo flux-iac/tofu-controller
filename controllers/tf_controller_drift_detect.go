@@ -5,15 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
-
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
 	"google.golang.org/grpc/status"
+	corev1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, revision string) bool {
+func (r *TerraformReconciler) shouldDetectDrift(terraform *infrav1.Terraform, revision string) bool {
 	// Please do not optimize this logic, as we'd like others to easily understand the logics behind this behaviour.
 
 	// return false when drift detection is disabled
@@ -57,7 +56,7 @@ func (r *TerraformReconciler) shouldDetectDrift(terraform infrav1.Terraform, rev
 	return false
 }
 
-func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, sourceRefRootDir string) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform *infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, sourceRefRootDir string) (*infrav1.Terraform, error) {
 
 	log := ctrl.LoggerFrom(ctx)
 
@@ -86,7 +85,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
 					msg := fmt.Sprintf("Drift detection error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-					r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
+					r.Eventf(terraform, corev1.EventTypeWarning, infrav1.DriftDetectionFailedReason, msg)
 					eventSent = true
 					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
@@ -95,7 +94,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 
 		if eventSent == false {
 			msg := fmt.Sprintf("Drift detection error: %s", err.Error())
-			r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.DriftDetectionFailedReason, msg)
 		}
 
 		err = fmt.Errorf("error running Plan: %s", err)
@@ -134,7 +133,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform infrav1
 		rawOutput = strings.Replace(rawOutput, "You can apply this plan to save these new output values to the Terraform\nstate, without changing any real infrastructure.", "", 1)
 
 		msg := fmt.Sprintf("Drift detected.\n%s", rawOutput)
-		r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
+		r.Eventf(terraform, corev1.EventTypeWarning, infrav1.DriftDetectedReason, msg)
 
 		// If drift detected & we use the auto mode, then we continue
 		terraform = infrav1.TerraformDriftDetected(terraform, revision, infrav1.DriftDetectedReason, rawOutput)

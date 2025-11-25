@@ -5,20 +5,20 @@ import (
 	"fmt"
 	"strings"
 
-	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
+	"github.com/fluxcd/pkg/runtime/patch"
+	corev1 "k8s.io/api/core/v1"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
 	"google.golang.org/grpc/status"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *TerraformReconciler) forceOrAutoApply(terraform infrav1.Terraform) bool {
+func (r *TerraformReconciler) forceOrAutoApply(terraform *infrav1.Terraform) bool {
 	return terraform.Spec.Force || terraform.Spec.ApprovePlan == infrav1.ApprovePlanAutoValue
 }
 
-func (r *TerraformReconciler) shouldApply(terraform infrav1.Terraform) bool {
+func (r *TerraformReconciler) shouldApply(terraform *infrav1.Terraform) bool {
 	// Please do not optimize this logic, as we'd like others to easily understand the logics behind this behaviour.
 	if terraform.Spec.Force {
 		return true
@@ -40,17 +40,16 @@ func (r *TerraformReconciler) shouldApply(terraform infrav1.Terraform) bool {
 	return false
 }
 
-func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) apply(ctx context.Context, patchHelper *patch.SerialPatcher, terraform *infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string) (*infrav1.Terraform, error) {
 
 	const (
 		TFPlanName = "tfplan"
 	)
 
 	log := ctrl.LoggerFrom(ctx)
-	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
 
 	terraform = infrav1.TerraformProgressing(terraform, "Applying")
-	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+	if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 		log.Error(err, "unable to update status before Terraform applying")
 		return terraform, err
 	}
@@ -78,7 +77,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	log.Info(fmt.Sprintf("load tf plan: %s", loadTFPlanReply.Message))
 
 	terraform = infrav1.TerraformApplying(terraform, revision, "Apply started")
-	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+	if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 		log.Error(err, "error recording apply status: %s", err)
 		return terraform, err
 	}
@@ -114,7 +113,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.DestroyReply); ok {
 						msg := fmt.Sprintf("Destroy error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-						r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
+						r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecDestroyFailedReason, msg)
 						eventSent = true
 						terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 					}
@@ -123,7 +122,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 
 			if eventSent == false {
 				msg := fmt.Sprintf("Destroy error: %s", err.Error())
-				r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
+				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecDestroyFailedReason, msg)
 			}
 
 			err = fmt.Errorf("error running Destroy: %s", err)
@@ -143,7 +142,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.ApplyReply); ok {
 						msg := fmt.Sprintf("Apply error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-						r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
+						r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecApplyFailedReason, msg)
 						eventSent = true
 						terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 					}
@@ -152,7 +151,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 
 			if eventSent == false {
 				msg := fmt.Sprintf("Apply error: %s", err.Error())
-				r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
+				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecApplyFailedReason, msg)
 			}
 
 			err = fmt.Errorf("error running Apply: %s", err)
@@ -199,10 +198,12 @@ func (r *TerraformReconciler) apply(ctx context.Context, terraform infrav1.Terra
 	var msg string
 	if isDestroyApplied {
 		msg = fmt.Sprintf("Destroy applied successfully")
+		r.Eventf(terraform, corev1.EventTypeNormal, infrav1.TFExecDestroySucceedReason, msg)
 	} else {
 		msg = fmt.Sprintf("Applied successfully")
+		r.Eventf(terraform, corev1.EventTypeNormal, infrav1.TFExecApplySucceedReason, msg)
 	}
-	r.event(ctx, terraform, revision, eventv1.EventSeverityInfo, msg, nil)
+
 	terraform = infrav1.TerraformApplied(terraform, revision, msg, isDestroyApplied, inventoryEntries)
 
 	return terraform, nil

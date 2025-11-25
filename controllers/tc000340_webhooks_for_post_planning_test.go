@@ -32,7 +32,7 @@ func (m *mockRunnerClientForTestWebhooksForPostPlanning) ShowPlanFile(ctx contex
 
 func Test_000340_PrepareWebhookPayloadSpecAndPlan(t *testing.T) {
 	g := NewWithT(t)
-	terraform := infrav1.Terraform{
+	terraform := &infrav1.Terraform{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "infra.contrib.fluxcd.io/v1alpha2",
 		},
@@ -104,7 +104,7 @@ status:
 
 func Test_000340_PrepareWebhookPayloadSpecOnly(t *testing.T) {
 	g := NewWithT(t)
-	terraform := infrav1.Terraform{
+	terraform := &infrav1.Terraform{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "infra.contrib.fluxcd.io/v1alpha2",
 		},
@@ -175,7 +175,7 @@ spec:
 
 func Test_000340_PrepareWebhookPayloadPlanOnly(t *testing.T) {
 	g := NewWithT(t)
-	terraform := infrav1.Terraform{
+	terraform := &infrav1.Terraform{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "infra.contrib.fluxcd.io/v1alpha2",
 		},

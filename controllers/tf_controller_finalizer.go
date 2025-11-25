@@ -10,6 +10,7 @@ import (
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
 	"github.com/fluxcd/pkg/runtime/logger"
+	"github.com/fluxcd/pkg/runtime/patch"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -19,7 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient, sourceObj sourcev1.Source, reconciliationLoopID string) (infrav1.Terraform, controllerruntime.Result, error) {
+func (r *TerraformReconciler) finalize(ctx context.Context, patchHelper *patch.SerialPatcher, terraform *infrav1.Terraform, runnerClient runner.RunnerClient, sourceObj sourcev1.Source, reconciliationLoopID string) (*infrav1.Terraform, controllerruntime.Result, error) {
 	log := controllerruntime.LoggerFrom(ctx)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.finalize")
 	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
@@ -33,7 +34,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 				log.Info("waiting for a dependant to be deleted", "dependant", finalizer)
 				msg := fmt.Sprintf("waiting for a dependant to be deleted: %s", strings.TrimPrefix(finalizer, infrav1.TFDependencyOfPrefix))
 				terraform = infrav1.TerraformNotReady(terraform, "", infrav1.DeletionBlockedByDependants, msg)
-				if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+				if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 					log.Error(err, "unable to update status for source not found")
 					return terraform, controllerruntime.Result{Requeue: true}, nil
 				}
@@ -45,7 +46,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 		// TODO There's a case of sourceObj got deleted before finalize is called.
 		revision := sourceObj.GetArtifact().Revision
 		traceLog.Info("Setup the terraform instance")
-		terraform, tfInstance, tmpDir, err := r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey, reconciliationLoopID)
+		terraform, tfInstance, tmpDir, err := r.setupTerraform(ctx, patchHelper, runnerClient, terraform, sourceObj, revision, reconciliationLoopID)
 
 		traceLog.Info("Defer function for cleanup")
 		defer func() {
@@ -69,7 +70,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 
 		// This will create the "destroy" plan because deletion timestamp is set.
 		traceLog.Info("Create a new plan to destroy")
-		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision, tmpDir)
+		terraform, err = r.plan(ctx, patchHelper, terraform, tfInstance, runnerClient, revision, tmpDir)
 		traceLog.Info("Check for error")
 		if err != nil {
 			traceLog.Error(err, "Error, requeue job")
@@ -77,14 +78,14 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 		}
 
 		traceLog.Info("Patch status of the Terraform resource")
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+		if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 			log.Error(err, "unable to update status after planing")
 			return terraform, controllerruntime.Result{Requeue: true}, err
 		}
 
 		if thereIsNothingToDestroy(terraform) == false {
 			traceLog.Info("Apply the destroy plan")
-			terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision)
+			terraform, err = r.apply(ctx, patchHelper, terraform, tfInstance, runnerClient, revision)
 			traceLog.Info("Check for error")
 			if err != nil {
 				traceLog.Error(err, "Error, requeue job")
@@ -92,7 +93,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 			}
 
 			traceLog.Info("Patch status of the Terraform resource")
-			if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 				log.Error(err, "unable to update status after applying")
 				return terraform, controllerruntime.Result{Requeue: true}, err
 			}
@@ -143,16 +144,16 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 	}
 
 	traceLog.Info("Get the Terraform resource")
-	if err := r.Get(ctx, objectKey, &terraform); err != nil {
+	if err := r.Get(ctx, objectKey, terraform); err != nil {
 		traceLog.Error(err, "Hit an error, return")
 		return terraform, controllerruntime.Result{}, err
 	}
 
 	// Remove our finalizer from the list and update it
 	traceLog.Info("Remove the finalizer")
-	controllerutil.RemoveFinalizer(&terraform, infrav1.TerraformFinalizer)
+	controllerutil.RemoveFinalizer(terraform, infrav1.TerraformFinalizer)
 	traceLog.Info("Check for an error")
-	if err := r.Update(ctx, &terraform); err != nil {
+	if err := r.Update(ctx, terraform); err != nil {
 		traceLog.Error(err, "Hit an error, return")
 		return terraform, controllerruntime.Result{}, err
 	}
@@ -176,7 +177,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 		// add finalizer to the dependency
 		if controllerutil.ContainsFinalizer(&tf, dependantFinalizer) {
 			controllerutil.RemoveFinalizer(&tf, dependantFinalizer)
-			if err := r.Update(context.Background(), &tf, client.FieldOwner(r.statusManager)); err != nil {
+			if err := r.Update(context.Background(), &tf, client.FieldOwner(r.FieldManager)); err != nil {
 				return terraform, controllerruntime.Result{}, err
 			}
 		}
@@ -187,7 +188,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, terraform infrav1.Te
 	return terraform, controllerruntime.Result{}, nil
 }
 
-func thereIsNothingToDestroy(terraform infrav1.Terraform) bool {
+func thereIsNothingToDestroy(terraform *infrav1.Terraform) bool {
 	// find condition with type "Plan"
 	for _, c := range terraform.Status.Conditions {
 		if c.Type == infrav1.ConditionTypePlan {

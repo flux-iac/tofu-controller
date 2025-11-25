@@ -25,16 +25,15 @@ import (
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
 	"github.com/fluxcd/pkg/apis/meta"
+	"github.com/fluxcd/pkg/runtime/patch"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source, reconciliationLoopID string) (*infrav1.Terraform, error) {
+func (r *TerraformReconciler) reconcile(ctx context.Context, patchHelper *patch.SerialPatcher, runnerClient runner.RunnerClient, terraform *infrav1.Terraform, sourceObj sourcev1.Source, reconciliationLoopID string) (*infrav1.Terraform, error) {
 	log := ctrl.LoggerFrom(ctx)
 	revision := sourceObj.GetArtifact().Revision
-	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
 
 	var (
 		tfInstance string
@@ -44,7 +43,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		lastKnownAction string
 	)
 	log.Info("setting up terraform")
-	terraform, tfInstance, tmpDir, err = r.setupTerraform(ctx, runnerClient, terraform, sourceObj, revision, objectKey, reconciliationLoopID)
+	terraform, tfInstance, tmpDir, err = r.setupTerraform(ctx, patchHelper, runnerClient, terraform, sourceObj, revision, reconciliationLoopID)
 
 	lastKnownAction = "Setup"
 
@@ -61,7 +60,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 
 	if err != nil {
 		log.Error(err, "error in terraform setup")
-		return &terraform, err
+		return terraform, err
 	}
 
 	if r.AllowBreakTheGlass {
@@ -77,16 +76,16 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		if breakTheGlass {
 			// ok, change status to "break the glass"
 			terraform = infrav1.TerraformProgressing(terraform, "Breaking the glass ...")
-			if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 				log.Error(err, "unable to update status after drift detection")
-				return &terraform, err
+				return terraform, err
 			}
 
 			// create /tmp/.break-glass file
 			_, err := runnerClient.StartBreakTheGlassSession(ctx, &runner.BreakTheGlassRequest{})
 			if err != nil {
 				log.Error(err, "error starting break the glass session")
-				return &terraform, err
+				return terraform, err
 			}
 
 			done := false
@@ -105,12 +104,12 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 
 			// set status back to "Initializing"
 			terraform = infrav1.TerraformProgressing(terraform, "Initializing")
-			if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 				log.Error(err, "unable to update status after drift detection")
-				return &terraform, err
+				return terraform, err
 			}
 
-			return &terraform, fmt.Errorf("break the glass session has ended at %v", time.Now().Format(time.RFC3339))
+			return terraform, fmt.Errorf("break the glass session has ended at %v", time.Now().Format(time.RFC3339))
 		}
 	} else {
 		// spec.breakTheGlass || annotation
@@ -124,13 +123,13 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 
 		if breakTheGlass {
 			terraform = infrav1.TerraformProgressing(terraform, "Breaking the glass is not allowed")
-			if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+			if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 				log.Error(err, "unable to update status after drift detection")
-				return &terraform, err
+				return terraform, err
 			}
 
 			log.Info("break the glass is not allowed")
-			return &terraform, fmt.Errorf("break the glass is not allowed")
+			return terraform, fmt.Errorf("break the glass is not allowed")
 		}
 	}
 
@@ -142,35 +141,35 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		if driftDetectionErr == nil {
 			// reconcile outputs only when outputs are missing
 			if outputsDrifted, err := r.outputsMayBeDrifted(ctx, terraform); outputsDrifted == true && err == nil {
-				terraform, err = r.processOutputs(ctx, runnerClient, terraform, tfInstance, revision)
+				terraform, err = r.processOutputs(ctx, patchHelper, runnerClient, terraform, tfInstance, revision)
 				if err != nil {
 					log.Error(err, "error processing outputs")
-					return &terraform, err
+					return terraform, err
 				}
 			} else if err != nil {
 				log.Error(err, "error checking for output drift")
-				return &terraform, err
+				return terraform, err
 			}
 
-			return &terraform, nil
+			return terraform, nil
 		}
 
 		// immediately return if err is not about drift
 		if driftDetectionErr.Error() != infrav1.DriftDetectedReason {
 			log.Error(driftDetectionErr, "detected non drift error")
-			return &terraform, driftDetectionErr
+			return terraform, driftDetectionErr
 		}
 
 		// immediately return if drift is detected, but it's not "force" or "auto"
 		if driftDetectionErr.Error() == infrav1.DriftDetectedReason && !r.forceOrAutoApply(terraform) {
 			log.Error(driftDetectionErr, "will not force / auto apply detected drift")
-			return &terraform, driftDetectionErr
+			return terraform, driftDetectionErr
 		}
 
 		// ok Drift Detected, patch and continue
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+		if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 			log.Error(err, "unable to update status after drift detection")
-			return &terraform, err
+			return terraform, err
 		}
 
 		lastKnownAction = "Drift Detection"
@@ -179,20 +178,20 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 	// return early if we're in drift-detection-only mode
 	if terraform.Spec.ApprovePlan == infrav1.ApprovePlanDisableValue {
 		log.Info("approve plan disabled")
-		return &terraform, nil
+		return terraform, nil
 	}
 
 	// if we should plan this Terraform CR, do so
 	if r.shouldPlan(terraform) {
-		terraform, err = r.plan(ctx, terraform, tfInstance, runnerClient, revision, tmpDir)
+		terraform, err = r.plan(ctx, patchHelper, terraform, tfInstance, runnerClient, revision, tmpDir)
 		if err != nil {
 			log.Error(err, "error planning")
-			return &terraform, err
+			return terraform, err
 		}
 
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+		if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 			log.Error(err, "unable to update status after planing")
-			return &terraform, err
+			return terraform, err
 		}
 
 		lastKnownAction = "Planned"
@@ -200,15 +199,39 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 
 	// if we should apply the generated plan, do so
 	if r.shouldApply(terraform) {
-		terraform, err = r.apply(ctx, terraform, tfInstance, runnerClient, revision)
-		if err != nil {
-			log.Error(err, "error applying")
-			return &terraform, err
+		// an extra check before applying!
+		// replan and make sure the approved plan still matches before the manual apply
+		if !r.forceOrAutoApply(terraform) &&
+			terraform.Spec.ApprovePlan != "" &&
+			terraform.Spec.ApprovePlan != infrav1.ApprovePlanAutoValue {
+			approvedPlan := terraform.Spec.ApprovePlan
+
+			terraform, err = r.plan(ctx, patchHelper, terraform, tfInstance, runnerClient, revision, tmpDir)
+			if err != nil {
+				log.Error(err, "error planning before manual apply")
+				return terraform, err
+			}
+
+			if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
+				log.Error(err, "unable to update status after planning before manual apply")
+				return terraform, err
+			}
+
+			if terraform.Status.Plan.Pending == "" || terraform.Status.Plan.Pending != approvedPlan {
+				log.Info("plan changed while waiting for manual approval, waiting for new approval", "approvedPlan", approvedPlan, "pendingPlan", terraform.Status.Plan.Pending)
+				return terraform, nil
+			}
 		}
 
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+		terraform, err = r.apply(ctx, patchHelper, terraform, tfInstance, runnerClient, revision)
+		if err != nil {
+			log.Error(err, "error applying")
+			return terraform, err
+		}
+
+		if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 			log.Error(err, "unable to update status after applying")
-			return &terraform, err
+			return terraform, err
 		}
 
 		lastKnownAction = "Applied"
@@ -216,10 +239,10 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		log.Info("should apply == false")
 	}
 
-	terraform, err = r.processOutputs(ctx, runnerClient, terraform, tfInstance, revision)
+	terraform, err = r.processOutputs(ctx, patchHelper, runnerClient, terraform, tfInstance, revision)
 	if err != nil {
 		log.Error(err, "error process outputs")
-		return &terraform, err
+		return terraform, err
 	}
 	lastKnownAction = "Outputs Processed"
 
@@ -228,12 +251,12 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		terraform, err = r.doHealthChecks(ctx, terraform, revision, runnerClient)
 		if err != nil {
 			log.Error(err, "error with health check")
-			return &terraform, err
+			return terraform, err
 		}
 
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+		if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 			log.Error(err, "unable to update status after doing health checks")
-			return &terraform, err
+			return terraform, err
 		}
 
 		lastKnownAction = "Health Checked"
@@ -290,5 +313,5 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, runnerClient runner
 		}
 	}
 
-	return &terraform, nil
+	return terraform, nil
 }

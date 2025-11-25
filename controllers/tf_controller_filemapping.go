@@ -9,7 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func (r *TerraformReconciler) createRunnerFileMapping(ctx context.Context, terraform infrav1.Terraform) ([]*runner.FileMapping, error) {
+func (r *TerraformReconciler) createRunnerFileMapping(ctx context.Context, terraform *infrav1.Terraform) ([]*runner.FileMapping, error) {
 	var runnerFileMappingList []*runner.FileMapping
 
 	for _, fileMapping := range terraform.Spec.FileMappings {

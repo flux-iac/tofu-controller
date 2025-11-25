@@ -40,7 +40,7 @@ func Test_000260_runner_pod_test(t *testing.T) {
 
 	It("generate a runner pod template")
 	By("passing a terraform object, the runner pod template should be accurate")
-	helloWorldTF := infrav1.Terraform{
+	helloWorldTF := &infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
 			Namespace: "flux-system",
@@ -116,7 +116,7 @@ func Test_000260_runner_pod_test_env_vars(t *testing.T) {
 
 	It("generate a runner pod template")
 	By("passing a terraform object, the runner pod template should be accurate")
-	helloWorldTF := infrav1.Terraform{
+	helloWorldTF := &infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
 			Namespace: "flux-system",
@@ -209,7 +209,7 @@ func Test_000260_runner_pod_test_env_vars_proxy(t *testing.T) {
 
 	It("generate a runner pod template")
 	By("passing a terraform object, the runner pod template should be accurate")
-	helloWorldTF := infrav1.Terraform{
+	helloWorldTF := &infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
 			Namespace: "flux-system",
@@ -302,7 +302,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_overwrite(t *testing.T) {
 
 	It("generate a runner pod template")
 	By("passing a terraform object, the runner pod template should be accurate")
-	helloWorldTF := infrav1.Terraform{
+	helloWorldTF := &infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
 			Namespace: "flux-system",

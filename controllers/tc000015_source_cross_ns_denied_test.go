@@ -91,6 +91,6 @@ func Test_000015_cross_namespace_source_denied_test(t *testing.T) {
 		gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{
 			"Type":    Equal("Ready"),
 			"Reason":  Equal(infrav1.AccessDeniedReason),
-			"Message": Equal("Source 'GitRepository/flux-system/gr-source' access denied"),
+			"Message": Equal("cannot access GitRepository/flux-system/gr-source, cross-namespace references have been disabled"),
 		}))
 }
