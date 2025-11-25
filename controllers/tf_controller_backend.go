@@ -9,6 +9,7 @@ import (
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
 	"github.com/fluxcd/pkg/runtime/acl"
+	"github.com/fluxcd/pkg/runtime/patch"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
@@ -16,7 +17,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *TerraformReconciler) backendCompletelyDisable(terraform infrav1.Terraform) bool {
+func (r *TerraformReconciler) backendCompletelyDisable(terraform *infrav1.Terraform) bool {
 	if terraform.Spec.Cloud != nil {
 		return true
 	}
@@ -24,14 +25,14 @@ func (r *TerraformReconciler) backendCompletelyDisable(terraform infrav1.Terrafo
 	return terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.Disable == true
 }
 
-func (r *TerraformReconciler) setupTerraform(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, sourceObj sourcev1.Source, revision string, objectKey types.NamespacedName, reconciliationLoopID string) (infrav1.Terraform, string, string, error) {
+func (r *TerraformReconciler) setupTerraform(ctx context.Context, patchHelper *patch.SerialPatcher, runnerClient runner.RunnerClient, terraform *infrav1.Terraform, sourceObj sourcev1.Source, revision string, reconciliationLoopID string) (*infrav1.Terraform, string, string, error) {
 	log := ctrl.LoggerFrom(ctx)
 
 	tfInstance := "0"
 	tmpDir := ""
 
 	terraform = infrav1.TerraformProgressing(terraform, "Initializing")
-	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+	if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 		log.Error(err, "unable to update status before Terraform initialization")
 		return terraform, tfInstance, tmpDir, err
 	}
@@ -415,7 +416,7 @@ terraform {
 
 		terraform = infrav1.TerraformForceUnlock(terraform, fmt.Sprintf("Terraform Force Unlock with Lock Identifier: %s", lockIdentifier))
 
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+		if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 			log.Error(err, "unable to update status before Terraform force unlock")
 			return terraform, tfInstance, tmpDir, err
 		}

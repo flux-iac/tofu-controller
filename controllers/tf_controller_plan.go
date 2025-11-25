@@ -5,16 +5,16 @@ import (
 	"fmt"
 
 	"github.com/flux-iac/tofu-controller/api/planid"
-	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
+	"github.com/fluxcd/pkg/runtime/patch"
+	corev1 "k8s.io/api/core/v1"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
 	"google.golang.org/grpc/status"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
+func (r *TerraformReconciler) shouldPlan(terraform *infrav1.Terraform) bool {
 	// Please do not optimize this logic, as we'd like others to easily understand the logics behind this behaviour.
 	if terraform.Spec.Force {
 		return true
@@ -28,15 +28,14 @@ func (r *TerraformReconciler) shouldPlan(terraform infrav1.Terraform) bool {
 	return false
 }
 
-func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, sourceRefRootDir string) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) plan(ctx context.Context, patchHelper *patch.SerialPatcher, terraform *infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, sourceRefRootDir string) (*infrav1.Terraform, error) {
 
 	log := ctrl.LoggerFrom(ctx)
 
 	log.Info("calling plan ...")
 
-	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
 	terraform = infrav1.TerraformProgressing(terraform, "Terraform Planning")
-	if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+	if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 		log.Error(err, "unable to update status before Terraform planning")
 		return terraform, err
 	}
@@ -78,7 +77,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
 					msg := fmt.Sprintf("Plan error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-					r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
+					r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecPlanFailedReason, msg)
 					eventSent = true
 					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
@@ -87,7 +86,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 
 		if eventSent == false {
 			msg := fmt.Sprintf("Plan error: %s", err.Error())
-			r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecPlanFailedReason, msg)
 		}
 		err = fmt.Errorf("error running Plan: %s", err)
 		return infrav1.TerraformNotReady(
@@ -150,7 +149,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, terraform infrav1.Terraf
 			planId := planid.GetPlanID(revision)
 			approveMessage := planid.GetApproveMessage(planId, "Plan generated")
 			msg := fmt.Sprintf("Planned.\n%s", approveMessage)
-			r.event(ctx, terraform, revision, eventv1.EventSeverityInfo, msg, nil)
+			r.Eventf(terraform, corev1.EventTypeNormal, infrav1.TFExecPlanSucceedReason, msg)
 		}
 		terraform = infrav1.TerraformPlannedWithChanges(terraform, revision, forceOrAutoApply, "Plan generated")
 	} else {

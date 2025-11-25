@@ -26,10 +26,10 @@ import (
 	"unicode/utf8"
 
 	"github.com/fluxcd/pkg/apis/meta"
+	"github.com/fluxcd/pkg/runtime/conditions"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -578,58 +578,34 @@ func SetTerraformReadiness(terraform *Terraform, status metav1.ConditionStatus, 
 		Message: trimString(message, MaxConditionMessageLength),
 	}
 
-	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+	conditions.Set(terraform, &newCondition)
+
 	terraform.Status.ObservedGeneration = terraform.Generation
 	terraform.Status.LastAttemptedRevision = revision
 }
 
-func TerraformApplying(terraform Terraform, revision string, message string) Terraform {
-	newCondition := metav1.Condition{
-		Type:    ConditionTypeApply,
-		Status:  metav1.ConditionUnknown,
-		Reason:  meta.ProgressingReason,
-		Message: trimString(message, MaxConditionMessageLength),
-	}
-	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+func TerraformApplying(terraform *Terraform, revision string, message string) *Terraform {
+	conditions.MarkUnknown(terraform, ConditionTypeApply, meta.ProgressingReason, "%s", trimString(message, MaxConditionMessageLength))
 	if revision != "" {
 		terraform.Status.LastAttemptedRevision = revision
 	}
 	return terraform
 }
 
-func TerraformOutputsAvailable(terraform Terraform, availableOutputs []string, message string) Terraform {
-	newCondition := metav1.Condition{
-		Type:    ConditionTypeOutput,
-		Status:  metav1.ConditionTrue,
-		Reason:  "TerraformOutputsAvailable",
-		Message: trimString(message, MaxConditionMessageLength),
-	}
-	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+func TerraformOutputsAvailable(terraform *Terraform, availableOutputs []string, message string) *Terraform {
+	conditions.MarkTrue(terraform, ConditionTypeOutput, "TerraformOutputsAvailable", "%s", trimString(message, MaxConditionMessageLength))
 	terraform.Status.AvailableOutputs = availableOutputs
 	return terraform
 }
 
-func TerraformOutputsWritten(terraform Terraform, revision string, message string) Terraform {
-	newCondition := metav1.Condition{
-		Type:    ConditionTypeOutput,
-		Status:  metav1.ConditionTrue,
-		Reason:  "TerraformOutputsWritten",
-		Message: trimString(message, MaxConditionMessageLength),
-	}
-	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
-
-	SetTerraformReadiness(&terraform, metav1.ConditionTrue, "TerraformOutputsWritten", message+": "+revision, revision)
+func TerraformOutputsWritten(terraform *Terraform, revision string, message string) *Terraform {
+	conditions.MarkTrue(terraform, ConditionTypeOutput, "TerraformOutputsWritten", "%s", trimString(message, MaxConditionMessageLength))
+	SetTerraformReadiness(terraform, metav1.ConditionTrue, "TerraformOutputsWritten", message+": "+revision, revision)
 	return terraform
 }
 
-func TerraformApplied(terraform Terraform, revision string, message string, isDestroyApply bool, entries []ResourceRef) Terraform {
-	newCondition := metav1.Condition{
-		Type:    ConditionTypeApply,
-		Status:  metav1.ConditionTrue,
-		Reason:  TFExecApplySucceedReason,
-		Message: trimString(message, MaxConditionMessageLength),
-	}
-	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+func TerraformApplied(terraform *Terraform, revision string, message string, isDestroyApply bool, entries []ResourceRef) *Terraform {
+	conditions.MarkTrue(terraform, ConditionTypeApply, TFExecApplySucceedReason, "%s", trimString(message, MaxConditionMessageLength))
 
 	if terraform.Status.Plan.IsDriftDetectionPlan {
 		terraform.Status.LastAppliedByDriftDetectionAt = &metav1.Time{Time: time.Now()}
@@ -648,18 +624,12 @@ func TerraformApplied(terraform Terraform, revision string, message string, isDe
 		terraform.Status.Inventory = &ResourceInventory{Entries: entries}
 	}
 
-	SetTerraformReadiness(&terraform, metav1.ConditionUnknown, TFExecApplySucceedReason, message+": "+revision, revision)
+	SetTerraformReadiness(terraform, metav1.ConditionUnknown, TFExecApplySucceedReason, message+": "+revision, revision)
 	return terraform
 }
 
-func TerraformPostPlanningWebhookFailed(terraform Terraform, revision string, message string) Terraform {
-	newCondition := metav1.Condition{
-		Type:    ConditionTypePlan,
-		Status:  metav1.ConditionFalse,
-		Reason:  PostPlanningWebhookFailedReason,
-		Message: trimString(message, MaxConditionMessageLength),
-	}
-	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+func TerraformPostPlanningWebhookFailed(terraform *Terraform, revision string, message string) *Terraform {
+	conditions.MarkFalse(terraform, ConditionTypePlan, PostPlanningWebhookFailedReason, "%s", trimString(message, MaxConditionMessageLength))
 	terraform.Status.Plan = PlanStatus{
 		LastApplied:   terraform.Status.Plan.LastApplied,
 		Pending:       "",
@@ -673,17 +643,11 @@ func TerraformPostPlanningWebhookFailed(terraform Terraform, revision string, me
 	return terraform
 }
 
-func TerraformPlannedWithChanges(terraform Terraform, revision string, forceOrAutoApply bool, message string) Terraform {
+func TerraformPlannedWithChanges(terraform *Terraform, revision string, forceOrAutoApply bool, message string) *Terraform {
 	planId := planid.GetPlanID(revision)
 	approveMessage := planid.GetApproveMessage(planId, message)
 
-	newCondition := metav1.Condition{
-		Type:    ConditionTypePlan,
-		Status:  metav1.ConditionTrue,
-		Reason:  PlannedWithChangesReason,
-		Message: trimString(message, MaxConditionMessageLength),
-	}
-	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+	conditions.MarkTrue(terraform, ConditionTypePlan, PlannedWithChangesReason, "%s", trimString(message, MaxConditionMessageLength))
 	terraform.Status.Plan = PlanStatus{
 		LastApplied:          terraform.Status.Plan.LastApplied,
 		Pending:              planId, // pending plan id is always the short plan format.
@@ -699,24 +663,18 @@ func TerraformPlannedWithChanges(terraform Terraform, revision string, forceOrAu
 
 	// planOnly takes the highest precedence
 	if terraform.Spec.PlanOnly {
-		SetTerraformReadiness(&terraform, metav1.ConditionUnknown, PlannedWithChangesReason, message+": This object is in the plan only mode.", revision)
+		SetTerraformReadiness(terraform, metav1.ConditionUnknown, PlannedWithChangesReason, message+": This object is in the plan only mode.", revision)
 	} else if forceOrAutoApply {
-		SetTerraformReadiness(&terraform, metav1.ConditionUnknown, PlannedWithChangesReason, message, revision)
+		SetTerraformReadiness(terraform, metav1.ConditionUnknown, PlannedWithChangesReason, message, revision)
 	} else {
 		// this is the manual mode, where we don't want to apply the plan
-		SetTerraformReadiness(&terraform, metav1.ConditionUnknown, PlannedWithChangesReason, approveMessage, revision)
+		SetTerraformReadiness(terraform, metav1.ConditionUnknown, PlannedWithChangesReason, approveMessage, revision)
 	}
 	return terraform
 }
 
-func TerraformPlannedNoChanges(terraform Terraform, revision string, message string) Terraform {
-	newCondition := metav1.Condition{
-		Type:    ConditionTypePlan,
-		Status:  metav1.ConditionFalse,
-		Reason:  PlannedNoChangesReason,
-		Message: trimString(message, MaxConditionMessageLength),
-	}
-	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+func TerraformPlannedNoChanges(terraform *Terraform, revision string, message string) *Terraform {
+	conditions.MarkFalse(terraform, ConditionTypePlan, PlannedNoChangesReason, "%s", trimString(message, MaxConditionMessageLength))
 	terraform.Status.Plan = PlanStatus{
 		LastApplied:   terraform.Status.Plan.LastApplied,
 		Pending:       "",
@@ -729,89 +687,57 @@ func TerraformPlannedNoChanges(terraform Terraform, revision string, message str
 
 	terraform.Status.LastPlanAt = &metav1.Time{Time: time.Now()}
 
-	SetTerraformReadiness(&terraform, metav1.ConditionTrue, PlannedNoChangesReason, message+": "+revision, revision)
+	SetTerraformReadiness(terraform, metav1.ConditionTrue, PlannedNoChangesReason, message+": "+revision, revision)
 	return terraform
 }
 
 // TerraformProgressing resets the conditions of the given Terraform to a single
 // ReadyCondition with status ConditionUnknown.
-func TerraformProgressing(terraform Terraform, message string) Terraform {
-	newCondition := metav1.Condition{
-		Type:    meta.ReadyCondition,
-		Status:  metav1.ConditionUnknown,
-		Reason:  meta.ProgressingReason,
-		Message: trimString(message, MaxConditionMessageLength),
-	}
-	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+func TerraformProgressing(terraform *Terraform, message string) *Terraform {
+	conditions.MarkUnknown(terraform, meta.ReadyCondition, meta.ProgressingReason, "%s", trimString(message, MaxConditionMessageLength))
 	return terraform
 }
 
 // TerraformNotReady registers a failed apply attempt of the given Terraform.
-func TerraformNotReady(terraform Terraform, revision, reason, message string) Terraform {
-	SetTerraformReadiness(&terraform, metav1.ConditionFalse, reason, trimString(message, MaxConditionMessageLength), revision)
-	if revision != "" {
-		terraform.Status.LastAttemptedRevision = revision
-	}
+func TerraformNotReady(terraform *Terraform, revision, reason, message string) *Terraform {
+	SetTerraformReadiness(terraform, metav1.ConditionFalse, reason, trimString(message, MaxConditionMessageLength), revision)
+	conditions.Delete(terraform, meta.ReconcilingCondition)
 	return terraform
 }
 
-func TerraformAppliedFailResetPlanAndNotReady(terraform Terraform, revision, reason, message string) Terraform {
-	newCondition := metav1.Condition{
-		Type:    ConditionTypeApply,
-		Status:  metav1.ConditionFalse,
-		Reason:  "TerraformAppliedFail",
-		Message: trimString(message, MaxConditionMessageLength),
-	}
-	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
-	terraform = TerraformNotReady(terraform, revision, reason, message)
+func TerraformAppliedFailResetPlanAndNotReady(terraform *Terraform, revision, reason, message string) *Terraform {
+	conditions.MarkFalse(terraform, ConditionTypeApply, "TerraformAppliedFail", "%s", trimString(message, MaxConditionMessageLength))
+	TerraformNotReady(terraform, revision, reason, message)
 	terraform.Status.Plan.Pending = ""
 	return terraform
 }
 
-func TerraformDriftDetected(terraform Terraform, revision, reason, message string) Terraform {
+func TerraformDriftDetected(terraform *Terraform, revision, reason, message string) *Terraform {
 	terraform.Status.LastDriftDetectedAt = &metav1.Time{Time: time.Now()}
 
-	SetTerraformReadiness(&terraform, metav1.ConditionFalse, reason, trimString(message, MaxConditionMessageLength), revision)
+	SetTerraformReadiness(terraform, metav1.ConditionFalse, reason, trimString(message, MaxConditionMessageLength), revision)
 	return terraform
 }
 
-func TerraformNoDrift(terraform Terraform, revision, reason, message string) Terraform {
-	SetTerraformReadiness(&terraform, metav1.ConditionTrue, reason, message+": "+revision, revision)
+func TerraformNoDrift(terraform *Terraform, revision, reason, message string) *Terraform {
+	SetTerraformReadiness(terraform, metav1.ConditionTrue, reason, message+": "+revision, revision)
 	return terraform
 }
 
-func TerraformHealthCheckFailed(terraform Terraform, message string) Terraform {
-	newCondition := metav1.Condition{
-		Type:    ConditionTypeHealthCheck,
-		Status:  metav1.ConditionFalse,
-		Reason:  HealthChecksFailedReason,
-		Message: trimString(message, MaxConditionMessageLength),
-	}
-	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+func TerraformHealthCheckFailed(terraform *Terraform, message string) *Terraform {
+	conditions.MarkFalse(terraform, ConditionTypeHealthCheck, HealthChecksFailedReason, "%s", trimString(message, MaxConditionMessageLength))
 	return terraform
 }
 
-func TerraformHealthCheckSucceeded(terraform Terraform, message string) Terraform {
-	newCondition := metav1.Condition{
-		Type:    ConditionTypeHealthCheck,
-		Status:  metav1.ConditionTrue,
-		Reason:  "HealthChecksSucceed",
-		Message: trimString(message, MaxConditionMessageLength),
-	}
-	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+func TerraformHealthCheckSucceeded(terraform *Terraform, message string) *Terraform {
+	conditions.MarkTrue(terraform, ConditionTypeHealthCheck, "HealthChecksSucceed", "%s", trimString(message, MaxConditionMessageLength))
 	return terraform
 }
 
 // TerraformForceUnlock will set a new condition on the Terraform resource indicating
 // that we are attempting to force unlock it.
-func TerraformForceUnlock(terraform Terraform, message string) Terraform {
-	newCondition := metav1.Condition{
-		Type:    ConditionTypeStateLocked,
-		Status:  metav1.ConditionFalse,
-		Reason:  TFExecForceUnlockReason,
-		Message: trimString(message, MaxConditionMessageLength),
-	}
-	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+func TerraformForceUnlock(terraform *Terraform, message string) *Terraform {
+	conditions.MarkFalse(terraform, ConditionTypeStateLocked, TFExecForceUnlockReason, "%s", trimString(message, MaxConditionMessageLength))
 
 	if terraform.Status.Lock.Pending != "" && terraform.Status.Lock.LastApplied != terraform.Status.Lock.Pending {
 		terraform.Status.Lock.LastApplied = terraform.Status.Lock.Pending
@@ -823,15 +749,10 @@ func TerraformForceUnlock(terraform Terraform, message string) Terraform {
 
 // TerraformStateLocked will set a new condition on the Terraform resource indicating
 // that the resource has been locked.
-func TerraformStateLocked(terraform Terraform, lockID, message string) Terraform {
-	newCondition := metav1.Condition{
-		Type:    ConditionTypeStateLocked,
-		Status:  metav1.ConditionTrue,
-		Reason:  TFExecLockHeldReason,
-		Message: trimString(message, MaxConditionMessageLength),
-	}
-	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
-	SetTerraformReadiness(&terraform, metav1.ConditionFalse, newCondition.Reason, newCondition.Message, "")
+func TerraformStateLocked(terraform *Terraform, lockID, message string) *Terraform {
+	msg := trimString(message, MaxConditionMessageLength)
+	conditions.MarkTrue(terraform, ConditionTypeStateLocked, TFExecLockHeldReason, "%s", msg)
+	SetTerraformReadiness(terraform, metav1.ConditionFalse, TFExecLockHeldReason, msg, "")
 
 	if terraform.Status.Lock.Pending != "" && terraform.Status.Lock.LastApplied != terraform.Status.Lock.Pending {
 		terraform.Status.Lock.LastApplied = terraform.Status.Lock.Pending
@@ -843,22 +764,16 @@ func TerraformStateLocked(terraform Terraform, lockID, message string) Terraform
 
 // TerraformReachedLimit will set a new condition on the Terraform resource
 // indicating that the resource has reached its retry limit.
-func TerraformReachedLimit(terraform Terraform) Terraform {
-	newCondition := metav1.Condition{
-		Type:    meta.StalledCondition,
-		Status:  metav1.ConditionTrue,
-		Reason:  RetryLimitReachedReason,
-		Message: "Resource reached maximum number of retries.",
-	}
-	apimeta.SetStatusCondition(terraform.GetStatusConditions(), newCondition)
+func TerraformReachedLimit(terraform *Terraform) *Terraform {
+	conditions.MarkStalled(terraform, RetryLimitReachedReason, "%s", trimString("Resource reached maximum number of retries.", MaxConditionMessageLength))
 
 	return terraform
 }
 
 // TerraformResetRetry will set a new condition on the Terraform resource
 // indicating that the resource retry count has been reset.
-func TerraformResetRetry(terraform Terraform) Terraform {
-	apimeta.RemoveStatusCondition(terraform.GetStatusConditions(), meta.StalledCondition)
+func TerraformResetRetry(terraform *Terraform) *Terraform {
+	conditions.Delete(terraform, meta.StalledCondition)
 	terraform.resetReconciliationFailures()
 
 	return terraform
@@ -909,11 +824,14 @@ func (in *Terraform) GetStatusConditions() *[]metav1.Condition {
 	return &in.Status.Conditions
 }
 
-// GetConditions returns a pointer to the Status.Conditions slice.
-// pretty much the same as GetStatusConditions but to comply with flux conditions.Getter interface
-// it needs to return a copy of the conditions slice
+// GetConditions returns the status conditions of the object.
 func (in Terraform) GetConditions() []metav1.Condition {
 	return in.Status.Conditions
+}
+
+// SetConditions sets the status conditions on the object.
+func (in *Terraform) SetConditions(conditions []metav1.Condition) {
+	in.Status.Conditions = conditions
 }
 
 func (in *Terraform) WorkspaceName() string {

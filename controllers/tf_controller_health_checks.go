@@ -17,13 +17,13 @@ import (
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
-	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	"github.com/fluxcd/pkg/runtime/logger"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *TerraformReconciler) shouldDoHealthChecks(terraform infrav1.Terraform) bool {
+func (r *TerraformReconciler) shouldDoHealthChecks(terraform *infrav1.Terraform) bool {
 	if terraform.Spec.HealthChecks == nil || len(terraform.Spec.HealthChecks) < 1 {
 		return false
 	}
@@ -54,7 +54,7 @@ func (r *TerraformReconciler) shouldDoHealthChecks(terraform infrav1.Terraform) 
 	return false
 }
 
-func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infrav1.Terraform, revision string, runnerClient runner.RunnerClient) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform *infrav1.Terraform, revision string, runnerClient runner.RunnerClient) (*infrav1.Terraform, error) {
 	log := ctrl.LoggerFrom(ctx)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.doHealthChecks")
 	log.Info("calling doHealthChecks ...")
@@ -106,7 +106,7 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 				traceLog.Error(err, "Hit an error")
 				msg := fmt.Sprintf("TCP health check error: %s, url: %s", hc.Name, hc.Address)
 				traceLog.Info("Record an event")
-				r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
+				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.HealthChecksFailedReason, msg)
 				traceLog.Info("Return failed health check")
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
@@ -132,7 +132,7 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform infr
 				traceLog.Error(err, "Hit an error")
 				msg := fmt.Sprintf("HTTP health check error: %s, url: %s", hc.Name, hc.URL)
 				traceLog.Info("Record an event")
-				r.event(ctx, terraform, revision, eventv1.EventSeverityError, msg, nil)
+				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.HealthChecksFailedReason, msg)
 				traceLog.Info("Return failed health check")
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,

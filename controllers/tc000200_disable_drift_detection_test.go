@@ -14,7 +14,7 @@ func Test_000200_disable_drift_detection(t *testing.T) {
 
 	g := NewWithT(t)
 
-	tf1 := infrav1.Terraform{
+	tf1 := &infrav1.Terraform{
 		Spec: infrav1.TerraformSpec{
 			DisableDriftDetection: true,
 		},
@@ -31,7 +31,7 @@ func Test_000200_disable_drift_detection(t *testing.T) {
 	It("should not detect drift when true")
 	g.Expect(reconciler.shouldDetectDrift(tf1, "main/1234")).Should(BeFalse())
 
-	tf2 := infrav1.Terraform{
+	tf2 := &infrav1.Terraform{
 		Spec: infrav1.TerraformSpec{
 			DisableDriftDetection: false,
 		},

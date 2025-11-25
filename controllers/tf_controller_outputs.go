@@ -9,7 +9,7 @@ import (
 	"github.com/flux-iac/tofu-controller/api/typeinfo"
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
-	eventv1 "github.com/fluxcd/pkg/apis/event/v1beta1"
+	"github.com/fluxcd/pkg/runtime/patch"
 	"github.com/hashicorp/terraform-exec/tfexec"
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
@@ -31,7 +31,7 @@ func convertOutputs(outputs map[string]*runner.OutputMeta) map[string]tfexec.Out
 	return result
 }
 
-func (r *TerraformReconciler) outputsMayBeDrifted(ctx context.Context, terraform infrav1.Terraform) (bool, error) {
+func (r *TerraformReconciler) outputsMayBeDrifted(ctx context.Context, terraform *infrav1.Terraform) (bool, error) {
 	if terraform.Spec.WriteOutputsToSecret != nil {
 		outputsSecretKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Spec.WriteOutputsToSecret.Name}
 		var outputsSecret corev1.Secret
@@ -62,7 +62,7 @@ func (r *TerraformReconciler) outputsMayBeDrifted(ctx context.Context, terraform
 	return false, nil
 }
 
-func (r *TerraformReconciler) shouldWriteOutputs(terraform infrav1.Terraform, outputs map[string]tfexec.OutputMeta) bool {
+func (r *TerraformReconciler) shouldWriteOutputs(terraform *infrav1.Terraform, outputs map[string]tfexec.OutputMeta) bool {
 	if terraform.Spec.WriteOutputsToSecret != nil && len(outputs) > 0 {
 		return true
 	}
@@ -70,10 +70,9 @@ func (r *TerraformReconciler) shouldWriteOutputs(terraform infrav1.Terraform, ou
 	return false
 }
 
-func (r *TerraformReconciler) processOutputs(ctx context.Context, runnerClient runner.RunnerClient, terraform infrav1.Terraform, tfInstance string, revision string) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) processOutputs(ctx context.Context, patchHelper *patch.SerialPatcher, runnerClient runner.RunnerClient, terraform *infrav1.Terraform, tfInstance string, revision string) (*infrav1.Terraform, error) {
 
 	log := ctrl.LoggerFrom(ctx)
-	objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Name}
 
 	// OutputMeta has
 	// 1. type
@@ -91,17 +90,16 @@ func (r *TerraformReconciler) processOutputs(ctx context.Context, runnerClient r
 			return terraform, err
 		}
 
-		if err := r.patchStatus(ctx, objectKey, terraform.Status); err != nil {
+		if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
 			log.Error(err, "unable to update status after writing outputs")
 			return terraform, err
 		}
-
 	}
 
 	return terraform, nil
 }
 
-func (r *TerraformReconciler) obtainOutputs(ctx context.Context, terraform infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, outputs *map[string]tfexec.OutputMeta) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) obtainOutputs(ctx context.Context, terraform *infrav1.Terraform, tfInstance string, runnerClient runner.RunnerClient, revision string, outputs *map[string]tfexec.OutputMeta) (*infrav1.Terraform, error) {
 	outputReply, err := runnerClient.Output(ctx, &runner.OutputRequest{
 		TfInstance: tfInstance,
 	})
@@ -130,7 +128,7 @@ func (r *TerraformReconciler) obtainOutputs(ctx context.Context, terraform infra
 	return terraform, nil
 }
 
-func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient, outputs map[string]tfexec.OutputMeta, revision string) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform *infrav1.Terraform, runnerClient runner.RunnerClient, outputs map[string]tfexec.OutputMeta, revision string) (*infrav1.Terraform, error) {
 	log := ctrl.LoggerFrom(ctx)
 
 	wots := terraform.Spec.WriteOutputsToSecret
@@ -199,7 +197,7 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform infrav1
 			keysWritten = append(keysWritten, k)
 		}
 		msg := fmt.Sprintf("Outputs written.\n%d output(s): %s", len(keysWritten), strings.Join(keysWritten, ", "))
-		r.event(ctx, terraform, revision, eventv1.EventSeverityInfo, msg, nil)
+		r.Eventf(terraform, corev1.EventTypeNormal, infrav1.OutputsWritingFailedReason, msg)
 	}
 
 	return infrav1.TerraformOutputsWritten(terraform, revision, "Outputs written"), nil

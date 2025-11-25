@@ -116,6 +116,7 @@ spec:
 		if err != nil {
 			return -1
 		}
+
 		return len(createdHelloWorldTF.Status.Conditions)
 	}, timeout, interval).Should(Equal(1))
 

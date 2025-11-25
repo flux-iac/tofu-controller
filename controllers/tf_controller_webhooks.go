@@ -21,7 +21,7 @@ import (
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 )
 
-func shouldProcessPostPlanningWebhooks(terraform infrav1.Terraform) bool {
+func shouldProcessPostPlanningWebhooks(terraform *infrav1.Terraform) bool {
 	if terraform.Spec.Webhooks == nil || len(terraform.Spec.Webhooks) < 1 {
 		return false
 	}
@@ -37,7 +37,7 @@ func shouldProcessPostPlanningWebhooks(terraform infrav1.Terraform) bool {
 	return false
 }
 
-func (r *TerraformReconciler) prepareWebhookPayload(terraform infrav1.Terraform, runnerClient runner.RunnerClient, payloadType string, tfInstance string) ([]byte, error) {
+func (r *TerraformReconciler) prepareWebhookPayload(terraform *infrav1.Terraform, runnerClient runner.RunnerClient, payloadType string, tfInstance string) ([]byte, error) {
 	toBytes, err := terraform.ToBytes(r.Scheme)
 	if err != nil {
 		err = fmt.Errorf("failed to marshal Terraform resource: %w", err)
@@ -98,7 +98,7 @@ func (r *TerraformReconciler) prepareWebhookPayload(terraform infrav1.Terraform,
 	return jsonBytes, nil
 }
 
-func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, terraform infrav1.Terraform, runnerClient runner.RunnerClient, revision string, tfInstance string) (infrav1.Terraform, error) {
+func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, terraform *infrav1.Terraform, runnerClient runner.RunnerClient, revision string, tfInstance string) (*infrav1.Terraform, error) {
 	log := ctrl.LoggerFrom(ctx)
 
 	hooks := []infrav1.Webhook{}
