@@ -171,6 +171,15 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, nil
 	}
 
+	// Check whether we need to reconcile the release at this time
+	if shouldReconcile, requeueAfter := r.shouldReconcile(terraform); !shouldReconcile {
+		log.Info("Skipping reconciliation. Interval has not elapsed since last plan",
+			"lastPlanAt", terraform.Status.LastPlanAt,
+			"nextReconcile", terraform.Status.LastPlanAt.Add(terraform.Spec.Interval.Duration),
+			"requeueAfter", requeueAfter)
+		return ctrl.Result{RequeueAfter: requeueAfter}, nil
+	}
+
 	// Mark the resource as under reconciliation.
 	conditions.MarkReconciling(terraform, meta.ProgressingReason, "Fulfilling prerequisites")
 	if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
@@ -540,6 +549,41 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	// next reconcile is .Spec.Interval in the future
 	log.Info("requeue after interval", "interval", terraform.Spec.Interval.Duration.String())
 	return ctrl.Result{RequeueAfter: terraform.Spec.Interval.Duration}, nil
+}
+
+func (r *TerraformReconciler) shouldReconcile(terraform *infrav1.Terraform) (bool, time.Duration) {
+	// Always plan is .Spec.Force is true
+	if terraform.Spec.Force {
+		return true, 0
+	}
+
+	// Do not delay if being deleted
+	if isBeingDeleted(terraform) {
+		return true, 0
+	}
+
+	// If we have never planned, we should continue
+	if terraform.Status.LastPlanAt == nil {
+		return true, 0
+	}
+
+	// If the generation has changed, we should continue
+	if terraform.Generation != terraform.Status.ObservedGeneration {
+		return true, 0
+	}
+
+	// Do not delay if there is a pending plan or an apply should run.
+	if terraform.Status.Plan.Pending != "" || r.shouldApply(terraform) {
+		return true, 0
+	}
+
+	nextReconcile := terraform.Status.LastPlanAt.Add(terraform.Spec.Interval.Duration)
+	requeueAfter := time.Until(nextReconcile)
+	if requeueAfter > 0 {
+		return false, requeueAfter
+	}
+
+	return true, 0
 }
 
 func isBeingDeleted(terraform *infrav1.Terraform) bool {
