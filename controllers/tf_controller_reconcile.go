@@ -199,6 +199,8 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, patchHelper *patch.
 
 	// if we should apply the generated plan, do so
 	if r.shouldApply(terraform) {
+		// an extra check before applying!
+		// replan and make sure the approved plan still matches before the manual apply
 		if !r.forceOrAutoApply(terraform) &&
 			terraform.Spec.ApprovePlan != "" &&
 			terraform.Spec.ApprovePlan != infrav1.ApprovePlanAutoValue {
