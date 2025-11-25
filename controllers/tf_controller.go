@@ -152,8 +152,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			retErr = kerrors.NewAggregate([]error{retErr, err})
 		}
 
-		r.Metrics.RecordReadiness(ctx, terraform)
-		r.Metrics.RecordSuspend(ctx, terraform, terraform.Spec.Suspend)
+		// Record the duration of the reconciliation.
 		r.Metrics.RecordDuration(ctx, terraform, startTime)
 	}()
 
