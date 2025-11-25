@@ -136,7 +136,7 @@ Running the above will also deploy `source-controller` and its CRDs to the clust
 
 ## Communications
 
-For realtime communications we use Slack: To join the conversation, simply join the [Weave Users](https://weave-community.slack.com/) Slack workspace and use the [#tf-controller](https://weave-community.slack.com/messages/tf-controller/) channel.
+For realtime communications we use Slack: To join the conversation, simply join the [CNCF](https://slack.cncf.io/) Slack workspace and use the [#tofu-controller](https://cloud-native.slack.com/messages/tofu-controller) channel.
 
 To discuss ideas and specifications we use [Github Discussions](https://github.com/flux-iac/tofu-controller/discussions).
 
