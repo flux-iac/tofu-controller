@@ -6,13 +6,13 @@ All notable changes of this project are documented in this file.
 
 **Release date:** 2025-11-25
 
-This is the second release candidate of Tofu Controlle this calendar year, and contains various new features and bug fixes.
+This is the second release candidate of Tofu Controller this calendar year, and contains various new features and bug fixes.
 
 We would like to thank our contributors for their continued support and effort in improving the Tofu-Controller.
 
 Please follow the [upgrade guide in the documentation](https://flux-iac.github.io/tofu-controller/use-tf-controller/upgrade-tf-controller/) to ensure a smooth transition to the latest version.
 
-New Features and Bug Fixing:
+New Features and Bug Fixes:
 
 - feat: controller refactoring ([#1640](https://github.com/flux-iac/tofu-controller/pull/1640)) ([38a6bd1c](https://github.com/flux-iac/tofu-controller/commit/38a6bd1cf87bafa196b8b92dd62bd7bf7572cf2a))
 - chore(docs): update docs to refer to CNCF Slack Channel ([#1644](https://github.com/flux-iac/tofu-controller/pull/1644)) ([be1c0445](https://github.com/flux-iac/tofu-controller/commit/be1c044561e286a6f7ce224832b14dd3166a4353))
