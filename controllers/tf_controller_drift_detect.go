@@ -32,6 +32,12 @@ func (r *TerraformReconciler) shouldDetectDrift(terraform *infrav1.Terraform, re
 		return false
 	}
 
+	// spec change detected (i.e. vars), so dont detect drift.
+	// we need a new plan!
+	if terraform.Generation != terraform.Status.ObservedGeneration {
+		return false
+	}
+
 	if terraform.Spec.ApprovePlan == infrav1.ApprovePlanDisableValue {
 		return true
 	}
