@@ -42,7 +42,7 @@ spec:
   - name: grpc
     port: 30000
   selector:
-    app.kubernetes.io/created-by: tf-controller
+    app.kubernetes.io/created-by: tofu-controller
     app.kubernetes.io/name: tf-runner
 ```
 
@@ -52,7 +52,7 @@ spec:
 apiVersion: v1
 kind: Pod
   labels:
-    app.kubernetes.io/created-by: tf-controller
+    app.kubernetes.io/created-by: tofu-controller
     app.kubernetes.io/instance: tf-runner-3ac83e0f
     app.kubernetes.io/name: tf-runner
     infra.contrib.fluxcd.io/terraform: hello-world
