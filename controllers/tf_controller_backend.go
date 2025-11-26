@@ -376,6 +376,20 @@ terraform {
 
 	log.Info("tfexec initialized terraform")
 
+	// As `terraform init` has succeeded, we know with a high probability that
+	// there is no active lock. Let's check if we have a pending lock recorded in status
+	// and clear it as stale. This helps prevent trying to `force-unlock` a lock that
+	// no longer exists.
+	if terraform.Status.Lock.Pending != "" {
+		msg := fmt.Sprintf("No state lock detected during init; clearing stale pending lock %s", terraform.Status.Lock.Pending)
+
+		terraform = infrav1.TerraformForceUnlock(terraform, msg)
+		if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
+			log.Error(err, "unable to update status after clearing stale pending lock")
+			return terraform, tfInstance, tmpDir, err
+		}
+	}
+
 	workspaceRequest := &runner.WorkspaceRequest{
 		TfInstance: tfInstance,
 		// Terraform:  terraformBytes,
@@ -411,7 +425,12 @@ terraform {
 		})
 
 		if err != nil {
-			return terraform, tfInstance, tmpDir, err
+			return infrav1.TerraformNotReady(
+				terraform,
+				revision,
+				infrav1.TFExecForceUnlockReason,
+				err.Error(),
+			), tfInstance, tmpDir, err
 		}
 
 		terraform = infrav1.TerraformForceUnlock(terraform, fmt.Sprintf("Terraform Force Unlock with Lock Identifier: %s", lockIdentifier))
