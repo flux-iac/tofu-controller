@@ -5,6 +5,7 @@ import (
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	. "github.com/onsi/gomega"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
@@ -113,4 +114,19 @@ func Test_000180_should_detect_drift_test(t *testing.T) {
 	}
 
 	g.Expect(reconciler.shouldDetectDrift(tf6, "main/1234")).Should(BeTrue())
+
+	It("should be false when the spec has changed even if the source revision stays the same")
+	tf7 := &infrav1.Terraform{
+		ObjectMeta: metav1.ObjectMeta{
+			Generation: 2,
+		},
+		Status: infrav1.TerraformStatus{
+			ObservedGeneration:    1,
+			LastAttemptedRevision: "main/1234",
+			LastPlannedRevision:   "main/1234",
+			LastAppliedRevision:   "main/1234",
+		},
+	}
+
+	g.Expect(reconciler.shouldDetectDrift(tf7, "main/1234")).Should(BeFalse())
 }
