@@ -1,4 +1,4 @@
-# Use TF-Controller to provision resources with customized Runner Pods
+# Use Tofu Controller to provision resources with customized Runner Pods
 
 ## Customize Runner Pod metadata
 
