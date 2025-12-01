@@ -47,7 +47,8 @@ func loadTFPlan(
 
 	// List relevant secrets
 	if err := client.List(ctx, secrets, kClient.InNamespace(req.Namespace), kClient.MatchingLabels{
-		"infra.contrib.fluxcd.io/plan-id": planIDLabel,
+		"infra.contrib.fluxcd.io/plan-name":      req.Name,
+		"infra.contrib.fluxcd.io/plan-workspace": terraform.WorkspaceName(),
 	}); err != nil {
 		log.Error(err, "unable to list existing plan secrets")
 		return nil, err

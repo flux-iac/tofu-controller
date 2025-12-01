@@ -101,7 +101,8 @@ func (r *TerraformRunnerServer) generatePlanSecrets(name string, namespace strin
 					SavedPlanSecretAnnotation: planId,
 				},
 				Labels: map[string]string{
-					"infra.contrib.fluxcd.io/plan-id": secretIdentifier,
+					"infra.contrib.fluxcd.io/plan-name":      name + suffix,
+					"infra.contrib.fluxcd.io/plan-workspace": r.terraform.WorkspaceName(),
 				},
 				OwnerReferences: []metav1.OwnerReference{
 					{
@@ -139,7 +140,8 @@ func (r *TerraformRunnerServer) generatePlanSecrets(name string, namespace strin
 					"infra.contrib.fluxcd.io/plan-chunk": fmt.Sprintf("%d", chunk),
 				},
 				Labels: map[string]string{
-					"infra.contrib.fluxcd.io/plan-id": secretIdentifier,
+					"infra.contrib.fluxcd.io/plan-name":      name + suffix,
+					"infra.contrib.fluxcd.io/plan-workspace": r.terraform.WorkspaceName(),
 				},
 				OwnerReferences: []metav1.OwnerReference{
 					{
@@ -161,14 +163,13 @@ func (r *TerraformRunnerServer) generatePlanSecrets(name string, namespace strin
 }
 
 func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name string, namespace string, log logr.Logger, planId string, tfplan []byte, suffix string, uuid string) error {
-	secretIdentifier := "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix
-
 	existingSecrets := &v1.SecretList{}
 
 	// Try to get any secrets by using the plan-id label
 	// This covers "chunked" secrets as well as a single secret
 	if err := r.Client.List(ctx, existingSecrets, client.InNamespace(namespace), client.MatchingLabels{
-		"infra.contrib.fluxcd.io/plan-id": secretIdentifier,
+		"infra.contrib.fluxcd.io/plan-name":      name + suffix,
+		"infra.contrib.fluxcd.io/plan-workspace": r.terraform.WorkspaceName(),
 	}); err != nil {
 		log.Error(err, "unable to list existing plan secrets")
 		return err
@@ -228,7 +229,8 @@ func (r *TerraformRunnerServer) generatePlanConfigMaps(name string, namespace st
 					SavedPlanSecretAnnotation: planId,
 				},
 				Labels: map[string]string{
-					"infra.contrib.fluxcd.io/plan-id": configMapIdentifier,
+					"infra.contrib.fluxcd.io/plan-name":      name + suffix,
+					"infra.contrib.fluxcd.io/plan-workspace": r.terraform.WorkspaceName(),
 				},
 				OwnerReferences: []metav1.OwnerReference{
 					{
@@ -264,7 +266,8 @@ func (r *TerraformRunnerServer) generatePlanConfigMaps(name string, namespace st
 					"infra.contrib.fluxcd.io/plan-chunk": fmt.Sprintf("%d", chunk),
 				},
 				Labels: map[string]string{
-					"infra.contrib.fluxcd.io/plan-id": configMapIdentifier,
+					"infra.contrib.fluxcd.io/plan-name":      name + suffix,
+					"infra.contrib.fluxcd.io/plan-workspace": r.terraform.WorkspaceName(),
 				},
 				OwnerReferences: []metav1.OwnerReference{
 					{
@@ -285,14 +288,13 @@ func (r *TerraformRunnerServer) generatePlanConfigMaps(name string, namespace st
 }
 
 func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name string, namespace string, log logr.Logger, planId string, tfplan string, suffix string, uuid string) error {
-	configMapIdentifier := "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix
-
 	existingConfigMaps := &v1.ConfigMapList{}
 
 	// Try to get any ConfigMaps by using the plan-id label
 	// This covers "chunked" ConfigMaps as well as a single ConfigMap
 	if err := r.Client.List(ctx, existingConfigMaps, client.InNamespace(namespace), client.MatchingLabels{
-		"infra.contrib.fluxcd.io/plan-id": configMapIdentifier,
+		"infra.contrib.fluxcd.io/plan-name":      name + suffix,
+		"infra.contrib.fluxcd.io/plan-workspace": r.terraform.WorkspaceName(),
 	}); err != nil {
 		log.Error(err, "unable to list existing plan ConfigMaps")
 		return err
