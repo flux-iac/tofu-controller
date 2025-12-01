@@ -17,7 +17,6 @@ import (
 	tfjson "github.com/hashicorp/terraform-json"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -173,7 +172,7 @@ func (r *TerraformRunnerServer) ProcessCliConfig(ctx context.Context, req *Proce
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("processing configuration", "namespace", req.Namespace, "name", req.Name)
 	cliConfigKey := types.NamespacedName{Namespace: req.Namespace, Name: req.Name}
-	var cliConfig corev1.Secret
+	var cliConfig v1.Secret
 	if err := r.Get(ctx, cliConfigKey, &cliConfig); err != nil {
 		log.Error(err, "unable to get secret", "namespace", req.Namespace, "name", req.Name)
 		return nil, err
@@ -553,7 +552,7 @@ func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *Finali
 
 	if req.HasSpecifiedOutputSecret {
 		outputsObjectKey := types.NamespacedName{Namespace: req.Namespace, Name: req.OutputSecretName}
-		var outputsSecret corev1.Secret
+		var outputsSecret v1.Secret
 		if err := r.Client.Get(ctx, outputsObjectKey, &outputsSecret); err == nil {
 			if err := r.Client.Delete(ctx, &outputsSecret); err != nil {
 				// transient failure
