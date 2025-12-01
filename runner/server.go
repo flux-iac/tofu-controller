@@ -18,6 +18,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -520,22 +521,34 @@ func (r *TerraformRunnerServer) GetInventory(ctx context.Context, req *GetInvent
 func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *FinalizeSecretsRequest) (*FinalizeSecretsReply, error) {
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("finalize the output secrets")
-	// nil dereference bug here
-	planObjectKey := types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-" + req.Workspace + "-" + req.Name}
-	var planSecret corev1.Secret
-	if err := r.Client.Get(ctx, planObjectKey, &planSecret); err == nil {
-		if err := r.Client.Delete(ctx, &planSecret); err != nil {
-			// transient failure
-			log.Error(err, "unable to delete the plan secret")
+
+	existingSecrets := &v1.SecretList{}
+
+	if err := r.Client.List(ctx, existingSecrets, client.InNamespace(req.Namespace), client.MatchingLabels{
+		"infra.contrib.fluxcd.io/plan-name":      req.Name,
+		"infra.contrib.fluxcd.io/plan-workspace": req.Workspace,
+	}); err != nil {
+		log.Error(err, "unable to list existing plan secrets")
+		return nil, err
+	}
+
+	if len(existingSecrets.Items) == 0 {
+		var legacyPlanSecret v1.Secret
+
+		if err := r.Client.Get(ctx, types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-" + req.Workspace + "-" + req.Name}, &legacyPlanSecret); err == nil {
+			existingSecrets.Items = append(existingSecrets.Items, legacyPlanSecret)
+		}
+	}
+
+	for _, s := range existingSecrets.Items {
+		if err := r.Client.Delete(ctx, &s); err != nil {
+			log.Error(err, "unable to delete existing plan secret", "secretName", s.Name)
 			return nil, status.Error(codes.Internal, err.Error())
 		}
-	} else if apierrors.IsNotFound(err) {
-		log.Error(err, "plan secret not found")
-		return nil, status.Error(codes.NotFound, err.Error())
-	} else {
-		// transient failure
-		log.Error(err, "unable to get the plan secret")
-		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	if len(existingSecrets.Items) == 0 {
+		return nil, status.Error(codes.NotFound, "no existing plan secrets found to delete")
 	}
 
 	if req.HasSpecifiedOutputSecret {

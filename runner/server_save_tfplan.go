@@ -165,7 +165,7 @@ func (r *TerraformRunnerServer) generatePlanSecrets(name string, namespace strin
 func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name string, namespace string, log logr.Logger, planId string, tfplan []byte, suffix string, uuid string) error {
 	existingSecrets := &v1.SecretList{}
 
-	// Try to get any secrets by using the plan-id label
+	// Try to get any secrets by using the plan labels
 	// This covers "chunked" secrets as well as a single secret
 	if err := r.Client.List(ctx, existingSecrets, client.InNamespace(namespace), client.MatchingLabels{
 		"infra.contrib.fluxcd.io/plan-name":      name + suffix,
@@ -173,6 +173,16 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 	}); err != nil {
 		log.Error(err, "unable to list existing plan secrets")
 		return err
+	}
+
+	// Check for a legacy secret if none found with the
+	// new labels
+	if len(existingSecrets.Items) == 0 {
+		var legacyPlanSecret v1.Secret
+
+		if err := r.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix}, &legacyPlanSecret); err == nil {
+			existingSecrets.Items = append(existingSecrets.Items, legacyPlanSecret)
+		}
 	}
 
 	// Clear up any of the old secrets first
@@ -290,7 +300,7 @@ func (r *TerraformRunnerServer) generatePlanConfigMaps(name string, namespace st
 func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name string, namespace string, log logr.Logger, planId string, tfplan string, suffix string, uuid string) error {
 	existingConfigMaps := &v1.ConfigMapList{}
 
-	// Try to get any ConfigMaps by using the plan-id label
+	// Try to get any ConfigMaps by using the plan labels
 	// This covers "chunked" ConfigMaps as well as a single ConfigMap
 	if err := r.Client.List(ctx, existingConfigMaps, client.InNamespace(namespace), client.MatchingLabels{
 		"infra.contrib.fluxcd.io/plan-name":      name + suffix,
@@ -298,6 +308,16 @@ func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name s
 	}); err != nil {
 		log.Error(err, "unable to list existing plan ConfigMaps")
 		return err
+	}
+
+	// Check for a legacy configmap if none found with the
+	// new labels
+	if len(existingConfigMaps.Items) == 0 {
+		var legacyPlanConfigMap v1.ConfigMap
+
+		if err := r.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix}, &legacyPlanConfigMap); err == nil {
+			existingConfigMaps.Items = append(existingConfigMaps.Items, legacyPlanConfigMap)
+		}
 	}
 
 	// Clear up any of the old ConfigMaps first
@@ -318,7 +338,7 @@ func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name s
 	// We shouldn't have to check whether any of these already exist, as we've done
 	// that above
 	for _, configmap := range configMaps {
-		// now create the seecret
+		// now create the configmap
 		if err := r.Client.Create(ctx, configmap); err != nil {
 			err = fmt.Errorf("error recording plan status: %s", err)
 			log.Error(err, "unable to create plan ConfigMap")
