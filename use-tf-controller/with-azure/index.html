@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#use-tf-controller-with-azure" class="md-skip">
+        <a href="#use-tofu-controller-with-azure" class="md-skip">
           Skip to content
         </a>
       
@@ -543,10 +543,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#use-tf-controller-with-azure" class="md-nav__link">
+  <a href="#use-tofu-controller-with-azure" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Use TF-Controller with Azure
+        Use Tofu Controller with Azure
       
     </span>
   </a>
@@ -575,14 +575,14 @@
 
   <h1>With azure</h1>
 
-<h2 id="use-tf-controller-with-azure">Use TF-Controller with Azure</h2>
+<h2 id="use-tofu-controller-with-azure">Use Tofu Controller with Azure</h2>
 <p>This content was <a href="https://github.com/flux-iac/tofu-controller/issues/561">provided</a> by users <a href="https://github.com/mingmingshiliyu">@mingmingshiliyu</a> and <a href="https://github.com/maciekdude">@maciekdude</a>.</p>
 <p>Use the OIDC flag and explicitly point to the token. Due to a bug in AzureRM 3.44.x, use version 3.47.x or later.</p>
 <p>Set env variables on the runner pod:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>        - name: ARM_USE_OIDC
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>          value: &quot;true&quot;
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        - name: ARM_OIDC_TOKEN_FILE_PATH
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>          value: &quot;/var/run/secrets/azure/tokens/azure-identity-token&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ARM_USE_OIDC</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">          </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ARM_OIDC_TOKEN_FILE_PATH</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">          </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/var/run/secrets/azure/tokens/azure-identity-token&quot;</span>
 </code></pre></div>
 <p>Example yaml:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha1</span>

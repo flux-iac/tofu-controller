@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#use-tf-controller-with-the-ready-to-use-aws-package" class="md-skip">
+        <a href="#use-tofu-controller-with-the-ready-to-use-aws-package" class="md-skip">
           Skip to content
         </a>
       
@@ -543,10 +543,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#use-tf-controller-with-the-ready-to-use-aws-package" class="md-nav__link">
+  <a href="#use-tofu-controller-with-the-ready-to-use-aws-package" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Use TF-Controller with the ready-to-use AWS package
+        Use Tofu Controller with the ready-to-use AWS package
       
     </span>
   </a>
@@ -610,10 +610,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#install-tf-controller" class="md-nav__link">
+  <a href="#install-tofu-controller" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Install TF-controller
+        Install Tofu Controller
       
     </span>
   </a>
@@ -680,16 +680,16 @@
 
   <h1>With the ready to use aws package</h1>
 
-<h2 id="use-tf-controller-with-the-ready-to-use-aws-package">Use TF-Controller with the ready-to-use AWS package</h2>
-<p>You need TF-Controller v0.13+ to running the example of TF-Controller with the ready-to-use AWS package.</p>
+<h2 id="use-tofu-controller-with-the-ready-to-use-aws-package">Use Tofu Controller with the ready-to-use AWS package</h2>
+<p>You need Tofu Controller v0.13+ to running the example of Tofu Controller with the ready-to-use AWS package.</p>
 <h2 id="what-is-a-package">What is a package?</h2>
 <p>A package is a collection of primitive Terraform modules that are bundled into an OCI image.
-You can think of a TF-controller's package as a thin wrapper around a Terraform module provider,
-and a TF-controller primitive module as a thin wrapper around a Terraform resource or a root module.</p>
+You can think of a Tofu Controller's package as a thin wrapper around a Terraform module provider,
+and a TFTofu Controller primitive module as a thin wrapper around a Terraform resource or a root module.</p>
 <p>We will provide a set of ready-to-use packages for the most popular cloud providers.
 Currently, we ship the package for AWS only.</p>
 <h2 id="aws-package">AWS Package</h2>
-<p>To provide the out-of-the-box experience, the AWS Package is installed by default when you installed the TF-controller.
+<p>To provide the out-of-the-box experience, the AWS Package is installed by default when you installed the Tofu Controller.
 Unlike other IaC implementation, our package model is designed to be very lightweight as a package is just a set of TF files in the form of OCI. 
 Packages would not put any burden to your cluster. However, you can opt this package out by setting <code>awsPackage.install: false</code> in your Helm chart values.</p>
 <p>If you run <code>flux get sources oci</code> you should see the AWS package installed in your cluster listed as <code>aws-package</code>.</p>
@@ -698,7 +698,7 @@ Packages would not put any burden to your cluster. However, you can opt this pac
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>aws-package<span class="w">   </span>v4.38.0-v1alpha11/6033f3b<span class="w">   </span>False<span class="w">       </span>True<span class="w">    </span>stored<span class="w"> </span>artifact<span class="w"> </span><span class="k">for</span><span class="w"> </span>digest<span class="w"> </span><span class="s1">&#39;v4.38.0-v1alpha11/6033f3b&#39;</span>
 </code></pre></div>
 <h2 id="a-step-by-step-tutorial">A step-by-step tutorial</h2>
-<p>This section describes how to use the AWS package to provision an S3 bucket with ACL using the TF-controller.</p>
+<p>This section describes how to use the AWS package to provision an S3 bucket with ACL using the Tofu Controller.</p>
 <h3 id="create-a-kind-local-cluster">Create a KinD local cluster</h3>
 <p>If you don't have a Kubernetes cluster, you can create a KinD cluster with the following command:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>kind<span class="w"> </span>create<span class="w"> </span>cluster
@@ -707,9 +707,9 @@ Packages would not put any burden to your cluster. However, you can opt this pac
 <p>After you have a Kubernetes cluster, you can install Flux with the following command:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>flux<span class="w"> </span>install
 </code></pre></div>
-<h3 id="install-tf-controller">Install TF-controller</h3>
-<p>Then, you can install the TF-controller with the following command:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml
+<h3 id="install-tofu-controller">Install Tofu Controller</h3>
+<p>Then, you can install the Tofu Controller with the following command:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/release.yaml
 </code></pre></div>
 <h3 id="setup-aws-credentials">Setup AWS credentials</h3>
 <p>To provision AWS resources, you need to provide the AWS credentials to your Terraform objects.

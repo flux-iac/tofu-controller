@@ -19,7 +19,7 @@
     
     
       
-        <title>Use TF-Controller to provision resources and auto approve - Tofu Controller: An IAC Controller for Flux</title>
+        <title>Use Tofu Controller to provision resources and auto approve - Tofu Controller: An IAC Controller for Flux</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#use-tf-controller-to-provision-resources-and-auto-approve" class="md-skip">
+        <a href="#use-tofu-controller-to-provision-resources-and-auto-approve" class="md-skip">
           Skip to content
         </a>
       
@@ -106,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Use TF-Controller to provision resources and auto approve
+              Use Tofu Controller to provision resources and auto approve
             
           </span>
         </div>
@@ -586,12 +586,12 @@
   
 
 
-<h1 id="use-tf-controller-to-provision-resources-and-auto-approve">Use TF-Controller to provision resources and auto approve</h1>
-<p>To provision resources with TF-Controller, you need to create a <code>Terraform</code> object and a Flux source object, 
+<h1 id="use-tofu-controller-to-provision-resources-and-auto-approve">Use Tofu Controller to provision resources and auto approve</h1>
+<p>To provision resources with Tofu Controller, you need to create a <code>Terraform</code> object and a Flux source object, 
 such as a <code>GitRepository</code> or <code>OCIRepository</code> object.</p>
 <h2 id="create-a-terraform-object">Create a Terraform object</h2>
 <p>The <code>Terraform</code> object is a Kubernetes custom resource definition (CRD) object.
-It is the core object of TF-Controller and defines
+It is the core object of Tofu Controller and defines
 the Terraform module, backend configuration, and GitOps automation mode.</p>
 <p>The Terraform module is a Terraform configuration that you can use to provision resources.
 It can either be placed inside a Git repository, or packaged as an OCI image in an OCI registry.</p>
@@ -600,9 +600,9 @@ It is optional. If not specified, the Kubernetes backend will be used by default
 <h2 id="gitops-automation-mode">GitOps Automation mode</h2>
 <p>Use the GitOps automation mode to run the Terraform module. It determines how Terraform runs and manages your infrastructure. It is optional. If not specified, the "plan-and-manually-apply" mode is used by default.
 In the "plan-and-manually-apply" mode,
-TF-Controller will run a Terraform plan and output the proposed changes to a Git repository.
+Tofu Controller will run a Terraform plan and output the proposed changes to a Git repository.
 A human must then review and manually apply the changes.</p>
-<p>In the "auto-apply" mode, TF-Controller will automatically apply the changes after a Terraform plan is run.
+<p>In the "auto-apply" mode, Tofu Controller will automatically apply the changes after a Terraform plan is run.
 This can be useful for environments where changes can be made automatically,
 but it is important to ensure that the proper controls, like policies, are in place to prevent unintended changes
 from being applied.</p>
@@ -629,7 +629,7 @@ The <code>metadata</code> block contains information about the object, including
 <p>The <code>spec</code> field contains the specification for the <code>Terraform</code> object.
 The <code>path</code> field specifies the path to the Terraform configuration files,
 in this case a directory named "helloworld".
-The <code>interval</code> field specifies the frequency at which TF-Controller should run the Terraform configuration,
+The <code>interval</code> field specifies the frequency at which Tofu Controller should run the Terraform configuration,
 in this case every 10 minutes. The <code>approvePlan</code> field specifies whether or not
 to automatically approve the changes proposed by a Terraform plan.
 In this case, it is set to <code>auto</code>, meaning that changes will be automatically approved.</p>

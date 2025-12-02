@@ -19,7 +19,7 @@
     
     
       
-        <title>Use TF-Controller with AWS EKS IRSA - Tofu Controller: An IAC Controller for Flux</title>
+        <title>Use Tofu Controller with AWS EKS IRSA - Tofu Controller: An IAC Controller for Flux</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#use-tf-controller-with-aws-eks-irsa" class="md-skip">
+        <a href="#use-tofu-controller-with-aws-eks-irsa" class="md-skip">
           Skip to content
         </a>
       
@@ -106,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Use TF-Controller with AWS EKS IRSA
+              Use Tofu Controller with AWS EKS IRSA
             
           </span>
         </div>
@@ -556,7 +556,7 @@
   
 
 
-<h1 id="use-tf-controller-with-aws-eks-irsa">Use TF-Controller with AWS EKS IRSA</h1>
+<h1 id="use-tofu-controller-with-aws-eks-irsa">Use Tofu Controller with AWS EKS IRSA</h1>
 <p>AWS Elastic Kubernetes Service (EKS) offers IAM Roles for Service Accounts (IRSA) as a mechanism by which to provide
 credentials to Kubernetes pods. This can be used to provide the required AWS credentials to Terraform runners
 for performing plans and applies.</p>
@@ -565,12 +565,12 @@ for performing plans and applies.</p>
 </code></pre></div>
 <p>Then follow the instructions <a href="https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html">here</a>
 to add a trust policy to the IAM role which grants the necessary permissions for Terraform.
-If you have installed TF-Controller following the README, then the <code>namespace:serviceaccountname</code>
+If you have installed Tofu Controller following the README, then the <code>namespace:serviceaccountname</code>
 will be <code>flux-system:tf-runner</code>. You'll obtain a Role ARN to use in the next step.</p>
 <p>Finally, annotate the ServiceAccount for the <code>tf-runner</code> with the obtained Role ARN in your cluster:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>kubectl<span class="w"> </span>annotate<span class="w"> </span>-n<span class="w"> </span>flux-system<span class="w"> </span>serviceaccount<span class="w"> </span>tf-runner<span class="w"> </span>eks.amazonaws.com/role-arn<span class="o">=</span>ROLE_ARN
 </code></pre></div>
-<p>If deploying the <code>tf-controller</code> via Helm, do this as follows:</p>
+<p>If deploying the <code>Tofu Controller</code> via Helm, do this as follows:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">values</span><span class="p">:</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">runner</span><span class="p">:</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">serviceAccount</span><span class="p">:</span>

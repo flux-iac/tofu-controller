@@ -19,7 +19,7 @@
     
     
       
-        <title>Use TF-Controller with IPv6 addresses. - Tofu Controller: An IAC Controller for Flux</title>
+        <title>Use Tofu Controller with IPv6 addresses. - Tofu Controller: An IAC Controller for Flux</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#use-tf-controller-with-ipv6-addresses" class="md-skip">
+        <a href="#use-tofu-controller-with-ipv6-addresses" class="md-skip">
           Skip to content
         </a>
       
@@ -106,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Use TF-Controller with IPv6 addresses.
+              Use Tofu Controller with IPv6 addresses.
             
           </span>
         </div>
@@ -556,11 +556,11 @@
   
 
 
-<h1 id="use-tf-controller-with-ipv6-addresses">Use TF-Controller with IPv6 addresses.</h1>
-<p>TF-Controller uses pod IPv4 address to generate the in-cluster hostname to
+<h1 id="use-tofu-controller-with-ipv6-addresses">Use Tofu Controller with IPv6 addresses.</h1>
+<p>Tofu Controller uses pod IPv4 address to generate the in-cluster hostname to
 communicate with the runner instance. This logic fails when the runner pod has
 IPv6 address instead of IPv4.</p>
-<p>The TF-Controller has a flag to use pod subdomain resolution instead of an IP
+<p>The Tofu Controller has a flag to use pod subdomain resolution instead of an IP
 address, with that enabled the controller will use cluster subdomains, and it
 works with IPv6 addresses as the resolution is happening at cluster level.</p>
 <p>To enable this feature, you can set <code>usePodSubdomainResolution</code> to <code>true</code> in the

@@ -659,14 +659,14 @@
 
 <h1 id="overview">Overview</h1>
 <p>~&gt; <strong>BREAKING NEWS:</strong> The <strong>Technology Preview</strong> of the Branch Planner is now available! <a href="branch-planner/">Learn more</a> or Get started with the <a href="branch-planner/branch-planner-getting-started/">Branch Planner</a>.</p>
-<p>TF-controller is a reliable controller for <a href="https://fluxcd.io">Flux</a> to reconcile Terraform resources
+<p>Tofu Controller is a reliable controller for <a href="https://fluxcd.io">Flux</a> to reconcile Terraform resources
 in the GitOps way.
-With the power of Flux together with Terraform, TF-controller allows you to GitOps-ify infrastructure,
+With the power of Flux together with Terraform, Tofu Controller allows you to GitOps-ify infrastructure,
 and application resources, in the Kubernetes and Terraform universe, at your own pace.</p>
 <p>"At your own pace" means you don't need to GitOps-ify everything at once.</p>
-<p>A high-level diagram of how TF-controller works is shown below:</p>
-<p><img alt="TF-controller basic architecture" src="tf-controller-basic-architecture.png" /></p>
-<p>TF-controller offers many GitOps models:</p>
+<p>A high-level diagram of how Tofu Controller works is shown below:</p>
+<p><img alt="Tofu Controller basic architecture" src="tf-controller-basic-architecture.png" /></p>
+<p>Tofu Controller offers many GitOps models:</p>
 <ol>
 <li><strong>GitOps Automation Model:</strong> GitOps your Terraform resources from the provision steps to the enforcement steps, like a whole EKS cluster.</li>
 <li><strong>Hybrid GitOps Automation Model:</strong> GitOps parts of your existing infrastructure resources. For example, you have an existing EKS cluster.
@@ -677,12 +677,12 @@ and application resources, in the Kubernetes and Terraform universe, at your own
 <p>To get started, follow the <a href="getting_started/">getting started</a> guide.</p>
 <h2 id="features">Features</h2>
 <ul>
-<li><strong>Multi-Tenancy</strong>: TF-controller supports multi-tenancy by running Terraform <code>plan</code> and <code>apply</code> inside Runner Pods.
+<li><strong>Multi-Tenancy</strong>: Tofu Controller supports multi-tenancy by running Terraform <code>plan</code> and <code>apply</code> inside Runner Pods.
     When specifying <code>.metadata.namespace</code> and <code>.spec.serviceAccountName</code>, the Runner Pod uses the specified ServiceAccount
     and runs inside the specified Namespace. These settings enable the soft multi-tenancy model, which can be used within
     the Flux multi-tenancy setup. <em>This feature is available since v0.9.0.</em></li>
 <li><strong>GitOps Automation for Terraform</strong>: With setting <code>.spec.approvePlan=auto</code>, it allows a <code>Terraform</code> object
-    to be reconciled and act as the representation of your Terraform resources. The TF-controller uses the spec of
+    to be reconciled and act as the representation of your Terraform resources. The Tofu Controller uses the spec of
     the <code>Terraform</code> object to perform <code>plan</code>, <code>apply</code> its associated Terraform resources. It then stores
     the <code>TFSTATE</code> of the applied resources as a <code>Secret</code> inside the Kubernetes cluster. After <code>.spec.interval</code> passes,
     the controller performs drift detection to check if there is a drift occurred between your live system,
@@ -699,7 +699,7 @@ and application resources, in the Kubernetes and Terraform universe, at your own
 <li><strong>Plan and Manual Approve</strong>: This feature allows you to separate the <code>plan</code>, out of the <code>apply</code> step, just like
     the Terraform workflow you are familiar with. A good thing about this is that it is done in a GitOps way. When a plan
     is generated, the controller shows you a message like <strong>'set approvePlan: "plan-main-123" to apply this plan.'</strong>.
-    You make change to the field <code>.spec.approvePlan</code>, commit and push to tell the TF-controller to apply the plan for you.
+    You make change to the field <code>.spec.approvePlan</code>, commit and push to tell the Tofu Controller to apply the plan for you.
     With this GitOps workflow, you can optionally create and push this change to a new branch for your team member to
     review and approve too. <em>This feature is available since v0.6.0.</em></li>
 <li><strong>First-class YAML-based Terraform</strong>: The <code>Terraform</code> object in v0.13.0+ allows you to better configure your 
@@ -725,6 +725,12 @@ and application resources, in the Kubernetes and Terraform universe, at your own
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align: center;">v0.16</td>
+<td style="text-align: center;">v1.5.7</td>
+<td style="text-align: center;">v1.7.x</td>
+<td style="text-align: center;">v2.6.x</td>
+</tr>
 <tr>
 <td style="text-align: center;">v0.15</td>
 <td style="text-align: center;">v1.3.9</td>

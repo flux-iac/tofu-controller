@@ -605,7 +605,7 @@
 <li>Deciders: TBD </li>
 </ul>
 <h2 id="context">Context</h2>
-<p>The TF-Controller currently faces challenges related to the deletion of Terraform resources.
+<p>The Tofu Controller currently faces challenges related to the deletion of Terraform resources.
 These problems span across three categories:</p>
 <ol>
 <li>Single object deletion,</li>
@@ -614,19 +614,19 @@ These problems span across three categories:</p>
 </ol>
 <p>These problems must be fixed in the above order as (2) and (3) require single object deletion to be resolved first.</p>
 <p>Deleting a single TF object can sometimes be obstructed because it's tied to other resources like Source objects, Secrets, and ConfigMaps. If we try to remove it without deleting these resources, the TF object gets stuck in an inconsistent state, making it harder for users to manage their infrastructure smoothly.
-Therefore, the TF-Controller is being enhanced to address this problem more efficiently, using the contents of generated Workspace BLOBs. Each BLOB contains all necessary information from the associated Source, Secrets, and ConfigMaps to ensure that TF-Controller finalization procedures can delete objects correctly.</p>
-<p>Currently, the TF-Controller downloads a Source BLOB and pushes it to a tf-runner. The tf-runner processes this BLOB to create a Workspace file system. It generates a backend configuration file, variable files, and other necessary files for the Workspace file system, using data from associated Secrets and ConfigMaps. This newly created Workspace file system is then compressed, sent back to the TF-Controller, and stored as a Workspace BLOB in the controller's storage.
+Therefore, the Tofu Controller is being enhanced to address this problem more efficiently, using the contents of generated Workspace BLOBs. Each BLOB contains all necessary information from the associated Source, Secrets, and ConfigMaps to ensure that Tofu Controller finalization procedures can delete objects correctly.</p>
+<p>Currently, the Tofu Controller downloads a Source BLOB and pushes it to a tf-runner. The tf-runner processes this BLOB to create a Workspace file system. It generates a backend configuration file, variable files, and other necessary files for the Workspace file system, using data from associated Secrets and ConfigMaps. This newly created Workspace file system is then compressed, sent back to the Tofu Controller, and stored as a Workspace BLOB in the controller's storage.
 A caching mechanism for these BLOBs is essential to fixing the single TF object deletion process.</p>
 <h2 id="decision">Decision</h2>
 <ol>
 <li><strong>BLOB Creation and Storage</strong></li>
-<li>A gRPC function named <code>CreateWorkspaceBlob</code> will be invoked by the TF-Controller 
+<li>A gRPC function named <code>CreateWorkspaceBlob</code> will be invoked by the Tofu Controller
      to tell tf-runner to compress the Workspace file system into a tar.gz BLOB, which is then retrieved back to the controller.</li>
 <li>The caching mechanism will be executed right before the Terraform Initialization step, ensuring that the latest and most relevant data is used.</li>
-<li>Each Workspace Blob will be cached on the TF-Controller's local disk, using the UUID of the Terraform object as the filename,<code>${uuid}.tar.gz</code>.</li>
+<li>Each Workspace Blob will be cached on the Tofu Controller's local disk, using the UUID of the Terraform object as the filename,<code>${uuid}.tar.gz</code>.</li>
 <li>To reduce the risk of unauthorized access to the cache entries, and cache collisions, the cache file will be deleted after the finalization process is complete.</li>
 <li><strong>Persistence</strong> </li>
-<li><a href="https://fluxcd.io/flux/installation/configuration/vertical-scaling/#persistent-storage-for-flux-internal-artifacts">The persistence mechanism used by the Source Controller</a> will be adopted for the TF-Controller's persistence volume.</li>
+<li><a href="https://fluxcd.io/flux/installation/configuration/vertical-scaling/#persistent-storage-for-flux-internal-artifacts">The persistence mechanism used by the Source Controller</a> will be adopted for the Tofu Controller's persistence volume.</li>
 <li><strong>BLOB Encryption</strong></li>
 <li>The encryption and decryption of the BLOBs will be tasked to the runner, with the controller solely responsible for storing encrypted BLOBs.</li>
 <li>Each namespace will require a service account, preferably named "tf-runner".</li>

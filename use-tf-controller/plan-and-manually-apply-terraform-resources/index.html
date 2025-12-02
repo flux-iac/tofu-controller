@@ -19,7 +19,7 @@
     
     
       
-        <title>Use TF-controller to plan and manually apply Terraform resources - Tofu Controller: An IAC Controller for Flux</title>
+        <title>Use Tofu Controller to plan and manually apply Terraform resources - Tofu Controller: An IAC Controller for Flux</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#use-tf-controller-to-plan-and-manually-apply-terraform-resources" class="md-skip">
+        <a href="#use-tofu-controller-to-plan-and-manually-apply-terraform-resources" class="md-skip">
           Skip to content
         </a>
       
@@ -106,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Use TF-controller to plan and manually apply Terraform resources
+              Use Tofu Controller to plan and manually apply Terraform resources
             
           </span>
         </div>
@@ -575,17 +575,17 @@
   
 
 
-<h1 id="use-tf-controller-to-plan-and-manually-apply-terraform-resources">Use TF-controller to plan and manually apply Terraform resources</h1>
-<p>Assume that you have a <code>GitRepository</code> object named <code>helloworld</code> pointing to a Git repository, and you want to plan and apply the Terraform resources under <code>./</code> of that Git repo. Let's walk through the steps of using TF-Controller to plan and
-manually apply Terraform resources. </p>
+<h1 id="use-tofu-controller-to-plan-and-manually-apply-terraform-resources">Use Tofu Controller to plan and manually apply Terraform resources</h1>
+<p>Assume that you have a <code>GitRepository</code> object named <code>helloworld</code> pointing to a Git repository, and you want to plan and apply the Terraform resources under <code>./</code> of that Git repo. Let's walk through the steps of using Tofu Controller to plan and
+manually apply Terraform resources.</p>
 <ul>
 <li>Create a <code>Terraform</code> object and set the necessary fields in the spec:</li>
 <li><code>approvePlan</code>, which sets the mode. For plan and manual approval mode, either keep this field blank or omit it entirely.</li>
-<li><code>interval</code>, which determines how often TF-Controller will run the Terraform configuration</li>
+<li><code>interval</code>, which determines how often Tofu Controller will run the Terraform configuration</li>
 <li><code>path</code>, which specifies the location of the configuration files, in this case <code>./</code></li>
 <li><code>sourceRef</code>, which points to the <code>helloworld</code> GitRepository object</li>
-<li>Once this object is created, use kubectl to obtain the <code>approvePlan</code> value and set it in the <code>Terraform</code> object. </li>
-<li>After making our changes and pushing them to the Git repository, TF-Controller will apply the plan and create the real resources.</li>
+<li>Once this object is created, use kubectl to obtain the <code>approvePlan</code> value and set it in the <code>Terraform</code> object.</li>
+<li>After making our changes and pushing them to the Git repository, Tofu Controller will apply the plan and create the real resources.</li>
 </ul>
 <p>Here is an example:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha2</span>
@@ -603,13 +603,13 @@ manually apply Terraform resources. </p>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-system</span>
 </code></pre></div>
 <h2 id="view-the-approval-message">View the approval message</h2>
-<p>After a reconciliation loop, TF-Controller will generate a plan. Run this command to receive the <code>.spec.approvePlan</code> value from TF-Controller, which you'll need to approve the plan:</p>
+<p>After a reconciliation loop, Tofu Controller will generate a plan. Run this command to receive the <code>.spec.approvePlan</code> value from Tofu Controller, which you'll need to approve the plan:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>flux-system<span class="w"> </span>get<span class="w"> </span>tf/helloworld
 </code></pre></div>
 <p>This value enables you to edit the Terraform object file and set the <code>spec.approvePlan</code> field
 to the value obtained from the message.</p>
 <p>After making your changes and pushing them to the Git repository,
-TF-Controller will apply the plan and create the real resources.</p>
+Tofu Controller will apply the plan and create the real resources.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha2</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Terraform</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nt">metadata</span><span class="p">:</span>

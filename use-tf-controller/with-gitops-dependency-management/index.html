@@ -19,7 +19,7 @@
     
     
       
-        <title>Use TF-controller with GitOps dependency management - Tofu Controller: An IAC Controller for Flux</title>
+        <title>Use Tofu Controller with GitOps dependency management - Tofu Controller: An IAC Controller for Flux</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#use-tf-controller-with-gitops-dependency-management" class="md-skip">
+        <a href="#use-tofu-controller-with-gitops-dependency-management" class="md-skip">
           Skip to content
         </a>
       
@@ -106,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Use TF-controller with GitOps dependency management
+              Use Tofu Controller with GitOps dependency management
             
           </span>
         </div>
@@ -586,11 +586,11 @@
   
 
 
-<h1 id="use-tf-controller-with-gitops-dependency-management">Use TF-controller with GitOps dependency management</h1>
-<p>TF-controller supports GitOps dependency management.
+<h1 id="use-tofu-controller-with-gitops-dependency-management">Use Tofu Controller with GitOps dependency management</h1>
+<p>Tofu Controller supports GitOps dependency management.
 The GitOps dependency management feature is based on the similar technique implemented in the Kustomization controller of Flux.</p>
-<p>This means that you can use TF-controller to provision resources that depend on other resources at the GitOps level.
-For example, you can use TF-controller to provision an S3 bucket, and then use TF-controller to provision another resource to configure ACL for that bucket.</p>
+<p>This means that you can use Tofu Controller to provision resources that depend on other resources at the GitOps level.
+For example, you can use Tofu Controller to provision an S3 bucket, and then use Tofu Controller to provision another resource to configure ACL for that bucket.</p>
 <p>GitOps dependency management is different from Terraform's HCL dependency management in the way that it is not based on Terraform's mechanism, which is controlled by the Terraform binary.
 Instead, it is implemented at the controller level, which means that each Terraform module is reconciled and can be managed independently, while still being able to depend on other modules.</p>
 <h2 id="create-a-terraform-object">Create a Terraform object</h2>

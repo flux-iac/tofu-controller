@@ -19,7 +19,7 @@
     
     
       
-        <title>Use TF-Controller to provision resources and obtain outputs - Tofu Controller: An IAC Controller for Flux</title>
+        <title>Use Tofu Controller to provision resources and obtain outputs - Tofu Controller: An IAC Controller for Flux</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#use-tf-controller-to-provision-resources-and-obtain-outputs" class="md-skip">
+        <a href="#use-tofu-controller-to-provision-resources-and-obtain-outputs" class="md-skip">
           Skip to content
         </a>
       
@@ -106,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Use TF-Controller to provision resources and obtain outputs
+              Use Tofu Controller to provision resources and obtain outputs
             
           </span>
         </div>
@@ -608,7 +608,7 @@
   
 
 
-<h1 id="use-tf-controller-to-provision-resources-and-obtain-outputs">Use TF-Controller to provision resources and obtain outputs</h1>
+<h1 id="use-tofu-controller-to-provision-resources-and-obtain-outputs">Use Tofu Controller to provision resources and obtain outputs</h1>
 <p>Outputs created by Terraform can be written to a secret using <code>.spec.writeOutputsToSecret</code>.</p>
 <h2 id="write-all-outputs">Write all outputs</h2>
 <p>We can specify a target secret in <code>.spec.writeOutputsToSecret.name</code>, and the controller will write all outputs to the secret by default.</p>
@@ -651,8 +651,8 @@
 </span></code></pre></div>
 <h2 id="rename-outputs">Rename outputs</h2>
 <p>Some time we'd like to use rename an output, so that it can be consumed by other Kubernetes controllers.
-For example, we might retrieve a key from a Secret manager, and it's an AGE key, which must be ending with ".agekey" in the secret. In this case, we need to rename the output. </p>
-<p>TF-controller supports mapping output names using the <code>old_name:new_name</code> format.</p>
+For example, we might retrieve a key from a Secret manager, and it's an AGE key, which must be ending with ".agekey" in the secret. In this case, we need to rename the output.</p>
+<p>Tofu Controller supports mapping output names using the <code>old_name:new_name</code> format.</p>
 <p>In the following example, we renamed <code>age_key</code> output as <code>age.agekey</code> entry for the <code>helloworld-output</code> secret's data, so that other components in the GitOps pipeline could consume it.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha2</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Terraform</span>

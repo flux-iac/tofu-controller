@@ -758,7 +758,7 @@
   <h1>Branch Planner and Terraform Cloud Integration</h1>
 
 <h2 id="branch-planner-and-terraform-cloud-integration-getting-started">Branch Planner and Terraform Cloud Integration: Getting Started</h2>
-<p>With Branch Planner, you can provision the <code>main</code> branch directly on Terraform Cloud. TF-Controller communicates with Terraform Cloud to run the necessary plans and apply your approved code. The state is securely stored on Terraform Cloud.</p>
+<p>With Branch Planner, you can provision the <code>main</code> branch directly on Terraform Cloud. Tofu Controller communicates with Terraform Cloud to run the necessary plans and apply your approved code. The state is securely stored on Terraform Cloud.</p>
 <p><strong>Note:</strong> For now, Branch Planner only supports GitHub as the Git provider. We plan to add other Git providers in time.</p>
 <h2 id="step-by-step-guide">Step-by-step Guide</h2>
 <h3 id="step-1-create-a-terraform-cloud-token">Step 1: Create a Terraform Cloud Token</h3>
@@ -783,7 +783,7 @@
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-system</span>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nt">spec</span><span class="p">:</span>
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30s</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/tf-controller/branch-planner-demo</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/flux-iac/branch-planner-demo</span>
 <a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="nt">ref</span><span class="p">:</span>
 <a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="nt">branch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">main</span>
 <a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="nn">---</span>
@@ -815,7 +815,7 @@
 <ol>
 <li>
 <p><strong>Navigate to Your Repository:</strong> Open a web browser and visit your GitHub repository. 
-For our example, navigate <a href="https://github.com/tf-controller/branch-planner-demo">here</a>.</p>
+For our example, navigate <a href="https://github.com/flux-iac/branch-planner-demo">here</a>.</p>
 </li>
 <li>
 <p><strong>Locate the File to Edit:</strong> Browse through the repository's file structure and 
@@ -859,7 +859,7 @@ This enables you and your team to review the expected changes before they're app
 <p><strong>Iterate on Changes if Necessary</strong>:</p>
 <ul>
 <li>If you spot any discrepancies or wish to make further adjustments, click on the file in the <code>Files changed</code> section.</li>
-<li>After making the desired edits, commit the changes to the same branch. This will automatically prompt TF-Controller and Branch Planner to generate a new plan.</li>
+<li>After making the desired edits, commit the changes to the same branch. This will automatically prompt Tofu Controller and Branch Planner to generate a new plan.</li>
 <li>If, for any reason, the automatic replan doesn't occur or you believe there might be an inconsistency, you can manually trigger a new plan by commenting <code>!replan</code> on the PR. Branch Planner will then process the request and display the new plan results.</li>
 </ul>
 </li>
@@ -877,7 +877,7 @@ This enables you and your team to review the expected changes before they're app
 <li>With the changes approved, click on the <code>Merge pull request</code> button.</li>
 <li>Choose your desired merge strategy from the options provided, such as "Squash and merge" or "Rebase and merge".</li>
 <li>Click <code>Confirm merge</code>.</li>
-<li>Following the merge, TF-Controller will take over. It will send the updated Terraform configuration to Terraform Cloud, where the changes will be planned and then applied. The resulting infrastructure state will be securely stored within your Terraform Cloud workspace.</li>
+<li>Following the merge, Tofu Controller will take over. It will send the updated Terraform configuration to Terraform Cloud, where the changes will be planned and then applied. The resulting infrastructure state will be securely stored within your Terraform Cloud workspace.</li>
 </ul>
 </li>
 </ol>

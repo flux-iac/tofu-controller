@@ -557,7 +557,7 @@
 
 
 <h1 id="using-cross-namespace-references">Using Cross-Namespace References</h1>
-<p>The Terraform CRD in the API for TF-Controller includes fields which are references to other objects:</p>
+<p>The Terraform CRD in the API for Tofu Controller includes fields which are references to other objects:</p>
 <table>
 <thead>
 <tr>
@@ -599,8 +599,8 @@
 </tr>
 </tbody>
 </table>
-<p>All of these can refer to an object in a namespace different to that of the Terraform object. However, giving access to objects in other namespaces is generally considered a security risk, so this is disallowed by default. Only references that mention the same namespace, or that omit the namespace field, will be accepted. References using a different namespace will cause TF-Controller to stop processing the Terraform object and put it in a non-Ready state.</p>
-<p>To <strong>allow</strong> cross-namespace references, use the flag <code>--allow-cross-namespace-refs</code> with TF-Controller and the Branch Planner. When using the Helm chart to install or update TF-Controller and Branch Planner, the value <code>allowCrossNamespaceRefs</code> will allow cross-namespace references for both.</p>
+<p>All of these can refer to an object in a namespace different to that of the Terraform object. However, giving access to objects in other namespaces is generally considered a security risk, so this is disallowed by default. Only references that mention the same namespace, or that omit the namespace field, will be accepted. References using a different namespace will cause Tofu Controller to stop processing the Terraform object and put it in a non-Ready state.</p>
+<p>To <strong>allow</strong> cross-namespace references, use the flag <code>--allow-cross-namespace-refs</code> with Tofu Controller and the Branch Planner. When using the Helm chart to install or update Tofu Controller and Branch Planner, the value <code>allowCrossNamespaceRefs</code> will allow cross-namespace references for both.</p>
 
 
 

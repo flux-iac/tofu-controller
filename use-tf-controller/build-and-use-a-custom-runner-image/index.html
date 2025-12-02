@@ -609,8 +609,8 @@
 <p>You need Docker and Git to build the image.</p>
 <h2 id="build-the-image">Build the Image</h2>
 <ol>
-<li>Create a <code>Dockerfile</code> that extends the base image and that adds Terraform, plus any additional required tooling. For example:</li>
-</ol>
+<li>
+<p>Create a <code>Dockerfile</code> that extends the base image and that adds Terraform, plus any additional required tooling. For example:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">ARG</span><span class="w"> </span>BASE_IMAGE
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">FROM</span><span class="w"> </span><span class="s">$BASE_IMAGE</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
@@ -629,9 +629,9 @@
 <a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="k">USER</span><span class="w"> </span><span class="s">65532:65532</span>
 </code></pre></div>
 <p>Find the original Dockerfile for the runner <a href="https://github.com/flux-iac/tofu-controller/blob/main/runner.Dockerfile">here</a>.</p>
-<ol>
-<li>Build the image from the directory containing the <code>Dockerfile</code> you created above:</li>
-</ol>
+</li>
+<li>
+<p>Build the image from the directory containing the <code>Dockerfile</code> you created above:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">TF_CONTROLLER_VERSION</span><span class="o">=</span>v0.16.0-rc.3
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">TF_VERSION</span><span class="o">=</span><span class="m">1</span>.5.7
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">BASE_IMAGE</span><span class="o">=</span>ghcr.io/flux-iac/tf-runner:<span class="si">${</span><span class="nv">TF_CONTROLLER_VERSION</span><span class="si">}</span>-base
@@ -645,26 +645,28 @@
 <a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>docker<span class="w"> </span>push<span class="w"> </span><span class="nv">$REMOTE_REPO</span>:<span class="si">${</span><span class="nv">TF_CONTROLLER_VERSION</span><span class="si">}</span>
 </code></pre></div>
 <p>Replace the relevant values above with the corresponding values in your organisation/implementation.</p>
-<ol>
-<li>Update the <code>values.runner.image</code> values in the TF-Controller Helm chart values to point to the new image:</li>
-</ol>
+</li>
+<li>
+<p>Update the <code>values.runner.image</code> values in the Tofu Controller Helm chart values to point to the new image:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">values</span><span class="p">:</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">runner</span><span class="p">:</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">      </span><span class="nt">repository</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/my-org/custom-runnner</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">      </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v0.16.0-rc.3</span>
 </code></pre></div>
-<ol>
-<li>Commit and push the changes to Git. Confirm that the HelmRelease has been updated:</li>
-</ol>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>deployments.apps<span class="w"> </span>-n<span class="w"> </span>flux-system<span class="w"> </span>tf-controller<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.template.spec.containers[*]}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.env[] | select(.name == &quot;RUNNER_POD_IMAGE&quot;)&#39;</span>
+</li>
+<li>
+<p>Commit and push the changes to Git. Confirm that the HelmRelease has been updated:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>deployments.apps<span class="w"> </span>-n<span class="w"> </span>flux-system<span class="w"> </span>tofu-controller<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.template.spec.containers[*]}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.env[] | select(.name == &quot;RUNNER_POD_IMAGE&quot;)&#39;</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="o">{</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="s2">&quot;name&quot;</span>:<span class="w"> </span><span class="s2">&quot;RUNNER_POD_IMAGE&quot;</span>,
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="s2">&quot;value&quot;</span>:<span class="w"> </span><span class="s2">&quot;ghcr.io/my-org/custom-runner:v0.16.0-rc3&quot;</span>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="o">}</span>
 </code></pre></div>
+</li>
+</ol>
 <h3 id="references">References</h3>
-<p>A <a href="https://github.com/tf-controller/tf-runner-images/blob/main/.github/workflows/release-runner-images.yaml">set of GitHub actions in the TF-Controller community repo</a> facilitates a process similar to the above, but uses GitHub Actions to build and push the image.</p>
+<p>A <a href="https://github.com/flux-iac/tf-runner-images/blob/main/.github/workflows/release-runner-images.yaml">set of GitHub actions in the Tofu Controller community repo</a> facilitates a process similar to the above, but uses GitHub Actions to build and push the image.</p>
 
 
 

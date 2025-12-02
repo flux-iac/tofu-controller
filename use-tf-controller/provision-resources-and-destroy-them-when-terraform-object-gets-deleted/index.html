@@ -19,7 +19,7 @@
     
     
       
-        <title>Use TF-Controller to provision resources and destroy them when the Terraform object gets deleted - Tofu Controller: An IAC Controller for Flux</title>
+        <title>Use Tofu Controller to provision resources and destroy them when the Terraform object gets deleted - Tofu Controller: An IAC Controller for Flux</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#use-tf-controller-to-provision-resources-and-destroy-them-when-the-terraform-object-gets-deleted" class="md-skip">
+        <a href="#use-tofu-controller-to-provision-resources-and-destroy-them-when-the-terraform-object-gets-deleted" class="md-skip">
           Skip to content
         </a>
       
@@ -106,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Use TF-Controller to provision resources and destroy them when the Terraform object gets deleted
+              Use Tofu Controller to provision resources and destroy them when the Terraform object gets deleted
             
           </span>
         </div>
@@ -556,7 +556,7 @@
   
 
 
-<h1 id="use-tf-controller-to-provision-resources-and-destroy-them-when-the-terraform-object-gets-deleted">Use TF-Controller to provision resources and destroy them when the Terraform object gets deleted</h1>
+<h1 id="use-tofu-controller-to-provision-resources-and-destroy-them-when-the-terraform-object-gets-deleted">Use Tofu Controller to provision resources and destroy them when the Terraform object gets deleted</h1>
 <p>The resources provisioned by a Terraform object are not destroyed by default, and the tfstate of that Terraform object still remains in the cluster.</p>
 <p>It means that you are safe to delete the Terraform object in the cluster and recreate it. 
 If you recreate a new Terraform object with the same name, namespace, and workspace, it will continue to use the tfstate inside the cluster as the starting point to reconcile.</p>

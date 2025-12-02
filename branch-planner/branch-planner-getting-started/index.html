@@ -833,33 +833,31 @@ any additional permissions. For private repositories, you need the following per
 <p>This section describes how to install Branch Planner using a HelmRelease object in the <code>flux-system</code> namespace with minimum configuration on a KinD cluster.</p>
 <ol>
 <li>
-<p>Create a KinD cluster.
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>kind create cluster
-</code></pre></div></p>
+<p>Create a KinD cluster.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>kind<span class="w"> </span>create<span class="w"> </span>cluster
+</code></pre></div>
 </li>
 <li>
 <p>Install Flux. Make sure you have the latest version of Flux (v2 GA).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>flux<span class="w"> </span>install
+</code></pre></div>
 </li>
-</ol>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>flux install
-</code></pre></div>
-<ol>
-<li>Create a secret that contains a GitHub API token. If you do not use the <code>gh</code> CLI, copy and paste the token from GitHub's website.</li>
-</ol>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>export GITHUB_TOKEN=$(gh auth token)
+<li>
+<p>Create a secret that contains a GitHub API token. If you do not use the <code>gh</code> CLI, copy and paste the token from GitHub's website.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">GITHUB_TOKEN</span><span class="o">=</span><span class="k">$(</span>gh<span class="w"> </span>auth<span class="w"> </span>token<span class="k">)</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>kubectl create secret generic branch-planner-token \
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    --namespace=flux-system \
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    --from-literal=&quot;token=${GITHUB_TOKEN}&quot;
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>branch-planner-token<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span>--namespace<span class="o">=</span>flux-system<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">&quot;token=</span><span class="si">${</span><span class="nv">GITHUB_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span>
 </code></pre></div>
-<ol>
-<li>Install Branch Planner from a HelmRelease provided by the TF-Controller repository. Use TF-Controller v0.16.0-rc.2 or later.</li>
-</ol>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl apply -f https://raw.githubusercontent.com/weaveworks/tf-controller/fa4b3b85d316340d897fda4fed757265ba2cd30e/docs/branch_planner/release.yaml
+</li>
+<li>
+<p>Install Branch Planner from a HelmRelease provided by the Tofu Controller repository. Use Tofu Controller v0.16.0-rc.6 or later.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/flux-iac/tofu-controller/fa4b3b85d316340d897fda4fed757265ba2cd30e/docs/branch_planner/release.yaml
 </code></pre></div>
-<ol>
-<li>Create a Terraform object with a Source pointing to a repository. Your repository must contain a Terraform file—for example, <code>main.tf</code>. Check out <a href="https://github.com/tf-controller/branch-planner-demo">this demo</a> for an example.</li>
-</ol>
+</li>
+<li>
+<p>Create a Terraform object with a Source pointing to a repository. Your repository must contain a Terraform file—for example, <code>main.tf</code>. Check out <a href="https://github.com/flux-iac/branch-planner-demo">this demo</a> for an example.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">GITHUB_USER</span><span class="o">=</span>&lt;your<span class="w"> </span>user&gt;
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">GITHUB_REPO</span><span class="o">=</span>&lt;your<span class="w"> </span>repo&gt;
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
@@ -891,13 +889,15 @@ any additional permissions. For private repositories, you need the following per
 <a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="s">    namespace: flux-system</span>
 <a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="s">EOF</span>
 </code></pre></div>
-<ol>
-<li>Now you can create a pull request on your GitHub repo. The Branch Planner will create a new Terraform object with the plan-only mode enabled and will generate a new plan for you. It will post the plan as a new comment in the pull request.</li>
+</li>
+<li>
+<p>Now you can create a pull request on your GitHub repo. The Branch Planner will create a new Terraform object with the plan-only mode enabled and will generate a new plan for you. It will post the plan as a new comment in the pull request.</p>
+</li>
 </ol>
 <h2 id="configure-branch-planner">Configure Branch Planner</h2>
 <p>Branch Planner uses a ConfigMap as configuration. The ConfigMap is optional but useful for fine-tuning Branch Planner.</p>
 <h3 id="configuration">Configuration</h3>
-<p>By default, Branch Planner will look for the <code>branch-planner</code> ConfigMap in the same namespace as where the TF-Controller is installed.
+<p>By default, Branch Planner will look for the <code>branch-planner</code> ConfigMap in the same namespace as where the Tofu Controller is installed.
 That ConfigMap allows users to specify which Terraform resources in a cluster the Brach Planner should monitor.</p>
 <p>The ConfigMap has two fields:</p>
 <ol>

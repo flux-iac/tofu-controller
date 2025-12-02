@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#use-tf-controller-to-detect-drifts-only-without-plan-or-apply" class="md-skip">
+        <a href="#use-tofu-controller-to-detect-drifts-only-without-plan-or-apply" class="md-skip">
           Skip to content
         </a>
       
@@ -543,10 +543,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#use-tf-controller-to-detect-drifts-only-without-plan-or-apply" class="md-nav__link">
+  <a href="#use-tofu-controller-to-detect-drifts-only-without-plan-or-apply" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Use TF-Controller to detect drifts only without plan or apply
+        Use Tofu Controller to detect drifts only without plan or apply
       
     </span>
   </a>
@@ -603,7 +603,7 @@
 
   <h1>Detect drifts only without plan or apply</h1>
 
-<h2 id="use-tf-controller-to-detect-drifts-only-without-plan-or-apply">Use TF-Controller to detect drifts only without plan or apply</h2>
+<h2 id="use-tofu-controller-to-detect-drifts-only-without-plan-or-apply">Use Tofu Controller to detect drifts only without plan or apply</h2>
 <p>We can set <code>.spec.approvePlan</code> to <code>disable</code> to tell the controller to detect drifts of your Terraform resources only. Doing so will skip the <code>plan</code> and <code>apply</code> stages.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha2</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Terraform</span>

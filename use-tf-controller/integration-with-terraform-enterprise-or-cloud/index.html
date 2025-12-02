@@ -648,15 +648,13 @@
 
 
 <h1 id="terraform-enterprise-and-terraform-cloud-integration">Terraform Enterprise and Terraform Cloud Integration</h1>
-<p>Terraform is a secure and robust platform designed to store the Terraform states 
-for your production systems. When working with Infrastructure as Code, 
-managing and ensuring the state is both secure and consistent is critical. </p>
-<p>TF-Controller supports both Terraform Cloud and Terraform Enterprise. The <code>spec.cloud</code> in the Terraform CRD enables users to integrate their Kubernetes configurations with Terraform workflows.</p>
+<p>Terraform is a secure and robust platform designed to store the Terraform states for your production systems. When working with Infrastructure as Code, managing and ensuring the state is both secure and consistent is critical.</p>
+<p>Tofu Controller supports both Terraform Cloud and Terraform Enterprise. The <code>spec.cloud</code> in the Terraform CRD enables users to integrate their Kubernetes configurations with Terraform workflows.</p>
 <p>To get started, simply place your Terraform Cloud token in a Kubernetes Secret
 and specify it in the <code>spec.cliConfigSecretRef</code> field of the Terraform CR.
 The <code>spec.cloud</code> field specifies the organization and workspace name.</p>
 <h2 id="terraform-enterprise">Terraform Enterprise</h2>
-<p>Here are the steps to set up TF-Controller for your TFE instance.</p>
+<p>Here are the steps to set up Tofu Controller for your TFE instance.</p>
 <p><img alt="" src="../tfe_integration_01.png" /></p>
 <h3 id="terraform-login">Terraform Login</h3>
 <p>First, you need to obtain an API token from your TFE. You can use <code>terraform login</code> command to do so.</p>
@@ -673,11 +671,11 @@ Content of the file will look like this:</p>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">}</span>
 </code></pre></div>
 <h3 id="prepare-an-tfrc-file">Prepare an TFRC file</h3>
-<p>TF-Controller accepts an TFRC file in the HCL format. So you have to prepare <code>terraform.tfrc</code> file using contents from above.
+<p>Tofu Controller accepts an TFRC file in the HCL format. So you have to prepare <code>terraform.tfrc</code> file using contents from above.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="err">credentials</span><span class="w"> </span><span class="s2">&quot;tfe.dev.example.com&quot;</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="na">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;mXXXXXXXXX.atlasv1.ixXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&quot;</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="create-a-secret">Create a Secret</h3>
 <p>We will now create a Kubernetes Secret from your<code>terraform.tfrc</code> file, 
 name it <code>tfe-cli-config</code> and put it inside the <code>flux-system</code> namespace.</p>
@@ -716,7 +714,7 @@ name it <code>tfe-cli-config</code> and put it inside the <code>flux-system</cod
 <a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">greeting</span>
 </code></pre></div>
 <h3 id="terraform-module">Terraform Module</h3>
-<p>Don't forget that you need to tell your Terraform model to use your enterprise instance as well. Here's an example,
+<p>Don't forget that you need to tell your Terraform model to use your enterprise instance as well. Here's an example:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">terraform</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="na">required_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;= 1.1.0&quot;</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nb">cloud</span><span class="w"> </span><span class="p">{</span>
@@ -738,11 +736,11 @@ name it <code>tfe-cli-config</code> and put it inside the <code>flux-system</cod
 <a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="kr">output</span><span class="w"> </span><span class="nv">&quot;greeting&quot;</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="w">  </span><span class="na">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Hello ${var.subject} from Terraform Enterprise&quot;</span>
 <a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="terraform-cloud">Terraform Cloud</h3>
-<p>TF-Controller can send your Terraform resources to be planned and applied via Terraform Cloud. 
-States are automatically stored in your Terraform Cloud's workspace. 
-To use TF-Controller with Terraform Cloud, replace your hostname to <code>app.terraform.io</code>. Also, set <code>spec.approvalPlan</code> to <code>auto</code>. </p>
+<p>Tofu Controller can send your Terraform resources to be planned and applied via Terraform Cloud.
+States are automatically stored in your Terraform Cloud's workspace.
+To use Tofu Controller with Terraform Cloud, replace your hostname to <code>app.terraform.io</code>. Also, set <code>spec.approvalPlan</code> to <code>auto</code>.</p>
 <p>Here's how the configuration looks:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha2</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Terraform</span>

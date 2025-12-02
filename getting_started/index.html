@@ -843,7 +843,7 @@
 <ol>
 <li>For Terraform Controller <strong>v0.15+</strong>, it requires <strong>Flux v2.0</strong> or later (not only the CLI, but also the controllers on the cluster). If you are not sure about the Flux version on your cluster, please re-bootstrap your cluster.</li>
 <li>For Terraform Controller v0.13 and v0.14, Flux 2 v0.32 - v0.41 (of course, not only the CLI, but also the controllers on the cluster).</li>
-<li>TF-controller uses <strong>the Controller/Runner architecture</strong>. The Controller acts as a client, and talks to each Runner's Pod via gRPC. Please make sure <ol>
+<li>Tofu Controller uses <strong>the Controller/Runner architecture</strong>. The Controller acts as a client, and talks to each Runner's Pod via gRPC. Please make sure <ol>
 <li><strong>Each Runner's Pod in each Namespace</strong> is allowed to open, and serve at <strong>port 30000</strong> (the gRPC port of a Runner), and the Controller can connect to it.</li>
 <li><strong>The Controller</strong> needs to download tar.gz BLOBs from the <strong>Source controller</strong> via <strong>port 80</strong>.</li>
 <li><strong>The Controller</strong> needs to post the events to the <strong>Notification controller</strong> via <strong>port 80</strong>.</li>
@@ -851,19 +851,19 @@
 </li>
 </ol>
 <h2 id="installation">Installation</h2>
-<p>Before using TF-controller, you have to install Flux by using either <code>flux install</code> or <code>flux bootstrap</code> command.
-Please note that TF-controller now requires <strong>Flux v2.0</strong> or later, so please make sure you have the latest version of Flux.
-After that you can install TF-controller with Flux HelmRelease by:</p>
+<p>Before using Tofu Controller, you have to install Flux by using either <code>flux install</code> or <code>flux bootstrap</code> command.
+Please note that Tofu Controller now requires <strong>Flux v2.0</strong> or later, so please make sure you have the latest version of Flux.
+After that you can install Tofu Controller with Flux HelmRelease by:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/release.yaml
 </code></pre></div>
-<p>For the most recent release candidate of TF-controller, please use <a href="https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/rc.yaml">rc.yaml</a>.</p>
+<p>For the most recent release candidate of Tofu Controller, please use <a href="https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/rc.yaml">rc.yaml</a>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/rc.yaml
 </code></pre></div>
 <h3 id="installation-on-gke">Installation on GKE</h3>
 <p>As of September 2023, GKE Autopilot clusters will use Cloud DNS for internal DNS resolution.
-This means that the default DNS resolution method used by TF-controller will not work.
-To use TF-controller on GKE Autopilot, you must set flag <code>--use-pod-subdomain-resolution=true</code> on the TF-controller deployment.
-This flag can be set by adding the following to the TF-controller HelmRelease:</p>
+This means that the default DNS resolution method used by Tofu Controller will not work.
+To use Tofu Controller on GKE Autopilot, you must set flag <code>--use-pod-subdomain-resolution=true</code> on the Tofu Controller deployment.
+This flag can be set by adding the following to the Tofu Controller HelmRelease:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">spec</span><span class="p">:</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">values</span><span class="p">:</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">usePodSubdomainResolution</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
@@ -872,17 +872,17 @@ This flag can be set by adding the following to the TF-controller HelmRelease:</
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-system</span>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dev-team</span>
 </code></pre></div>
-<p>Enabling this value will cause TF-controller to use the Pod's subdomain for DNS resolution instead of the default Pod resolution method.
+<p>Enabling this value will cause Tofu Controller to use the Pod's subdomain for DNS resolution instead of the default Pod resolution method.
 Pod's subdomain resolution requires a Service to be created for the Pod.
 The HelmRelease above will create a Service named <code>tf-runner</code> in each namespace specified by the <code>runner.allowedNamespaces</code> value.</p>
-<p>We have provided a HelmRelease to install TF-controller on GKE Autopilot with Pod's subdomain resolution enabled here.</p>
+<p>We have provided a HelmRelease to install Tofu Controller on GKE Autopilot with Pod's subdomain resolution enabled here.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/rc-gke.yaml
 </code></pre></div>
 <p>Tested with GKE Autopilot v1.27.3-gke.100.</p>
 <h3 id="with-branch-planner">With Branch Planner</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/branch-planner/release.yaml
 </code></pre></div>
-<p>For the most recent release candidate of TF-controller with Branch Planner, please use <a href="https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/branch-planner/rc.yaml">branch-planner/rc.yaml</a>.</p>
+<p>For the most recent release candidate of Tofu Controller with Branch Planner, please use <a href="https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/branch-planner/rc.yaml">branch-planner/rc.yaml</a>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/flux-iac/tofu-controller/main/docs/branch-planner/rc.yaml
 </code></pre></div>
 <p>For more details about the Branch Planner, please visit the
@@ -896,16 +896,16 @@ The HelmRelease above will create a Service named <code>tf-runner</code> in each
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>helm<span class="w"> </span>upgrade<span class="w"> </span>-i<span class="w"> </span>tofu-controller<span class="w"> </span>tofu-controller/tofu-controller<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span>--namespace<span class="w"> </span>flux-system
 </code></pre></div>
-<p>For details on configurable parameters of the TF-controller chart,
+<p>For details on configurable parameters of the Tofu Controller chart,
 please see <a href="https://github.com/flux-iac/tofu-controller/tree/main/charts/tofu-controller">chart readme</a>.</p>
-<p>Alternatively, you can install TF-controller via <code>kubectl</code>:</p>
+<p>Alternatively, you can install Tofu Controller via <code>kubectl</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">TF_CON_VER</span><span class="o">=</span>v0.15.1
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://github.com/flux-iac/tofu-controller/releases/download/<span class="si">${</span><span class="nv">TF_CON_VER</span><span class="si">}</span>/tf-controller.crds.yaml
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://github.com/flux-iac/tofu-controller/releases/download/<span class="si">${</span><span class="nv">TF_CON_VER</span><span class="si">}</span>/tf-controller.rbac.yaml
 <a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://github.com/flux-iac/tofu-controller/releases/download/<span class="si">${</span><span class="nv">TF_CON_VER</span><span class="si">}</span>/tf-controller.deployment.yaml
 </code></pre></div>
 <h2 id="quick-start">Quick start</h2>
-<p>Here's a simple example of how to GitOps your Terraform resources with TF-controller and Flux.</p>
+<p>Here's a simple example of how to GitOps your Terraform resources with Tofu Controller and Flux.</p>
 <h3 id="define-source">Define source</h3>
 <p>First, we need to define a Source controller's source (<code>GitRepository</code>, <code>Bucket</code>, <code>OCIRepository</code>), for example:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">source.toolkit.fluxcd.io/v1</span>
@@ -915,7 +915,7 @@ please see <a href="https://github.com/flux-iac/tofu-controller/tree/main/charts
 <a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-system</span>
 <a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="nt">spec</span><span class="p">:</span>
 <a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30s</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">  </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/tf-controller/helloworld</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">  </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/flux-iac/helloworld</span>
 <a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">  </span><span class="nt">ref</span><span class="p">:</span>
 <a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">    </span><span class="nt">branch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">main</span>
 </code></pre></div>
@@ -936,11 +936,11 @@ and automatically applied for you.</p>
 <a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">helloworld</span>
 <a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">    </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-system</span>
 </code></pre></div>
-<p>For a full list of features and how to use them, please follow the <a href="../use-tf-controller/">Use TF-controller</a> guide.</p>
+<p>For a full list of features and how to use them, please follow the <a href="../use-tf-controller/">Use Tofu Controller</a> guide.</p>
 <h2 id="other-examples">Other Examples</h2>
 <ul>
-<li>A Terraform GitOps with Flux to automatically reconcile your <a href="https://github.com/tf-controller/aws-iam-policies">AWS IAM Policies</a>.</li>
-<li>GitOps an existing EKS cluster, by partially import its nodegroup and manage it with TF-controller: <a href="https://github.com/tf-controller/eks-scaling">An EKS scaling example</a>.</li>
+<li>A Terraform GitOps with Flux to automatically reconcile your <a href="https://github.com/flux-iac/aws-iam-policies">AWS IAM Policies</a>.</li>
+<li>GitOps an existing EKS cluster, by partially import its nodegroup and manage it with Tofu Controller: <a href="https://github.com/flux-iac/eks-scaling">An EKS scaling example</a>.</li>
 </ul>
 
 

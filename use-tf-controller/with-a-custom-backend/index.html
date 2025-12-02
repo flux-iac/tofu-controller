@@ -19,7 +19,7 @@
     
     
       
-        <title>Option: Use TF-Controller with a Custom Backend - Tofu Controller: An IAC Controller for Flux</title>
+        <title>Option: Use Tofu Controller with a Custom Backend - Tofu Controller: An IAC Controller for Flux</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#option-use-tf-controller-with-a-custom-backend" class="md-skip">
+        <a href="#option-use-tofu-controller-with-a-custom-backend" class="md-skip">
           Skip to content
         </a>
       
@@ -106,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Option: Use TF-Controller with a Custom Backend
+              Option: Use Tofu Controller with a Custom Backend
             
           </span>
         </div>
@@ -556,8 +556,8 @@
   
 
 
-<h1 id="option-use-tf-controller-with-a-custom-backend">Option: Use TF-Controller with a Custom Backend</h1>
-<p>By default, TF-Controller uses the <a href="https://www.terraform.io/language/settings/backends/kubernetes">Kubernetes backend</a> to store the Terraform state file (tfstate) in clusters.</p>
+<h1 id="option-use-tofu-controller-with-a-custom-backend">Option: Use Tofu Controller with a Custom Backend</h1>
+<p>By default, Tofu Controller uses the <a href="https://www.terraform.io/language/settings/backends/kubernetes">Kubernetes backend</a> to store the Terraform state file (tfstate) in clusters.</p>
 <p>The tfstate is stored in a secret named: <code>tfstate-${workspace}-${secretSuffix}</code>. The default <code>suffix</code> will be the name of the Terraform resource, however you may override this setting using <code>.spec.backendConfig.secretSuffix</code>. The default <code>workspace</code> name is "default", you can also override the workspace by setting <code>.spec.workspace</code> to another value.</p>
 <p>If you wish to use a custom backend, you can configure it by defining the <code>.spec.backendConfig.customConfiguration</code> with one of the backends such as <strong>GCS</strong> or <strong>S3</strong>, for example:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha2</span>

@@ -19,7 +19,7 @@
     
     
       
-        <title>Use TF-controller with Terraform Runners exposed via hostname/subdomain - Tofu Controller: An IAC Controller for Flux</title>
+        <title>Use Tofu Controller with Terraform Runners exposed via hostname/subdomain - Tofu Controller: An IAC Controller for Flux</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#use-tf-controller-with-terraform-runners-exposed-via-hostnamesubdomain" class="md-skip">
+        <a href="#use-tofu-controller-with-terraform-runners-exposed-via-hostnamesubdomain" class="md-skip">
           Skip to content
         </a>
       
@@ -106,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Use TF-controller with Terraform Runners exposed via hostname/subdomain
+              Use Tofu Controller with Terraform Runners exposed via hostname/subdomain
             
           </span>
         </div>
@@ -586,11 +586,11 @@
   
 
 
-<h1 id="use-tf-controller-with-terraform-runners-exposed-via-hostnamesubdomain">Use TF-controller with Terraform Runners <strong>exposed via hostname/subdomain</strong></h1>
-<p>TF-controller uses the Controller/Runner architecture. The Controller acts as a client, and talks to each Runner's Pod via gRPC over port 30000.</p>
-<p>TF-controller must thus be able to reliably connect to each Runner's pod regardless of the cluster network topology.</p>
+<h1 id="use-tofu-controller-with-terraform-runners-exposed-via-hostnamesubdomain">Use Tofu Controller with Terraform Runners <strong>exposed via hostname/subdomain</strong></h1>
+<p>Tofu Controller uses the Controller/Runner architecture. The Controller acts as a client, and talks to each Runner's Pod via gRPC over port 30000.</p>
+<p>Tofu Controller must thus be able to reliably connect to each Runner's pod regardless of the cluster network topology.</p>
 <h2 id="the-default-runner-dns-resolution">The Default Runner DNS resolution</h2>
-<p>By default, TF-controller fetches the Runner's pod IP address after it is instantiated (e.g. <code>1.2.3.4</code>).</p>
+<p>By default, Tofu Controller fetches the Runner's pod IP address after it is instantiated (e.g. <code>1.2.3.4</code>).</p>
 <p>It then transforms the IP address into its <code>IP-based pod DNS A record</code> (e.g. <code>1.2.3.4.&lt;namespace&gt;.pod.&lt;cluster-domain&gt;</code>) which is used to connect to the Runner pod using gRPC protocol.</p>
 <p>In standard Kubernetes cluster deployment, <code>IP-based pod DNS resolution</code> is usually provided by <a href="https://coredns.io/">Coredns</a> and especially the <code>pods</code> option of the <a href="https://coredns.io/plugins/kubernetes/#syntax">Kubernetes plugin</a>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cluster.local {
@@ -599,7 +599,7 @@
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    }
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>}
 </code></pre></div>
-<p>IMPORTANT: The gRPC communication between TF-controller and Runner's pod is secured with mTLS. TF-controller generates a valid wildcard TLS certificate for <code>*.&lt;namespace&gt;.pod.&lt;cluster-domain&gt;</code> hosts on the Runner's namespace. The Runner's pod present this certificate during TLS handshake with TF-controller. </p>
+<p>IMPORTANT: The gRPC communication between Tofu Controller and Runner's pod is secured with mTLS. Tofu Controller generates a valid wildcard TLS certificate for <code>*.&lt;namespace&gt;.pod.&lt;cluster-domain&gt;</code> hosts on the Runner's namespace. The Runner's pod present this certificate during TLS handshake with Tofu Controller.</p>
 <h2 id="hostnamesubdomain-runner-dns-resolution">Hostname/Subdomain Runner DNS resolution</h2>
 <p>The default configuration described above works for standard Kubernetes deployments. It does not work however when the cluster DNS provider do not support <code>IP-based pod DNS resolution</code>. This is the case for <code>GCP Cloud DNS</code> for example.</p>
 <p>For such setup, you can switch the DNS resolution mode to <a href="https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-hostname-and-subdomain-fields">Hostname/Subdomain</a>. Enabling this option will :</p>
@@ -672,9 +672,9 @@
 <a id="__codelineno-2-47" name="__codelineno-2-47" href="#__codelineno-2-47"></a><span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RuntimeDefault</span>
 <a id="__codelineno-2-48" name="__codelineno-2-48" href="#__codelineno-2-48"></a><span class="w">  </span><span class="nt">serviceAccountName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tf-runner</span>
 </code></pre></div>
-<p>The Runner's pod can then be targeted by TF-Controller using <code>&lt;terraform_object_name&gt;.tf-runner.&lt;namespace&gt;.svc.&lt;cluster-domain&gt; (helloworld.tf-runner.hello-world.svc.cluster.local)</code> as per Kubernetes specification instead of <code>IP-based pod DNS resolution</code>.</p>
-<p>The switch is performed by setting the following <em>Helm value</em> <code>usePodSubdomainResolution: true</code> or running directly TF-controller with the option <code>--use-pod-subdomain-resolution=true</code></p>
-<p>IMPORTANT: The gRPC communication between TF-Controller and Runner's pod is secured with mTLS. TF-controller generates a valid wildcard TLS certificate for <code>*.&lt;namespace&gt;.pod.&lt;cluster-domain&gt;</code> and <code>*.tf-runner.&lt;namespace&gt;.svc.&lt;cluster-domain&gt;</code> hosts on the Runner's namespace. The Runner's pod present this certificate during TLS handshake with TF-Controller.</p>
+<p>The Runner's pod can then be targeted by Tofu Controller using <code>&lt;terraform_object_name&gt;.tf-runner.&lt;namespace&gt;.svc.&lt;cluster-domain&gt; (helloworld.tf-runner.hello-world.svc.cluster.local)</code> as per Kubernetes specification instead of <code>IP-based pod DNS resolution</code>.</p>
+<p>The switch is performed by setting the following <em>Helm value</em> <code>usePodSubdomainResolution: true</code> or running directly Tofu Controller with the option <code>--use-pod-subdomain-resolution=true</code></p>
+<p>IMPORTANT: The gRPC communication between Tofu Controller and Runner's pod is secured with mTLS. Tofu Controller generates a valid wildcard TLS certificate for <code>*.&lt;namespace&gt;.pod.&lt;cluster-domain&gt;</code> and <code>*.tf-runner.&lt;namespace&gt;.svc.&lt;cluster-domain&gt;</code> hosts on the Runner's namespace. The Runner's pod present this certificate during TLS handshake with Tofu Controller.</p>
 
 
 
