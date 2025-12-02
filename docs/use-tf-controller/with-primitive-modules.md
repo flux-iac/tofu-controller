@@ -1,7 +1,7 @@
-# Use TF-Controller with primitive modules
+# Use Tofu Controller with primitive modules
 
-This document describes how to use TF-Controller with a primitive module.
-It requires TF-Controller v0.13+ to run the example.
+This document describes how to use Tofu Controller with a primitive module.
+It requires Tofu Controller v0.13+ to run the example.
 
 ## What is a primitive module?
 

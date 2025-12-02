@@ -1,4 +1,4 @@
-## Use TF-Controller with Azure
+## Use Tofu Controller with Azure
 
 This content was [provided](https://github.com/flux-iac/tofu-controller/issues/561) by users [@mingmingshiliyu](https://github.com/mingmingshiliyu) and [@maciekdude](https://github.com/maciekdude).
 
@@ -6,7 +6,7 @@ Use the OIDC flag and explicitly point to the token. Due to a bug in AzureRM 3.4
 
 Set env variables on the runner pod:
 
-```
+```yaml
         - name: ARM_USE_OIDC
           value: "true"
         - name: ARM_OIDC_TOKEN_FILE_PATH

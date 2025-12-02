@@ -1,4 +1,4 @@
-# Use TF-Controller to provision resources and obtain outputs
+# Use Tofu Controller to provision resources and obtain outputs
 
 Outputs created by Terraform can be written to a secret using `.spec.writeOutputsToSecret`.
 
@@ -52,9 +52,9 @@ spec:
 ## Rename outputs
 
 Some time we'd like to use rename an output, so that it can be consumed by other Kubernetes controllers.
-For example, we might retrieve a key from a Secret manager, and it's an AGE key, which must be ending with ".agekey" in the secret. In this case, we need to rename the output. 
+For example, we might retrieve a key from a Secret manager, and it's an AGE key, which must be ending with ".agekey" in the secret. In this case, we need to rename the output.
 
-TF-controller supports mapping output names using the `old_name:new_name` format.
+Tofu Controller supports mapping output names using the `old_name:new_name` format.
 
 In the following example, we renamed `age_key` output as `age.agekey` entry for the `helloworld-output` secret's data, so that other components in the GitOps pipeline could consume it.
 
@@ -77,6 +77,7 @@ spec:
     outputs:
     - age_key:age.agekey
 ```
+
 ## Customize metadata of the outputted secret
 
 Some situations require adding custom labels and annotations to the outputted secret.
@@ -103,5 +104,4 @@ spec:
       my-label: true
     annotations:
       my-annotation: "very long string"
-      
 ```
