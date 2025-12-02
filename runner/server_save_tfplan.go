@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -102,8 +103,9 @@ func (r *TerraformRunnerServer) generatePlanSecrets(name string, namespace strin
 				Name:      secretIdentifier,
 				Namespace: namespace,
 				Annotations: map[string]string{
-					"encoding":                "gzip",
-					SavedPlanSecretAnnotation: planId,
+					"encoding":                          "gzip",
+					SavedPlanSecretAnnotation:           planId,
+					"infra.contrib.fluxcd.io/plan-hash": fmt.Sprintf("%x", sha256.Sum256(plan)),
 				},
 				Labels: map[string]string{
 					"infra.contrib.fluxcd.io/plan-name":      name + suffix,
@@ -133,7 +135,9 @@ func (r *TerraformRunnerServer) generatePlanSecrets(name string, namespace strin
 		start := chunk * resourceDataMaxSizeBytes
 		end := min(start+resourceDataMaxSizeBytes, len(plan))
 
-		data := map[string][]byte{TFPlanName: plan[start:end]}
+		planData := plan[start:end]
+
+		data := map[string][]byte{TFPlanName: planData}
 
 		secret := &v1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
@@ -143,6 +147,7 @@ func (r *TerraformRunnerServer) generatePlanSecrets(name string, namespace strin
 					"encoding":                           "gzip",
 					SavedPlanSecretAnnotation:            planId,
 					"infra.contrib.fluxcd.io/plan-chunk": fmt.Sprintf("%d", chunk),
+					"infra.contrib.fluxcd.io/plan-hash":  fmt.Sprintf("%x", sha256.Sum256(planData)),
 				},
 				Labels: map[string]string{
 					"infra.contrib.fluxcd.io/plan-name":      name + suffix,
@@ -241,7 +246,8 @@ func (r *TerraformRunnerServer) generatePlanConfigMaps(name string, namespace st
 				Name:      configMapIdentifier,
 				Namespace: namespace,
 				Annotations: map[string]string{
-					SavedPlanSecretAnnotation: planId,
+					SavedPlanSecretAnnotation:           planId,
+					"infra.contrib.fluxcd.io/plan-hash": fmt.Sprintf("%x", sha256.Sum256([]byte(plan))),
 				},
 				Labels: map[string]string{
 					"infra.contrib.fluxcd.io/plan-name":      name + suffix,
@@ -270,7 +276,9 @@ func (r *TerraformRunnerServer) generatePlanConfigMaps(name string, namespace st
 		start := chunk * resourceDataMaxSizeBytes
 		end := min(start+resourceDataMaxSizeBytes, len(plan))
 
-		data := map[string]string{TFPlanName: plan[start:end]}
+		planData := plan[start:end]
+
+		data := map[string]string{TFPlanName: planData}
 
 		configMap := &v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
@@ -279,6 +287,7 @@ func (r *TerraformRunnerServer) generatePlanConfigMaps(name string, namespace st
 				Annotations: map[string]string{
 					SavedPlanSecretAnnotation:            planId,
 					"infra.contrib.fluxcd.io/plan-chunk": fmt.Sprintf("%d", chunk),
+					"infra.contrib.fluxcd.io/plan-hash":  fmt.Sprintf("%x", sha256.Sum256([]byte(planData))),
 				},
 				Labels: map[string]string{
 					"infra.contrib.fluxcd.io/plan-name":      name + suffix,
