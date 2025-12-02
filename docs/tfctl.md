@@ -1,6 +1,6 @@
 # tfctl
 
-`tfctl` is a command-line utility to help with tf-controller operations.
+`tfctl` is a command-line utility to help with Tofu Controller operations.
 
 ## Installation
 

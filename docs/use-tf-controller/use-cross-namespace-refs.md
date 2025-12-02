@@ -1,6 +1,6 @@
 # Using Cross-Namespace References
 
-The Terraform CRD in the API for TF-Controller includes fields which are references to other objects:
+The Terraform CRD in the API for Tofu Controller includes fields which are references to other objects:
 
 | Name | Purpose |
 |------|---------|
@@ -15,6 +15,6 @@ Branch Planner configuration can also have cross-namespace references:
 | .secretNamespace | Namespace of secret containing a GitHub token |
 | .resources[*] | Each entry refers to a Terraform object to include in branch planning |
 
-All of these can refer to an object in a namespace different to that of the Terraform object. However, giving access to objects in other namespaces is generally considered a security risk, so this is disallowed by default. Only references that mention the same namespace, or that omit the namespace field, will be accepted. References using a different namespace will cause TF-Controller to stop processing the Terraform object and put it in a non-Ready state.
+All of these can refer to an object in a namespace different to that of the Terraform object. However, giving access to objects in other namespaces is generally considered a security risk, so this is disallowed by default. Only references that mention the same namespace, or that omit the namespace field, will be accepted. References using a different namespace will cause Tofu Controller to stop processing the Terraform object and put it in a non-Ready state.
 
-To **allow** cross-namespace references, use the flag `--allow-cross-namespace-refs` with TF-Controller and the Branch Planner. When using the Helm chart to install or update TF-Controller and Branch Planner, the value `allowCrossNamespaceRefs` will allow cross-namespace references for both.
+To **allow** cross-namespace references, use the flag `--allow-cross-namespace-refs` with Tofu Controller and the Branch Planner. When using the Helm chart to install or update Tofu Controller and Branch Planner, the value `allowCrossNamespaceRefs` will allow cross-namespace references for both.
