@@ -19,6 +19,8 @@ import (
 )
 
 const (
+	// resourceDataMaxSizeBytes defines the maximum size of data
+	// that can be stored in a Kubernetes Secret or ConfigMap
 	resourceDataMaxSizeBytes = 1 * 1024 * 1024 // 1MB
 )
 
@@ -51,12 +53,14 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 		return nil, err
 	}
 
-	if r.terraform.Spec.StoreReadablePlan == "json" {
+	switch r.terraform.Spec.StoreReadablePlan {
+	case "json":
 		planObj, err := r.tfShowPlanFile(ctx, TFPlanName)
 		if err != nil {
 			log.Error(err, "unable to get the plan output for json")
 			return nil, err
 		}
+
 		jsonBytes, err := json.Marshal(planObj)
 		if err != nil {
 			log.Error(err, "unable to marshal the plan to json")
@@ -64,10 +68,10 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 		}
 
 		if err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, log, planId, jsonBytes, ".json", req.Uuid); err != nil {
+			log.Error(err, "unable to write the plan to secret")
 			return nil, err
 		}
-
-	} else if r.terraform.Spec.StoreReadablePlan == "human" {
+	case "human":
 		rawOutput, err := r.tfShowPlanFileRaw(ctx, TFPlanName)
 		if err != nil {
 			log.Error(err, "unable to get the plan output for human")
@@ -75,6 +79,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 		}
 
 		if err := r.writePlanAsConfigMap(ctx, req.Name, req.Namespace, log, planId, rawOutput, "", req.Uuid); err != nil {
+			log.Error(err, "unable to write the plan to configmap")
 			return nil, err
 		}
 	}
@@ -84,7 +89,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 
 func (r *TerraformRunnerServer) generatePlanSecrets(name string, namespace string, planId string, suffix string, uuid string, plan []byte) ([]*v1.Secret, error) {
 	// Build a standard name prefix for the secrets
-	secretIdentifier := "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix
+	secretIdentifier := fmt.Sprintf("tfplan-%s-%s", r.terraform.WorkspaceName(), name+suffix)
 
 	// Check whether the Terraform Plan is larger (or equal) to 1MB
 	// which is the maximum size for a Kubernetes Secret or ConfigMap
@@ -223,7 +228,7 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 
 func (r *TerraformRunnerServer) generatePlanConfigMaps(name string, namespace string, planId string, suffix string, uuid string, plan string) ([]*v1.ConfigMap, error) {
 	// Build a standard name prefix for the configmaps
-	configMapIdentifier := "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix
+	configMapIdentifier := fmt.Sprintf("tfplan-%s-%s", r.terraform.WorkspaceName(), name+suffix)
 
 	// Check whether the Terraform Plan is larger (or equal) to 1MB
 	// which is the maximum size for a Kubernetes Secret or ConfigMap
