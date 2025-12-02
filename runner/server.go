@@ -521,9 +521,9 @@ func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *Finali
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
 	log.Info("finalize the output secrets")
 
-	existingSecrets := &v1.SecretList{}
+	secrets := &v1.SecretList{}
 
-	if err := r.Client.List(ctx, existingSecrets, client.InNamespace(req.Namespace), client.MatchingLabels{
+	if err := r.Client.List(ctx, secrets, client.InNamespace(req.Namespace), client.MatchingLabels{
 		"infra.contrib.fluxcd.io/plan-name":      req.Name,
 		"infra.contrib.fluxcd.io/plan-workspace": req.Workspace,
 	}); err != nil {
@@ -531,22 +531,22 @@ func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *Finali
 		return nil, err
 	}
 
-	if len(existingSecrets.Items) == 0 {
+	if len(secrets.Items) == 0 {
 		var legacyPlanSecret v1.Secret
 
 		if err := r.Client.Get(ctx, types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-" + req.Workspace + "-" + req.Name}, &legacyPlanSecret); err == nil {
-			existingSecrets.Items = append(existingSecrets.Items, legacyPlanSecret)
+			secrets.Items = append(secrets.Items, legacyPlanSecret)
 		}
 	}
 
-	for _, s := range existingSecrets.Items {
+	for _, s := range secrets.Items {
 		if err := r.Client.Delete(ctx, &s); err != nil {
 			log.Error(err, "unable to delete existing plan secret", "secretName", s.Name)
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
 
-	if len(existingSecrets.Items) == 0 {
+	if len(secrets.Items) == 0 {
 		return nil, status.Error(codes.NotFound, "no existing plan secrets found to delete")
 	}
 
