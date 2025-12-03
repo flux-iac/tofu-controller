@@ -149,14 +149,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, patchHelper *patch.S
 		return terraform, controllerruntime.Result{}, err
 	}
 
-	// Remove our finalizer from the list and update it
 	traceLog.Info("Remove the finalizer")
-	controllerutil.RemoveFinalizer(terraform, infrav1.TerraformFinalizer)
-	traceLog.Info("Check for an error")
-	if err := r.Update(ctx, terraform); err != nil {
-		traceLog.Error(err, "Hit an error, return")
-		return terraform, controllerruntime.Result{}, err
-	}
 
 	// Remove the dependant finalizer from every dependency
 	dependantFinalizer := infrav1.TFDependencyOfPrefix + terraform.GetName()
@@ -169,18 +162,25 @@ func (r *TerraformReconciler) finalize(ctx context.Context, patchHelper *patch.S
 			Name:      d.Name,
 		}
 		var tf infrav1.Terraform
-		err := r.Get(context.Background(), dName, &tf)
+		err := r.Get(ctx, dName, &tf)
 		if err != nil {
 			return terraform, controllerruntime.Result{}, err
 		}
 
-		// add finalizer to the dependency
+		// remove the finalizer from the dependency
 		if controllerutil.ContainsFinalizer(&tf, dependantFinalizer) {
+			patch := client.MergeFrom(tf.DeepCopy())
 			controllerutil.RemoveFinalizer(&tf, dependantFinalizer)
-			if err := r.Update(context.Background(), &tf, client.FieldOwner(r.FieldManager)); err != nil {
+			if err := r.Patch(ctx, &tf, patch, client.FieldOwner(r.FieldManager)); err != nil {
 				return terraform, controllerruntime.Result{}, err
 			}
 		}
+	}
+
+	patch := client.MergeFrom(terraform.DeepCopy())
+	controllerutil.RemoveFinalizer(terraform, infrav1.TerraformFinalizer)
+	if err := r.Patch(ctx, terraform, patch, client.FieldOwner(r.FieldManager)); err != nil {
+		return terraform, controllerruntime.Result{}, err
 	}
 
 	// Stop reconciliation as the object is being deleted
