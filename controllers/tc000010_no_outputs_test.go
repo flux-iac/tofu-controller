@@ -190,6 +190,21 @@ spec:
 		"LastAppliedPlan": "plan-master-b8e362c206",
 	}))
 
+	It("should have the expected conditions.")
+	By("checking that the TF resource's status conditions match the expected conditions.")
+	g.Eventually(func() []normalisedCondition {
+		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
+		if err != nil {
+			return nil
+		}
+		return normaliseConditions(createdHelloWorldTF.Status.Conditions)
+	}, timeout, interval).Should(Equal([]normalisedCondition{
+		{Type: meta.ReadyCondition, Status: metav1.ConditionTrue, Reason: infrav1.TFExecApplySucceedReason, Message: "Applied successfully: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb"},
+		{Type: infrav1.ConditionTypeApply, Status: metav1.ConditionTrue, Reason: infrav1.TFExecApplySucceedReason, Message: "Applied successfully"},
+		{Type: infrav1.ConditionTypeOutput, Status: metav1.ConditionTrue, Reason: "TerraformOutputsAvailable", Message: "Outputs available"},
+		{Type: infrav1.ConditionTypePlan, Status: metav1.ConditionTrue, Reason: infrav1.PlannedWithChangesReason, Message: "Plan generated"},
+	}))
+
 	It("should have an available output.")
 	By("checking that the Terraform resource's .status.availableOutputs contains hello_world as an output name.")
 	g.Eventually(func() []string {

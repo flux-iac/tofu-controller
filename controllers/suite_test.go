@@ -339,3 +339,25 @@ func By(text string) {
 	preamble := "\x1b[1mBY\x1b[0m"
 	fmt.Fprintln(os.Stderr, preamble+": "+text)
 }
+
+type normalisedCondition struct {
+	Type    string
+	Status  metav1.ConditionStatus
+	Reason  string
+	Message string
+}
+
+func normaliseConditions(conditions []metav1.Condition) []normalisedCondition {
+	parsed := make([]normalisedCondition, 0, len(conditions))
+
+	for _, c := range conditions {
+		parsed = append(parsed, normalisedCondition{
+			Type:    c.Type,
+			Status:  c.Status,
+			Reason:  c.Reason,
+			Message: c.Message,
+		})
+	}
+
+	return parsed
+}
