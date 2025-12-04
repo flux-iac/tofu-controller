@@ -94,6 +94,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | serviceAccount.create | bool | `true` | If `true`, create a new service account |
 | serviceAccount.name | string | tofu-controller | Service account to be used |
 | tolerations | list | `[]` | Tolerations properties for the tofu-controller deployment |
+| updateStrategy | object | `{}` | Customize updateStrategy on controller and branch-planner |
 | usePodSubdomainResolution | bool | `false` | Argument for `--use-pod-subdomain-resolution` (Controller).  UsePodSubdomainResolution allow pod hostname/subdomain DNS resolution for the pod runner instead of IP based DNS resolution. |
 | usePriorityQueue | bool | `true` | Argument for `--use-priority-queue` (Controller).  Enable the priority queue feature to prioritize new/changed resources over resources loaded after a restart or resync. |
 | volumeMounts | list | `[]` | Volume mounts properties for the tofu-controller deployment |
