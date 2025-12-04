@@ -54,7 +54,7 @@ func (c *CLI) Replan(ctx context.Context, out io.Writer, resource string) error 
 		return err
 	}
 
-	return c.ShowPlan(out, resource)
+	return c.ShowPlan(ctx, out, resource)
 }
 
 func replan(ctx context.Context, kubeClient client.Client, namespacedName types.NamespacedName) error {

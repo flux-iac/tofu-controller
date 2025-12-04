@@ -66,6 +66,10 @@ func TestInformer(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "tfplan-default-helloworld",
 			Namespace: ns.Name,
+			Labels: map[string]string{
+				"infra.contrib.fluxcd.io/plan-name":      "helloworld",
+				"infra.contrib.fluxcd.io/plan-workspace": "default",
+			},
 		},
 		Data: map[string]string{
 			"tfplan": "terraform plan output",
