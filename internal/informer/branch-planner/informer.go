@@ -16,11 +16,9 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/go-logr/logr"
 	giturl "github.com/kubescape/go-git-url"
-	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -197,8 +195,7 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 		return
 	}
 
-	planOutput := plan.Data["tfplan"]
-	if len(planOutput) == 0 {
+	if len(plan) == 0 {
 		i.log.Info("Empty plan output")
 
 		return
@@ -206,7 +203,7 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 
 	i.log.Info("Updated plan", "pr-id", new.Labels[config.LabelPRIDKey])
 
-	i.addCommentToPullRequest(ctx, new, formatPlanOutput(planOutput))
+	i.addCommentToPullRequest(ctx, new, formatPlanOutput(plan))
 }
 
 func (i *Informer) deleteHandler(obj interface{}) {}
@@ -282,24 +279,54 @@ func (i *Informer) removeCommentIDAnnotation(ctx context.Context, tf *infrav1.Te
 	return i.client.Patch(ctx, tf, patch)
 }
 
-func (i *Informer) getPlan(ctx context.Context, obj *infrav1.Terraform) (*corev1.ConfigMap, error) {
-	cmName := types.NamespacedName{Namespace: obj.GetNamespace(), Name: "tfplan-" + obj.WorkspaceName() + "-" + obj.GetName()}
+func (i *Informer) getPlan(ctx context.Context, obj *infrav1.Terraform) (string, error) {
+	configMaps := &v1.ConfigMapList{}
 
-	tfplanCM := &corev1.ConfigMap{}
-	err := i.client.Get(ctx, cmName, tfplanCM)
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			return &corev1.ConfigMap{
-				Data: map[string]string{
-					"tfplan": "Please set `spec.storeReadablePlan: human` to view the plan",
-				},
-			}, nil
-		}
-
-		return nil, fmt.Errorf("error getting plan cm: %s", err)
+	if err := i.client.List(ctx, configMaps, client.InNamespace(obj.GetNamespace()), client.MatchingLabels{
+		"infra.contrib.fluxcd.io/plan-name":      obj.GetName(),
+		"infra.contrib.fluxcd.io/plan-workspace": obj.WorkspaceName(),
+	}); err != nil {
+		return "", fmt.Errorf("unable to list plan configmaps: %s", err)
 	}
 
-	return tfplanCM, nil
+	if len(configMaps.Items) == 0 {
+		return "Please set `spec.storeReadablePlan: human` to view the plan", nil
+	}
+
+	chunkMap := make(map[int]string)
+
+	for _, configMap := range configMaps.Items {
+		planStr, ok := configMap.Data["tfplan"]
+		if !ok {
+			return "", fmt.Errorf("configmap %s missing key tfplan", configMap.Name)
+		}
+
+		// Grab the chunk index from the configmap annotation
+		chunkIndex := 0
+		if idxStr, ok := configMap.Annotations["infra.contrib.fluxcd.io/plan-chunk"]; ok && idxStr != "" {
+			var err error
+			chunkIndex, err = strconv.Atoi(idxStr)
+			if err != nil {
+				return "", fmt.Errorf("invalid chunk index annotation found on configmap %s: %s", configMap.Name, err)
+			}
+		}
+
+		chunkMap[chunkIndex] = planStr
+	}
+
+	var plan string
+
+	// we know the number of chunks we "should" have, so work
+	// up til there checking we have each chunk
+	for i := 0; i < len(chunkMap); i++ {
+		chunk, ok := chunkMap[i]
+		if !ok {
+			return "", fmt.Errorf("missing chunk %d for terraform %s", i, obj.GetName())
+		}
+		plan += chunk
+	}
+
+	return plan, nil
 }
 
 func (i *Informer) isNewPlan(old, new *infrav1.Terraform) bool {
@@ -318,8 +345,8 @@ func (i *Informer) isNewPlan(old, new *infrav1.Terraform) bool {
 	return false
 }
 
-func (i *Informer) getProviderSecret(ctx context.Context, ref client.ObjectKey) (*corev1.Secret, error) {
-	obj := &corev1.Secret{}
+func (i *Informer) getProviderSecret(ctx context.Context, ref client.ObjectKey) (*v1.Secret, error) {
+	obj := &v1.Secret{}
 	if err := i.client.Get(ctx, ref, obj); err != nil {
 		return nil, fmt.Errorf("unable to get Secret: %w", err)
 	}

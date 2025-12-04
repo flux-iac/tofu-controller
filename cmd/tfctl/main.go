@@ -238,7 +238,7 @@ func buildShowPlanCmd(app *tfctl.CLI) *cobra.Command {
 		Example: strings.Trim(showPlanExamples, "\n"),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.ShowPlan(os.Stdout, args[0])
+			return app.ShowPlan(cmd.Context(), os.Stdout, args[0])
 		},
 	}
 }

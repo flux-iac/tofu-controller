@@ -57,6 +57,10 @@ func TestShowPlan(t *testing.T) {
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "tfplan-default-hello-world",
 							Namespace: "default",
+							Labels: map[string]string{
+								"infra.contrib.fluxcd.io/plan-name":      "hello-world",
+								"infra.contrib.fluxcd.io/plan-workspace": "default",
+							},
 						},
 						Data: map[string][]byte{
 							"tfplan": plan,
@@ -109,7 +113,7 @@ state, without changing any real infrastructure.
 
 			out := &bytes.Buffer{}
 
-			if err := cli.ShowPlan(out, tt.name); (err != nil) != tt.wantErr {
+			if err := cli.ShowPlan(context.Background(), out, tt.name); (err != nil) != tt.wantErr {
 				t.Errorf("ShowPlan() error = %v, wantErr %v", err, tt.wantErr)
 			}
 

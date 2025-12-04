@@ -4,15 +4,16 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strconv"
 
 	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	kClient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/utils"
 	"github.com/spf13/afero"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
+	v1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -40,39 +41,87 @@ func loadTFPlan(
 	client client.Client,
 	fs afero.Fs,
 ) (*LoadTFPlanReply, error) {
-	tfplanSecretKey := types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-" + terraform.WorkspaceName() + "-" + req.Name}
-	tfplanSecret := corev1.Secret{}
-	err := client.Get(ctx, tfplanSecretKey, &tfplanSecret)
-	if err != nil {
-		err = fmt.Errorf("error getting plan secret: %s", err)
-		log.Error(err, "unable to get secret")
+	secrets := &v1.SecretList{}
+
+	planIDLabel := fmt.Sprintf("tfplan-%s-%s", terraform.WorkspaceName(), req.Name)
+
+	// List relevant secrets
+	if err := client.List(ctx, secrets, kClient.InNamespace(req.Namespace), kClient.MatchingLabels{
+		"infra.contrib.fluxcd.io/plan-name":      req.Name,
+		"infra.contrib.fluxcd.io/plan-workspace": terraform.WorkspaceName(),
+	}); err != nil {
+		log.Error(err, "unable to list existing plan secrets")
 		return nil, err
 	}
 
-	if terraform.Spec.Force {
-		// skip the annotation check
-		log.Info("force mode, skipping the plan's annotation check")
-	} else {
-		// this must be the short plan format: see api/planid/plan_id.go
-		pendingPlanId := req.PendingPlan
-		if tfplanSecret.Annotations[SavedPlanSecretAnnotation] != pendingPlanId {
-			err = fmt.Errorf("error pending plan and plan's name in the secret are not matched: %s != %s",
-				pendingPlanId,
-				tfplanSecret.Annotations[SavedPlanSecretAnnotation])
-			log.Error(err, "plan name mismatch")
-			return nil, err
-		}
+	// Check that we actually have some secrets to read
+	if len(secrets.Items) == 0 {
+		err := fmt.Errorf("no plan secrets found for plan %s", req.PendingPlan)
+		log.Error(err, "no plan secret found")
+		return nil, err
 	}
 
-	if req.BackendCompletelyDisable {
-		// do nothing
-	} else {
-		tfplan := tfplanSecret.Data[TFPlanName]
-		tfplan, err = utils.GzipDecode(tfplan)
+	pendingPlanId := req.PendingPlan
+
+	// To store the individual plan chunks by index
+	chunkMap := make(map[int][]byte)
+
+	for _, secret := range secrets.Items {
+		if !terraform.Spec.Force {
+			// Check that the plan IDs match what we are expecting
+			if secret.Annotations[SavedPlanSecretAnnotation] != pendingPlanId {
+				err := fmt.Errorf("error pending plan and plan's name in the secret are not matched: %s != %s",
+					pendingPlanId,
+					secret.Annotations[SavedPlanSecretAnnotation])
+				log.Error(err, "plan name mismatch")
+				return nil, err
+			}
+		}
+
+		// Check our plan data is still there in the secret
+		// TODO: also validate checksum?
+		planStr, ok := secret.Data[TFPlanName]
+		if !ok {
+			err := fmt.Errorf("secret %s missing key %s", secret.Name, TFPlanName)
+			log.Error(err, "missing plan data")
+			return nil, err
+		}
+
+		// Grab the chunk index from the secret annotation
+		chunkIndex := 0
+		if idxStr, ok := secret.Annotations["infra.contrib.fluxcd.io/plan-chunk"]; ok && idxStr != "" {
+			var err error
+			chunkIndex, err = strconv.Atoi(idxStr)
+			if err != nil {
+				log.Error(err, "invalid chunk index annotation found on secret", "secret", secret.Name)
+				return nil, err
+			}
+		}
+
+		chunkMap[chunkIndex] = planStr
+	}
+
+	if !req.BackendCompletelyDisable {
+		var planBytes []byte
+
+		// we know the number of chunks we "should" have, so work
+		// up til there checking we have each chunk
+		for i := 0; i < len(chunkMap); i++ {
+			chunk, ok := chunkMap[i]
+			if !ok {
+				err := fmt.Errorf("missing chunk %d for plan %s", i, planIDLabel)
+				log.Error(err, "incomplete plan")
+				return nil, err
+			}
+			planBytes = append(planBytes, chunk...)
+		}
+
+		tfplan, err := utils.GzipDecode(planBytes)
 		if err != nil {
 			log.Error(err, "unable to decode the plan")
 			return nil, err
 		}
+
 		err = afero.WriteFile(fs, filepath.Join(workingDir, TFPlanName), tfplan, 0644)
 		if err != nil {
 			err = fmt.Errorf("error saving plan file to disk: %s", err)
