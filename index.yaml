@@ -783,6 +783,16 @@ entries:
     version: 0.1.0
   tofu-controller:
   - apiVersion: v2
+    appVersion: v0.16.0-rc.7
+    created: "2025-12-04T17:06:35.56547767Z"
+    description: The Helm chart for Weave GitOps Terraform Controller
+    digest: 9f784ece049acfe72ddddb881f155b991059d902b0aad8c215d70146e5b8c267
+    name: tofu-controller
+    type: application
+    urls:
+    - https://flux-iac.github.io/tofu-controller/tofu-controller-0.16.0-rc.7.tgz
+    version: 0.16.0-rc.7
+  - apiVersion: v2
     appVersion: v0.16.0-rc.6
     created: "2025-11-25T15:18:34.610063931Z"
     description: The Helm chart for Weave GitOps Terraform Controller
@@ -802,4 +812,4 @@ entries:
     urls:
     - https://flux-iac.github.io/tofu-controller/tofu-controller-0.16.0-rc.5.tgz
     version: 0.16.0-rc.5
-generated: "2025-11-25T15:18:34.606829773Z"
+generated: "2025-12-04T17:06:35.562268351Z"
