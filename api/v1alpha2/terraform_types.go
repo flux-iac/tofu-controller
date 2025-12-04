@@ -571,6 +571,10 @@ const (
 
 // SetTerraformReadiness sets the ReadyCondition, ObservedGeneration, and LastAttemptedRevision, on the Terraform.
 func SetTerraformReadiness(terraform *Terraform, status metav1.ConditionStatus, reason, message string, revision string) {
+	if status != metav1.ConditionUnknown {
+		conditions.Delete(terraform, meta.ReconcilingCondition)
+	}
+
 	newCondition := metav1.Condition{
 		Type:    meta.ReadyCondition,
 		Status:  status,
