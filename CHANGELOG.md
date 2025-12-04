@@ -2,6 +2,29 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.16.0-rc.7
+
+**Release date:** 2025-12-04
+
+We would like to thank our contributors for their continued support and effort in improving the Tofu-Controller.
+
+Please follow the [upgrade guide in the documentation](https://flux-iac.github.io/tofu-controller/use-tf-controller/upgrade-tf-controller/) to ensure a smooth transition to the latest version.
+
+Breaking Changes:
+
+- fix(metrics): remove deprecated metrics ([#1649](https://github.com/flux-iac/tofu-controller/pull/1649)) ([0c896e0b](https://github.com/flux-iac/tofu-controller/commit/0c896e0ba4fc6fd903163ebec5aa8f989a2c79ff))
+
+New Features and Bug Fixes:
+
+- feat: support storing plans over chunked kubernetes resources ([#1655](https://github.com/flux-iac/tofu-controller/pull/1655)) ([91e25a8c](https://github.com/flux-iac/tofu-controller/commit/91e25a8cff14da700c02bc3baa6c2ef6d11514e3))
+- fix: delete reconciling condition on unknown readiness ([#1658](https://github.com/flux-iac/tofu-controller/pull/1658)) ([ac39a777](https://github.com/flux-iac/tofu-controller/commit/ac39a7773493c487a312e48b3ab91c84f95c8046))
+- fix: patch dependency finalizers instead of update ([#1652](https://github.com/flux-iac/tofu-controller/pull/1652)) ([e5bccf46](https://github.com/flux-iac/tofu-controller/commit/e5bccf46510c7a9c756a392c0f69e96426fe666c))
+- fix: skip drift detection when spec has changed ([#1651](https://github.com/flux-iac/tofu-controller/pull/1651)) ([a8f30b12](https://github.com/flux-iac/tofu-controller/commit/a8f30b1255c3cb75e4db34146ba5936cfbc5dbae))
+- fix: align tf-runner pod app.kubernetes.io/created-by label ([#1650](https://github.com/flux-iac/tofu-controller/pull/1650)) ([75d3bdc5](https://github.com/flux-iac/tofu-controller/commit/75d3bdc52dcb067d4dc3a0c905bbe8175c6a88e0))
+- feat: compare interval with LastPlanAt timestamp ([#1648](https://github.com/flux-iac/tofu-controller/pull/1648)) ([08d4beaa](https://github.com/flux-iac/tofu-controller/commit/08d4beaab5c5675ea1ae3b93db0bc4c368251d6d))
+- chore(docs): update tf-controller references ([#1653](https://github.com/flux-iac/tofu-controller/pull/1653)) ([0d66bfcb](https://github.com/flux-iac/tofu-controller/commit/0d66bfcb5bb4872546dfe45a4d7fe3419775193f))
+- chore(docs): document release process ([#1647](https://github.com/flux-iac/tofu-controller/pull/1647)) ([d67e2f0d](https://github.com/flux-iac/tofu-controller/commit/d67e2f0d610d123cebfce345a3f906f0f1f30b3f))
+
 ## v0.16.0-rc.6
 
 **Release date:** 2025-11-25
