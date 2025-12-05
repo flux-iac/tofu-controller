@@ -5,6 +5,7 @@ import (
 	"time"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/fluxcd/pkg/apis/meta"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -74,6 +75,34 @@ func TestShouldReconcileWhenGenerationChanged(t *testing.T) {
 	tf := &infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Generation: 2,
+		},
+		Spec: infrav1.TerraformSpec{
+			Interval: metav1.Duration{Duration: 24 * time.Hour},
+		},
+		Status: infrav1.TerraformStatus{
+			LastPlanAt:         &metav1.Time{Time: time.Now()},
+			ObservedGeneration: 1,
+		},
+	}
+
+	shouldReconcile, requeueAfter := reconciler.shouldReconcile(tf)
+	g.Expect(shouldReconcile).To(BeTrue())
+	g.Expect(requeueAfter).To(Equal(time.Duration(0)))
+}
+
+func TestShouldReconcileWhenRequestedViaAnnotation(t *testing.T) {
+	Spec("This spec covers reconciling immediately when the reconcile request annotation is set.")
+	It("should return true even if the interval has not elapsed and the generation is the same.")
+
+	g := NewWithT(t)
+	reconciler := &TerraformReconciler{}
+
+	tf := &infrav1.Terraform{
+		ObjectMeta: metav1.ObjectMeta{
+			Generation: 1,
+			Annotations: map[string]string{
+				meta.ReconcileRequestAnnotation: "2024-12-05T12:00:00Z",
+			},
 		},
 		Spec: infrav1.TerraformSpec{
 			Interval: metav1.Duration{Duration: 24 * time.Hour},
