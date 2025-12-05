@@ -20,7 +20,7 @@ Then you define a source (`OCIRepository`), and use it as the `sourceRef` of you
 
 ```yaml hl_lines="5 20-22"
 ---
-apiVersion: source.toolkit.fluxcd.io/v1beta2
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
   name: helloworld-oci

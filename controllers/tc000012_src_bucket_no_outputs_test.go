@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -33,12 +33,12 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 
 	Given("a Bucket")
 	By("defining a new Bucket resource.")
-	testBucket := sourcev1b2.Bucket{
+	testBucket := sourcev1.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      sourceName,
 			Namespace: "flux-system",
 		},
-		Spec: sourcev1b2.BucketSpec{
+		Spec: sourcev1.BucketSpec{
 			BucketName: "test-flux-tf-bucket",
 			Provider:   "generic",
 			Interval:   metav1.Duration{Duration: time.Second * 30},
@@ -53,7 +53,7 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 	Given("the Bucket's reconciled status.")
 	By("setting the Bucket's status, with the downloadable BLOB's URL, and the correct checksum.")
 	updatedTime := time.Now()
-	testBucket.Status = sourcev1b2.BucketStatus{
+	testBucket.Status = sourcev1.BucketStatus{
 		ObservedGeneration: int64(1),
 		Conditions: []metav1.Condition{
 			{
