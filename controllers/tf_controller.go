@@ -561,6 +561,14 @@ func (r *TerraformReconciler) shouldReconcile(terraform *infrav1.Terraform) (boo
 		return true, 0
 	}
 
+	// Reconcile when a *new* reconcile request annotation is present
+	if requestedAt, ok := meta.ReconcileAnnotationValue(terraform.GetAnnotations()); ok {
+		// we do SetLastHandledReconcileRequest in the defer func, so check it here
+		if terraform.Status.GetLastHandledReconcileRequest() != requestedAt {
+			return true, 0
+		}
+	}
+
 	// If we have never planned, we should continue
 	if terraform.Status.LastPlanAt == nil {
 		return true, 0
