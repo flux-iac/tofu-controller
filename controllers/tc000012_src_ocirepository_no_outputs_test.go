@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -33,15 +33,15 @@ func Test_000012_src_ocirepository_no_outputs_test(t *testing.T) {
 
 	Given("an OCIRepository")
 	By("defining a new OCIRepository resource.")
-	testOCIRepository := sourcev1b2.OCIRepository{
+	testOCIRepository := sourcev1.OCIRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      sourceName,
 			Namespace: "flux-system",
 		},
-		Spec: sourcev1b2.OCIRepositorySpec{
+		Spec: sourcev1.OCIRepositorySpec{
 			URL:      "oci://ghcr.io/flux-iac/aws-primitive-modules",
 			Provider: "generic",
-			Reference: &sourcev1b2.OCIRepositoryRef{
+			Reference: &sourcev1.OCIRepositoryRef{
 				Tag: "v4.38.0-v1alpha11",
 			},
 			Interval: metav1.Duration{Duration: time.Second * 30},
@@ -56,7 +56,7 @@ func Test_000012_src_ocirepository_no_outputs_test(t *testing.T) {
 	Given("the OCIRepository's reconciled status.")
 	By("setting the OCIRepository's status, with the downloadable BLOB's URL, and the correct checksum.")
 	updatedTime := time.Now()
-	testOCIRepository.Status = sourcev1b2.OCIRepositoryStatus{
+	testOCIRepository.Status = sourcev1.OCIRepositoryStatus{
 		ObservedGeneration: int64(1),
 		Conditions: []metav1.Condition{
 			{

@@ -16,7 +16,7 @@ BUILD_VERSION ?= $(shell git describe --tags $$(git rev-list --tags --max-count=
 LIBCRYPTO_VERSION ?= 3.5.4-r0
 
 # source controller version
-SOURCE_VER ?= v1.0.0-rc.1
+SOURCE_VER ?= v1.7.4
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 GOBIN=$(shell pwd)/bin
