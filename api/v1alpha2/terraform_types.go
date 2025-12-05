@@ -628,6 +628,8 @@ func TerraformApplied(terraform *Terraform, revision string, message string, isD
 		terraform.Status.Inventory = &ResourceInventory{Entries: entries}
 	}
 
+	TerraformStateLockReleased(terraform)
+
 	SetTerraformReadiness(terraform, metav1.ConditionUnknown, TFExecApplySucceedReason, message+": "+revision, revision)
 	return terraform
 }
@@ -665,6 +667,8 @@ func TerraformPlannedWithChanges(terraform *Terraform, revision string, forceOrA
 
 	terraform.Status.LastPlanAt = &metav1.Time{Time: time.Now()}
 
+	TerraformStateLockReleased(terraform)
+
 	// planOnly takes the highest precedence
 	if terraform.Spec.PlanOnly {
 		SetTerraformReadiness(terraform, metav1.ConditionUnknown, PlannedWithChangesReason, message+": This object is in the plan only mode.", revision)
@@ -690,6 +694,8 @@ func TerraformPlannedNoChanges(terraform *Terraform, revision string, message st
 	}
 
 	terraform.Status.LastPlanAt = &metav1.Time{Time: time.Now()}
+
+	TerraformStateLockReleased(terraform)
 
 	SetTerraformReadiness(terraform, metav1.ConditionTrue, PlannedNoChangesReason, message+": "+revision, revision)
 	return terraform
@@ -719,11 +725,15 @@ func TerraformAppliedFailResetPlanAndNotReady(terraform *Terraform, revision, re
 func TerraformDriftDetected(terraform *Terraform, revision, reason, message string) *Terraform {
 	terraform.Status.LastDriftDetectedAt = &metav1.Time{Time: time.Now()}
 
+	TerraformStateLockReleased(terraform)
+
 	SetTerraformReadiness(terraform, metav1.ConditionFalse, reason, trimString(message, MaxConditionMessageLength), revision)
 	return terraform
 }
 
 func TerraformNoDrift(terraform *Terraform, revision, reason, message string) *Terraform {
+	TerraformStateLockReleased(terraform)
+
 	SetTerraformReadiness(terraform, metav1.ConditionTrue, reason, message+": "+revision, revision)
 	return terraform
 }
@@ -763,6 +773,15 @@ func TerraformStateLocked(terraform *Terraform, lockID, message string) *Terrafo
 	}
 
 	terraform.Status.Lock.Pending = lockID
+	return terraform
+}
+
+// TerraformStateLockReleased clears any state lock condition and resets lock tracking fields.
+func TerraformStateLockReleased(terraform *Terraform) *Terraform {
+	conditions.Delete(terraform, ConditionTypeStateLocked)
+	terraform.Status.Lock.Pending = ""
+	terraform.Status.Lock.LastApplied = ""
+
 	return terraform
 }
 
