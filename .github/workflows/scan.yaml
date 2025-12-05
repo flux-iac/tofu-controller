@@ -57,7 +57,7 @@ jobs:
         run: |
           make docker-buildx
       - name: Run Trivy vulnerability scanner on controller image
-        uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 # v0.30.0
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
         with:
           image-ref: 'ghcr.io/flux-iac/tofu-controller:latest'
           format: 'table'
@@ -66,7 +66,7 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
       - name: Run Trivy vulnerability scanner on runner image
-        uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 # v0.30.0
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
         with:
           image-ref: 'ghcr.io/flux-iac/tf-runner:latest'
           format: 'table'
@@ -76,7 +76,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
           skip-files: '/usr/local/bin/terraform' # false positive
       - name: Run Trivy vulnerability scanner on runner image
-        uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 # v0.30.0
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
         with:
           image-ref: 'ghcr.io/flux-iac/tf-runner-azure:latest'
           format: 'table'
@@ -86,7 +86,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
           skip-files: '/usr/local/bin/terraform' # false positive
       - name: Run Trivy vulnerability scanner on planner image
-        uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 # v0.30.0
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
         with:
           image-ref: 'ghcr.io/flux-iac/branch-planner:latest'
           format: 'table'
