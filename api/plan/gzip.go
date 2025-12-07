@@ -1,9 +1,9 @@
-package utils
+package plan
 
 import (
 	"bytes"
 	"compress/gzip"
-	"io/ioutil"
+	"io"
 )
 
 func GzipEncode(tfplan []byte) ([]byte, error) {
@@ -18,17 +18,19 @@ func GzipEncode(tfplan []byte) ([]byte, error) {
 	if err := w.Close(); err != nil {
 		return nil, err
 	}
+
 	return buf.Bytes(), nil
 }
 
 func GzipDecode(encodedPlan []byte) ([]byte, error) {
 	re := bytes.NewReader(encodedPlan)
+
 	gr, err := gzip.NewReader(re)
 	if err != nil {
 		return nil, err
 	}
 
-	o, err := ioutil.ReadAll(gr)
+	o, err := io.ReadAll(gr)
 	if err != nil {
 		return nil, err
 	}
@@ -36,5 +38,6 @@ func GzipDecode(encodedPlan []byte) ([]byte, error) {
 	if err = gr.Close(); err != nil {
 		return nil, err
 	}
+
 	return o, nil
 }
