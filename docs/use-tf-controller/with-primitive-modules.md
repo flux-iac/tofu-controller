@@ -32,7 +32,7 @@ Finally, we need to set the `spec.approvePlan` field to `auto` to automatically 
 
 ```yaml hl_lines="19-25"
 ---
-apiVersion: source.toolkit.fluxcd.io/v1beta2
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
   name: hello-package-v4.32.0

@@ -36,7 +36,6 @@ import (
 	"github.com/fluxcd/pkg/runtime/patch"
 	"github.com/fluxcd/pkg/runtime/predicates"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-retryablehttp"
 	corev1 "k8s.io/api/core/v1"
@@ -607,13 +606,13 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 
 	// Index the Terraforms by the Bucket references they (may) point at.
 	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, infrav1.BucketIndexKey,
-		r.IndexBy(sourcev1b2.BucketKind)); err != nil {
+		r.IndexBy(sourcev1.BucketKind)); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
 	// Index the Terraforms by the OCIRepository references they (may) point at.
 	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, infrav1.OCIRepositoryIndexKey,
-		r.IndexBy(sourcev1b2.OCIRepositoryKind)); err != nil {
+		r.IndexBy(sourcev1.OCIRepositoryKind)); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
@@ -639,12 +638,12 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 			builder.WithPredicates(SourceRevisionChangePredicate{}),
 		).
 		Watches(
-			&sourcev1b2.Bucket{},
+			&sourcev1.Bucket{},
 			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(infrav1.BucketIndexKey)),
 			builder.WithPredicates(SourceRevisionChangePredicate{}),
 		).
 		Watches(
-			&sourcev1b2.OCIRepository{},
+			&sourcev1.OCIRepository{},
 			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(infrav1.OCIRepositoryIndexKey)),
 			builder.WithPredicates(SourceRevisionChangePredicate{}),
 		).
@@ -802,8 +801,8 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform *infrav1.
 			return sourceObj, fmt.Errorf("unable to get source '%s': %w", sourceReference, err)
 		}
 		sourceObj = &repository
-	case sourcev1b2.BucketKind:
-		var bucket sourcev1b2.Bucket
+	case sourcev1.BucketKind:
+		var bucket sourcev1.Bucket
 		err := r.Client.Get(ctx, sourceReference, &bucket)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
@@ -812,8 +811,8 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform *infrav1.
 			return sourceObj, fmt.Errorf("unable to get source '%s': %w", sourceReference, err)
 		}
 		sourceObj = &bucket
-	case sourcev1b2.OCIRepositoryKind:
-		var repository sourcev1b2.OCIRepository
+	case sourcev1.OCIRepositoryKind:
+		var repository sourcev1.OCIRepository
 		err := r.Client.Get(ctx, sourceReference, &repository)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
