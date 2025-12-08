@@ -26,7 +26,6 @@ import (
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/fluxcd/pkg/runtime/logger"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -94,11 +93,6 @@ func TestMain(m *testing.M) {
 	}
 
 	err = sourcev1.AddToScheme(scheme)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	err = sourcev1b2.AddToScheme(scheme)
 	if err != nil {
 		panic(err.Error())
 	}
