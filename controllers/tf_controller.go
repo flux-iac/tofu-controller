@@ -163,19 +163,10 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	// Return early if the Terraform is suspended.
-	traceLog.Info("Check if the Terraform resource is suspened")
+	traceLog.Info("Check if the Terraform resource is suspended")
 	if terraform.Spec.Suspend {
 		log.Info("Reconciliation is suspended for this object")
 		return ctrl.Result{}, nil
-	}
-
-	// Check whether we need to reconcile the release at this time
-	if shouldReconcile, requeueAfter := r.shouldReconcile(terraform); !shouldReconcile {
-		log.Info("Skipping reconciliation. Interval has not elapsed since last plan",
-			"lastPlanAt", terraform.Status.LastPlanAt,
-			"nextReconcile", terraform.Status.LastPlanAt.Add(terraform.Spec.Interval.Duration),
-			"requeueAfter", requeueAfter)
-		return ctrl.Result{RequeueAfter: requeueAfter}, nil
 	}
 
 	// Mark the resource as under reconciliation.
@@ -254,6 +245,22 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	if conditions.HasAnyReason(terraform, meta.ReadyCondition, infrav1.ArtifactFailedReason) {
 		conditions.MarkUnknown(terraform, meta.ReadyCondition, meta.ProgressingReason, "Reconciliation in progress")
+	}
+
+	// Check whether we need to reconcile the release at this time
+	if shouldReconcile, reason, requeueAfter := r.shouldReconcile(terraform, sourceObj); !shouldReconcile {
+		log.Info("Skipping reconciliation. Interval has not elapsed since last plan",
+			"lastPlanAt", terraform.Status.LastPlanAt,
+			"nextReconcile", terraform.Status.LastPlanAt.Add(terraform.Spec.Interval.Duration),
+			"requeueAfter", requeueAfter,
+			"reason", reason)
+
+		// Remove any Progressing condition since we're skipping reconciliation
+		if conditions.HasAnyReason(terraform, meta.ProgressingReason) {
+			conditions.Delete(terraform, meta.ProgressingReason)
+		}
+
+		return ctrl.Result{RequeueAfter: requeueAfter}, nil
 	}
 
 	// check dependencies, if not being deleted
@@ -549,47 +556,52 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	return ctrl.Result{RequeueAfter: terraform.Spec.Interval.Duration}, nil
 }
 
-func (r *TerraformReconciler) shouldReconcile(terraform *infrav1.Terraform) (bool, time.Duration) {
+func (r *TerraformReconciler) shouldReconcile(terraform *infrav1.Terraform, source sourcev1.Source) (bool, string, time.Duration) {
 	// Always plan is .Spec.Force is true
 	if terraform.Spec.Force {
-		return true, 0
+		return true, "force is enabled", 0
 	}
 
 	// Do not delay if being deleted
 	if isBeingDeleted(terraform) {
-		return true, 0
+		return true, "object is being deleted", 0
 	}
 
 	// Reconcile when a *new* reconcile request annotation is present
 	if requestedAt, ok := meta.ReconcileAnnotationValue(terraform.GetAnnotations()); ok {
 		// we do SetLastHandledReconcileRequest in the defer func, so check it here
 		if terraform.Status.GetLastHandledReconcileRequest() != requestedAt {
-			return true, 0
+			return true, "new reconcile request annotation present", 0
 		}
 	}
 
 	// If we have never planned, we should continue
 	if terraform.Status.LastPlanAt == nil {
-		return true, 0
+		return true, "never planned before", 0
 	}
 
 	// If the generation has changed, we should continue
-	if terraform.Generation != terraform.Status.ObservedGeneration {
-		return true, 0
+	if terraform.Status.ObservedGeneration != 0 && terraform.Generation != terraform.Status.ObservedGeneration {
+		return true, "terraform generation has changed", 0
 	}
 
 	// Do not delay if there is a pending plan or an apply should run.
 	if terraform.Status.Plan.Pending != "" || r.shouldApply(terraform) {
-		return true, 0
+		return true, "pending plan or apply should run", 0
+	}
+
+	// If the source revision has changed, we should continue
+	if source != nil && source.GetArtifact() != nil && terraform.Status.LastAttemptedRevision != source.GetArtifact().Revision {
+		return true, "source revision has changed since last reconciliation attempt", 0
 	}
 
 	nextReconcile := terraform.Status.LastPlanAt.Add(terraform.Spec.Interval.Duration)
 	requeueAfter := time.Until(nextReconcile)
 	if requeueAfter > 0 {
-		return false, requeueAfter
+		return false, "", requeueAfter
 	}
 
-	return true, 0
+	return true, "", 0
 }
 
 func isBeingDeleted(terraform *infrav1.Terraform) bool {
