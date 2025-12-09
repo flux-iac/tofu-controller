@@ -25,6 +25,7 @@ import (
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
 	"github.com/fluxcd/pkg/apis/meta"
+	"github.com/fluxcd/pkg/runtime/conditions"
 	"github.com/fluxcd/pkg/runtime/patch"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -310,6 +311,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, patchHelper *patch.
 			// do nothing
 		} else if cond.Reason != meta.ProgressingReason {
 			terraform.Status.Conditions[readyConditionIndex].Status = metav1.ConditionTrue
+			conditions.Delete(terraform, meta.ReconcilingCondition) // do at the end because it shifts indices
 		}
 	}
 
