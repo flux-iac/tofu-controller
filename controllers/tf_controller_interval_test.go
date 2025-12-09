@@ -6,6 +6,7 @@ import (
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/fluxcd/pkg/apis/meta"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -33,8 +34,9 @@ func TestShouldReconcileSkipsWhenIntervalNotElapsed(t *testing.T) {
 		},
 	}
 
-	shouldReconcile, requeueAfter := reconciler.shouldReconcile(tf)
+	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, nil)
 	g.Expect(shouldReconcile).To(BeFalse())
+	g.Expect(reason).To(Equal(""))
 	g.Expect(requeueAfter).To(BeNumerically(">", 17*time.Hour))
 	g.Expect(requeueAfter).To(BeNumerically("<=", 24*time.Hour))
 }
@@ -60,8 +62,9 @@ func TestShouldReconcileWhenIntervalElapsed(t *testing.T) {
 		},
 	}
 
-	shouldReconcile, requeueAfter := reconciler.shouldReconcile(tf)
+	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, nil)
 	g.Expect(shouldReconcile).To(BeTrue())
+	g.Expect(reason).To(Equal(""))
 	g.Expect(requeueAfter).To(Equal(time.Duration(0)))
 }
 
@@ -85,8 +88,9 @@ func TestShouldReconcileWhenGenerationChanged(t *testing.T) {
 		},
 	}
 
-	shouldReconcile, requeueAfter := reconciler.shouldReconcile(tf)
+	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, nil)
 	g.Expect(shouldReconcile).To(BeTrue())
+	g.Expect(reason).To(Equal("terraform generation has changed"))
 	g.Expect(requeueAfter).To(Equal(time.Duration(0)))
 }
 
@@ -113,8 +117,9 @@ func TestShouldReconcileWhenRequestedViaAnnotation(t *testing.T) {
 		},
 	}
 
-	shouldReconcile, requeueAfter := reconciler.shouldReconcile(tf)
+	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, nil)
 	g.Expect(shouldReconcile).To(BeTrue())
+	g.Expect(reason).To(Equal("new reconcile request annotation present"))
 	g.Expect(requeueAfter).To(Equal(time.Duration(0)))
 }
 
@@ -141,8 +146,9 @@ func TestShouldReconcileWhenPendingPlan(t *testing.T) {
 		},
 	}
 
-	shouldReconcile, requeueAfter := reconciler.shouldReconcile(tf)
+	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, nil)
 	g.Expect(shouldReconcile).To(BeTrue())
+	g.Expect(reason).To(Equal("pending plan or apply should run"))
 	g.Expect(requeueAfter).To(Equal(time.Duration(0)))
 }
 
@@ -162,8 +168,9 @@ func TestShouldReconcileWhenNeverPlanned(t *testing.T) {
 		},
 	}
 
-	shouldReconcile, requeueAfter := reconciler.shouldReconcile(tf)
+	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, nil)
 	g.Expect(shouldReconcile).To(BeTrue())
+	g.Expect(reason).To(Equal("never planned before"))
 	g.Expect(requeueAfter).To(Equal(time.Duration(0)))
 }
 
@@ -188,8 +195,9 @@ func TestShouldReconcileWhenDeleting(t *testing.T) {
 		},
 	}
 
-	shouldReconcile, requeueAfter := reconciler.shouldReconcile(tf)
+	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, nil)
 	g.Expect(shouldReconcile).To(BeTrue())
+	g.Expect(reason).To(Equal("object is being deleted"))
 	g.Expect(requeueAfter).To(Equal(time.Duration(0)))
 }
 
@@ -213,7 +221,69 @@ func TestShouldReconcileWhenForceEnabled(t *testing.T) {
 		},
 	}
 
-	shouldReconcile, requeueAfter := reconciler.shouldReconcile(tf)
+	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, nil)
 	g.Expect(shouldReconcile).To(BeTrue())
+	g.Expect(reason).To(Equal("force is enabled"))
+	g.Expect(requeueAfter).To(Equal(time.Duration(0)))
+}
+
+func TestShouldReconcileWhenSourceRevisionChanges(t *testing.T) {
+	Spec("This spec covers reconciling when the source revision has changed.")
+	It("should return true without delay.")
+
+	g := NewWithT(t)
+	reconciler := &TerraformReconciler{}
+
+	source := &sourcev1.GitRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "source",
+			Namespace: "flux-system",
+		},
+		Spec: sourcev1.GitRepositorySpec{
+			URL: "https://github.com/openshift-fluxv2-poc/podinfo",
+			Reference: &sourcev1.GitRepositoryRef{
+				Branch: "master",
+			},
+			Interval: metav1.Duration{Duration: time.Second * 30},
+		},
+	}
+
+	source.Status = sourcev1.GitRepositoryStatus{
+		ObservedGeneration: int64(1),
+		Conditions: []metav1.Condition{
+			{
+				Type:               "Ready",
+				Status:             metav1.ConditionTrue,
+				LastTransitionTime: metav1.Time{Time: time.Now()},
+				Reason:             "GitOperationSucceed",
+				Message:            "Fetched revision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+			},
+		},
+		Artifact: &meta.Artifact{
+			Path:           "gitrepository/flux-system/source/b8e362c206e3d0cbb7ed22ced771a0056455a2fb.tar.gz",
+			URL:            server.URL() + "/file.tar.gz",
+			Revision:       "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
+			Digest:         "sha256:80ddfd18eb96f7d31cadc1a8a5171c6e2d95df3f6c23b0ed9cd8dddf6dba1406",
+			LastUpdateTime: metav1.Time{Time: time.Now()},
+		},
+	}
+
+	tf := &infrav1.Terraform{
+		ObjectMeta: metav1.ObjectMeta{
+			Generation: 1,
+		},
+		Spec: infrav1.TerraformSpec{
+			Interval: metav1.Duration{Duration: 24 * time.Hour},
+		},
+		Status: infrav1.TerraformStatus{
+			LastPlanAt:          &metav1.Time{Time: time.Now()},
+			LastPlannedRevision: "an-old-revision",
+			LastAppliedRevision: "an-old-revision",
+		},
+	}
+
+	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, source)
+	g.Expect(shouldReconcile).To(BeTrue())
+	g.Expect(reason).To(Equal("source revision has changed since last reconciliation attempt"))
 	g.Expect(requeueAfter).To(Equal(time.Duration(0)))
 }
