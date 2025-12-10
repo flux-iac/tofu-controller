@@ -36,7 +36,7 @@ func TestShouldReconcileSkipsWhenIntervalNotElapsed(t *testing.T) {
 
 	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, nil)
 	g.Expect(shouldReconcile).To(BeFalse())
-	g.Expect(reason).To(Equal(""))
+	g.Expect(reason).To(Equal("interval has not elapsed since last plan"))
 	g.Expect(requeueAfter).To(BeNumerically(">", 17*time.Hour))
 	g.Expect(requeueAfter).To(BeNumerically("<=", 24*time.Hour))
 }
@@ -286,4 +286,100 @@ func TestShouldReconcileWhenSourceRevisionChanges(t *testing.T) {
 	g.Expect(shouldReconcile).To(BeTrue())
 	g.Expect(reason).To(Equal("source revision has changed since last reconciliation attempt"))
 	g.Expect(requeueAfter).To(Equal(time.Duration(0)))
+}
+
+func TestShouldReconcileWithRetryIntervalOnFailure(t *testing.T) {
+	Spec("This spec covers reconciling once the retry interval has elapsed after a failed reconciliation.")
+	It("should return true even if the main interval has not elapsed.")
+
+	g := NewWithT(t)
+	reconciler := &TerraformReconciler{}
+
+	tf := &infrav1.Terraform{
+		ObjectMeta: metav1.ObjectMeta{
+			Generation: 1,
+		},
+		Spec: infrav1.TerraformSpec{
+			Interval:      metav1.Duration{Duration: 24 * time.Hour},
+			RetryInterval: &metav1.Duration{Duration: 30 * time.Minute},
+		},
+		Status: infrav1.TerraformStatus{
+			LastPlanAt:             &metav1.Time{Time: time.Now().Add(-3 * time.Hour)},
+			ObservedGeneration:     1,
+			ReconciliationFailures: 1,
+			Conditions: []metav1.Condition{
+				{
+					Message: "error running Apply: rpc error: code = Internal desc = exit status 1",
+					Reason:  infrav1.TFExecApplyFailedReason,
+					Type:    meta.ReadyCondition,
+					Status:  metav1.ConditionFalse,
+				},
+				{
+					Message: "Plan generated",
+					Reason:  infrav1.PlannedWithChangesReason,
+					Type:    infrav1.ConditionTypePlan,
+					Status:  metav1.ConditionFalse,
+				},
+				{
+					Message: "error running Apply: rpc error: code = Internal desc = exit status 1",
+					Reason:  "TerraformAppliedFail",
+					Type:    infrav1.ConditionTypeApply,
+					Status:  metav1.ConditionFalse,
+				},
+			},
+		},
+	}
+
+	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, nil)
+	g.Expect(shouldReconcile).To(BeTrue())
+	g.Expect(reason).To(Equal("retry interval has elapsed since last failed reconciliation"))
+	g.Expect(requeueAfter).To(Equal(time.Duration(0)))
+}
+
+func TestShouldReconcileWaitsForRetryIntervalOnFailure(t *testing.T) {
+	Spec("This spec covers deferring reconciliation until the retry interval elapses after a failure.")
+	It("should return false with a requeue duration bounded by the retry interval.")
+
+	g := NewWithT(t)
+	reconciler := &TerraformReconciler{}
+
+	tf := &infrav1.Terraform{
+		ObjectMeta: metav1.ObjectMeta{
+			Generation: 1,
+		},
+		Spec: infrav1.TerraformSpec{
+			Interval:      metav1.Duration{Duration: 24 * time.Hour},
+			RetryInterval: &metav1.Duration{Duration: 30 * time.Minute},
+		},
+		Status: infrav1.TerraformStatus{
+			LastPlanAt:             &metav1.Time{Time: time.Now().Add(-10 * time.Minute)},
+			ObservedGeneration:     1,
+			ReconciliationFailures: 1,
+			Conditions: []metav1.Condition{
+				{
+					Message: "error running Apply: rpc error: code = Internal desc = exit status 1",
+					Reason:  infrav1.TFExecApplyFailedReason,
+					Type:    meta.ReadyCondition,
+					Status:  metav1.ConditionFalse,
+				},
+				{
+					Message: "Plan generated",
+					Reason:  infrav1.PlannedWithChangesReason,
+					Type:    infrav1.ConditionTypePlan,
+					Status:  metav1.ConditionFalse,
+				},
+				{
+					Message: "error running Apply: rpc error: code = Internal desc = exit status 1",
+					Reason:  "TerraformAppliedFail",
+					Type:    infrav1.ConditionTypeApply,
+					Status:  metav1.ConditionFalse,
+				},
+			},
+		},
+	}
+
+	shouldReconcile, _, requeueAfter := reconciler.shouldReconcile(tf, nil)
+	g.Expect(shouldReconcile).To(BeFalse())
+	g.Expect(requeueAfter).To(BeNumerically(">", 19*time.Minute))
+	g.Expect(requeueAfter).To(BeNumerically("<=", 20*time.Minute))
 }
