@@ -248,12 +248,13 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	// Check whether we need to reconcile the release at this time
-	if shouldReconcile, reason, requeueAfter := r.shouldReconcile(terraform, sourceObj); !shouldReconcile {
-		log.Info("Skipping reconciliation. Interval has not elapsed since last plan",
+	shouldReconcile, reason, requeueAfter := r.shouldReconcile(terraform, sourceObj)
+	if !shouldReconcile {
+		log.Info("Skipping reconciliation",
+			"reason", reason,
 			"lastPlanAt", terraform.Status.LastPlanAt,
-			"nextReconcile", terraform.Status.LastPlanAt.Add(terraform.Spec.Interval.Duration),
-			"requeueAfter", requeueAfter,
-			"reason", reason)
+			"nextAttempt", time.Now().Add(requeueAfter),
+			"requeueAfter", requeueAfter)
 
 		// Remove any Progressing condition since we're skipping reconciliation
 		if conditions.HasAnyReason(terraform, meta.ProgressingReason) {
@@ -262,6 +263,8 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 		return ctrl.Result{RequeueAfter: requeueAfter}, nil
 	}
+
+	traceLog.Info("Proceeding with reconciliation", "reason", reason)
 
 	// check dependencies, if not being deleted
 	if len(terraform.Spec.DependsOn) > 0 && !isBeingDeleted(terraform) {
@@ -557,17 +560,17 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 }
 
 func (r *TerraformReconciler) shouldReconcile(terraform *infrav1.Terraform, source sourcev1.Source) (bool, string, time.Duration) {
-	// Always plan is .Spec.Force is true
+	// reconcile if force is set
 	if terraform.Spec.Force {
 		return true, "force is enabled", 0
 	}
 
-	// Do not delay if being deleted
+	// reconcile if being deleted
 	if isBeingDeleted(terraform) {
 		return true, "object is being deleted", 0
 	}
 
-	// Reconcile when a *new* reconcile request annotation is present
+	// reconcile when a *new* reconcile request annotation is present
 	if requestedAt, ok := meta.ReconcileAnnotationValue(terraform.GetAnnotations()); ok {
 		// we do SetLastHandledReconcileRequest in the defer func, so check it here
 		if terraform.Status.GetLastHandledReconcileRequest() != requestedAt {
@@ -575,30 +578,41 @@ func (r *TerraformReconciler) shouldReconcile(terraform *infrav1.Terraform, sour
 		}
 	}
 
-	// If we have never planned, we should continue
+	// reconcile if we have never planned
 	if terraform.Status.LastPlanAt == nil {
 		return true, "never planned before", 0
 	}
 
-	// If the generation has changed, we should continue
+	// reconcile if the object generation has changed
 	if terraform.Status.ObservedGeneration != 0 && terraform.Generation != terraform.Status.ObservedGeneration {
 		return true, "terraform generation has changed", 0
 	}
 
-	// Do not delay if there is a pending plan or an apply should run.
+	// reconcile if there is a pending plan or an apply should run
 	if terraform.Status.Plan.Pending != "" || r.shouldApply(terraform) {
 		return true, "pending plan or apply should run", 0
 	}
 
-	// If the source revision has changed, we should continue
+	// reconcile if the source revision has changed since last attempt
 	if source != nil && source.GetArtifact() != nil && terraform.Status.LastAttemptedRevision != source.GetArtifact().Revision {
 		return true, "source revision has changed since last reconciliation attempt", 0
+	}
+
+	// reconcile if the last reconciliation failed, and we are within the retry interval
+	if terraform.Status.ReconciliationFailures > 0 && terraform.Status.LastPlanAt != nil && !conditions.IsTrue(terraform, meta.ReadyCondition) {
+		nextRetry := terraform.Status.LastPlanAt.Add(terraform.GetRetryInterval())
+		retryIn := time.Until(nextRetry)
+		if retryIn > 0 {
+			return false, "retry interval has not elapsed since last failed reconciliation", retryIn
+		}
+
+		return true, "retry interval has elapsed since last failed reconciliation", 0
 	}
 
 	nextReconcile := terraform.Status.LastPlanAt.Add(terraform.Spec.Interval.Duration)
 	requeueAfter := time.Until(nextReconcile)
 	if requeueAfter > 0 {
-		return false, "", requeueAfter
+		return false, "interval has not elapsed since last plan", requeueAfter
 	}
 
 	return true, "", 0
