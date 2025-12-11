@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/flux-iac/tofu-controller/utils"
+	"github.com/flux-iac/tofu-controller/api/plan"
 
 	. "github.com/onsi/gomega"
 )
@@ -28,7 +28,7 @@ func Test_000210_plan_encode_decode_test(t *testing.T) {
 
 	for _, tt := range encodeTests {
 		It("should encode the terraform plan")
-		r, err := utils.GzipEncode(tt.tfplan)
+		r, err := plan.GzipEncode(tt.tfplan)
 		g.Expect(err).ShouldNot(HaveOccurred())
 
 		var buf bytes.Buffer
@@ -48,7 +48,7 @@ func Test_000210_plan_encode_decode_test(t *testing.T) {
 
 	for _, tt := range decodeTests {
 		It("should decode the encoded terraform plan")
-		r, err := utils.GzipDecode(tt.encodedPlan)
+		r, err := plan.GzipDecode(tt.encodedPlan)
 		g.Expect(err).ShouldNot(HaveOccurred())
 
 		re := bytes.NewReader(tt.encodedPlan)

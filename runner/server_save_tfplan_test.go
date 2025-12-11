@@ -3,6 +3,7 @@ package runner
 import (
 	"testing"
 
+	"github.com/flux-iac/tofu-controller/api/plan"
 	"github.com/flux-iac/tofu-controller/api/planid"
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	. "github.com/onsi/gomega"
@@ -31,7 +32,10 @@ func TestSaveTFPlanWithMultipleChunks(t *testing.T) {
 
 	planId := planid.GetPlanID(req.Revision)
 
-	secrets, err := server.generatePlanSecrets(req.Name, req.Namespace, planId, "", "plan-uuid-1", planData)
+	plan, err := plan.NewFromBytes(req.Name, req.Namespace, server.terraform.WorkspaceName(), "plan-uuid-1", planId, planData)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	secrets, err := plan.ToSecret("")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(len(secrets)).To(Equal(4), "plan data should have been chunked into four secrets")

@@ -10,6 +10,7 @@ import (
 	"sync"
 	"text/template"
 
+	"github.com/flux-iac/tofu-controller/api/plan"
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/internal/config"
 	"github.com/flux-iac/tofu-controller/internal/git/provider"
@@ -293,40 +294,12 @@ func (i *Informer) getPlan(ctx context.Context, obj *infrav1.Terraform) (string,
 		return "Please set `spec.storeReadablePlan: human` to view the plan", nil
 	}
 
-	chunkMap := make(map[int]string)
-
-	for _, configMap := range configMaps.Items {
-		planStr, ok := configMap.Data["tfplan"]
-		if !ok {
-			return "", fmt.Errorf("configmap %s missing key tfplan", configMap.Name)
-		}
-
-		// Grab the chunk index from the configmap annotation
-		chunkIndex := 0
-		if idxStr, ok := configMap.Annotations["infra.contrib.fluxcd.io/plan-chunk"]; ok && idxStr != "" {
-			var err error
-			chunkIndex, err = strconv.Atoi(idxStr)
-			if err != nil {
-				return "", fmt.Errorf("invalid chunk index annotation found on configmap %s: %s", configMap.Name, err)
-			}
-		}
-
-		chunkMap[chunkIndex] = planStr
+	tfPlan, err := plan.NewFromConfigMaps(obj.GetName(), obj.GetNamespace(), string(obj.GetUID()), configMaps.Items)
+	if err != nil {
+		return "", fmt.Errorf("unable to reconstruct plan from configmaps: %s", err)
 	}
 
-	var plan string
-
-	// we know the number of chunks we "should" have, so work
-	// up til there checking we have each chunk
-	for i := 0; i < len(chunkMap); i++ {
-		chunk, ok := chunkMap[i]
-		if !ok {
-			return "", fmt.Errorf("missing chunk %d for terraform %s", i, obj.GetName())
-		}
-		plan += chunk
-	}
-
-	return plan, nil
+	return tfPlan.ToString(), nil
 }
 
 func (i *Informer) isNewPlan(old, new *infrav1.Terraform) bool {

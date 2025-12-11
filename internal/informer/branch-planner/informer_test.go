@@ -70,6 +70,9 @@ func TestInformer(t *testing.T) {
 				"infra.contrib.fluxcd.io/plan-name":      "helloworld",
 				"infra.contrib.fluxcd.io/plan-workspace": "default",
 			},
+			Annotations: map[string]string{
+				"savedPlan": "plan-main-1",
+			},
 		},
 		Data: map[string]string{
 			"tfplan": "terraform plan output",

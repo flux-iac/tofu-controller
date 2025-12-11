@@ -2,27 +2,18 @@ package runner
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 
+	"github.com/flux-iac/tofu-controller/api/plan"
 	"github.com/flux-iac/tofu-controller/api/planid"
-	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
-	"github.com/flux-iac/tofu-controller/utils"
 	"github.com/go-logr/logr"
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-)
-
-const (
-	// resourceDataMaxSizeBytes defines the maximum size of data
-	// that can be stored in a Kubernetes Secret or ConfigMap
-	resourceDataMaxSizeBytes = 1 * 1024 * 1024 // 1MB
 )
 
 func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanRequest) (*SaveTFPlanReply, error) {
@@ -50,7 +41,14 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 
 	// planid must be the short plan id format
 	planId := planid.GetPlanID(req.Revision)
-	if err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, log, planId, tfplan, "", req.Uuid); err != nil {
+
+	// Create the Plan object
+	tfPlan, err := plan.NewFromBytes(req.Name, req.Namespace, r.terraform.WorkspaceName(), req.Uuid, planId, tfplan)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, log, planId, tfPlan, "", req.Uuid); err != nil {
 		return nil, err
 	}
 
@@ -68,7 +66,13 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 			return nil, err
 		}
 
-		if err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, log, planId, jsonBytes, ".json", req.Uuid); err != nil {
+		jsonPlan, err := plan.NewFromBytes(req.Name, req.Namespace, r.terraform.WorkspaceName(), req.Uuid, planId, jsonBytes)
+		if err != nil {
+			log.Error(err, "Unable to create plan")
+			return nil, err
+		}
+
+		if err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, log, planId, jsonPlan, ".json", req.Uuid); err != nil {
 			log.Error(err, "unable to write the plan to secret")
 			return nil, err
 		}
@@ -79,7 +83,13 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 			return nil, err
 		}
 
-		if err := r.writePlanAsConfigMap(ctx, req.Name, req.Namespace, log, planId, rawOutput, "", req.Uuid); err != nil {
+		rawPlan, err := plan.NewFromBytes(req.Name, req.Namespace, r.terraform.WorkspaceName(), req.Uuid, planId, []byte(rawOutput))
+		if err != nil {
+			log.Error(err, "Unable to create plan")
+			return nil, err
+		}
+
+		if err := r.writePlanAsConfigMap(ctx, req.Name, req.Namespace, log, planId, rawPlan, "", req.Uuid); err != nil {
 			log.Error(err, "unable to write the plan to configmap")
 			return nil, err
 		}
@@ -88,91 +98,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 	return &SaveTFPlanReply{Message: "ok"}, nil
 }
 
-func (r *TerraformRunnerServer) generatePlanSecrets(name string, namespace string, planId string, suffix string, uuid string, plan []byte) ([]*v1.Secret, error) {
-	// Build a standard name prefix for the secrets
-	secretIdentifier := fmt.Sprintf("tfplan-%s-%s", r.terraform.WorkspaceName(), name+suffix)
-
-	// Check whether the Terraform Plan is larger (or equal) to 1MB
-	// which is the maximum size for a Kubernetes Secret or ConfigMap
-	if len(plan) <= resourceDataMaxSizeBytes {
-		data := map[string][]byte{TFPlanName: plan}
-
-		// Build an individual secret containing the whole plan
-		secret := &v1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      secretIdentifier,
-				Namespace: namespace,
-				Annotations: map[string]string{
-					"encoding":                          "gzip",
-					SavedPlanSecretAnnotation:           planId,
-					"infra.contrib.fluxcd.io/plan-hash": fmt.Sprintf("%x", sha256.Sum256(plan)),
-				},
-				Labels: map[string]string{
-					"infra.contrib.fluxcd.io/plan-name":      name + suffix,
-					"infra.contrib.fluxcd.io/plan-workspace": r.terraform.WorkspaceName(),
-				},
-				OwnerReferences: []metav1.OwnerReference{
-					{
-						APIVersion: infrav1.GroupVersion.Group + "/" + infrav1.GroupVersion.Version,
-						Kind:       infrav1.TerraformKind,
-						Name:       name,
-						UID:        types.UID(uuid),
-					},
-				},
-			},
-			Type: v1.SecretTypeOpaque,
-			Data: data,
-		}
-		return []*v1.Secret{secret}, nil
-	}
-
-	// Otherwise, we assume that the plan needs to be "chunked"
-	numChunks := (len(plan) + resourceDataMaxSizeBytes - 1) / resourceDataMaxSizeBytes
-
-	secrets := make([]*v1.Secret, 0, numChunks)
-
-	for chunk := range numChunks {
-		start := chunk * resourceDataMaxSizeBytes
-		end := min(start+resourceDataMaxSizeBytes, len(plan))
-
-		planData := plan[start:end]
-
-		data := map[string][]byte{TFPlanName: planData}
-
-		secret := &v1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      fmt.Sprintf("%s-%d", secretIdentifier, chunk),
-				Namespace: namespace,
-				Annotations: map[string]string{
-					"encoding":                           "gzip",
-					SavedPlanSecretAnnotation:            planId,
-					"infra.contrib.fluxcd.io/plan-chunk": fmt.Sprintf("%d", chunk),
-					"infra.contrib.fluxcd.io/plan-hash":  fmt.Sprintf("%x", sha256.Sum256(planData)),
-				},
-				Labels: map[string]string{
-					"infra.contrib.fluxcd.io/plan-name":      name + suffix,
-					"infra.contrib.fluxcd.io/plan-workspace": r.terraform.WorkspaceName(),
-				},
-				OwnerReferences: []metav1.OwnerReference{
-					{
-						APIVersion: infrav1.GroupVersion.Group + "/" + infrav1.GroupVersion.Version,
-						Kind:       infrav1.TerraformKind,
-						Name:       name,
-						UID:        types.UID(uuid),
-					},
-				},
-			},
-			Type: v1.SecretTypeOpaque,
-			Data: data,
-		}
-
-		secrets = append(secrets, secret)
-	}
-
-	return secrets, nil
-}
-
-func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name string, namespace string, log logr.Logger, planId string, tfplan []byte, suffix string, uuid string) error {
+func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name string, namespace string, log logr.Logger, planId string, plan *plan.Plan, suffix string, uuid string) error {
 	existingSecrets := &v1.SecretList{}
 
 	// Try to get any secrets by using the plan labels
@@ -203,15 +129,7 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 		}
 	}
 
-	// GZIP encode the plan data
-	tfplan, err := utils.GzipEncode(tfplan)
-	if err != nil {
-		log.Error(err, "unable to encode the plan revision", "planId", planId)
-		return err
-	}
-
-	// Chunk the data if required
-	secrets, err := r.generatePlanSecrets(name, namespace, planId, suffix, uuid, tfplan)
+	secrets, err := plan.ToSecret(suffix)
 	if err != nil {
 		log.Error(err, "unable to generate plan secrets", "planId", planId)
 		return err
@@ -231,87 +149,7 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 	return nil
 }
 
-func (r *TerraformRunnerServer) generatePlanConfigMaps(name string, namespace string, planId string, suffix string, uuid string, plan string) ([]*v1.ConfigMap, error) {
-	// Build a standard name prefix for the configmaps
-	configMapIdentifier := fmt.Sprintf("tfplan-%s-%s", r.terraform.WorkspaceName(), name+suffix)
-
-	// Check whether the Terraform Plan is larger (or equal) to 1MB
-	// which is the maximum size for a Kubernetes Secret or ConfigMap
-	if len(plan) <= resourceDataMaxSizeBytes {
-		data := map[string]string{TFPlanName: plan}
-
-		// Build an individual secret containing the whole plan
-		configMap := &v1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      configMapIdentifier,
-				Namespace: namespace,
-				Annotations: map[string]string{
-					SavedPlanSecretAnnotation:           planId,
-					"infra.contrib.fluxcd.io/plan-hash": fmt.Sprintf("%x", sha256.Sum256([]byte(plan))),
-				},
-				Labels: map[string]string{
-					"infra.contrib.fluxcd.io/plan-name":      name + suffix,
-					"infra.contrib.fluxcd.io/plan-workspace": r.terraform.WorkspaceName(),
-				},
-				OwnerReferences: []metav1.OwnerReference{
-					{
-						APIVersion: infrav1.GroupVersion.Group + "/" + infrav1.GroupVersion.Version,
-						Kind:       infrav1.TerraformKind,
-						Name:       name,
-						UID:        types.UID(uuid),
-					},
-				},
-			},
-			Data: data,
-		}
-		return []*v1.ConfigMap{configMap}, nil
-	}
-
-	// Otherwise, we assume that the plan needs to be "chunked"
-	numChunks := (len(plan) + resourceDataMaxSizeBytes - 1) / resourceDataMaxSizeBytes
-
-	configMaps := make([]*v1.ConfigMap, 0, numChunks)
-
-	for chunk := range numChunks {
-		start := chunk * resourceDataMaxSizeBytes
-		end := min(start+resourceDataMaxSizeBytes, len(plan))
-
-		planData := plan[start:end]
-
-		data := map[string]string{TFPlanName: planData}
-
-		configMap := &v1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      fmt.Sprintf("%s-%d", configMapIdentifier, chunk),
-				Namespace: namespace,
-				Annotations: map[string]string{
-					SavedPlanSecretAnnotation:            planId,
-					"infra.contrib.fluxcd.io/plan-chunk": fmt.Sprintf("%d", chunk),
-					"infra.contrib.fluxcd.io/plan-hash":  fmt.Sprintf("%x", sha256.Sum256([]byte(planData))),
-				},
-				Labels: map[string]string{
-					"infra.contrib.fluxcd.io/plan-name":      name + suffix,
-					"infra.contrib.fluxcd.io/plan-workspace": r.terraform.WorkspaceName(),
-				},
-				OwnerReferences: []metav1.OwnerReference{
-					{
-						APIVersion: infrav1.GroupVersion.Group + "/" + infrav1.GroupVersion.Version,
-						Kind:       infrav1.TerraformKind,
-						Name:       name,
-						UID:        types.UID(uuid),
-					},
-				},
-			},
-			Data: data,
-		}
-
-		configMaps = append(configMaps, configMap)
-	}
-
-	return configMaps, nil
-}
-
-func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name string, namespace string, log logr.Logger, planId string, tfplan string, suffix string, uuid string) error {
+func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name string, namespace string, log logr.Logger, planId string, plan *plan.Plan, suffix string, uuid string) error {
 	existingConfigMaps := &v1.ConfigMapList{}
 
 	// Try to get any ConfigMaps by using the plan labels
@@ -342,8 +180,7 @@ func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name s
 		}
 	}
 
-	// Chunk the data if required
-	configMaps, err := r.generatePlanConfigMaps(name, namespace, planId, suffix, uuid, tfplan)
+	configMaps, err := plan.ToConfigMap(suffix)
 	if err != nil {
 		log.Error(err, "unable to generate plan ConfigMaps", "planId", planId)
 		return err
