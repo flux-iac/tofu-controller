@@ -253,6 +253,9 @@ func setupRouteHandlers() {
 	server.RouteToHandler("GET", "/tf-k8s-configmap-unrelated-change.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/tf-k8s-configmap-unrelated-change.tar.gz")
 	})
+	server.RouteToHandler("GET", "/tf-k8s-configmap-no-output.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-k8s-configmap-no-output.tar.gz")
+	})
 	server.RouteToHandler("GET", "/tfc-helloworld.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/tfc-helloworld.tar.gz")
 	})
