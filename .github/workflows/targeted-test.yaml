@@ -25,7 +25,7 @@ jobs:
         run: |
           export TOFU_VERSION=1.11.1
           wget https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_amd64.zip
-          unzip -q tofu_${TOFU_VERSION}_linux_amd64.zip
+          unzip -q tofu_${TOFU_VERSION}_linux_amd64.zip tofu
           mv tofu /usr/local/bin
           tofu --version
       - name: Setup Kustomize
