@@ -116,10 +116,10 @@ func Test_000280_inventory_test(t *testing.T) {
 		},
 	}
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	defer waitResourceToBeDelete(g, &helloWorldTF)
 	defer waitResourceToBeDelete(g, &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "default", Name: "cm-" + terraformName},
-	})
+	}) // must be deleted after TF resource
+	defer waitResourceToBeDelete(g, &helloWorldTF)
 
 	It("should be created")
 	By("checking that the hello world TF got created")
