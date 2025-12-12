@@ -181,10 +181,10 @@ terraform {
 
 	lookPathReply, err := runnerClient.LookPath(ctx,
 		&runner.LookPathRequest{
-			File: "terraform",
+			File: "tofu",
 		})
 	if err != nil {
-		err = fmt.Errorf("cannot find Terraform binary: %s in %s", err, os.Getenv("PATH"))
+		err = fmt.Errorf("cannot find OpenTofu binary: %s in %s", err, os.Getenv("PATH"))
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
