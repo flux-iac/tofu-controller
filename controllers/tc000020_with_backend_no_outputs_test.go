@@ -107,6 +107,8 @@ func Test_000020_with_backend_no_outputs_test(t *testing.T) {
 		},
 	}
 	It("should be created and attached successfully.")
+	tfStateSecret := corev1.Secret{}
+	defer waitResourceToBeDelete(g, &tfStateSecret) // must be deleted after TF resource
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 	defer waitResourceToBeDelete(g, &helloWorldTF)
 
@@ -184,7 +186,6 @@ func Test_000020_with_backend_no_outputs_test(t *testing.T) {
 
 	By("checking that the TFSTATE secret are created in the same TF resource's namespace.")
 	tfStateKey := types.NamespacedName{Namespace: "flux-system", Name: "tfstate-default-" + terraformName}
-	tfStateSecret := corev1.Secret{}
 	g.Eventually(func() string {
 		err := k8sClient.Get(ctx, tfStateKey, &tfStateSecret)
 		if err != nil {
@@ -192,5 +193,4 @@ func Test_000020_with_backend_no_outputs_test(t *testing.T) {
 		}
 		return tfStateSecret.Name
 	}, timeout, interval).Should(Equal("tfstate-default-" + terraformName))
-	defer waitResourceToBeDelete(g, &tfStateSecret)
 }
