@@ -26,9 +26,7 @@ spec:
         image: flux-iac/tofu-controller
         imagePullPolicy: IfNotPresent
         command:
-        - /sbin/tini
-        - --
-        - tofu-controller
+        - /tofu-controller
         args:
         - --watch-all-namespaces
         - --log-level=info
