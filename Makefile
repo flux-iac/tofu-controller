@@ -30,7 +30,7 @@ SHELL = /usr/bin/env bash -o pipefail
 # Allows for defining additional Docker buildx arguments, e.g. '--push'.
 BUILD_ARGS ?=
 
-# Set architecture for the binaries we build as well as the terraform binary that get bundled in the images
+# Set architecture for the binaries we build as well as the tofu binary that get bundled in the images
 TARGETARCH ?= amd64
 
 .PHONY: all

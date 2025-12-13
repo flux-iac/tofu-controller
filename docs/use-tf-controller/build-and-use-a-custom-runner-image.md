@@ -1,6 +1,10 @@
 # Build and Use a Custom Runner Image
 
-To build a custom runner image, you need a Dockerfile that extends the base image and that adds Terraform, plus any additional required tooling. The repository that contains the base images is [here](ghcr.io/flux-iac/tf-runner). All base image tags follow the following format: `${TF_CONTROLLER_VERSION}-base`.
+To build a custom runner image, you need a Dockerfile that extends the base image and that adds OpenTofu (plus any additional required tooling).
+
+The repository that contains the base images is [here](ghcr.io/flux-iac/tf-runner).
+
+All base image tags follow the following format: `${TF_CONTROLLER_VERSION}-base`.
 
 ## Prerequisites
 
@@ -8,22 +12,17 @@ You need Docker and Git to build the image.
 
 ## Build the Image
 
-1. Create a `Dockerfile` that extends the base image and that adds Terraform, plus any additional required tooling. For example:
+1. Create a `Dockerfile` that extends the base image and that adds the OpenTofu binary, plus any additional required tooling. For example:
 
     ```Dockerfile
     ARG BASE_IMAGE
+    ARG TOFU_VERSION=1.11.1
+
+    FROM ghcr.io/opentofu/opentofu:${TOFU_VERSION}-minimal AS tofu
+
     FROM $BASE_IMAGE
 
-    ARG TARGETARCH
-    ARG TF_VERSION=1.5.7
-
-    # Switch to root to have permissions for operations
-    USER root
-
-    ADD https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_${TARGETARCH}.zip /terraform_${TF_VERSION}_linux_${TARGETARCH}.zip
-    RUN unzip -q /terraform_${TF_VERSION}_linux_${TARGETARCH}.zip -d /usr/local/bin/ && \
-        rm /terraform_${TF_VERSION}_linux_${TARGETARCH}.zip && \
-        chmod +x /usr/local/bin/terraform
+    COPY --from=tofu /usr/local/bin/tofu /usr/local/bin/tofu
 
     # Switch back to the non-root user after operations
     USER 65532:65532
@@ -34,14 +33,13 @@ You need Docker and Git to build the image.
 2. Build the image from the directory containing the `Dockerfile` you created above:
 
     ```bash
-    export TF_CONTROLLER_VERSION=v0.16.0-rc.3
-    export TF_VERSION=1.5.7
+    export TF_CONTROLLER_VERSION=v0.16.0-rc.7
+    export TOFU_VERSION=1.6.0
     export BASE_IMAGE=ghcr.io/flux-iac/tf-runner:${TF_CONTROLLER_VERSION}-base
-    export TARGETARCH=amd64
     export REMOTE_REPO=ghcr.io/my-org/custom-runnner
     docker build \
         --build-arg BASE_IMAGE=${BASE_IMAGE} \
-        --build-arg TARGETARCH=${TARGETARCH} \
+        --build-arg TOFU_VERSION=${TOFU_VERSION} \
         --tag my-custom-runner:${TF_CONTROLLER_VERSION} .
     docker tag my-custom-runner:${TF_CONTROLLER_VERSION} $REMOTE_REPO:${TF_CONTROLLER_VERSION}
     docker push $REMOTE_REPO:${TF_CONTROLLER_VERSION}
