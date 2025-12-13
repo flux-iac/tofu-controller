@@ -108,6 +108,8 @@ func Test_000044_plan_only_mode_test(t *testing.T) {
 		},
 	}
 	It("should be created and attached successfully.")
+	planOutput := corev1.ConfigMap{}
+	defer waitResourceToBeDelete(g, &planOutput) // must be deleted after TF resource
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 	defer waitResourceToBeDelete(g, &helloWorldTF)
 
@@ -119,7 +121,6 @@ func Test_000044_plan_only_mode_test(t *testing.T) {
 	It("should be reconciled and produce the correct output secret.")
 	By("checking that the named output secret contains all outputs.")
 	outputKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
-	planOutput := corev1.ConfigMap{}
 	g.Eventually(func() (int, error) {
 		err := k8sClient.Get(ctx, outputKey, &planOutput)
 		if err != nil {
@@ -127,7 +128,6 @@ func Test_000044_plan_only_mode_test(t *testing.T) {
 		}
 		return len(planOutput.Data), nil
 	}, timeout, interval).Should(Equal(1))
-	defer waitResourceToBeDelete(g, &planOutput)
 
 	By("checking that the output ConfigMap contains the correct output data, provisioned by the TF resource.")
 

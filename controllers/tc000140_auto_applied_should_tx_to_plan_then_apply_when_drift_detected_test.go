@@ -112,6 +112,9 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 			},
 		},
 	}
+
+	cmPayload := corev1.ConfigMap{}
+	defer waitResourceToBeDelete(g, &cmPayload) // must be deleted after TF resource
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 	defer waitResourceToBeDelete(g, &helloWorldTF)
 
@@ -233,7 +236,6 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 	}
 
 	cmPayloadKey := types.NamespacedName{Namespace: "default", Name: "cm-" + terraformName}
-	var cmPayload corev1.ConfigMap
 	g.Eventually(func() string {
 		err := k8sClient.Get(ctx, cmPayloadKey, &cmPayload)
 		if err != nil {
@@ -241,7 +243,6 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 		}
 		return cmPayload.Name
 	}, timeout, interval).Should(Equal("cm-" + terraformName))
-	defer waitResourceToBeDelete(g, &cmPayload)
 
 	updatedTime = time.Now()
 	By("deleting configmap to create a drift")
