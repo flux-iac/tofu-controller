@@ -474,7 +474,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 						},
 						{
 							Name:  "NO_PROXY",
-							Value: "cluster.local,terraform.io,registry.terraform.io,releases.hashicorp.com",
+							Value: "cluster.local,terraform.io,registry.terraform.io,releases.hashicorp.com,registry.opentofu.org,github.com,release-assets.githubusercontent.com",
 						},
 					},
 				},
@@ -539,7 +539,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 		"Namespace":         "flux-system",
 		"Value HTTPS_PROXY": "http://runner_pod_test_env_vars_proxy_output:1234",
 		"Value HTTP_PROXY":  "http://runner_pod_test_env_vars_proxy_output:1234",
-		"Value NO_PROXY":    "cluster.local,terraform.io,registry.terraform.io,releases.hashicorp.com",
+		"Value NO_PROXY":    "cluster.local,terraform.io,registry.terraform.io,releases.hashicorp.com,registry.opentofu.org,github.com,release-assets.githubusercontent.com",
 		"OwnerRef[0]":       string(createdHelloWorldTF.UID),
 	}
 	g.Eventually(func() (map[string]string, error) {
