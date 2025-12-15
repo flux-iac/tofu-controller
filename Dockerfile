@@ -3,7 +3,16 @@ FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} as builder
 
 WORKDIR /build
 
-COPY . .
+# Copy only the required folders needed for the build
+COPY go.mod go.sum ./
+COPY api/ api/
+COPY cmd/ cmd/
+COPY controllers/ controllers/
+COPY internal/ internal/
+COPY mtls/ mtls/
+COPY runner/ runner/
+COPY tfctl/ tfctl/
+COPY utils/ utils/
 
 ARG BUILD_SHA
 ARG BUILD_VERSION
