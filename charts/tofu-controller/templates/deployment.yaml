@@ -52,10 +52,6 @@ spec:
         - --cluster-domain={{ .Values.clusterDomain }}
         - --use-pod-subdomain-resolution={{ .Values.usePodSubdomainResolution }}
         - --use-priority-queue={{ .Values.usePriorityQueue }}
-        command:
-        - /sbin/tini
-        - --
-        - tofu-controller
         env:
           {{- include "pod-namespace" . | indent 8 }}
         - name: RUNNER_POD_IMAGE
