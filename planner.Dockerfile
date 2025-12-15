@@ -20,6 +20,7 @@ RUN groupadd -g 65532 controller \
     && useradd -u 65532 -g controller -r -s /sbin/nologin controller
 
 # Build the controller!
+ARG TARGETOS TARGETARCH
 RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 go build -ldflags \
     " \
     -X 'main.BuildSHA=${BUILD_SHA}' \
