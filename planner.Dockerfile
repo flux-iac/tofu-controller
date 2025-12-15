@@ -3,7 +3,11 @@ FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} as builder
 
 WORKDIR /build
 
-COPY . .
+COPY go.mod go.sum ./
+COPY api/ api/
+COPY cmd/branch-planner cmd/branch-planner
+COPY internal/ internal/
+COPY tfctl/ tfctl/
 
 ARG BUILD_SHA
 ARG BUILD_VERSION
