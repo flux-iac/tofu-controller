@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/flux-iac/tofu-controller/api/plan"
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
-	"github.com/flux-iac/tofu-controller/utils"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/afero"
@@ -36,7 +36,7 @@ func TestLoadTFPlanWithForceTrue(t *testing.T) {
 
 	const workingDir = "/tmp"
 
-	data, err := utils.GzipEncode([]byte("plan data")) // Assuming GzipEncode returns a byte slice
+	data, err := plan.GzipEncode([]byte("plan data")) // Assuming GzipEncode returns a byte slice
 	g.Expect(err).NotTo(HaveOccurred(), "should not return an error")
 
 	secretData := map[string][]byte{
@@ -67,7 +67,7 @@ func TestLoadTFPlanWithForceTrue(t *testing.T) {
 	g.Expect(reply).To(Equal(&LoadTFPlanReply{Message: "ok"}), "should return the expected reply")
 
 	// Assert: Check that the expected file was written to the mock filesystem.
-	expectedData, _ := utils.GzipDecode(secretData[TFPlanName])
+	expectedData, _ := plan.GzipDecode(secretData[TFPlanName])
 	actualData, _ := afero.ReadFile(fs, filepath.Join(workingDir, TFPlanName))
 	g.Expect(actualData).To(Equal(expectedData), "should write the expected data to the filesystem")
 }
@@ -93,7 +93,7 @@ func TestLoadTFPlanWithForceFalse(t *testing.T) {
 
 	const workingDir = "/tmp"
 
-	data, err := utils.GzipEncode([]byte("plan data")) // Assuming GzipEncode returns a byte slice
+	data, err := plan.GzipEncode([]byte("plan data")) // Assuming GzipEncode returns a byte slice
 	g.Expect(err).NotTo(HaveOccurred(), "should not return an error")
 
 	secretData := map[string][]byte{
