@@ -26,6 +26,7 @@ spec:
         {{- end }}
         {{- include "tofu-controller.selectorLabels" . | nindent 8 }}
     spec:
+      automountServiceAccountToken: true
       {{- if not .Values.serviceAccount.create }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
