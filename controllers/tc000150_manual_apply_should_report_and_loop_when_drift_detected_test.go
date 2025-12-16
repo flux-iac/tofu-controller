@@ -278,7 +278,7 @@ func Test_000150_manual_apply_should_report_and_loop_when_drift_detected_test(t 
 		"Type":    "Ready",
 		"Status":  string(metav1.ConditionFalse),
 		"Reason":  infrav1.DriftDetectedReason,
-		"Line[1]": "Terraform used the selected providers to generate the following execution",
+		"Line[1]": "OpenTofu used the selected providers to generate the following execution",
 	}))
 
 }

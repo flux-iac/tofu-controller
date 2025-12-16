@@ -67,8 +67,8 @@ func Test_000074_varsfrom_accepts_many_secrets_with_last_supplied_key_precedence
 	workDir, err := os.MkdirTemp("", terraformName+"*")
 	g.Expect(err).Should(BeNil())
 
-	By("looking up the path of the terraform binary")
-	execPath, err := exec.LookPath("terraform")
+	By("looking up the path of the opentofu binary")
+	execPath, err := exec.LookPath("tofu")
 	g.Expect(err).Should(BeNil())
 
 	By("creating a new TF resource with slice of ConfigMaps")
