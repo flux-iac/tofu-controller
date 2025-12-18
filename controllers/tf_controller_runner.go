@@ -545,7 +545,7 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 			result.Secret.SetUID("")
 			result.Secret.SetGeneration(0)
 
-			if err := r.Client.Create(ctx, result.Secret); err != nil {
+			if err := r.Client.Create(ctx, result.Secret); err != nil && !errors.IsAlreadyExists(err) {
 				return nil, err
 			}
 		} else {
