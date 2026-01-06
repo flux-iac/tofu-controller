@@ -56,7 +56,7 @@ require (
 )
 
 require (
-	code.gitea.io/sdk/gitea v0.22.1 // indirect
+	code.gitea.io/sdk/gitea v0.20.0 // indirect
 	dario.cat/mergo v1.0.2 // indirect
 	fortio.org/safecast v1.2.0 // indirect
 	github.com/42wim/httpsig v1.2.3 // indirect
