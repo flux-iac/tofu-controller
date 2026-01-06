@@ -264,6 +264,9 @@ jobs:
           kubectl -n tofu-system describe deploy/tofu-controller
           kubectl -n tofu-system describe pod tofu-controller
 
+          kubectl -n chaos-testing get secret -l infra.contrib.fluxcd.io/terraform
+          kubectl -n tofu-system get secret -l infra.contrib.fluxcd.io/terraform
+
           ns=(tofu-system tf-tenant01-dev tf-tenant01-prd tf-tenant02-dev tf-tenant02-prd chaos-testing)
           for n in "${ns[@]}"
           do
