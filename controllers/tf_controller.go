@@ -598,6 +598,11 @@ func (r *TerraformReconciler) shouldReconcile(terraform *infrav1.Terraform, sour
 		return true, "source revision has changed since last reconciliation attempt", 0
 	}
 
+	// reconcile if we were last blocked on a not ready dependency
+	if conditions.HasAnyReason(terraform, meta.ReadyCondition, infrav1.DependencyNotReadyReason) {
+		return true, "previously blocked on not ready dependency", 0
+	}
+
 	// reconcile if the last reconciliation failed, and we are within the retry interval
 	if terraform.Status.ReconciliationFailures > 0 && terraform.Status.LastPlanAt != nil && !conditions.IsTrue(terraform, meta.ReadyCondition) {
 		nextRetry := terraform.Status.LastPlanAt.Add(terraform.GetRetryInterval())
