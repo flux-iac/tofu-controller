@@ -124,6 +124,9 @@ runner:
     repository: ghcr.io/flux-iac/tf-runner
     # -- Runner image tag
     # @default -- `.Chart.AppVersion`
+    # Note: By default, this uses the OpenTofu binary.
+    # To use Terraform instead, append '-terraform' to the tag:
+    # tag: "v0.16.0-rc.7-terraform"
     tag: "v0.16.0-rc.7"
   grpc:
     # -- Maximum GRPC message size (Controller)

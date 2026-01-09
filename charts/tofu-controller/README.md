@@ -25,6 +25,43 @@ helm upgrade -i tofu-controller tofu-controller/tofu-controller \
 
 The Terraform CRDs for tofu-controller can include references to other objects, for example to a Flux source, which can be in a different namespace to the Terraform CRD. However, being able to access objects in another namespace is usually considered a security risk, so references crossing namespaces are (since version 0.16.0) disallowed by default. If you want to allow them, set the Helm chart value `allowCrossNamespaceRefs: true` (see the table below).
 
+## Choosing Between OpenTofu and Terraform
+
+By default, tofu-controller uses the OpenTofu binary. If you need to use Terraform instead:
+
+### Global Configuration (Helm)
+
+```yaml
+runner:
+  image:
+    tag: "v0.16.0-rc.7-terraform"
+```
+
+### Per-Resource Override
+
+You can override the runner image for specific Terraform resources:
+
+```yaml
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: my-terraform-resource
+spec:
+  runnerPodTemplate:
+    spec:
+      containers:
+      - name: tf-runner
+        image: ghcr.io/flux-iac/tf-runner:v0.16.0-rc.7-terraform
+  # ... rest of spec ...
+```
+
+### Binary Versions
+
+- OpenTofu: 1.11.2
+- Terraform: 1.14.3
+
+**Note**: Terraform support is provided for backward compatibility and will be deprecated in a future release.
+
 ## Configuration
 
 The following table lists the configurable parameters of the tofu-controller chart and their default values.

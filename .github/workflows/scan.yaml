@@ -65,7 +65,7 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
-      - name: Run Trivy vulnerability scanner on runner image
+      - name: Run Trivy vulnerability scanner on runner image (OpenTofu)
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
         with:
           image-ref: 'ghcr.io/flux-iac/tf-runner:latest'
@@ -74,11 +74,29 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+      - name: Run Trivy vulnerability scanner on runner image (Terraform)
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
+        with:
+          image-ref: 'ghcr.io/flux-iac/tf-runner:latest-terraform'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
           skip-files: '/usr/local/bin/terraform' # false positive
-      - name: Run Trivy vulnerability scanner on runner image
+      - name: Run Trivy vulnerability scanner on runner-azure image (OpenTofu)
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
         with:
           image-ref: 'ghcr.io/flux-iac/tf-runner-azure:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+      - name: Run Trivy vulnerability scanner on runner-azure image (Terraform)
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
+        with:
+          image-ref: 'ghcr.io/flux-iac/tf-runner-azure:latest-terraform'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
@@ -94,4 +112,3 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
-          skip-files: '/usr/local/bin/terraform' # false positive

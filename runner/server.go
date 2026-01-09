@@ -77,6 +77,20 @@ type TerraformRunnerServer struct {
 
 const loggerName = "runner.terraform"
 
+// detectBinaryPath detects which Terraform/OpenTofu binary is available
+func detectBinaryPath() string {
+	// Check for tofu first (default)
+	if _, err := os.Stat("/usr/local/bin/tofu"); err == nil {
+		return "/usr/local/bin/tofu"
+	}
+	// Fall back to terraform
+	if _, err := os.Stat("/usr/local/bin/terraform"); err == nil {
+		return "/usr/local/bin/terraform"
+	}
+	// Default to terraform for backward compatibility
+	return "terraform"
+}
+
 func (r *TerraformRunnerServer) ValidateInstanceID(requestedInstanceID string) error {
 	if r.InstanceID == "" {
 		return &TerraformSessionNotInitializedError{
@@ -222,10 +236,13 @@ func (r *TerraformRunnerServer) initLogger(log logr.Logger) {
 func (r *TerraformRunnerServer) NewTerraform(ctx context.Context, req *NewTerraformRequest) (*NewTerraformReply, error) {
 	r.InstanceID = req.GetInstanceID()
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
-	log.Info("creating new terraform", "workingDir", req.WorkingDir, "execPath", req.ExecPath)
-	tf, err := tfexec.NewTerraform(req.WorkingDir, req.ExecPath)
+
+	// Detect which binary is available (tofu or terraform)
+	binaryPath := detectBinaryPath()
+	log.Info("creating new terraform", "workingDir", req.WorkingDir, "detectedBinaryPath", binaryPath)
+	tf, err := tfexec.NewTerraform(req.WorkingDir, binaryPath)
 	if err != nil {
-		log.Error(err, "unable to create new terraform", "workingDir", req.WorkingDir, "execPath", req.ExecPath)
+		log.Error(err, "unable to create new terraform", "workingDir", req.WorkingDir, "binaryPath", binaryPath)
 		return nil, err
 	}
 
