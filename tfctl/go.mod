@@ -8,12 +8,12 @@ require (
 	github.com/flux-iac/tofu-controller/api v0.0.0-20250321074822-67198a27f35b
 	github.com/fluxcd/cli-utils v0.37.0-flux.1
 	github.com/fluxcd/pkg/apis/meta v1.24.0
-	github.com/fluxcd/pkg/ssa v0.61.0
+	github.com/fluxcd/pkg/ssa v0.62.0
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
-	github.com/hashicorp/go-version v1.7.0
+	github.com/hashicorp/go-version v1.8.0
 	github.com/hashicorp/hc-install v0.9.2
 	github.com/olekukonko/tablewriter v1.0.8
-	github.com/onsi/gomega v1.38.3
+	github.com/onsi/gomega v1.39.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	github.com/theckman/yacspin v0.13.12
@@ -39,7 +39,7 @@ require (
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.9.0 // indirect
-	github.com/fluxcd/pkg/runtime v0.93.0 // indirect
+	github.com/fluxcd/pkg/runtime v0.94.0 // indirect
 	github.com/fluxcd/source-controller/api v1.7.4 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
