@@ -153,10 +153,15 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret
 }]}`
 
 	traceLog.Info("Return gRPC new client")
+	maxMsgSize := r.RunnerGRPCMaxMessageSize * 1024 * 1024
 	return grpc.NewClient(
 		fmt.Sprintf("%s:%d", hostname, port),
 		grpc.WithTransportCredentials(credentials),
 		grpc.WithDefaultServiceConfig(retryPolicy),
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(maxMsgSize),
+			grpc.MaxCallSendMsgSize(maxMsgSize),
+		),
 	)
 }
 
@@ -540,7 +545,7 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 			result.Secret.SetUID("")
 			result.Secret.SetGeneration(0)
 
-			if err := r.Client.Create(ctx, result.Secret); err != nil {
+			if err := r.Client.Create(ctx, result.Secret); err != nil && !errors.IsAlreadyExists(err) {
 				return nil, err
 			}
 		} else {

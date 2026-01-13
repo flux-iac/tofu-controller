@@ -227,6 +227,40 @@ func TestShouldReconcileWhenForceEnabled(t *testing.T) {
 	g.Expect(requeueAfter).To(Equal(time.Duration(0)))
 }
 
+func TestShouldReconcileWhenDependencyNotReady(t *testing.T) {
+	Spec("This spec covers reconciling when a dependency is not ready.")
+	It("should return true without delay.")
+
+	g := NewWithT(t)
+	reconciler := &TerraformReconciler{}
+
+	tf := &infrav1.Terraform{
+		ObjectMeta: metav1.ObjectMeta{
+			Generation: 1,
+		},
+		Spec: infrav1.TerraformSpec{
+			Interval: metav1.Duration{Duration: 24 * time.Hour},
+		},
+		Status: infrav1.TerraformStatus{
+			LastPlanAt:         &metav1.Time{Time: time.Now()},
+			ObservedGeneration: 1,
+			Conditions: []metav1.Condition{
+				{
+					Message: "Dependencies do not meet ready condition, retrying in 30s",
+					Reason:  infrav1.DependencyNotReadyReason,
+					Type:    meta.ReadyCondition,
+					Status:  metav1.ConditionFalse,
+				},
+			},
+		},
+	}
+
+	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, nil)
+	g.Expect(shouldReconcile).To(BeTrue())
+	g.Expect(reason).To(Equal("previously blocked on not ready dependency"))
+	g.Expect(requeueAfter).To(Equal(time.Duration(0)))
+}
+
 func TestShouldReconcileWhenSourceRevisionChanges(t *testing.T) {
 	Spec("This spec covers reconciling when the source revision has changed.")
 	It("should return true without delay.")

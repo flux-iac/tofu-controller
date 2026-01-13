@@ -98,6 +98,8 @@ func Test_000030_plan_only_no_outputs_test(t *testing.T) {
 		},
 	}
 	It("should be created and attached successfully.")
+	tfplanSecret := corev1.Secret{}
+	defer waitResourceToBeDelete(g, &tfplanSecret) // must be deleted after TF resource
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 	defer waitResourceToBeDelete(g, &helloWorldTF)
 
@@ -173,7 +175,6 @@ func Test_000030_plan_only_no_outputs_test(t *testing.T) {
 	It("should generate the Secret containing the plan named with branch and commit id.")
 	By("checking that the Secret contains plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb in its labels.")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
-	tfplanSecret := corev1.Secret{}
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, tfplanKey, &tfplanSecret)
 		if err != nil {
@@ -189,5 +190,4 @@ func Test_000030_plan_only_no_outputs_test(t *testing.T) {
 		"TFPlanEmpty":           false,
 		"HasEncodingAnnotation": true,
 	}))
-	defer waitResourceToBeDelete(g, &tfplanSecret)
 }

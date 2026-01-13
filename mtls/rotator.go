@@ -345,7 +345,7 @@ func (cr *CertRotator) garbageCollectTLSCerts(namespaces []string, referenceTime
 	secretsToDelete := []*corev1.Secret{}
 
 	// deletionThreshold is the maximum number of Secrets to delete per GC run
-	const deletionThreshold = 10
+	const deletionThreshold = 15
 
 	// Iterate through all namespaces
 	for _, namespace := range namespaces {
@@ -354,7 +354,7 @@ func (cr *CertRotator) garbageCollectTLSCerts(namespaces []string, referenceTime
 		listOpts := &client.ListOptions{
 			Namespace:     namespace,
 			LabelSelector: labels.SelectorFromSet(map[string]string{infrav1.RunnerLabel: "true"}),
-			Limit:         deletionThreshold + 2, // limit to 12 items per list request (deleteThreshold + the current one + the next one)
+			Limit:         deletionThreshold + 2, // limit to 17 items per list request (deleteThreshold + the current one + the next one)
 		}
 		if err := cr.writer.List(context.TODO(), secretList, listOpts); err != nil {
 			return err

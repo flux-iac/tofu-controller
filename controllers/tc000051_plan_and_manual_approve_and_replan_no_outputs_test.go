@@ -103,6 +103,8 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 		},
 	}
 	It("should be created and attached successfully.")
+	tfplanSecret := corev1.Secret{}
+	defer waitResourceToBeDelete(g, &tfplanSecret) // must be deleted after TF resource
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 	defer waitResourceToBeDelete(g, &helloWorldTF)
 
@@ -178,7 +180,6 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 	By("checking that the planned secret is created.")
 	By("checking that the label of the planned secret is the $planId.")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
-	tfplanSecret := corev1.Secret{}
 	g.Eventually(func() map[string]interface{} {
 		err := k8sClient.Get(ctx, tfplanKey, &tfplanSecret)
 		if err != nil {
@@ -194,7 +195,6 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 		"TFPlanEmpty":           false,
 		"HasEncodingAnnotation": true,
 	}))
-	defer waitResourceToBeDelete(g, &tfplanSecret)
 
 	By("changing source to a new revision")
 	testRepo.Status = sourcev1.GitRepositoryStatus{
