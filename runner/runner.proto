@@ -44,7 +44,7 @@ service Runner {
 }
 
 message LookPathRequest {
-  string file = 1;
+  repeated string files = 1;
 }
 
 message LookPathReply {

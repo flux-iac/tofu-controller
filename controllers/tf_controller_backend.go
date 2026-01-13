@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -184,19 +183,12 @@ terraform {
 	// In the future, Terraform support may be dropped entirely
 	lookPathReply, err := runnerClient.LookPath(ctx,
 		&runner.LookPathRequest{
-			File: "tofu",
+			Files: []string{"tofu", "terraform"},
 		},
 	)
 	if err != nil {
-		err = fmt.Errorf("cannot find OpenTofu binary: %s in %s", err, os.Getenv("PATH"))
+		err = fmt.Errorf("cannot find OpenTofu or Terraform binary: %s in %s", err, os.Getenv("PATH"))
 
-		lookPathReply, err = runnerClient.LookPath(ctx,
-			&runner.LookPathRequest{
-				File: "terraform",
-			},
-		)
-
-		err = errors.Join(err, fmt.Errorf("cannot find OpenTofu or Terraform binary: %s in %s", err, os.Getenv("PATH")))
 		return infrav1.TerraformNotReady(
 			terraform,
 			revision,
