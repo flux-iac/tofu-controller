@@ -93,6 +93,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | serviceAccount.annotations | object | `{}` | Additional Service Account annotations |
 | serviceAccount.create | bool | `true` | If `true`, create a new service account |
 | serviceAccount.name | string | tofu-controller | Service account to be used |
+| terminationGracePeriodSeconds | int | `250` | Grace period for controller pod termination.  Argument for `--graceful-shutdown-timeout` (Controller) is (terminationGracePeriodSeconds - 10) or 0, whichever is higher.  Graceful shutdown will wait for active runners to finish without starting new ones. |
 | tolerations | list | `[]` | Tolerations properties for the tofu-controller deployment |
 | usePodSubdomainResolution | bool | `false` | Argument for `--use-pod-subdomain-resolution` (Controller).  UsePodSubdomainResolution allow pod hostname/subdomain DNS resolution for the pod runner instead of IP based DNS resolution. |
 | usePriorityQueue | bool | `true` | Argument for `--use-priority-queue` (Controller).  Enable the priority queue feature to prioritize new/changed resources over resources loaded after a restart or resync. |

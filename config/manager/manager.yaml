@@ -17,7 +17,7 @@ spec:
       labels:
         control-plane: tofu-controller
     spec:
-      terminationGracePeriodSeconds: 10
+      terminationGracePeriodSeconds: 250
       serviceAccountName: tf-controller
       securityContext:
         fsGroup: 1337
@@ -31,6 +31,7 @@ spec:
         - --log-encoding=json
         - --enable-leader-election
         - --concurrent=1
+        - --graceful-shutdown-timeout=240s
         ports:
         - containerPort: 8080
           name: http-prom
