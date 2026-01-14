@@ -179,15 +179,15 @@ terraform {
 		tfrcFilepath = processCliConfigReply.FilePath
 	}
 
-	// The priority is to use OpenTofu by default, but we will fallback to Terraform if it's not available
-	// In the future, Terraform support may be dropped entirely
+	// The priority is to use the Terraform binary first, and then fall back to OpenTofu
+	// The Terraform binary is not included in the latest runner images, so standard behaviour is to use OpenTofu
 	lookPathReply, err := runnerClient.LookPath(ctx,
 		&runner.LookPathRequest{
-			Files: []string{"tofu", "terraform"},
+			Files: []string{"terraform", "tofu"},
 		},
 	)
 	if err != nil {
-		err = fmt.Errorf("cannot find OpenTofu or Terraform binary: %s in %s", err, os.Getenv("PATH"))
+		err = fmt.Errorf("cannot find Terraform or OpenTofu binary: %s in %s", err, os.Getenv("PATH"))
 
 		return infrav1.TerraformNotReady(
 			terraform,
