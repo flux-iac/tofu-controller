@@ -45,9 +45,9 @@ spec:
     caCertValidityDuration: 24h
     certRotationCheckFrequency: 30m
     image:
-      tag: v0.16.0-rc.7
+      tag: v0.16.0-rc.8
     runner:
       image:
-        tag: v0.16.0-rc.7
+        tag: v0.16.0-rc.8
       grpc:
         maxMessageSize: 30

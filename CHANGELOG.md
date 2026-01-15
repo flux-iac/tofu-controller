@@ -2,6 +2,51 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.16.0-rc.8
+
+**Release date:** 2026-01-16
+
+Tofu Controller v0.16.0-rc.8 is now available. This release delivers several important enhancements and fixes, most notably:
+
+- First-class OpenTofu support — OpenTofu v1.11.3 is now bundled by default in the runner images.
+- Improved Terraform reconciliation — better reconciliation behavior and strategy for Terraform resources.
+
+We would like to thank our contributors for their continued support and effort in improving the Tofu-Controller.
+
+Please follow the [upgrade guide in the documentation](https://flux-iac.github.io/tofu-controller/use-tf-controller/upgrade-tf-controller/) to ensure a smooth transition to the latest version.
+
+Breaking Changes:
+
+- Migrate Tofu Controller to OpenTofu ([#1675](https://github.com/flux-iac/tofu-controller/pull/1675)) ([1a291c1d](https://github.com/flux-iac/tofu-controller/commit/1a291c1dcc2c81fcd928466b245c1e44a6ed5e12))
+
+New Features and Bug Fixes:
+
+- feat: implement graceful shutdown ([#1699](https://github.com/flux-iac/tofu-controller/pull/1699)) ([2d656b07](https://github.com/flux-iac/tofu-controller/commit/2d656b0773d5734b87d81895ba7b7e49a3995ac2))
+- chore(deps): bump github.com/maxbrunsfeld/counterfeiter/v6 ([#1695](https://github.com/flux-iac/tofu-controller/pull/1695)) ([1f038464](https://github.com/flux-iac/tofu-controller/commit/1f0384649d6a060ae7194c474539f5b8bfa1873d))
+- chore(deps): bump the gh-minor group across 1 directory with 2 updates ([#1690](https://github.com/flux-iac/tofu-controller/pull/1690)) ([837c7aa8](https://github.com/flux-iac/tofu-controller/commit/837c7aa889fc40ea90b6063a6acbb428b1d99be1))
+- chore(deps): bump github/codeql-action in the gh-patch group ([#1684](https://github.com/flux-iac/tofu-controller/pull/1684)) ([91a3cabc](https://github.com/flux-iac/tofu-controller/commit/91a3cabc7c2334628cffd17e100d36c189b3b6cc))
+- chore(deps): bump the go-minor group across 2 directories with 10 updates ([#1698](https://github.com/flux-iac/tofu-controller/pull/1698)) ([1b2770ff](https://github.com/flux-iac/tofu-controller/commit/1b2770ff137413471046c07a4c8c702fb930beb9))
+- chore(deps): bump fluxcd/pkg ([#1687](https://github.com/flux-iac/tofu-controller/pull/1687)) ([01162b86](https://github.com/flux-iac/tofu-controller/commit/01162b86565617089db0b5bbb3b8a7da7be5270d))
+- fix: reconcile without delay when dependencies were last not ready ([#1692](https://github.com/flux-iac/tofu-controller/pull/1692)) ([23525efb](https://github.com/flux-iac/tofu-controller/commit/23525efb0223c8ee19a28e95c9f564250625cbca))
+- fix(deps): bump dependencies ([#1693](https://github.com/flux-iac/tofu-controller/pull/1693)) ([4df454ef](https://github.com/flux-iac/tofu-controller/commit/4df454ef09ef974fed33bca14bf480221ebbd23c))
+- chore(ci): fix flaky e2e cert GC test ([#1694](https://github.com/flux-iac/tofu-controller/pull/1694)) ([7cb8bb8c](https://github.com/flux-iac/tofu-controller/commit/7cb8bb8cbd85890874417ea3e443af4392f90da4))
+- fix: avoid "secret already exists" error ([#1682](https://github.com/flux-iac/tofu-controller/pull/1682)) ([8759b9ed](https://github.com/flux-iac/tofu-controller/commit/8759b9ed51764af7d11c960b146195570cf3aa45))
+- chore(deps): bump the gh-patch group across 1 directory with 4 updates ([#1677](https://github.com/flux-iac/tofu-controller/pull/1677)) ([417a454d](https://github.com/flux-iac/tofu-controller/commit/417a454df42c1bbe0240f8c887dcd0ad5a347039))
+- chore(deps): bump the go-patch group across 1 directory with 13 updates ([#1679](https://github.com/flux-iac/tofu-controller/pull/1679)) ([ff0c6b9a](https://github.com/flux-iac/tofu-controller/commit/ff0c6b9acdfcd096eb327631fecfd247fe4dbcf5))
+- fix(build): add missing build arguments for Go cross-compliation build ([#1680](https://github.com/flux-iac/tofu-controller/pull/1680)) ([ca7e52d1](https://github.com/flux-iac/tofu-controller/commit/ca7e52d1eb03c11584e16709ccfa2a2559beb074))
+- feat: use a distroless image for tofu-controller ([#1674](https://github.com/flux-iac/tofu-controller/pull/1674)) ([748f4469](https://github.com/flux-iac/tofu-controller/commit/748f4469b0607db4f618974939c7288c2756b80c))
+- feat: refactor plan loading/saving ([#1664](https://github.com/flux-iac/tofu-controller/pull/1664)) ([7aaf7573](https://github.com/flux-iac/tofu-controller/commit/7aaf75735ec853286092d6c99801f14e5f301b64))
+- chore(deps): bump the gh-major group across 1 directory with 8 updates ([#1678](https://github.com/flux-iac/tofu-controller/pull/1678)) ([9270321e](https://github.com/flux-iac/tofu-controller/commit/9270321e6147cd4e00f36bb6c72510073ca823de))
+- fix(test): avoid race in test resources cleanup ([#1672](https://github.com/flux-iac/tofu-controller/pull/1672)) ([a17baa19](https://github.com/flux-iac/tofu-controller/commit/a17baa1950192c88dd8e607a3345cf9937379bf4))
+- fix: set max grpc message size for grpc client ([#1676](https://github.com/flux-iac/tofu-controller/pull/1676)) ([5e870de1](https://github.com/flux-iac/tofu-controller/commit/5e870de1b8fa0cd58f704c3cc21fa9ca77656778))
+- fix: delete reconciling condition on successful initial apply ([#1670](https://github.com/flux-iac/tofu-controller/pull/1670)) ([7f632571](https://github.com/flux-iac/tofu-controller/commit/7f632571099830d3777efde4e63dc83e9391cc07))
+- fix: handle more reconciliation cases ([#1671](https://github.com/flux-iac/tofu-controller/pull/1671)) ([7e622eba](https://github.com/flux-iac/tofu-controller/commit/7e622eba0fe08f9ad22461f35814d54fc1f6a631))
+- fix: reconcile terraform when source revision changes ([#1668](https://github.com/flux-iac/tofu-controller/pull/1668)) ([1000a3f7](https://github.com/flux-iac/tofu-controller/commit/1000a3f768d211be850dcd365d1b550eda1f862b))
+- chore(deps): bump the gh-minor group across 1 directory with 9 updates ([#1666](https://github.com/flux-iac/tofu-controller/pull/1666)) ([6ec9705f](https://github.com/flux-iac/tofu-controller/commit/6ec9705f0a1f12eadeac76e035765e3ff2d945b0))
+- chore!: remove v1beta2 source API usage ([#1663](https://github.com/flux-iac/tofu-controller/pull/1663)) ([07ff2cc0](https://github.com/flux-iac/tofu-controller/commit/07ff2cc04bc06fcbda8e4465a94391684ca73995))
+- fix: clear terraform state lock condition after subsequent successful operation ([#1661](https://github.com/flux-iac/tofu-controller/pull/1661)) ([c13b35c9](https://github.com/flux-iac/tofu-controller/commit/c13b35c9c19af7d4c0e50740985725ee046143be))
+- fix: reconcile terraform when reconcile.fluxcd.io/requestedAt is set ([#1662](https://github.com/flux-iac/tofu-controller/pull/)) ([ab20fd8b](https://github.com/flux-iac/tofu-controller/commit/ab20fd8b0f1b546e42ab86cb5b3bba516794ee5c))
+
 ## v0.16.0-rc.7
 
 **Release date:** 2025-12-04

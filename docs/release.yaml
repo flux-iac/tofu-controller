@@ -20,7 +20,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: tofu-controller
-      version: '>=0.16.0-rc.7'
+      version: '>=0.16.0-rc.8'
   interval: 1h0s
   releaseName: tofu-controller
   targetNamespace: flux-system
@@ -45,9 +45,9 @@ spec:
     caCertValidityDuration: 24h
     certRotationCheckFrequency: 30m
     image:
-      tag: v0.16.0-rc.7
+      tag: v0.16.0-rc.8
     runner:
       image:
-        tag: v0.16.0-rc.7
+        tag: v0.16.0-rc.8
       grpc:
         maxMessageSize: 30
