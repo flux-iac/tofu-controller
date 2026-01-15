@@ -23,7 +23,7 @@ jobs:
             **/go.mod
       - name: Setup OpenTofu
         run: |
-          export TOFU_VERSION=1.6.2
+          export TOFU_VERSION=1.11.3
           wget https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_amd64.zip
           unzip -q tofu_${TOFU_VERSION}_linux_amd64.zip tofu
           mv tofu /usr/local/bin
