@@ -187,7 +187,7 @@ terraform {
 		},
 	)
 	if err != nil {
-		err = fmt.Errorf("cannot find Terraform or OpenTofu binary: %s in %s", err, os.Getenv("PATH"))
+		err = fmt.Errorf("cannot find any of the required binaries (terraform, tofu): %s", err)
 
 		return infrav1.TerraformNotReady(
 			terraform,

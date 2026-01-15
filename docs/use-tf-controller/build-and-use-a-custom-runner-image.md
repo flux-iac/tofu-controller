@@ -16,7 +16,7 @@ You need Docker and Git to build the image.
 
     ```Dockerfile
     ARG BASE_IMAGE
-    ARG TOFU_VERSION=1.11.1
+    ARG TOFU_VERSION=1.6.2
 
     FROM ghcr.io/opentofu/opentofu:${TOFU_VERSION}-minimal AS tofu
 
@@ -34,7 +34,7 @@ You need Docker and Git to build the image.
 
     ```bash
     export TF_CONTROLLER_VERSION=v0.16.0-rc.7
-    export TOFU_VERSION=1.6.0
+    export TOFU_VERSION=1.6.2
     export BASE_IMAGE=ghcr.io/flux-iac/tf-runner:${TF_CONTROLLER_VERSION}-base
     export REMOTE_REPO=ghcr.io/my-org/custom-runnner
     docker build \
