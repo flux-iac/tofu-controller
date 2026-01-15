@@ -185,7 +185,7 @@ func Test_000031_plan_only_with_showplan_as_cm_no_outputs_test(t *testing.T) {
 Changes to Outputs:
   + hello_world = "Hello, World!"
 
-You can apply this plan to save these new output values to the Terraform
+You can apply this plan to save these new output values to the OpenTofu
 state, without changing any real infrastructure.
 `,
 	}))

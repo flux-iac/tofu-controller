@@ -105,11 +105,11 @@ jobs:
 
           kubectl -n tofu-system rollout status deploy/source-controller --timeout=1m
           kubectl -n tofu-system rollout status deploy/tofu-controller --timeout=1m
-      - name: Get terraform version
+      - name: Get OpenTofu version
         run: |
-          # Terraform binary will be moved from the ToFu-controller image to TF-runner, so we check TF's version there
+          # OpenTofu binary will be moved from the ToFu-controller image to TF-runner, so we check OpenTofu's version there
           VERSION="e2e-${GITHUB_SHA::8}"
-          docker run --rm --entrypoint=/usr/local/bin/terraform test/tf-runner:$VERSION version
+          docker run --rm --entrypoint=/usr/local/bin/tofu test/tf-runner:$VERSION version
       - name: Add git repository source
         run: |
           kubectl -n tofu-system apply -f ./config/testdata/source
