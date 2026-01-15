@@ -113,6 +113,11 @@ usePodSubdomainResolution: false
 # -- Argument for `--use-priority-queue` (Controller).
 #  Enable the priority queue feature to prioritize new/changed resources over resources loaded after a restart or resync.
 usePriorityQueue: true
+# -- Grace period for controller pod termination.
+#  Argument for `--graceful-shutdown-timeout` (Controller) is (terminationGracePeriodSeconds - 10) or 0, whichever is higher.
+#  Graceful shutdown will wait for active runners to finish without starting new ones.
+terminationGracePeriodSeconds: 250
+
 awsPackage:
   install: true
   tag: v4.38.0-v1alpha11

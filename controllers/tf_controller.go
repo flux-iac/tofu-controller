@@ -25,6 +25,8 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/fluxcd/pkg/apis/meta"
@@ -84,6 +86,11 @@ type TerraformReconciler struct {
 	NoCrossNamespaceRefs      bool
 	UsePodSubdomainResolution bool
 	Clientset                 *kubernetes.Clientset
+
+	// Graceful shutdown fields
+	ShutdownTimeout       time.Duration
+	shutdownStarted       atomic.Bool
+	activeReconciliations sync.WaitGroup
 }
 
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete
@@ -109,6 +116,18 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	log := ctrl.LoggerFrom(ctx, "reconciliation-loop-id", reconciliationLoopID, "start-time", startTime)
 	ctx = ctrl.LoggerInto(ctx, log)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.Reconcile")
+
+	if r.shutdownStarted.Load() {
+		traceLog.Info("Controller shutdown in progress, not accepting new reconciliations")
+		return ctrl.Result{}, nil
+	}
+
+	// Track this active reconciliation for graceful shutdown
+	r.activeReconciliations.Add(1)
+	defer func() {
+		r.activeReconciliations.Done()
+	}()
+
 	traceLog.Info("Reconcile Start")
 
 	<-r.CertRotator.Ready

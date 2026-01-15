@@ -52,6 +52,7 @@ spec:
         - --cluster-domain={{ .Values.clusterDomain }}
         - --use-pod-subdomain-resolution={{ .Values.usePodSubdomainResolution }}
         - --use-priority-queue={{ .Values.usePriorityQueue }}
+        - --graceful-shutdown-timeout={{ max (int 0) (int (sub .Values.terminationGracePeriodSeconds 10)) }}s
         env:
           {{- include "pod-namespace" . | indent 8 }}
         - name: RUNNER_POD_IMAGE
@@ -88,7 +89,9 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "tofu-controller.serviceAccountName" . }}
-      terminationGracePeriodSeconds: 10
+      {{- with .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ . }}
+      {{- end }}
       {{- with .Values.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}

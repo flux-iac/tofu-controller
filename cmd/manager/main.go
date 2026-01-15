@@ -99,6 +99,7 @@ func main() {
 		allowCrossNamespaceRefs   bool
 		usePodSubdomainResolution bool
 		usePriorityQueue          bool
+		gracefulShutdownTimeout   time.Duration
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
@@ -122,6 +123,8 @@ func main() {
 	flag.StringVar(&clusterDomain, "cluster-domain", "cluster.local", "The cluster domain used by the cluster.")
 	flag.BoolVar(&usePodSubdomainResolution, "use-pod-subdomain-resolution", false, "Allow to use pod hostname/subdomain DNS resolution instead of IP based")
 	flag.BoolVar(&usePriorityQueue, "use-priority-queue", true, "Enable the priority queue feature.")
+	flag.DurationVar(&gracefulShutdownTimeout, "graceful-shutdown-timeout", 4*time.Minute,
+		"The duration to wait for active reconciliations to complete during shutdown before forcing termination (0 to disable).")
 
 	clientOptions.BindFlags(flag.CommandLine)
 	logOptions.BindFlags(flag.CommandLine)
@@ -183,7 +186,8 @@ func main() {
 
 	metricsH := runtimeCtrl.NewMetrics(mgr, metrics.MustMakeRecorder(), infrav1.TerraformFinalizer)
 
-	signalHandlerContext := ctrl.SetupSignalHandler()
+	var shutdownCaller func() // real function is defined later
+	signalHandlerContext := setupSignalHandler(&shutdownCaller)
 
 	certsReady := make(chan struct{})
 	rotator := &mtls.CertRotator{
@@ -248,6 +252,7 @@ func main() {
 		UsePodSubdomainResolution: usePodSubdomainResolution,
 		Clientset:                 clientset,
 		FieldManager:              "tf-controller",
+		ShutdownTimeout:           gracefulShutdownTimeout,
 	}
 
 	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {
@@ -280,6 +285,8 @@ func main() {
 	}
 
 	setupLog.Info("Starting manager", "version", BuildVersion, "sha", BuildSHA)
+
+	shutdownCaller = func() { reconciler.ShutdownCoordinator(signalHandlerContext) }
 
 	if err := mgr.Start(signalHandlerContext); err != nil {
 		setupLog.Error(err, "problem running manager")
