@@ -15,7 +15,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
@@ -23,7 +23,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -604,45 +604,41 @@
 
 
 <h1 id="build-and-use-a-custom-runner-image">Build and Use a Custom Runner Image</h1>
-<p>To build a custom runner image, you need a Dockerfile that extends the base image and that adds Terraform, plus any additional required tooling. The repository that contains the base images is <a href="ghcr.io/flux-iac/tf-runner">here</a>. All base image tags follow the following format: <code>${TF_CONTROLLER_VERSION}-base</code>.</p>
+<p>To build a custom runner image, you need a Dockerfile that extends the base image and that adds OpenTofu (plus any additional required tooling).</p>
+<p>The repository that contains the base images is <a href="ghcr.io/flux-iac/tf-runner">here</a>.</p>
+<p>All base image tags follow the following format: <code>${TF_CONTROLLER_VERSION}-base</code>.</p>
 <h2 id="prerequisites">Prerequisites</h2>
 <p>You need Docker and Git to build the image.</p>
 <h2 id="build-the-image">Build the Image</h2>
 <ol>
 <li>
-<p>Create a <code>Dockerfile</code> that extends the base image and that adds Terraform, plus any additional required tooling. For example:</p>
+<p>Create a <code>Dockerfile</code> that extends the base image and that adds the OpenTofu binary, plus any additional required tooling. For example:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">ARG</span><span class="w"> </span>BASE_IMAGE
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">FROM</span><span class="w"> </span><span class="s">$BASE_IMAGE</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">ARG</span><span class="w"> </span><span class="nv">TOFU_VERSION</span><span class="o">=</span><span class="m">1</span>.11.3
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">ARG</span><span class="w"> </span>TARGETARCH
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">ARG</span><span class="w"> </span><span class="nv">TF_VERSION</span><span class="o">=</span><span class="m">1</span>.5.7
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c"># Switch to root to have permissions for operations</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">USER</span><span class="w"> </span><span class="s">root</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">FROM</span><span class="w"> </span><span class="s">ghcr.io/opentofu/opentofu:${TOFU_VERSION}-minimal</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s">tofu</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">FROM</span><span class="w"> </span><span class="s">$BASE_IMAGE</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">COPY</span><span class="w"> </span>--from<span class="o">=</span>tofu<span class="w"> </span>/usr/local/bin/tofu<span class="w"> </span>/usr/local/bin/tofu
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">ADD</span><span class="w"> </span>https://releases.hashicorp.com/terraform/<span class="si">${</span><span class="nv">TF_VERSION</span><span class="si">}</span>/terraform_<span class="si">${</span><span class="nv">TF_VERSION</span><span class="si">}</span>_linux_<span class="si">${</span><span class="nv">TARGETARCH</span><span class="si">}</span>.zip<span class="w"> </span>/terraform_<span class="si">${</span><span class="nv">TF_VERSION</span><span class="si">}</span>_linux_<span class="si">${</span><span class="nv">TARGETARCH</span><span class="si">}</span>.zip
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="k">RUN</span><span class="w"> </span>unzip<span class="w"> </span>-q<span class="w"> </span>/terraform_<span class="si">${</span><span class="nv">TF_VERSION</span><span class="si">}</span>_linux_<span class="si">${</span><span class="nv">TARGETARCH</span><span class="si">}</span>.zip<span class="w"> </span>-d<span class="w"> </span>/usr/local/bin/<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span>rm<span class="w"> </span>/terraform_<span class="si">${</span><span class="nv">TF_VERSION</span><span class="si">}</span>_linux_<span class="si">${</span><span class="nv">TARGETARCH</span><span class="si">}</span>.zip<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span>chmod<span class="w"> </span>+x<span class="w"> </span>/usr/local/bin/terraform
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="c"># Switch back to the non-root user after operations</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="k">USER</span><span class="w"> </span><span class="s">65532:65532</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c"># Switch back to the non-root user after operations</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="k">USER</span><span class="w"> </span><span class="s">65532:65532</span>
 </code></pre></div>
 <p>Find the original Dockerfile for the runner <a href="https://github.com/flux-iac/tofu-controller/blob/main/runner.Dockerfile">here</a>.</p>
 </li>
 <li>
 <p>Build the image from the directory containing the <code>Dockerfile</code> you created above:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">TF_CONTROLLER_VERSION</span><span class="o">=</span>v0.16.0-rc.3
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">TF_VERSION</span><span class="o">=</span><span class="m">1</span>.5.7
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">TF_CONTROLLER_VERSION</span><span class="o">=</span>v0.16.0-rc.7
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">TOFU_VERSION</span><span class="o">=</span><span class="m">1</span>.11.3
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">BASE_IMAGE</span><span class="o">=</span>ghcr.io/flux-iac/tf-runner:<span class="si">${</span><span class="nv">TF_CONTROLLER_VERSION</span><span class="si">}</span>-base
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">TARGETARCH</span><span class="o">=</span>amd64
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">REMOTE_REPO</span><span class="o">=</span>ghcr.io/my-org/custom-runnner
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>docker<span class="w"> </span>build<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span>--build-arg<span class="w"> </span><span class="nv">BASE_IMAGE</span><span class="o">=</span><span class="si">${</span><span class="nv">BASE_IMAGE</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span>--build-arg<span class="w"> </span><span class="nv">TARGETARCH</span><span class="o">=</span><span class="si">${</span><span class="nv">TARGETARCH</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span>--tag<span class="w"> </span>my-custom-runner:<span class="si">${</span><span class="nv">TF_CONTROLLER_VERSION</span><span class="si">}</span><span class="w"> </span>.
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>docker<span class="w"> </span>tag<span class="w"> </span>my-custom-runner:<span class="si">${</span><span class="nv">TF_CONTROLLER_VERSION</span><span class="si">}</span><span class="w"> </span><span class="nv">$REMOTE_REPO</span>:<span class="si">${</span><span class="nv">TF_CONTROLLER_VERSION</span><span class="si">}</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>docker<span class="w"> </span>push<span class="w"> </span><span class="nv">$REMOTE_REPO</span>:<span class="si">${</span><span class="nv">TF_CONTROLLER_VERSION</span><span class="si">}</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">REMOTE_REPO</span><span class="o">=</span>ghcr.io/my-org/custom-runnner
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>docker<span class="w"> </span>build<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span>--build-arg<span class="w"> </span><span class="nv">BASE_IMAGE</span><span class="o">=</span><span class="si">${</span><span class="nv">BASE_IMAGE</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span>--build-arg<span class="w"> </span><span class="nv">TOFU_VERSION</span><span class="o">=</span><span class="si">${</span><span class="nv">TOFU_VERSION</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span>--tag<span class="w"> </span>my-custom-runner:<span class="si">${</span><span class="nv">TF_CONTROLLER_VERSION</span><span class="si">}</span><span class="w"> </span>.
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>docker<span class="w"> </span>tag<span class="w"> </span>my-custom-runner:<span class="si">${</span><span class="nv">TF_CONTROLLER_VERSION</span><span class="si">}</span><span class="w"> </span><span class="nv">$REMOTE_REPO</span>:<span class="si">${</span><span class="nv">TF_CONTROLLER_VERSION</span><span class="si">}</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>docker<span class="w"> </span>push<span class="w"> </span><span class="nv">$REMOTE_REPO</span>:<span class="si">${</span><span class="nv">TF_CONTROLLER_VERSION</span><span class="si">}</span>
 </code></pre></div>
 <p>Replace the relevant values above with the corresponding values in your organisation/implementation.</p>
 </li>
@@ -716,10 +712,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
