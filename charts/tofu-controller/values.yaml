@@ -31,7 +31,7 @@ image:
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
   # @default -- `.Chart.AppVersion`
-  tag: "v0.16.0-rc.7"
+  tag: "v0.16.0-rc.8"
 # -- Controller image pull secret
 imagePullSecrets: []
 # -- Resource limits and requests
@@ -117,7 +117,6 @@ usePriorityQueue: true
 #  Argument for `--graceful-shutdown-timeout` (Controller) is (terminationGracePeriodSeconds - 10) or 0, whichever is higher.
 #  Graceful shutdown will wait for active runners to finish without starting new ones.
 terminationGracePeriodSeconds: 250
-
 awsPackage:
   install: true
   tag: v4.38.0-v1alpha11
@@ -129,7 +128,7 @@ runner:
     repository: ghcr.io/flux-iac/tf-runner
     # -- Runner image tag
     # @default -- `.Chart.AppVersion`
-    tag: "v0.16.0-rc.7"
+    tag: "v0.16.0-rc.8"
   grpc:
     # -- Maximum GRPC message size (Controller)
     maxMessageSize: 4
