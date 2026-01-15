@@ -31,7 +31,7 @@ require (
 	github.com/hashicorp/terraform-json v0.27.2
 	github.com/jenkins-x/go-scm v1.15.16
 	github.com/kubescape/go-git-url v0.0.31
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.0
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.1
 	github.com/onsi/gomega v1.39.0
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.2
