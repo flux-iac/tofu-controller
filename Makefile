@@ -30,7 +30,7 @@ SHELL = /usr/bin/env bash -o pipefail
 # Allows for defining additional Docker buildx arguments, e.g. '--push'.
 BUILD_ARGS ?=
 
-# Set architecture for the binaries we build as well as the terraform binary that get bundled in the images
+# Set architecture for the binaries we build as well as the tofu binary that get bundled in the images
 TARGETARCH ?= amd64
 
 .PHONY: all
@@ -114,7 +114,7 @@ test-internal: manifests generate download-crd-deps fmt vet envtest api-docs ## 
 
 .PHONY: gen-grpc
 gen-grpc: protoc protoc-gen-go protoc-gen-go-grpc
-	env PATH=$(shell pwd)/bin:$$PATH $(PROJECT_DIR)/bin/protoc --go_out=. --go_opt=Mrunner/runner.proto=runner/ --go-grpc_out=. --go-grpc_opt=Mrunner/runner.proto=runner/ runner/runner.proto
+	env PATH="$(shell pwd)/bin:$$PATH" $(PROJECT_DIR)/bin/protoc --go_out=. --go_opt=Mrunner/runner.proto=runner/ --go-grpc_out=. --go-grpc_opt=Mrunner/runner.proto=runner/ runner/runner.proto
 
 ##@ Build
 
@@ -225,14 +225,25 @@ kustomize: ## Download kustomize locally if necessary.
 	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v5@v5.7.1)
 
 PROTOC = $(PROJECT_DIR)/protoc
-PROTOC_V ?= 31.1
+PROTOC_V ?= 33.4
+PROTOC_URL := https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_V}/protoc-${PROTOC_V}
 .PHONY: protoc
 protoc: ## Download protoc locally if necessary.
 	# download and unzip protoc
 	mkdir -p $(PROJECT_DIR)
-	curl -qLO https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_V)/protoc-$(PROTOC_V)-linux-x86_64.zip
-	unzip -q -o protoc-$(PROTOC_V)-linux-x86_64.zip bin/protoc -d $(PROJECT_DIR)
-	rm protoc-$(PROTOC_V)-linux-x86_64.zip
+	if [ "$(shell uname)" == "Darwin" ]; then \
+		curl -qLO ${PROTOC_URL}-osx-x86_64.zip ;\
+		unzip -q -o protoc-${PROTOC_V}-osx-x86_64.zip bin/protoc -d $(PROJECT_DIR) ;\
+		rm protoc-${PROTOC_V}-osx-x86_64.zip ;\
+	elif [ "$(shell uname -m)" == "aarch64" ]; then \
+		curl -qLO ${PROTOC_URL}-linux-aarch_64.zip ;\
+		unzip -q -o protoc-${PROTOC_V}-linux-aarch_64.zip bin/protoc -d $(PROJECT_DIR) ;\
+		rm protoc-${PROTOC_V}-linux-aarch_64.zip ;\
+	else \
+		curl -qLO ${PROTOC_URL}-linux-x86_64.zip ;\
+		unzip -q -o protoc-${PROTOC_V}-linux-x86_64.zip bin/protoc -d $(PROJECT_DIR) ;\
+		rm protoc-${PROTOC_V}-linux-x86_64.zip ;\
+	fi ;\
 
 # Find or download controller-gen
 PROTOC_GEN_GO = $(GOBIN)/protoc-gen-go

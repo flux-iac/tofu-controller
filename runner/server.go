@@ -96,13 +96,17 @@ func (r *TerraformRunnerServer) ValidateInstanceID(requestedInstanceID string) e
 
 func (r *TerraformRunnerServer) LookPath(ctx context.Context, req *LookPathRequest) (*LookPathReply, error) {
 	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
-	log.Info("looking for path", "file", req.File)
-	execPath, err := exec.LookPath(req.File)
-	if err != nil {
-		log.Error(err, "unable to look for path", "file", req.File)
-		return nil, err
+	log.Info("looking for paths", "files", req.Files)
+
+	for _, file := range req.Files {
+		execPath, err := exec.LookPath(file)
+		if err == nil {
+			log.Info("found binary", "file", file, "execPath", execPath)
+			return &LookPathReply{ExecPath: execPath}, nil
+		}
 	}
-	return &LookPathReply{ExecPath: execPath}, nil
+
+	return nil, errors.New("none of the specified binaries were found in the runners PATH")
 }
 
 func (r *TerraformRunnerServer) UploadAndExtract(ctx context.Context, req *UploadAndExtractRequest) (*UploadAndExtractReply, error) {
