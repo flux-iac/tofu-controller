@@ -2,13 +2,38 @@ version: 2
 project_name: tofu-controller
 
 release:
-  prerelease: "true"
   extra_files:
     - glob: config/release/*.yaml
+
+  prerelease: auto
+
+  header: |
+    ## Changelog
+
+    [{{.Tag}} changelog](https://github.com/flux-iac/{{.ProjectName}}/blob/{{.Tag}}/CHANGELOG.md)
+
+  footer: |
+    ## Container images
+
+    - `ghcr.io/flux-iac/{{.ProjectName}}:{{.Tag}}`
+    - `ghcr.io/flux-iac/tf-runner:{{.Tag}}`
+    - `ghcr.io/flux-iac/tf-runner:{{.Tag}}-base`
+
+    Supported architectures: `linux/amd64`, `linux/arm64` and `linux/arm/v7`.
 
 checksum:
   extra_files:
     - glob: config/release/*.yaml
+
+source:
+  enabled: true
+  name_template: "{{ .ProjectName }}_{{ .Version }}_source_code"
+
+sboms:
+  - id: source
+    artifacts: source
+    documents:
+      - "{{ .ProjectName }}_{{ .Version }}_sbom.spdx.json"
 
 builds:
   - id: tfctl
@@ -34,20 +59,10 @@ builds:
 
 archives:
   - id: tfctl
-    builds:
+    ids:
       - tfctl
     name_template: "tfctl_{{ title .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
-    format: tar.gz
-
-source:
-  enabled: true
-  name_template: "{{ .ProjectName }}_{{ .Version }}_source_code"
-
-sboms:
-  - id: source
-    artifacts: source
-    documents:
-      - "{{ .ProjectName }}_{{ .Version }}_sbom.spdx.json"
+    formats: [ 'tar.gz' ]
 
 # signs the checksum file
 # all files (including the sboms) are included in the checksum
