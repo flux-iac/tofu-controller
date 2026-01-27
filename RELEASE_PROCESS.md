@@ -7,13 +7,13 @@ If any step is unclear, please reach out to an existing [maintainer](MAINTAINERS
 1. Create a new release branch
 
     ```console
-    git switch -c release/v0.16.0-rc.6
+    git switch -c release/v0.16.0
     ```
 
 2. Bump statically defined versions across the repository.
 
     ```console
-    bash ./tools/bump-version.sh v0.16.0-rc.6
+    bash ./tools/bump-version.sh v0.16.0
     ```
 
     At this point, it is worthwhile performing a cursory review of the repository to ensure there are no missed version references.
@@ -21,7 +21,7 @@ If any step is unclear, please reach out to an existing [maintainer](MAINTAINERS
 3. Update the `CHANGELOG.md` file. At the moment, this is done manually but you can generate a helper template with:
 
     ```console
-    git log --first-parent v0.16.0-rc.5..v0.16.0-rc.6 --merges --pretty='- %s ([%h](https://github.com/flux-iac/tofu-controller/commit/%H))'
+    git log --first-parent v0.16.0-rc.8..v0.16.0 --merges --pretty='- %s ([%h](https://github.com/flux-iac/tofu-controller/commit/%H))'
     ```
 
 4. Arrange to have your release branch merged and commited to the `main` branch.
@@ -31,8 +31,8 @@ If any step is unclear, please reach out to an existing [maintainer](MAINTAINERS
    This will kick off the release workflow, which will build, sign and publish the various docker images.
 
    ```console
-    git tag -a v0.16.0-rc.6 -m "v0.16.0-rc.6"
-    git push origin v0.16.0-rc.6
+    git tag -a v0.16.0 -m "v0.16.0"
+    git push origin v0.16.0
    ```
 
 6. At this point, monitor the release workflow and ensure that no steps fail.
@@ -50,7 +50,7 @@ If any step is unclear, please reach out to an existing [maintainer](MAINTAINERS
     ...Successfully got an update from the "tofu-controller" chart repository
     Update Complete. ⎈Happy Helming!⎈
 
-    $ helm search repo tofu-controller -l --version 0.16.0-rc.6
+    $ helm search repo tofu-controller -l --version 0.16.0
     NAME                           	CHART VERSION	APP VERSION 	DESCRIPTION
-    tofu-controller/tofu-controller	0.16.0-rc.6  	v0.16.0-rc.6	The Helm chart for Weave GitOps Terraform Contr...
+    tofu-controller/tofu-controller	0.16.0  	v0.16.0	The Helm chart for Weave GitOps Terraform Contr...
     ```
