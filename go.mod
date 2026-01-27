@@ -15,7 +15,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.95.1
 	github.com/aws/smithy-go v1.24.0
 	github.com/cyphar/filepath-securejoin v0.6.1
-	github.com/elgohr/go-localstack v1.0.146
+	github.com/elgohr/go-localstack v1.0.147
 	github.com/flux-iac/tofu-controller/api v0.0.0-20250321074822-67198a27f35b
 	github.com/flux-iac/tofu-controller/tfctl v0.0.0-00010101000000-000000000000
 	github.com/fluxcd/pkg/apis/meta v1.25.0
@@ -189,7 +189,7 @@ require (
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/shurcooL/githubv4 v0.0.0-20240727222349-48295856cce7 // indirect
 	github.com/shurcooL/graphql v0.0.0-20230722043721-ed46e5a46466 // indirect
-	github.com/sirupsen/logrus v1.9.3 // indirect
+	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/theckman/yacspin v0.13.12 // indirect
