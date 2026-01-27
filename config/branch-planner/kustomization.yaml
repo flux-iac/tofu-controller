@@ -8,4 +8,4 @@ generatorOptions:
 images:
   - name: flux-iac/branch-planner
     newName: ghcr.io/flux-iac/branch-planner
-    newTag: v0.16.0-rc.8
+    newTag: v0.16.0

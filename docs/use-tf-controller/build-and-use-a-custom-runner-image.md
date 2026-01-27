@@ -33,7 +33,7 @@ You need Docker and Git to build the image.
 2. Build the image from the directory containing the `Dockerfile` you created above:
 
     ```bash
-    export TF_CONTROLLER_VERSION=v0.16.0-rc.8
+    export TF_CONTROLLER_VERSION=v0.16.0
     export TOFU_VERSION=1.11.3
     export BASE_IMAGE=ghcr.io/flux-iac/tf-runner:${TF_CONTROLLER_VERSION}-base
     export REMOTE_REPO=ghcr.io/my-org/custom-runnner

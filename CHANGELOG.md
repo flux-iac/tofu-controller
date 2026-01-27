@@ -2,6 +2,346 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.16.0
+
+**Release date:** 2026-01-27
+
+We are pleased to release Tofu-Controller v0.16.0, which is our first stable release since v0.15.1 which was released in July 2023.
+
+This release delivers several important enhancements, fixes and changes, most notably:
+
+- First-class OpenTofu support — OpenTofu v1.11.3 is now bundled by default in the runner images.
+- Improved Terraform reconciliation — better reconciliation behavior and strategy for Terraform resources, along with controller priority queue.
+- Helm Chart renaming - the Helm Chart has been renamed from `tf-controller` to `tofu-controller`.
+- Introduction of the Branch Planner feature.
+
+We would like to thank our contributors for their continued support and effort in improving the Tofu-Controller.
+
+Please follow the [upgrade guide in the documentation](https://flux-iac.github.io/tofu-controller/use-tf-controller/upgrade-tf-controller/) to ensure a smooth transition to the latest version.
+
+### Breaking Changes:
+
+* Migrate Tofu Controller to OpenTofu by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1675
+
+### What's Changed
+
+* refactor: use the term "branch planner" everywhere by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/735
+* fix tfctl message when we're in the plan only mode by @chanwit in https://github.com/flux-iac/tofu-controller/pull/748
+* Adding comments to pulls request managed by bbp by @luizbafilho in https://github.com/flux-iac/tofu-controller/pull/738
+* feat: set approvePlan to be blank and force to be false by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/757
+* refactor: add build sha and version to go run tasks by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/759
+* patch: use hcl syntax and don't use <details> tag for plan output in comments by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/758
+* Improving ConfigMap Handling and Parsing Object Key, Removed Redundant Notation for the Controller and the Branch Planner by @squaremo in https://github.com/flux-iac/tofu-controller/pull/768
+* patch: use "flux-system" namespace instead of "default" for config by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/761
+* feat: support watching all Terraform objects in namespace by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/763
+* refactor: make tilt friendlier by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/772
+* if force mode is true, we skip the plan annotation check by @chanwit in https://github.com/flux-iac/tofu-controller/pull/769
+* implement replan comment trigger by @chanwit in https://github.com/flux-iac/tofu-controller/pull/775
+* feat: use RUNTIME_NAMESPACE for resources if namespace is not defined by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/774
+* chore(deps): bump libcrypto3 to 3.1.1-r3 by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/787
+* add dependabot.yaml by @chanwit in https://github.com/flux-iac/tofu-controller/pull/788
+* docs: getting started with branch planner by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/784
+* Bump the ci group with 21 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/789
+* Add license scan report and status by @fossabot in https://github.com/flux-iac/tofu-controller/pull/792
+* Fix source deletion when using branch planner by @luizbafilho in https://github.com/flux-iac/tofu-controller/pull/790
+* add interval docs by @chanwit in https://github.com/flux-iac/tofu-controller/pull/796
+* Resource deletion docs by @chanwit in https://github.com/flux-iac/tofu-controller/pull/800
+* feat: add branch planner cli flag to helm chart values by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/795
+* Add --no-cross-namespace-refs to branch-based-planner by @squaremo in https://github.com/flux-iac/tofu-controller/pull/676
+* feat: post error as comment to a pull request by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/801
+* Bump the ci group with 6 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/809
+* Document ADR for denying cross-ns refs by default by @squaremo in https://github.com/flux-iac/tofu-controller/pull/782
+* fix: Typo by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/818
+* patch: use allowedNamespaces in Branch Planner by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/813
+* docs: add example yaml for easier deployment by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/815
+* improve renaming variable docs by @chanwit in https://github.com/flux-iac/tofu-controller/pull/816
+* Add RecordDuration metrics and using functions from fluxcd by @luizbafilho in https://github.com/flux-iac/tofu-controller/pull/811
+* fix: clear comment id after replan by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/810
+* feat: ability to set resource limits and security context for branch planner by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/819
+* Bump the ci group with 4 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/817
+* patch: static replica count for branch planner by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/821
+* bump helm chart to v0.16.0-rc.1 by @chanwit in https://github.com/flux-iac/tofu-controller/pull/822
+* capture stderr from tf init and send it back to the controller by @chanwit in https://github.com/flux-iac/tofu-controller/pull/832
+* fix output secret relocation for branch planner by @chanwit in https://github.com/flux-iac/tofu-controller/pull/835
+* enable configmap creation and bump chart to v0.16.0-rc.2 by @chanwit in https://github.com/flux-iac/tofu-controller/pull/834
+* bump libcrypto3 and libssl3 by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/841
+* build(deps): bump the ci group with 5 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/826
+* Resume and Suspend All by @luizbafilho in https://github.com/flux-iac/tofu-controller/pull/842
+* build: remove `nsswitch.conf` creation by @hiddeco in https://github.com/flux-iac/tofu-controller/pull/849
+* Prevent dependson crossnamespace reference by @luizbafilho in https://github.com/flux-iac/tofu-controller/pull/824
+* docs: Add Branch Planner guide by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/852
+* Polish docs by @chanwit in https://github.com/flux-iac/tofu-controller/pull/854
+* feat: do not create branch planner resources if there are no terraform changes by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/839
+* chore: post blocked issues on watermelon slack on Mon and Thu by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/857
+* Update getting-started.md by @chanwit in https://github.com/flux-iac/tofu-controller/pull/860
+* refactor runner base image by @chanwit in https://github.com/flux-iac/tofu-controller/pull/868
+* test: disable flaky tests by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/863
+* add webhook docs by @chanwit in https://github.com/flux-iac/tofu-controller/pull/875
+* Add DCO by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/877
+* Add Flux Receiver and Alert integration doc by @kingdonb in https://github.com/flux-iac/tofu-controller/pull/879
+* small fix for branch planner to support terraform cloud by @chanwit in https://github.com/flux-iac/tofu-controller/pull/881
+* branch planner integration docs for terraform cloud by @chanwit in https://github.com/flux-iac/tofu-controller/pull/884
+* patch: back-backport v0.14 break-the-glass changes by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/869
+* Adds OpenSSF badge to Readme by @lasomethingsomething in https://github.com/flux-iac/tofu-controller/pull/892
+* ci: Add OpenSSF Scorecard GH Action by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/883
+* doc: Add SECURITY.md by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/897
+* build(deps): bump the ci group with 16 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/895
+* ci: Run `go vet` on CI by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/900
+* fix tfctl install --export not separating yaml objects properly by @matheuscscp in https://github.com/flux-iac/tofu-controller/pull/909
+* Defaults ObservedGeneration to -1 and sets LastHandledReconcileAt by @luizbafilho in https://github.com/flux-iac/tofu-controller/pull/867
+* Update RunnerPodSpec to include more fields by @luizbafilho in https://github.com/flux-iac/tofu-controller/pull/910
+* fix: 000011_workspace_no_outputs_test test by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/917
+* docs: Add information on how to provide feedback and contribute by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/925
+* fix: 000031 test and add more safe defer cleanup by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/924
+* Allow DNS resolution of the runner pod for all k8s setup by @syalioune in https://github.com/flux-iac/tofu-controller/pull/886
+* [breaking change] Add flag --allow-cross-namespace-refs to tf-controller and branch-planner by @squaremo in https://github.com/flux-iac/tofu-controller/pull/840
+* Fix tc000080_* flakiness by @luizbafilho in https://github.com/flux-iac/tofu-controller/pull/927
+* Adding make test-flaky deps by @luizbafilho in https://github.com/flux-iac/tofu-controller/pull/928
+* experiment: break up test jobs by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/938
+* fix: controllers/tc00004x tests by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/936
+* build(deps): bump github.com/cyphar/filepath-securejoin from 0.2.3 to 0.2.4 by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/929
+* Fix controllers/tc00008x_x, tc000090, tc000111 by @luizbafilho in https://github.com/flux-iac/tofu-controller/pull/933
+* fix: controllers/tc00005x tests and the manual approval stuck in loop bug by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/943
+* fix: controller 7x tests by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/944
+* fix: controller 12x and 13x tests by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/953
+* Adds Troubleshooting Section and tip to drift detection page by @lasomethingsomething in https://github.com/flux-iac/tofu-controller/pull/934
+* fix: controller 1xx tests by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/955
+* Expose --allow-cross-namespace-refs in the chart by @squaremo in https://github.com/flux-iac/tofu-controller/pull/931
+* fix: controller test 64 by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/960
+* fix: test 64, terraform version mismatch by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/962
+* Fix controllers/tc00006x by @luizbafilho in https://github.com/flux-iac/tofu-controller/pull/961
+* fix: controller test 201 and fix test clean-up by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/958
+* add install docs for gke autopilot by @chanwit in https://github.com/flux-iac/tofu-controller/pull/971
+* fix: controller test 230 by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/969
+* docs: update least required permissions for a github api token by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/967
+* fix: controller test 24x by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/970
+* add tools target for the makefile by @chanwit in https://github.com/flux-iac/tofu-controller/pull/975
+* add set -e to the local e2e script by @chanwit in https://github.com/flux-iac/tofu-controller/pull/976
+* add missing pod spec CRDs to the chart template by @chanwit in https://github.com/flux-iac/tofu-controller/pull/977
+* fix tcp address validation by @chanwit in https://github.com/flux-iac/tofu-controller/pull/978
+* Screen cross-ns refs in .spec.cliConfigSecretRef by @squaremo in https://github.com/flux-iac/tofu-controller/pull/959
+* Explain `allowCrossNamespaceRefs` in chart README and docs/howto/ by @squaremo in https://github.com/flux-iac/tofu-controller/pull/966
+* correct the behaviour of e2e tests by @chanwit in https://github.com/flux-iac/tofu-controller/pull/980
+* tests: run non-numbered tests as part of the github workflow by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/982
+* fix controllers/tc00029x tests by @luizbafilho in https://github.com/flux-iac/tofu-controller/pull/979
+* fix: controller test 260 by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/987
+* fix: controller test 20 by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/988
+* fix: controller test 28x and remaining defer calls in controller tests by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/989
+* add base image to the release pipeline by @chanwit in https://github.com/flux-iac/tofu-controller/pull/990
+* ci: Pinned checkout and setup-go GH actions to commit hashes by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/992
+* exclude branch from create object name function by @chanwit in https://github.com/flux-iac/tofu-controller/pull/993
+* ci: Pinned GH actions to commit hashes by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/994
+* ci: Pinned GH actions to commit hashes by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/995
+* ci: Pinned GH actions to commit hashes by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/996
+* ci: Move elevated permissions to run level by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/999
+* fix: Use write permissions when pushing Helm docs by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/1002
+* Deleting the Terraform object before deleting its source by @chanwit in https://github.com/flux-iac/tofu-controller/pull/1001
+* Add the `pr` string to suffix by @chanwit in https://github.com/flux-iac/tofu-controller/pull/1003
+* fix: Bump golang.org/x/net to v0.15.0 to address GO-2023-1988 by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/1007
+* Additional docs for breakglass by @madAndroid in https://github.com/flux-iac/tofu-controller/pull/1009
+* refactor: add testing.T to gomega wrapper functions by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1004
+* Enable drift detection if plan approval is disabled by @luizbafilho in https://github.com/flux-iac/tofu-controller/pull/1011
+* chore(deps): update libcrypto3 and libssl3 by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1013
+* fix: branch planner does not use the original state file by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1022
+* propose adr 0003 for workspace blob caching by @chanwit in https://github.com/flux-iac/tofu-controller/pull/1010
+* Adding tfctl logs command by @luizbafilho in https://github.com/flux-iac/tofu-controller/pull/1026
+* fix: Tiltfile by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1039
+* Adds page on upgrading TF-Controller by @lasomethingsomething in https://github.com/flux-iac/tofu-controller/pull/964
+* docs: Document a fix to "terraform objects stuck on deletion" issue by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1025
+* Adds Slack channel info to Readme by @lasomethingsomething in https://github.com/flux-iac/tofu-controller/pull/1060
+* Add docs on how to build a custom runner image by @madAndroid in https://github.com/flux-iac/tofu-controller/pull/1056
+* bump libcrypto3 to 3.1.4 by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1064
+* Updates maintainers file by @lasomethingsomething in https://github.com/flux-iac/tofu-controller/pull/1074
+* chore(deps): Update google.golang.org/grpc and golang.org/x/net by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1075
+* chore(deps): Bump github.com/docker/docker from 24.0.5+incompatible to 24.0.7+incompatible by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1073
+* fix: Updated config to reflect contributor changes by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/1080
+* chore(deps): Bump golang.org/x/net from 0.15.0 to 0.17.0 in /api by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1045
+* chore(deps): Bump github.com/aws/aws-sdk-go-v2/credentials from 1.13.35 to 1.13.43 by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1049
+* chore(deps): Bump github.com/aws/aws-sdk-go-v2/credentials from 1.13.43 to 1.14.0 by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1084
+* Add support for Terraform `LockTimeout` feature in the plan stage by @nalum in https://github.com/flux-iac/tofu-controller/pull/1087
+* Fix missing version and sha in runner output by @madAndroid in https://github.com/flux-iac/tofu-controller/pull/1058
+* Fix break glass command; respect all flags by @jonasbadstuebner in https://github.com/flux-iac/tofu-controller/pull/1098
+* bump libcrypto3 and libssl3 by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1114
+* docs: Bump version in manifest used in user guide to reflect latest RC by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/1113
+* docs: Fix API version by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/1118
+* docs: Fix API version by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/1119
+* test: add test around the polling server and fix surfaced issues by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1112
+* chore(scripting): a simple script to bump libcrypto3 and libssl3 version by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1115
+* chore(deps): Bump github.com/aws/aws-sdk-go-v2/credentials from 1.14.0 to 1.16.0 by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1122
+* chore(deps): Bump github.com/zclconf/go-cty from 1.13.2 to 1.14.1 by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1116
+* chore: Only do security updates for Go modules and GH actions by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/1145
+* fix: add unique hash to cloned source to avoid conflict by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1136
+* chore(deps): bump chart-testing-action to 2.6.1 by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1147
+* docs: add docs about ipv6 by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1135
+* feat: add remediation retry by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1061
+* docs: update branch planner default configuration by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1150
+* test: add test case to remediation test: retry resets when source is updated by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1151
+* Adds a starter docs page on Azure by @lasomethingsomething in https://github.com/flux-iac/tofu-controller/pull/1153
+* Revises branch planner pages a bit by @lasomethingsomething in https://github.com/flux-iac/tofu-controller/pull/1154
+* docs: Rename to index.md by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/1155
+* docs: Fix navigation by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/1156
+* ci: limit rbac for the reconciler by @sbx0r in https://github.com/flux-iac/tofu-controller/pull/1099
+* Add CreateWorkspaceBlob RPC method to Runner service by @luizbafilho in https://github.com/flux-iac/tofu-controller/pull/1152
+* feat: generate checksum for cache blobs by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1159
+* feat: Implement BLOB encryption within the tf-runner by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1162
+* Changes URLs for better SEO and fixes small typos by @lasomethingsomething in https://github.com/flux-iac/tofu-controller/pull/1160
+* chore(deps): Bump golang.org/x/crypto from 0.14.0 to 0.17.0 by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1167
+* Bump dependencies. by @bigkevmcd in https://github.com/flux-iac/tofu-controller/pull/1164
+* Fix `make docker-build` target by @yiannistri in https://github.com/flux-iac/tofu-controller/pull/1168
+* fix use cases link in readme by @nwilken in https://github.com/flux-iac/tofu-controller/pull/1170
+* chore(deps): Bump github.com/go-git/go-git/v5 from 5.9.0 to 5.11.0 by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1169
+* I volunteer to be a maintenance by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1172
+* chore(deps): bump libcrypto and libssl version by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1183
+* ci: Use GITHUB_OUTPUT envvar instead of set-output command by @arunsathiya in https://github.com/flux-iac/tofu-controller/pull/1179
+* Feature/add tfvarspaths spec2 by @itamar-marom in https://github.com/flux-iac/tofu-controller/pull/1185
+* chore: disable slack notifications about blocked issues by @yitsushi in https://github.com/flux-iac/tofu-controller/pull/1187
+* replace container reg ghcr.io/weaveworks with ghcr.io/flux-iac by @dgem in https://github.com/flux-iac/tofu-controller/pull/1198
+* update helloworld testdata sources to .../flux-iac/... by @ilithanos in https://github.com/flux-iac/tofu-controller/pull/1201
+* Update URL for Helm Docs by @tech1ndex in https://github.com/flux-iac/tofu-controller/pull/1202
+* rename github.com/weaveworks/tf-controller to github.com/flux-iac/tofu-controller by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1207
+* Helm chart url fixes by @ilithanos in https://github.com/flux-iac/tofu-controller/pull/1205
+* updating tf_version by @kasper-leFevre in https://github.com/flux-iac/tofu-controller/pull/1212
+* move urls from weave to flux-iac in makefile by @ilithanos in https://github.com/flux-iac/tofu-controller/pull/1213
+* updating documentation for custom runner by @kasper-leFevre in https://github.com/flux-iac/tofu-controller/pull/1214
+* config yaml renaming and docker file binary renamed by @ilithanos in https://github.com/flux-iac/tofu-controller/pull/1216
+* Renaming /tools/check-runner-images.sh by @kasper-leFevre in https://github.com/flux-iac/tofu-controller/pull/1218
+* dockerfiles updated to alpine:3.19 by @ilithanos in https://github.com/flux-iac/tofu-controller/pull/1220
+* #1209 Relocate CRDs in helm chart by @dgem in https://github.com/flux-iac/tofu-controller/pull/1221
+* fallback ghcr urls changed to flux-iac in runner by @ilithanos in https://github.com/flux-iac/tofu-controller/pull/1223
+* Tiltfile: added config for building tf-runner image and using it in helloworld example by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1224
+* CLI: Reduce Binary Size by @bdwyertech in https://github.com/flux-iac/tofu-controller/pull/1226
+* Add Tonni Follmann (@ilithanos) as a MAINTAINER by @chanwit in https://github.com/flux-iac/tofu-controller/pull/1232
+* tilt: speed up compiling of binaries by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1235
+* add private registries integration docs by @ArieLevs in https://github.com/flux-iac/tofu-controller/pull/1237
+* helm-chart: add watchAllNamespaces argument by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1239
+* bump chart and doc yamls to v0.16.0-rc.4 by @chanwit in https://github.com/flux-iac/tofu-controller/pull/1242
+* Fix runner-serviceaccount helm template by @ayanevbg in https://github.com/flux-iac/tofu-controller/pull/1251
+* Update Repo URLs in Docs by @tech1ndex in https://github.com/flux-iac/tofu-controller/pull/1253
+* Update development docs by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1248
+* Add Aksel Skaar Leirvaag (@akselleirv) as a MAINTAINER by @chanwit in https://github.com/flux-iac/tofu-controller/pull/1258
+* #1247 helm readme update to tofo-controller by @dgem in https://github.com/flux-iac/tofu-controller/pull/1260
+* Helm chart rename by @ilithanos in https://github.com/flux-iac/tofu-controller/pull/1264
+* Tilt: fix references to helm chart after renaming by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1272
+* branch planner is now checking for both PostPlanningWebhookFailedReason and TFExecInitFailedReason for failing PR by @raz-bn in https://github.com/flux-iac/tofu-controller/pull/1271
+* docs: remove weaveworks.github.io references from docs by @zonorti in https://github.com/flux-iac/tofu-controller/pull/1276
+* Improve docs by @vishu42 in https://github.com/flux-iac/tofu-controller/pull/1275
+* fix(helm-chart): missing renamings by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1282
+* fix: build of tf-runner-azure by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1290
+* Fix Incorrect Metric Reporting Post-Update in Terraform Controller by @TarasLykhenko in https://github.com/flux-iac/tofu-controller/pull/1287
+* Removed mentions of team wild-watermelon by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1299
+* Bump golang.org/x/net from 0.19.0 to 0.23.0 by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1285
+* Speedup wait for pod ip by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1302
+* Move hardcoded "flux-system" namespace from templates to default values by @artem-nefedov in https://github.com/flux-iac/tofu-controller/pull/1303
+* Enable non-security dependency upgrades by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1305
+* Enable dependabot for github actions by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1311
+* Bump actions/checkout from 3df4ab11eba7bda6032a0b82a6bb43b11571feac to b80ff79f1755d06ba70441c368a6fe801f5f3a62 by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1320
+* Update fluxcd/pkg requirement to 1bfad582060d2d6e464756fbd5d7a2b2fa4f75b9 by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1321
+* Bump fluxcd/flux2 from 3b42b200d376430f0e24d35f1a600447d92da531 to 896e0fa46d5107a05e953dd0a5261d78a145ec8c by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1319
+* Bump github.com/hashicorp/go-retryablehttp from 0.7.5 to 0.7.7 by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1315
+* Upgrade go version to 1.22 and set version via go.mod in workflow by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1310
+* Bump aws-sdk-go-v2 deps and fix deprecated usage by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1331
+* Bump the gh-major group across 1 directory with 8 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1328
+* Bump github.com/spf13/viper from 1.16.0 to 1.19.0 by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1342
+* Bump the gh-minor group across 1 directory with 8 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1336
+* Print plan before apply by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1304
+* Bump controller-runtime and k8s.io/* by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1334
+* bump libcrypto to 3.1.6-r2 by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1401
+* bump github.com/fluxcd/pkg/ssa to v0.39.1 by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1402
+* Bump github.com/docker/docker from 24.0.7+incompatible to 25.0.6+incompatible by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1407
+* Bump the go-minor group across 3 directories with 20 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1405
+* Delete stale metrics on object delete  by @TarasLykhenko in https://github.com/flux-iac/tofu-controller/pull/1362
+* fix(helm-chart): ensure helm release namespace is applied by @mloiseleur in https://github.com/flux-iac/tofu-controller/pull/1425
+* Bump alpine and libcrypto by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1439
+* feat(helm-chart): Add additionalLabels for deployments by @adberger in https://github.com/flux-iac/tofu-controller/pull/1400
+* docs: provide instructions for autocomplete by @mloiseleur in https://github.com/flux-iac/tofu-controller/pull/1448
+* fix(helm-chart): rbac for branch planner by @mloiseleur in https://github.com/flux-iac/tofu-controller/pull/1447
+* Bump fluxcd/pkg from 1bfad582060d2d6e464756fbd5d7a2b2fa4f75b9 to 30c101fc7c9fac4d84937ff4890a3da46a9db2dd by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1443
+* Bump actions/checkout from b80ff79f1755d06ba70441c368a6fe801f5f3a62 to d632683dd7b4114ad314bca15554477dd762a938 by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1456
+* Bump github.com/moby/moby from 24.0.5+incompatible to 24.0.9+incompatible by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1374
+* Added exponential backoff on reconciliation failure by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1460
+* Fix deprecated usage of the k8s.io/apimachinery/pkg/util/wait package by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1461
+* Bump the gh-minor group with 12 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1465
+* Bump docker/build-push-action from 5.3.0 to 6.9.0 in the gh-major group by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1466
+* README.md: remove roadmap by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1459
+* Upgrade Go version to 1.23.4 and deps by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1502
+* Release v0.16.0-rc.5 by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1503
+* fix goreleaser flag in release workflow by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1504
+* fix: goreleaser v1 to v2 by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1507
+* Fix the HelmRelease scripts to install the latest helm chart by @moconnor-cni in https://github.com/flux-iac/tofu-controller/pull/1509
+* Control `init -upgrade` behaviour by @daniel-ciaglia in https://github.com/flux-iac/tofu-controller/pull/1471
+* fix(ci): setup terraform by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1510
+* Bump actions/checkout from 4.2.0 to 4.2.2 in the gh-patch group across 1 directory by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1517
+* Bump the go-patch group across 3 directories with 11 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1518
+* fix(oci): allow unlimited layer size by @KarstenSiemer in https://github.com/flux-iac/tofu-controller/pull/1519
+* chore: bump libcrypto to 3.3.3-r0 by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1525
+* Replace github.com/pkg/errors with errors wrapping using stdlib by @akselleirv in https://github.com/flux-iac/tofu-controller/pull/1526
+* Rename Weave GitOps to tofu-controller by @pyaillet in https://github.com/flux-iac/tofu-controller/pull/1549
+* Bump the gh-minor group across 1 directory with 17 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1548
+* Fix broken github link by @isakstenstrom in https://github.com/flux-iac/tofu-controller/pull/1578
+* chore: bump libcrypto to 3.3.5-r0 and alpine to 3.22 by @TarasLykhenko in https://github.com/flux-iac/tofu-controller/pull/1583
+* Bump golang.org/x/crypto from 0.32.0 to 0.35.0 by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1561
+* Bump golang.org/x/net from 0.34.0 to 0.38.0 by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1562
+* chore: upgrade to go 1.24 + upgrade deps and tooling by @TarasLykhenko in https://github.com/flux-iac/tofu-controller/pull/1588
+* Bump github.com/docker/docker from 28.3.2+incompatible to 28.3.3+incompatible by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1594
+* Bump the deprecated FluxCD versions by @moconnor-cni in https://github.com/flux-iac/tofu-controller/pull/1539
+* fix: implement more descriptive errors during instance id mismatches by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1622
+* fix: implement a Terraform Exec Wrapper to detect State Lock Errors by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1623
+* chore: upgrade controller-runtime to v0.22.0 and their dependencies by @ricardo-mng in https://github.com/flux-iac/tofu-controller/pull/1602
+* fix(ci): avoid e2e race condition on cert gc by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1631
+* docs: fix code display on exposed using hostname subdomain page by @mloiseleur in https://github.com/flux-iac/tofu-controller/pull/1540
+* fix(chart): handling additional deployment labels by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1632
+* chore: move condition types and reasons, and add comments by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1633
+* docker: drop unused libretls by @xnox in https://github.com/flux-iac/tofu-controller/pull/1634
+* fix(ci): speed up docker builds by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1635
+* chore: add self to MAINTAINERS by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1637
+* fix(docker): use native build platform for go build stages by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1636
+* feat: enable priority queue by @ricardo-mng in https://github.com/flux-iac/tofu-controller/pull/1641
+* chore(docs): update docs to refer to CNCF Slack Channel by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1644
+* feat: controller refactoring by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1640
+* chore: release v0.16.0-rc.6 by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1646
+* chore(docs): document release process by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1647
+* chore(docs): update tf-controller references by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1653
+* feat: compare interval with LastPlanAt timestamp by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1648
+* fix: align tf-runner pod app.kubernetes.io/created-by label by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1650
+* fix: skip drift detection when spec has changed by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1651
+* fix: patch dependency finalizers instead of update by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1652
+* fix(metrics): remove deprecated metrics by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1649
+* fix: delete reconciling condition on unknown readiness by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1658
+* feat: support storing plans over chunked kubernetes resources by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1655
+* chore: release v0.16.0-rc.7 by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1659
+* fix: reconcile terraform when reconcile.fluxcd.io/requestedAt is set by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1662
+* fix: clear terraform state lock condition by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1661
+* chore!: remove v1beta2 source API usage by @artem-nefedov in https://github.com/flux-iac/tofu-controller/pull/1663
+* chore(deps): bump the gh-minor group across 1 directory with 9 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1666
+* fix: reconcile terraform when source revision changes by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1668
+* fix: handle more reconciliation cases by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1671
+* fix: delete reconciling condition on successful initial apply by @artem-nefedov in https://github.com/flux-iac/tofu-controller/pull/1670
+* Set max grpc message size for gRPC client to fix webhook payload creation by @gpietrus-akamai in https://github.com/flux-iac/tofu-controller/pull/1676
+* fix(test): avoid race in test resources cleanup by @artem-nefedov in https://github.com/flux-iac/tofu-controller/pull/1672
+* chore(deps): bump the gh-major group across 1 directory with 8 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1678
+* feat: refactor plan loading/saving by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1664
+* feat: use a distroless image for tofu-controller by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1674
+* fix(build): add missing build arguments for Go cross-compliation build by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1680
+* chore(deps): bump the go-patch group across 1 directory with 13 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1679
+* chore(deps): bump the gh-patch group across 1 directory with 4 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1677
+* fix: avoid "secret already exists" error by @artem-nefedov in https://github.com/flux-iac/tofu-controller/pull/1682
+* chore(ci): fix flaky e2e cert GC test by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1694
+* fix(deps): bump dependencies by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1693
+* fix: reconcile without delay when dependencies were last not ready by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1692
+* chore(deps): bump fluxcd/pkg from 30c101fc7c9fac4d84937ff4890a3da46a9db2dd to cac55028ec9b367d40381b50f75d7bd26abc36cc by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1687
+* chore(deps): bump the go-minor group across 2 directories with 10 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1698
+* chore(deps): bump github/codeql-action from 4.31.8 to 4.31.9 in the gh-patch group by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1684
+* chore(deps): bump the gh-minor group across 1 directory with 2 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1690
+* chore(deps): bump github.com/maxbrunsfeld/counterfeiter/v6 from 6.12.0 to 6.12.1 in the go-patch group across 1 directory by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1695
+* feat: implement graceful shutdown by @artem-nefedov in https://github.com/flux-iac/tofu-controller/pull/1699
+* chore: release v0.16.0-rc.8 by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1700
+* fix(ci): fix signing configuration for release process by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1701
+* chore(deps): bump the go-minor group across 3 directories with 9 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1708
+* chore(deps): bump the gh-minor group across 1 directory with 4 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1707
+* chore(deps): bump the gh-patch group across 1 directory with 3 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1706
+* chore(deps): bump github.com/elgohr/go-localstack from 1.0.146 to 1.0.147 in the go-patch group across 1 directory by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1704
+* chore(ci): prepare for new release by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1709
+
 ## v0.16.0-rc.8
 
 **Release date:** 2026-01-16
@@ -45,7 +385,7 @@ New Features and Bug Fixes:
 - chore(deps): bump the gh-minor group across 1 directory with 9 updates ([#1666](https://github.com/flux-iac/tofu-controller/pull/1666)) ([6ec9705f](https://github.com/flux-iac/tofu-controller/commit/6ec9705f0a1f12eadeac76e035765e3ff2d945b0))
 - chore!: remove v1beta2 source API usage ([#1663](https://github.com/flux-iac/tofu-controller/pull/1663)) ([07ff2cc0](https://github.com/flux-iac/tofu-controller/commit/07ff2cc04bc06fcbda8e4465a94391684ca73995))
 - fix: clear terraform state lock condition after subsequent successful operation ([#1661](https://github.com/flux-iac/tofu-controller/pull/1661)) ([c13b35c9](https://github.com/flux-iac/tofu-controller/commit/c13b35c9c19af7d4c0e50740985725ee046143be))
-- fix: reconcile terraform when reconcile.fluxcd.io/requestedAt is set ([#1662](https://github.com/flux-iac/tofu-controller/pull/)) ([ab20fd8b](https://github.com/flux-iac/tofu-controller/commit/ab20fd8b0f1b546e42ab86cb5b3bba516794ee5c))
+- fix: reconcile terraform when reconcile.fluxcd.io/requestedAt is set ([#1662](https://github.com/flux-iac/tofu-controller/pull/1662)) ([ab20fd8b](https://github.com/flux-iac/tofu-controller/commit/ab20fd8b0f1b546e42ab86cb5b3bba516794ee5c))
 
 ## v0.16.0-rc.7
 
