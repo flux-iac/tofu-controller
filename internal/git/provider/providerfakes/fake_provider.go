@@ -2,12 +2,12 @@
 package providerfakes
 
 import (
+	"context"
 	"sync"
 	"time"
 
 	"github.com/flux-iac/tofu-controller/internal/git/provider"
 	"github.com/go-logr/logr"
-	"golang.org/x/net/context"
 )
 
 type FakeProvider struct {

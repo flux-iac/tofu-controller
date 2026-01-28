@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sort"
@@ -11,7 +12,6 @@ import (
 	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/go-scm/scm/driver/github"
 	"github.com/jenkins-x/go-scm/scm/factory"
-	"golang.org/x/net/context"
 )
 
 type GitHubProvider struct {
