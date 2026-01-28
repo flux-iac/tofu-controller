@@ -17,7 +17,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apimachinery/pkg/watch"
-	controllerruntime "sigs.k8s.io/controller-runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -309,7 +308,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform *infrav1.Terraform, tlsSec
 }
 
 func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform *infrav1.Terraform, tlsSecret *v1.Secret, revision string) (string, error) {
-	log := controllerruntime.LoggerFrom(ctx)
+	log := ctrl.LoggerFrom(ctx)
 	traceLog := log.V(logger.TraceLevel).WithValues("function", "TerraformReconciler.reconcileRunnerPod")
 	traceLog.Info("Begin reconcile of the runner pod")
 	type state string
@@ -520,7 +519,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 // write it to the secret. One secret per namespace is created in order to sidestep the need
 // for specifying a pod ip in the certificate SAN field.
 func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terraform *infrav1.Terraform) (*v1.Secret, error) {
-	log := controllerruntime.LoggerFrom(ctx)
+	log := ctrl.LoggerFrom(ctx)
 
 	log.Info("trigger namespace tls secret generation")
 
