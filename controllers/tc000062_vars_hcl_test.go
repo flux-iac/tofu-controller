@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -28,7 +27,7 @@ func Test_000062_vars_hcl_test(t *testing.T) {
 		secretKey      = "abcdefghij"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	By("creating a new Git repository object")
 	updatedTime := time.Now()

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -21,7 +20,7 @@ func Test_000016_default_observed_generation(t *testing.T) {
 		terraformName = "tf-" + rand.String(6)
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a Terraform resource")
 	By("creating a new TF resource.")

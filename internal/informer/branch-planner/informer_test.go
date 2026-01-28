@@ -39,7 +39,7 @@ func TestInformer(t *testing.T) {
 			},
 		},
 	}
-	expectToSucceed(t, g, k8sClient.Create(context.TODO(), source))
+	expectToSucceed(t, g, k8sClient.Create(t.Context(), source))
 
 	// Create a Terraform object to be the template.
 	tf := &infrav1.Terraform{
@@ -59,7 +59,7 @@ func TestInformer(t *testing.T) {
 			},
 		},
 	}
-	expectToSucceed(t, g, k8sClient.Create(context.TODO(), tf))
+	expectToSucceed(t, g, k8sClient.Create(t.Context(), tf))
 
 	tfOutputCM := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -77,7 +77,7 @@ func TestInformer(t *testing.T) {
 			"tfplan": "terraform plan output",
 		},
 	}
-	expectToSucceed(t, g, k8sClient.Create(context.TODO(), tfOutputCM))
+	expectToSucceed(t, g, k8sClient.Create(t.Context(), tfOutputCM))
 
 	dynamicClient, err := dynamic.NewForConfig(k8sConfig)
 	g.Expect(err).NotTo(gom.HaveOccurred())

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"os"
 	"strings"
 	"testing"
@@ -27,7 +26,7 @@ func Test_000150_manual_apply_should_report_and_loop_when_drift_detected_test(t 
 		terraformName = "tf-drift-detected-manual-approve-no-output"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository object")

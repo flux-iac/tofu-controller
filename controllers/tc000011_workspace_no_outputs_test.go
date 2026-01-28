@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -28,7 +27,7 @@ func Test_000011_workspace_no_outputs_test(t *testing.T) {
 		terraformName = "helloworld-ws-no-outputs"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -29,7 +28,7 @@ func Test_000131_destroy_no_changes_test(t *testing.T) {
 	)
 
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository object")

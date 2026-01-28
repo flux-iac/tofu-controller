@@ -12,7 +12,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"context"
 	"time"
 )
 
@@ -28,7 +27,7 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 		sourceName    = "gr-plan-and-manual-approve-replan-no-output"
 		terraformName = "tf-plan-and-manual-approve-replan-no-output"
 	)
-	ctx := context.Background()
+	ctx := t.Context()
 	g := NewWithT(t)
 
 	Given("a GitRepository")

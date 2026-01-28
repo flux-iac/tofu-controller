@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"os"
 	"testing"
 	"time"
@@ -23,7 +22,7 @@ func Test_000110_auto_applied_resource_should_transit_to_plan_then_apply_when_so
 		sourceName    = "gr-source-changed-auto-approve-no-output"
 		terraformName = "tf-source-changed-auto-approve-no-output"
 	)
-	ctx := context.Background()
+	ctx := t.Context()
 	g := NewWithT(t)
 	By("creating a new Git repository object")
 	updatedTime := time.Now()

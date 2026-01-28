@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -28,7 +27,7 @@ func Test_000243_remediation_retry_test(t *testing.T) {
 		terraformName = "retry"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource")

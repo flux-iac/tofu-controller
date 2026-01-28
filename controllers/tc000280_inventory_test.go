@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -28,7 +27,7 @@ func Test_000280_inventory_test(t *testing.T) {
 		terraformName = "tf-inventory-no-output"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository object")

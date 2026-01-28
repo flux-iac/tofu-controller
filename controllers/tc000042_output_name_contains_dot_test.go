@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -29,7 +28,7 @@ func Test_000042_output_name_contains_dot_test(t *testing.T) {
 		MappedName        = "age.agekey"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")

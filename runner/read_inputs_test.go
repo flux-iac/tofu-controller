@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"context"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -91,7 +90,7 @@ j = { a = 1, b = 2, c = 3 }
 
 	cli := fake.NewClientBuilder().WithObjects(fixture).Build()
 
-	inputs, err2 := readInputsForGenerateVarsForTF(context.TODO(), logr.Discard(), cli, terraform)
+	inputs, err2 := readInputsForGenerateVarsForTF(t.Context(), logr.Discard(), cli, terraform)
 	g.Expect(err2).To(BeNil())
 	g.Expect(inputs["secret_1"]).To(Equal(map[string]any{
 		"a": float64(42),

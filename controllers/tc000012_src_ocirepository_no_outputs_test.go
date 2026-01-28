@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -29,7 +28,7 @@ func Test_000012_src_ocirepository_no_outputs_test(t *testing.T) {
 		terraformName = "src-ocirepository-helloworld-no-outputs-" + rand.String(6)
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("an OCIRepository")
 	By("defining a new OCIRepository resource.")

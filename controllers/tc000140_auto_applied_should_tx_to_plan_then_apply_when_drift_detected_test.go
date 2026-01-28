@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"os"
 	"testing"
 	"time"
@@ -26,7 +25,7 @@ func Test_000140_auto_applied_resource_should_transit_to_plan_then_apply_when_dr
 		terraformName = "tf-drift-detected-auto-approve-no-output"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository object")

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"encoding/base64"
 	"os"
 	"strings"
@@ -381,7 +380,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 		terraformNameSecret = "tf-envvar-variable-output-secret"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
 	g.Expect(err).Should(BeNil())
@@ -564,7 +563,7 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_with_value(t *testing.T)
 		terraformName = "tf-envvar-provider-vars-with-value"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
 	g.Expect(err).Should(BeNil())
@@ -705,7 +704,7 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_without_value(t *testing
 		terraformName = "tf-envvar-provider-vars-without-value"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
 	g.Expect(err).Should(BeNil())
@@ -837,7 +836,7 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_secretRef(t *testing.T) {
 		terraformSecretRefNameKey = "tf-envvar-valuesfrom-secretref-name-key"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
 	g.Expect(err).Should(BeNil())
@@ -1004,7 +1003,7 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_configMapRef(t *testing.T) {
 		terraformConfigMapRefNameKey = "tf-envvar-valuefrom-configmapref-name-key"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
 	g.Expect(err).Should(BeNil())

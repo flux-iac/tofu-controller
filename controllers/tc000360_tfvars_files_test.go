@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"strings"
 	"testing"
 	"time"
@@ -24,7 +23,7 @@ func Test_000360_tfvars_files_test(t *testing.T) {
 		terraformName = "tf-test-tf-vars-files"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")
@@ -200,7 +199,7 @@ func Test_000360_tfvars_files_bad_path_test(t *testing.T) {
 		terraformName = "tf-test-tf-vars-files-bad-path"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")

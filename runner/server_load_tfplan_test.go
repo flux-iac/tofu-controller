@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"context"
 	"path/filepath"
 	"testing"
 
@@ -17,7 +16,7 @@ import (
 
 func TestLoadTFPlanWithForceTrue(t *testing.T) {
 	g := NewGomegaWithT(t)
-	ctx := context.TODO()
+	ctx := t.Context()
 	log := logr.Discard()
 	fs := afero.NewMemMapFs()
 
@@ -74,7 +73,7 @@ func TestLoadTFPlanWithForceTrue(t *testing.T) {
 
 func TestLoadTFPlanWithForceFalse(t *testing.T) {
 	g := NewGomegaWithT(t)
-	ctx := context.TODO()
+	ctx := t.Context()
 	log := logr.Discard()
 	fs := afero.NewMemMapFs()
 

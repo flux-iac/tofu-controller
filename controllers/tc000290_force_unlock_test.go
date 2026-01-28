@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -29,7 +28,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 	)
 	tfstateLeaseHolderIdentity := "f2ab685b-f84d-ac0b-a125-378a22877e8d"
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository object")
@@ -267,7 +266,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 	)
 	tfstateLeaseHolderIdentity := "f2ab685b-f84d-ac0b-a125-378a22877e8d"
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository object")
@@ -540,7 +539,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 	)
 	tfstateLeaseHolderIdentity := "f2ab685b-f84d-ac0b-a125-378a22877e8d"
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository object")

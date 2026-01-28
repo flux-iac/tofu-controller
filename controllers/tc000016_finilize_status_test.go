@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -24,7 +23,7 @@ func Test_000016_finalize_status(t *testing.T) {
 		terraformName = "tf-" + rand.String(6)
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")

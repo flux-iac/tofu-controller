@@ -12,7 +12,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"context"
 	"time"
 )
 
@@ -24,7 +23,7 @@ func dependencyObject(t *testing.T) (*sourcev1.GitRepository, *infrav1.Terraform
 		terraformName = "tf-hcl-values-depends-on"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	By("creating a new Git repository object")
 	updatedTime := time.Now()
@@ -127,7 +126,7 @@ func Test_000350_depends_on_test(t *testing.T) {
 		sourceName    = "gr-depends-on"
 		terraformName = "tf-depends-on"
 	)
-	ctx := context.Background()
+	ctx := t.Context()
 	g := NewWithT(t)
 
 	Given("a GitRepository")

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -31,7 +30,7 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 		sourceName    = "gr-unrelated-source-changed-auto-approve-no-output"
 		terraformName = "tf-unrelated-changed-auto-approve-no-output"
 	)
-	ctx := context.Background()
+	ctx := t.Context()
 	g := NewWithT(t)
 
 	Given("a GitRepository")

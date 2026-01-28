@@ -1,7 +1,6 @@
 package polling
 
 import (
-	"context"
 	"testing"
 
 	"github.com/flux-iac/tofu-controller/internal/config"
@@ -39,7 +38,7 @@ func Test_poll_empty(t *testing.T) {
 			},
 		},
 	}
-	expectToSucceed(t, g, k8sClient.Create(context.TODO(), source))
+	expectToSucceed(t, g, k8sClient.Create(t.Context(), source))
 
 	// Create a Terraform object to be the template.
 	original := &infrav1.Terraform{
@@ -54,7 +53,7 @@ func Test_poll_empty(t *testing.T) {
 			},
 		},
 	}
-	expectToSucceed(t, g, k8sClient.Create(context.TODO(), original))
+	expectToSucceed(t, g, k8sClient.Create(t.Context(), original))
 
 	// This fakes a provider for the server to use.
 	var prs []provider.PullRequest
@@ -72,20 +71,20 @@ func Test_poll_empty(t *testing.T) {
 	// We expect it to have done nothing! So, check it didn't create
 	// any more Terraform or source objects.
 	var tfList infrav1.TerraformList
-	expectToSucceed(t, g, k8sClient.List(context.TODO(), &tfList, &client.ListOptions{
+	expectToSucceed(t, g, k8sClient.List(t.Context(), &tfList, &client.ListOptions{
 		Namespace: ns.Name,
 	}))
 	expectToEqual(t, g, len(tfList.Items), 1) // just the original
 	expectToEqual(t, g, tfList.Items[0].Name, original.Name)
 
 	var srcList sourcev1.GitRepositoryList
-	expectToSucceed(t, g, k8sClient.List(context.TODO(), &srcList, &client.ListOptions{
+	expectToSucceed(t, g, k8sClient.List(t.Context(), &srcList, &client.ListOptions{
 		Namespace: ns.Name,
 	}))
 	expectToEqual(t, g, len(srcList.Items), 1) // just `source`
 	expectToEqual(t, g, srcList.Items[0].Name, source.Name)
 
-	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(context.TODO(), ns)) })
+	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(t.Context(), ns)) })
 }
 
 // This checks that branch Terraform objects are created,
@@ -113,7 +112,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 			},
 		},
 	}
-	expectToSucceed(t, g, k8sClient.Create(context.TODO(), source))
+	expectToSucceed(t, g, k8sClient.Create(t.Context(), source))
 
 	// Create a Terraform object to be the template.
 	original := &infrav1.Terraform{
@@ -136,7 +135,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 			Force:       true, // should be set false on clone.
 		},
 	}
-	expectToSucceed(t, g, k8sClient.Create(context.TODO(), original))
+	expectToSucceed(t, g, k8sClient.Create(t.Context(), original))
 
 	// This fakes a provider for the server to use.
 	repo := provider.Repository{
@@ -181,7 +180,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 
 	// Check that the Terraform objects are created with expected fields.
 	var tfList infrav1.TerraformList
-	expectToSucceed(t, g, k8sClient.List(context.TODO(), &tfList, &client.ListOptions{
+	expectToSucceed(t, g, k8sClient.List(t.Context(), &tfList, &client.ListOptions{
 		Namespace: ns.Name,
 	}))
 
@@ -208,7 +207,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 
 	// Check that the Source objects are created with all expected fields.
 	var srcList sourcev1.GitRepositoryList
-	expectToSucceed(t, g, k8sClient.List(context.TODO(), &srcList, &client.ListOptions{
+	expectToSucceed(t, g, k8sClient.List(t.Context(), &srcList, &client.ListOptions{
 		Namespace: ns.Name,
 	}))
 
@@ -232,12 +231,12 @@ func Test_poll_reconcile_objects(t *testing.T) {
 	original.Labels["test-label"] = "xyz"
 	original.Spec.WriteOutputsToSecret.Name = secretName
 
-	expectToSucceed(t, g, k8sClient.Update(context.TODO(), original))
+	expectToSucceed(t, g, k8sClient.Update(t.Context(), original))
 	expectToSucceed(t, g, server.reconcile(ctx, original, source, prs, &providerfakes.FakeProvider{}))
 
 	tfList.Items = nil
 
-	expectToSucceed(t, g, k8sClient.List(context.TODO(), &tfList, &client.ListOptions{
+	expectToSucceed(t, g, k8sClient.List(t.Context(), &tfList, &client.ListOptions{
 		Namespace:     ns.Name,
 		LabelSelector: labels.Set{bpconfig.LabelKey: bpconfig.LabelValue}.AsSelector(),
 	}))
@@ -256,7 +255,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 
 	tfList.Items = nil
 
-	expectToSucceed(t, g, k8sClient.List(context.TODO(), &tfList, &client.ListOptions{
+	expectToSucceed(t, g, k8sClient.List(t.Context(), &tfList, &client.ListOptions{
 		Namespace: ns.Name,
 	}))
 
@@ -266,7 +265,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 
 	srcList.Items = nil
 
-	expectToSucceed(t, g, k8sClient.List(context.TODO(), &srcList, &client.ListOptions{
+	expectToSucceed(t, g, k8sClient.List(t.Context(), &srcList, &client.ListOptions{
 		Namespace: ns.Name,
 	}))
 
@@ -279,7 +278,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 		expectToEqual(t, g, item.Name, config.SourceName(original.Name, source.Name, "3"))
 	}
 
-	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(context.TODO(), ns)) })
+	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(t.Context(), ns)) })
 }
 
 // If there are no Terraform changes in a Pull Request, and
@@ -302,7 +301,7 @@ func Test_poll_noPathChanges(t *testing.T) {
 			},
 		},
 	}
-	expectToSucceed(t, g, k8sClient.Create(context.TODO(), source))
+	expectToSucceed(t, g, k8sClient.Create(t.Context(), source))
 
 	// Create a Terraform object to be the template.
 	original := &infrav1.Terraform{
@@ -324,7 +323,7 @@ func Test_poll_noPathChanges(t *testing.T) {
 			},
 		},
 	}
-	expectToSucceed(t, g, k8sClient.Create(context.TODO(), original))
+	expectToSucceed(t, g, k8sClient.Create(t.Context(), original))
 
 	repo := provider.Repository{
 		Project: "fake-project",
@@ -363,7 +362,7 @@ func Test_poll_noPathChanges(t *testing.T) {
 	// We expect it to have done nothing! So, check it didn't create
 	// any more Terraform or source objects.
 	var tfList infrav1.TerraformList
-	expectToSucceed(t, g, k8sClient.List(context.TODO(), &tfList, &client.ListOptions{
+	expectToSucceed(t, g, k8sClient.List(t.Context(), &tfList, &client.ListOptions{
 		Namespace: ns.Name,
 	}))
 	expectToEqual(t, g, len(tfList.Items), 1, "terraform list") // just the original
@@ -371,11 +370,11 @@ func Test_poll_noPathChanges(t *testing.T) {
 	expectToEqual(t, g, tfList.Items[0].Spec.BackendConfig, original.Spec.BackendConfig)
 
 	var srcList sourcev1.GitRepositoryList
-	expectToSucceed(t, g, k8sClient.List(context.TODO(), &srcList, &client.ListOptions{
+	expectToSucceed(t, g, k8sClient.List(t.Context(), &srcList, &client.ListOptions{
 		Namespace: ns.Name,
 	}))
 	expectToEqual(t, g, len(srcList.Items), 1, "source list") // just `source`
 	expectToEqual(t, g, srcList.Items[0].Name, source.Name)
 
-	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(context.TODO(), ns)) })
+	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(t.Context(), ns)) })
 }

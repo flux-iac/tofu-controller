@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -23,7 +22,7 @@ func Test_000061_vars_hcl_input_test(t *testing.T) {
 		terraformName = "tf-hcl-vars-output"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	By("creating a new Git repository object")
 	updatedTime := time.Now()
