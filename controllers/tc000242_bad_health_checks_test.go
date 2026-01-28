@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -24,7 +23,7 @@ func Test_000242_bad_healt_checks_test(t *testing.T) {
 	)
 
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	updatedTime := time.Now()
 
 	It("should do health checks")

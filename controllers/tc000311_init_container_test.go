@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -27,7 +26,7 @@ func Test_000311_init_container_test(t *testing.T) {
 		terraformName = "init-container-test-terraform"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")
@@ -148,7 +147,7 @@ func Test_000311_init_container_delay_all_outputs_test(t *testing.T) {
 		terraformSecretName = "icdao-output-secret"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")

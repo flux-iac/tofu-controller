@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -33,7 +32,7 @@ func Test_000300_targets(t *testing.T) {
 	Spec("This spec describes the behavior of Terraform with targets.")
 
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	updatedTime := time.Now()
 
 	Given("a GitRepository")

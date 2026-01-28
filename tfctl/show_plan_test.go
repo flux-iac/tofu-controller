@@ -85,7 +85,7 @@ state, without changing any real infrastructure.
 
 			v1_1_7 := version.Must(version.NewVersion("1.1.7"))
 
-			tfPath, err := i.Ensure(context.Background(), []src.Source{
+			tfPath, err := i.Ensure(t.Context(), []src.Source{
 				&fs.ExactVersion{
 					Product: product.Terraform,
 					Version: v1_1_7,
@@ -113,7 +113,7 @@ state, without changing any real infrastructure.
 
 			out := &bytes.Buffer{}
 
-			if err := cli.ShowPlan(context.Background(), out, tt.name); (err != nil) != tt.wantErr {
+			if err := cli.ShowPlan(t.Context(), out, tt.name); (err != nil) != tt.wantErr {
 				t.Errorf("ShowPlan() error = %v, wantErr %v", err, tt.wantErr)
 			}
 

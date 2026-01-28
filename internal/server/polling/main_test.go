@@ -1,7 +1,6 @@
 package polling
 
 import (
-	"context"
 	"fmt"
 	"path/filepath"
 	"sync/atomic"
@@ -62,7 +61,7 @@ func newNamespace(t *testing.T, g gomega.Gomega) *corev1.Namespace {
 	name := fmt.Sprintf("test-ns-%d", num)
 	ns := corev1.Namespace{}
 	ns.SetName(name)
-	g.ExpectWithOffset(1, k8sClient.Create(context.TODO(), &ns)).To(gomega.Succeed())
+	g.ExpectWithOffset(1, k8sClient.Create(t.Context(), &ns)).To(gomega.Succeed())
 	return &ns
 }
 
@@ -82,5 +81,5 @@ func Test_scaffold(t *testing.T) {
 	ns := newNamespace(t, g)
 	// here is where you'd create some objects in the namespace, as
 	// part of your test case.
-	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(context.TODO(), ns)) })
+	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(t.Context(), ns)) })
 }

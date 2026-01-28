@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"encoding/json"
 	"os"
 	"os/exec"
@@ -27,7 +26,7 @@ func Test_000074_varsfrom_accepts_many_secrets_with_last_supplied_key_precedence
 	)
 
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// By("setting up some variables")
 	secretDatas := []struct {

@@ -70,7 +70,7 @@ func Test_Server(t *testing.T) {
 	g.Expect(err).To(gomega.Succeed())
 
 	serverDone := make(chan bool)
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	go func() {
 		server.Start(ctx)
 		serverDone <- true

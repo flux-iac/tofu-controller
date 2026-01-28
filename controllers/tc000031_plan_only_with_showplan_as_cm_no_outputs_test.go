@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -27,7 +26,7 @@ func Test_000031_plan_only_with_showplan_as_cm_no_outputs_test(t *testing.T) {
 		terraformName = "tf-helloworld-w-plan-in-cm-no-outputs"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -26,7 +25,7 @@ func Test_000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 		terraformName = "bad-tar-gz-no-outputs"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource")

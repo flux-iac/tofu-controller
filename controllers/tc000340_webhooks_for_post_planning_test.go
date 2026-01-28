@@ -235,7 +235,7 @@ func Test_000340_webhooks_for_post_planning_test(t *testing.T) {
 		terraformName = "tf-w-webhooks"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -27,7 +26,7 @@ func Test_000320_default_volume_test(t *testing.T) {
 		terraformName = "default-vol-test-terraform"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")
@@ -146,7 +145,7 @@ func Test_000320_default_volume_mounts_test(t *testing.T) {
 		terraformName = "default-vol-mounts-test-terraform"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")
@@ -261,7 +260,7 @@ func Test_000320_volume_test(t *testing.T) {
 		terraformName = "vol-test-terraform"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")
@@ -391,7 +390,7 @@ func Test_000320_volume_mounts_test(t *testing.T) {
 		terraformName = "vol-mounts-test-terraform"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")

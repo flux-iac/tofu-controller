@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -26,7 +25,7 @@ func Test_000020_with_workspace_no_outputs_test(t *testing.T) {
 	)
 
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
 	g.Expect(err).Should(BeNil())

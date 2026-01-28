@@ -64,7 +64,7 @@ func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 	)
 
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new Git repository resource.")
@@ -138,7 +138,7 @@ func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 
 	var stack *localstack.Instance
 	{
-		ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+		ctx, cancel := context.WithTimeout(t.Context(), 120*time.Second)
 		defer cancel()
 
 		var err error
@@ -179,7 +179,7 @@ func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 
 		By("creating the S3 bucket.")
 
-		_, err = s3Client.CreateBucket(context.TODO(), &s3.CreateBucketInput{
+		_, err = s3Client.CreateBucket(t.Context(), &s3.CreateBucketInput{
 			Bucket: aws.String("s3-terraform-state"),
 		})
 		g.Expect(err).Should(Succeed())

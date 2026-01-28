@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"os"
 	"testing"
 	"time"
@@ -32,7 +31,7 @@ func Test_000130_destroy_no_outputs_test(t *testing.T) {
 		terraformName = "helloworld-destroy-no-outputs"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository object")

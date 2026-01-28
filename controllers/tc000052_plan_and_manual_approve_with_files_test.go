@@ -12,7 +12,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"context"
 	"time"
 )
 
@@ -28,7 +27,7 @@ func Test_000052_plan_and_manual_approve_with_files_test(t *testing.T) {
 		sourceName    = "gr-plan-and-manual-approve-with-files"
 		terraformName = "tf-plan-and-manual-approve-with-files"
 	)
-	ctx := context.Background()
+	ctx := t.Context()
 	g := NewWithT(t)
 
 	Given("a GitRepository")

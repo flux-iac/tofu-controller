@@ -35,7 +35,7 @@ func Test_000014_artifact_not_found_test(t *testing.T) {
 		terraformName = "tf-artifact-not-found"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")

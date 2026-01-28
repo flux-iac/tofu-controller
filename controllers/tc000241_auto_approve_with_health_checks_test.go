@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -29,7 +28,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 	)
 
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	updatedTime := time.Now()
 
 	It("should do health checks")

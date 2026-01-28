@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -27,7 +26,7 @@ func Test_000310_node_selector_test(t *testing.T) {
 		terraformName = "node-selector-test-terraform"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")
@@ -139,7 +138,7 @@ func Test_000310_affinity_test(t *testing.T) {
 		terraformName = "affinity-test-terraform"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")
@@ -274,7 +273,7 @@ func Test_000310_tolerations_test(t *testing.T) {
 		terraformName = "tolerations-test-terraform"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -22,7 +21,7 @@ func Test_000072_varsfrom_optional_secret_and_controlled_outputs_test(t *testing
 		terraformName = "helloworld-vars-from-optional-secret-controlled-output"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	By("creating a new Git repository object")
 	updatedTime := time.Now()

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"os"
 	"testing"
 	"time"
@@ -23,7 +22,7 @@ func Test_000100_applied_resource_should_transit_back_to_plan_when_source_change
 		sourceName    = "gr-source-changed-manual-approve-no-output"
 		terraformName = "tf-source-changed-manual-approve-no-output"
 	)
-	ctx := context.Background()
+	ctx := t.Context()
 	g := NewWithT(t)
 	By("creating a new Git repository object")
 	updatedTime := time.Now()

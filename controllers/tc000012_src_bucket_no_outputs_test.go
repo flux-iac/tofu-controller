@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -29,7 +28,7 @@ func Test_000012_src_bucket_no_outputs_test(t *testing.T) {
 		terraformName = "src-bucket-helloworld-no-outputs-" + rand.String(6)
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a Bucket")
 	By("defining a new Bucket resource.")

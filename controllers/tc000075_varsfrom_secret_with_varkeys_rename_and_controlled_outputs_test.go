@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -22,7 +21,7 @@ func Test_000071_varsfrom_secret_with_varkeys_rename_and_controlled_outputs_test
 		terraformName = "helloworld-vars-from-with-varkeys-rename"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	By("creating a new Git repository object")
 	updatedTime := time.Now()

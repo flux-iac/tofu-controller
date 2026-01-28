@@ -74,7 +74,7 @@ func TestLogRequest(t *testing.T) {
 				*kubeconfigArgs.Namespace = tt.namespace
 			}
 			w := bytes.NewBuffer([]byte{})
-			err := logRequest(context.Background(), mapper, w)
+			err := logRequest(t.Context(), mapper, w)
 			g.Expect(err).To(BeNil())
 
 			got := make([]byte, w.Len())

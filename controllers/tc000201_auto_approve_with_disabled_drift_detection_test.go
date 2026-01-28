@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -24,7 +23,7 @@ func Test_000201_auto_approve_with_disabled_drift_detection(t *testing.T) {
 	)
 
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	updatedTime := time.Now()
 
 	It("should not perform drift detection")
