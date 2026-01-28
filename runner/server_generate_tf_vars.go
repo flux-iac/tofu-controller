@@ -23,8 +23,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func ctyValueToGoValue(ctyValue cty.Value) (interface{}, error) {
-	var goValue interface{}
+func ctyValueToGoValue(ctyValue cty.Value) (any, error) {
+	var goValue any
 
 	if ctyValue.IsNull() {
 		return nil, nil
@@ -46,7 +46,7 @@ func ctyValueToGoValue(ctyValue cty.Value) (interface{}, error) {
 	}
 
 	if ctyValue.Type().IsListType() {
-		list := make([]interface{}, 0, ctyValue.LengthInt())
+		list := make([]any, 0, ctyValue.LengthInt())
 		for it := ctyValue.ElementIterator(); it.Next(); {
 			_, v := it.Element()
 			goVal, err := ctyValueToGoValue(v)
@@ -60,8 +60,8 @@ func ctyValueToGoValue(ctyValue cty.Value) (interface{}, error) {
 	}
 
 	if ctyValue.Type().IsSetType() {
-		result := make([]interface{}, 0, ctyValue.LengthInt())
-		set := make(map[interface{}]struct{})
+		result := make([]any, 0, ctyValue.LengthInt())
+		set := make(map[any]struct{})
 		for it := ctyValue.ElementIterator(); it.Next(); {
 			_, v := it.Element()
 			goVal, err := ctyValueToGoValue(v)
@@ -79,7 +79,7 @@ func ctyValueToGoValue(ctyValue cty.Value) (interface{}, error) {
 	}
 
 	if ctyValue.Type().IsMapType() {
-		m := make(map[string]interface{})
+		m := make(map[string]any)
 		for it := ctyValue.ElementIterator(); it.Next(); {
 			k, v := it.Element()
 			goKey, err := ctyValueToGoValue(k)
@@ -101,7 +101,7 @@ func ctyValueToGoValue(ctyValue cty.Value) (interface{}, error) {
 	}
 
 	if ctyValue.Type().IsTupleType() {
-		t := make([]interface{}, 0, ctyValue.LengthInt())
+		t := make([]any, 0, ctyValue.LengthInt())
 		for it := ctyValue.ElementIterator(); it.Next(); {
 			_, v := it.Element()
 			goVal, err := ctyValueToGoValue(v)
@@ -115,7 +115,7 @@ func ctyValueToGoValue(ctyValue cty.Value) (interface{}, error) {
 	}
 
 	if ctyValue.Type().IsObjectType() {
-		o := make(map[string]interface{})
+		o := make(map[string]any)
 		for it := ctyValue.ElementIterator(); it.Next(); {
 			k, v := it.Element()
 			goKey, err := ctyValueToGoValue(k)
@@ -139,7 +139,7 @@ func ctyValueToGoValue(ctyValue cty.Value) (interface{}, error) {
 	return nil, fmt.Errorf("unsupported type: %s", ctyValue.Type().FriendlyName())
 }
 
-func convertSecretDataToInputs(log logr.Logger, secret *v1.Secret) (map[string]interface{}, error) {
+func convertSecretDataToInputs(log logr.Logger, secret *v1.Secret) (map[string]any, error) {
 	var keys []string
 	for k := range secret.Data {
 		if strings.HasSuffix(k, typeinfo.Suffix) {
@@ -148,7 +148,7 @@ func convertSecretDataToInputs(log logr.Logger, secret *v1.Secret) (map[string]i
 		keys = append(keys, k)
 	}
 
-	data := map[string]interface{}{}
+	data := map[string]any{}
 	for _, key := range keys {
 		typeInfo, exist := secret.Data[key+typeinfo.Suffix]
 		if exist {
@@ -188,8 +188,8 @@ func getSecretForReadInputs(ctx context.Context, log logr.Logger, r client.Clien
 	return secret, nil
 }
 
-func readInputsForGenerateVarsForTF(ctx context.Context, log logr.Logger, c client.Client, terraform *infrav1.Terraform) (map[string]interface{}, error) {
-	inputs := map[string]interface{}{}
+func readInputsForGenerateVarsForTF(ctx context.Context, log logr.Logger, c client.Client, terraform *infrav1.Terraform) (map[string]any, error) {
+	inputs := map[string]any{}
 	if len(terraform.Spec.ReadInputsFromSecrets) > 0 {
 		for _, readSpec := range terraform.Spec.ReadInputsFromSecrets {
 			objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: readSpec.Name}

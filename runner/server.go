@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -61,7 +62,7 @@ type LocalPrintfer struct {
 	logger logr.Logger
 }
 
-func (l LocalPrintfer) Printf(format string, v ...interface{}) {
+func (l LocalPrintfer) Printf(format string, v ...any) {
 	l.logger.Info(fmt.Sprintf(format, v...))
 }
 
@@ -262,9 +263,7 @@ func (r *TerraformRunnerServer) SetEnv(ctx context.Context, req *SetEnvRequest) 
 
 	log.Info("getting envvars from os environments")
 	envs := utils.EnvMap(os.Environ())
-	for k, v := range req.Envs {
-		envs[k] = v
-	}
+	maps.Copy(envs, req.Envs)
 	err := r.tf.SetEnv(envs)
 	if err != nil {
 		log.Error(err, "unable to set envvars", "envvars", envs)

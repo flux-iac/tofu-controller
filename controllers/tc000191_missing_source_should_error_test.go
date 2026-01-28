@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
@@ -22,7 +21,7 @@ func Test_000191_missing_source_should_error(t *testing.T) {
 
 	g := NewWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	By("submitting a Terraform resource referencing a git source which does not exist")
 	tfResource := &infrav1.Terraform{

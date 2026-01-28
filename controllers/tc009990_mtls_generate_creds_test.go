@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -28,7 +27,7 @@ func Test_009990_mtls_generate_creds_test(t *testing.T) {
 	)
 
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	updatedTime := time.Now()
 
 	rotator.ResetCACache()

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -26,7 +25,7 @@ func Test_000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 		terraformName = "bad-tar-gz-no-outputs"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource")
@@ -77,7 +76,7 @@ func Test_000011_bad_tar_gz_no_outputs_test(t *testing.T) {
 	Given("a Terraform object with auto approve, and attaching it to the bad GitRepository resource.")
 	By("creating a new TF resource and attaching to the bad repo via `sourceRef`.")
 	var helloWorldTF infrav1.Terraform
-	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+	err := helloWorldTF.FromBytes(fmt.Appendf(nil, `
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -91,7 +90,7 @@ spec:
     name: %s
     namespace: flux-system
   interval: 10s
-`, terraformName, sourceName)), runnerServer.Scheme)
+`, terraformName, sourceName), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	It("should be created and attached successfully.")
@@ -122,14 +121,14 @@ spec:
 
 	It("should be an error")
 	By("checking that the Ready's reason of the TF resource become `ArtifactFailed`.")
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Ready" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
@@ -138,7 +137,7 @@ spec:
 			}
 		}
 		return createdHelloWorldTF.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":    "Ready",
 		"Reason":  "ArtifactFailed",
 		"Message": "rpc error: code = Unknown desc = failed to untar artifact, error: requires gzip-compressed body: gzip: invalid header",

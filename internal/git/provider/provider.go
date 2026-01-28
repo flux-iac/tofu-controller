@@ -1,13 +1,13 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/go-logr/logr"
 	giturl "github.com/kubescape/go-git-url"
 	giturlapis "github.com/kubescape/go-git-url/apis"
-	"golang.org/x/net/context"
 )
 
 type ProviderType string

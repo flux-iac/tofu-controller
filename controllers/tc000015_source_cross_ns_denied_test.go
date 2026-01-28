@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -30,7 +29,7 @@ func Test_000015_cross_namespace_source_denied_test(t *testing.T) {
 		terraformName = "tf-cross-ns"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")
@@ -79,7 +78,7 @@ func Test_000015_cross_namespace_source_denied_test(t *testing.T) {
 
 	helloWorldTFKey := client.ObjectKeyFromObject(&helloWorldTF)
 	var readyCondition *metav1.Condition
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		var createdHelloWorldTF infrav1.Terraform
 		g.Expect(k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)).To(Succeed())
 		conditions := createdHelloWorldTF.Status.Conditions

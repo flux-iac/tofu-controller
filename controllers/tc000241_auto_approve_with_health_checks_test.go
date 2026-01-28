@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -29,7 +28,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 	)
 
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	updatedTime := time.Now()
 
 	It("should do health checks")
@@ -134,14 +133,14 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 	}, timeout, interval).Should(BeTrue())
 
 	By("checking that the plan was applied successfully")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, healthCheckTFKey, &createdhealthCheckTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdhealthCheckTF.Status.Conditions {
 			if c.Type == "Apply" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
 					"Message":         c.Message,
@@ -150,7 +149,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
@@ -158,7 +157,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 	}))
 
 	By("checking that we have outputs available in the TF object")
-	idFn := func(element interface{}) string {
+	idFn := func(element any) string {
 		return fmt.Sprintf("%v", element)
 	}
 	g.Eventually(func() []string {
@@ -210,14 +209,14 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 	}, timeout, interval).Should(Equal(expectedOutputValue), "expected output %v", expectedOutputValue)
 
 	By("checking that the health checks are performed successfully")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, healthCheckTFKey, &createdhealthCheckTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdhealthCheckTF.Status.Conditions {
 			if c.Type == "HealthCheck" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
@@ -225,7 +224,7 @@ func Test_000241_auto_approve_with_health_checks_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":    infrav1.ConditionTypeHealthCheck,
 		"Reason":  "HealthChecksSucceed",
 		"Message": "Health checks succeeded",
