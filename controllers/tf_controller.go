@@ -124,9 +124,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// Track this active reconciliation for graceful shutdown
 	r.activeReconciliations.Add(1)
-	defer func() {
-		r.activeReconciliations.Done()
-	}()
+	defer r.activeReconciliations.Done()
 
 	traceLog.Info("Reconcile Start")
 
