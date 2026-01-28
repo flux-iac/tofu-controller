@@ -84,7 +84,7 @@ func Test_000320_default_volume_test(t *testing.T) {
 	Given("a Terraform resource with manual approve, attached to the given GitRepository")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`, with no .spec.approvePlan specified.")
 	helloWorldTF := infrav1.Terraform{}
-	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+	err := helloWorldTF.FromBytes(fmt.Appendf(nil, `
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -97,7 +97,7 @@ spec:
     kind: GitRepository
     name: %s
     namespace: flux-system
-`, terraformName, sourceName)), runnerServer.Scheme)
+`, terraformName, sourceName), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	It("should be created and attached successfully.")
@@ -203,7 +203,7 @@ func Test_000320_default_volume_mounts_test(t *testing.T) {
 	Given("a Terraform resource with manual approve, attached to the given GitRepository")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`, with no .spec.approvePlan specified.")
 	helloWorldTF := infrav1.Terraform{}
-	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+	err := helloWorldTF.FromBytes(fmt.Appendf(nil, `
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -216,7 +216,7 @@ spec:
     kind: GitRepository
     name: %s
     namespace: flux-system
-`, terraformName, sourceName)), runnerServer.Scheme)
+`, terraformName, sourceName), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	It("should be created and attached successfully.")
@@ -318,7 +318,7 @@ func Test_000320_volume_test(t *testing.T) {
 	Given("a Terraform resource with manual approve, attached to the given GitRepository")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`, with no .spec.approvePlan specified.")
 	helloWorldTF := infrav1.Terraform{}
-	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+	err := helloWorldTF.FromBytes(fmt.Appendf(nil, `
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -336,7 +336,7 @@ spec:
      volumes:
      - name: test-vol
        emptyDir: {}
-`, terraformName, sourceName)), runnerServer.Scheme)
+`, terraformName, sourceName), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	It("should be created and attached successfully.")
@@ -448,7 +448,7 @@ func Test_000320_volume_mounts_test(t *testing.T) {
 	Given("a Terraform resource with manual approve, attached to the given GitRepository")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`, with no .spec.approvePlan specified.")
 	helloWorldTF := infrav1.Terraform{}
-	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+	err := helloWorldTF.FromBytes(fmt.Appendf(nil, `
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -466,7 +466,7 @@ spec:
      volumeMounts:
      - mountPath: /etc/test
        name: test-vol
-`, terraformName, sourceName)), runnerServer.Scheme)
+`, terraformName, sourceName), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	It("should be created and attached successfully.")

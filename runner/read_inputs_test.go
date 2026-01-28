@@ -93,17 +93,17 @@ j = { a = 1, b = 2, c = 3 }
 
 	inputs, err2 := readInputsForGenerateVarsForTF(context.TODO(), logr.Discard(), cli, terraform)
 	g.Expect(err2).To(BeNil())
-	g.Expect(inputs["secret_1"]).To(Equal(map[string]interface{}{
+	g.Expect(inputs["secret_1"]).To(Equal(map[string]any{
 		"a": float64(42),
 		"b": "str",
 		"c": true,
 		"d": false,
 		"e": nil,
-		"f": []interface{}{float64(1), float64(2), float64(3), float64(1)},
-		"g": []interface{}{float64(1), "a", true},
-		"h": map[string]interface{}{"a": float64(1), "b": float64(2), "c": float64(3)},
-		"i": []interface{}{float64(1), float64(2), float64(3)},
-		"j": map[string]interface{}{"a": float64(1), "b": float64(2), "c": float64(3)},
+		"f": []any{float64(1), float64(2), float64(3), float64(1)},
+		"g": []any{float64(1), "a", true},
+		"h": map[string]any{"a": float64(1), "b": float64(2), "c": float64(3)},
+		"i": []any{float64(1), float64(2), float64(3)},
+		"j": map[string]any{"a": float64(1), "b": float64(2), "c": float64(3)},
 	}))
 
 }

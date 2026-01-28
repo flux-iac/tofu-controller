@@ -123,21 +123,21 @@ func Test_000242_bad_healt_checks_test(t *testing.T) {
 	}, timeout, interval).Should(BeTrue())
 
 	By("checking that the health checks should fail")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, healthCheckTFKey, &createdhealthCheckTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdhealthCheckTF.Status.Conditions {
 			if c.Type == "HealthCheck" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":   c.Type,
 					"Reason": c.Reason,
 				}
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":   infrav1.ConditionTypeHealthCheck,
 		"Reason": "HealthChecksFailed",
 	}))
@@ -189,21 +189,21 @@ func Test_000242_bad_healt_checks_test(t *testing.T) {
 	}, timeout, interval).Should(BeTrue())
 
 	By("checking that the health checks example 2 should fail")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, healthCheckTFKey2, &createdhealthCheckTF2)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdhealthCheckTF2.Status.Conditions {
 			if c.Type == "HealthCheck" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":   c.Type,
 					"Reason": c.Reason,
 				}
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":   infrav1.ConditionTypeHealthCheck,
 		"Reason": "HealthChecksFailed",
 	}))

@@ -25,7 +25,7 @@ func (r *TerraformRunnerServer) GenerateTemplate(ctx context.Context, req *Gener
 	}
 
 	// marshal the vars
-	vars := make(map[string]interface{})
+	vars := make(map[string]any)
 
 	varFilePath := filepath.Join(req.WorkingDir, "generated.auto.tfvars.json")
 	jsonBytes, err := os.ReadFile(varFilePath)

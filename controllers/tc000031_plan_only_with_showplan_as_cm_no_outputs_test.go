@@ -125,14 +125,14 @@ func Test_000031_plan_only_with_showplan_as_cm_no_outputs_test(t *testing.T) {
 
 	It("should be planned.")
 	By("checking that the Plan's reason of the TF resource become `TerraformPlannedWithChanges`.")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Plan" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Pending": createdHelloWorldTF.Status.Plan.Pending,
@@ -140,7 +140,7 @@ func Test_000031_plan_only_with_showplan_as_cm_no_outputs_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
 		"Pending": "plan-master-b8e362c206",
@@ -150,17 +150,17 @@ func Test_000031_plan_only_with_showplan_as_cm_no_outputs_test(t *testing.T) {
 	By("checking that the Secret contains plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb in its labels.")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
 	tfplanSecret := corev1.Secret{}
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, tfplanKey, &tfplanSecret)
 		if err != nil {
 			return nil
 		}
-		return map[string]interface{}{
+		return map[string]any{
 			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
 			"TFPlanEmpty":           string(tfplanSecret.Data["tfplan"]) == "",
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] == "gzip",
 		}
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"SavedPlan":             "plan-master-b8e362c206",
 		"TFPlanEmpty":           false,
 		"HasEncodingAnnotation": true,
@@ -170,16 +170,16 @@ func Test_000031_plan_only_with_showplan_as_cm_no_outputs_test(t *testing.T) {
 	By("checking that the ConfigMap contains plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb in its labels.")
 	By("checking that the ConfigMap contains the plan details.")
 	tfplanCM := corev1.ConfigMap{}
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, tfplanKey, &tfplanCM)
 		if err != nil {
 			return nil
 		}
-		return map[string]interface{}{
+		return map[string]any{
 			"SavedPlan": tfplanCM.Annotations["savedPlan"],
 			"TFPlan":    tfplanCM.Data["tfplan"],
 		}
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"SavedPlan": "plan-master-b8e362c206",
 		"TFPlan": `
 Changes to Outputs:

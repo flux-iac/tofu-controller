@@ -73,7 +73,7 @@ func newNamespace(t *testing.T, g gomega.Gomega) *corev1.Namespace {
 	return &ns
 }
 
-func expectToSucceed(t *testing.T, g gomega.Gomega, arg interface{}) {
+func expectToSucceed(t *testing.T, g gomega.Gomega, arg any) {
 	t.Helper()
 	g.ExpectWithOffset(1, arg).To(gomega.Succeed())
 }

@@ -108,7 +108,7 @@ func Test_000015_cross_namespace_depends_on_denied_test(t *testing.T) {
 
 	helloWorldTFKey := client.ObjectKeyFromObject(&helloWorldTF)
 	var readyCondition *metav1.Condition
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		var createdHelloWorldTF infrav1.Terraform
 		g.Expect(k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)).To(Succeed())
 		conditions := createdHelloWorldTF.Status.Conditions

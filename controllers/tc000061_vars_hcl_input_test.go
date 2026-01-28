@@ -140,7 +140,7 @@ func Test_000061_vars_hcl_input_test(t *testing.T) {
 
 	By("checking that the TF output secrets contains the correct output provisioned by the TF hello world")
 	// Value is a JSON representation of TF's OutputMeta
-	expectedOutputValue := map[string]interface{}{
+	expectedOutputValue := map[string]any{
 		"Name":      "tf-output-" + terraformName,
 		"Namespace": "flux-system",
 		"Values": map[string]string{
@@ -154,7 +154,7 @@ func Test_000061_vars_hcl_input_test(t *testing.T) {
 		},
 		"OwnerRef[0]": string(createdHelloWorldTF.UID),
 	}
-	g.Eventually(func() (map[string]interface{}, error) {
+	g.Eventually(func() (map[string]any, error) {
 		err := k8sClient.Get(ctx, outputKey, &outputSecret)
 		values := map[string]string{
 			"cluster_id":       string(outputSecret.Data["cluster_id"]),
@@ -165,7 +165,7 @@ func Test_000061_vars_hcl_input_test(t *testing.T) {
 			"azs":              string(outputSecret.Data["azs"]),
 			"azs__type":        string(outputSecret.Data["azs__type"]),
 		}
-		return map[string]interface{}{
+		return map[string]any{
 			"Name":        outputSecret.Name,
 			"Namespace":   outputSecret.Namespace,
 			"Values":      values,

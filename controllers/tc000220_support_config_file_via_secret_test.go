@@ -1,5 +1,4 @@
 //go:build skip
-// +build skip
 
 package controllers
 

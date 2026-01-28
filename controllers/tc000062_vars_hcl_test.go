@@ -161,19 +161,19 @@ func Test_000062_vars_hcl_test(t *testing.T) {
 
 	By("checking that the TF output secrets contains the correct output provisioned by the TF hello world")
 	// Value is a JSON representation of TF's OutputMeta
-	expectedOutputValue := map[string]interface{}{
+	expectedOutputValue := map[string]any{
 		"Name":      "tf-output-" + terraformName,
 		"Namespace": "flux-system",
 		"Values": map[string]string{
 			"json_blob": fmt.Sprintf(`{"AccessKey":"%s","Cluster":"%s","SecretKey":"%s"}`, accessKey, clusterName, secretKey),
 		},
 	}
-	g.Eventually(func() (map[string]interface{}, error) {
+	g.Eventually(func() (map[string]any, error) {
 		err := k8sClient.Get(ctx, outputKey, &outputSecret)
 		values := map[string]string{
 			"json_blob": string(outputSecret.Data["json_blob"]),
 		}
-		return map[string]interface{}{
+		return map[string]any{
 			"Name":      outputSecret.Name,
 			"Namespace": outputSecret.Namespace,
 			"Values":    values,
