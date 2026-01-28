@@ -49,8 +49,8 @@ func TestLoadTFPlanWithForceTrue(t *testing.T) {
 			Namespace:   req.Namespace,
 			Annotations: map[string]string{SavedPlanSecretAnnotation: "plan-not-1"},
 			Labels: map[string]string{
-				"infra.contrib.fluxcd.io/plan-name":      req.Name,
-				"infra.contrib.fluxcd.io/plan-workspace": terraform.WorkspaceName(),
+				plan.TFPlanNameLabel:      req.Name,
+				plan.TFPlanWorkspaceLabel: terraform.WorkspaceName(),
 			},
 		},
 		Data: secretData,
@@ -106,8 +106,8 @@ func TestLoadTFPlanWithForceFalse(t *testing.T) {
 			Namespace:   req.Namespace,
 			Annotations: map[string]string{SavedPlanSecretAnnotation: "plan-not-1"},
 			Labels: map[string]string{
-				"infra.contrib.fluxcd.io/plan-name":      req.Name,
-				"infra.contrib.fluxcd.io/plan-workspace": terraform.WorkspaceName(),
+				plan.TFPlanNameLabel:      req.Name,
+				plan.TFPlanWorkspaceLabel: terraform.WorkspaceName(),
 			},
 		},
 		Data: secretData,

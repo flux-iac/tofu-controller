@@ -44,8 +44,8 @@ func loadTFPlan(
 
 		// List relevant secrets
 		if err := kubeClient.List(ctx, secrets, client.InNamespace(req.Namespace), client.MatchingLabels{
-			"infra.contrib.fluxcd.io/plan-name":      req.Name,
-			"infra.contrib.fluxcd.io/plan-workspace": terraform.WorkspaceName(),
+			plan.TFPlanNameLabel:      req.Name,
+			plan.TFPlanWorkspaceLabel: terraform.WorkspaceName(),
 		}); err != nil {
 			log.Error(err, "unable to list existing plan secrets")
 			return nil, err
@@ -65,8 +65,8 @@ func loadTFPlan(
 				continue
 			}
 
-			if s.Annotations[plan.SavedPlanSecretAnnotation] != pendingPlanId {
-				return nil, fmt.Errorf("pending plan %s does not match secret %s (%s)", pendingPlanId, s.Name, s.Annotations[plan.SavedPlanSecretAnnotation])
+			if s.Annotations[plan.TFPlanSavedAnnotation] != pendingPlanId {
+				return nil, fmt.Errorf("pending plan %s does not match secret %s (%s)", pendingPlanId, s.Name, s.Annotations[plan.TFPlanSavedAnnotation])
 			}
 		}
 
