@@ -114,14 +114,14 @@ func Test_000201_auto_approve_with_disabled_drift_detection(t *testing.T) {
 	}, timeout, interval).Should(BeTrue())
 
 	By("checking that the plan was applied successfully")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Apply" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
 					"Message":         c.Message,
@@ -130,7 +130,7 @@ func Test_000201_auto_approve_with_disabled_drift_detection(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",

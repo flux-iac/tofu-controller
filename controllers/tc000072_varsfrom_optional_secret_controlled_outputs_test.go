@@ -105,14 +105,14 @@ func Test_000072_varsfrom_optional_secret_and_controlled_outputs_test(t *testing
 	helloWorldTFKey := types.NamespacedName{Namespace: "flux-system", Name: terraformName}
 	It("should have an error")
 	By("checking that the Ready Status of the TF program reporting the artifact error.")
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &helloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range helloWorldTF.Status.Conditions {
 			if c.Type == "Ready" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
@@ -121,7 +121,7 @@ func Test_000072_varsfrom_optional_secret_and_controlled_outputs_test(t *testing
 			}
 		}
 		return helloWorldTF.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Reason":  "VarsGenerationFailed",
 		"Message": "rpc error: code = Unknown desc = Secret \"my-vars-helloworld-vars-from-optional-secret-controlled-output\" not found",
 		"Status":  metav1.ConditionFalse,
@@ -179,14 +179,14 @@ func Test_000072_varsfrom_optional_secret_and_controlled_outputs_test(t *testing
 	helloWorldTF.Spec.Force = true
 	g.Expect(k8sClient.Update(ctx, &helloWorldTF)).Should(Succeed())
 
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &helloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range helloWorldTF.Status.Conditions {
 			if c.Type == "Ready" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
@@ -195,7 +195,7 @@ func Test_000072_varsfrom_optional_secret_and_controlled_outputs_test(t *testing
 			}
 		}
 		return helloWorldTF.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Reason":  "TerraformOutputsWritten",
 		"Message": "Outputs written: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",
 		"Status":  metav1.ConditionTrue,

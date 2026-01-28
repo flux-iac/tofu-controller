@@ -141,14 +141,14 @@ func Test_000300_targets(t *testing.T) {
 
 	It("should have its plan reconciled")
 	By("checking that the Plan's Status of the TF program is Planned Succeed.")
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, applyTargetTFKey, &createdApplyTargetTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdApplyTargetTF.Status.Conditions {
 			if c.Type == "Apply" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
@@ -156,7 +156,7 @@ func Test_000300_targets(t *testing.T) {
 			}
 		}
 		return createdApplyTargetTF.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":    "Apply",
 		"Reason":  infrav1.TFExecApplySucceedReason,
 		"Message": "Applied successfully",
@@ -199,14 +199,14 @@ func Test_000300_targets(t *testing.T) {
 
 	It("should have its plan reconciled")
 	By("checking that the Plan's Status of the TF program is Planned Succeed.")
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, applyTargetTFKey, &createdApplyTargetTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdApplyTargetTF.Status.Conditions {
 			if c.Type == "Apply" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
@@ -214,7 +214,7 @@ func Test_000300_targets(t *testing.T) {
 			}
 		}
 		return createdApplyTargetTF.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":    "Apply",
 		"Reason":  infrav1.TFExecApplySucceedReason,
 		"Message": "Applied successfully",
@@ -266,14 +266,14 @@ func Test_000300_targets(t *testing.T) {
 	g.Expect(k8sClient.Delete(ctx, &createdApplyTargetTF)).Should(Succeed())
 
 	It("should create the destroy plan, then apply")
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, applyTargetTFKey, &createdApplyTargetTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdApplyTargetTF.Status.Conditions {
 			if c.Type == "Plan" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
@@ -281,7 +281,7 @@ func Test_000300_targets(t *testing.T) {
 			}
 		}
 		return createdApplyTargetTF.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":    "Plan",
 		"Reason":  "TerraformPlannedWithChanges",
 		"Message": "Plan generated",

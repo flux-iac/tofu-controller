@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"maps"
 	"os"
 	"strings"
 	"time"
@@ -65,9 +66,7 @@ func runnerPodTemplate(terraform *infrav1.Terraform, secretName string, revision
 
 	// add runner pod custom labels
 	if len(terraform.Spec.RunnerPodTemplate.Metadata.Labels) != 0 {
-		for k, v := range terraform.Spec.RunnerPodTemplate.Metadata.Labels {
-			runnerPodTemplate.Labels[k] = v
-		}
+		maps.Copy(runnerPodTemplate.Labels, terraform.Spec.RunnerPodTemplate.Metadata.Labels)
 	}
 	return runnerPodTemplate, nil
 }

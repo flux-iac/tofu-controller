@@ -24,8 +24,7 @@ import (
 func TestInformer(t *testing.T) {
 	g := gom.NewWithT(t)
 	ns := newNamespace(t, g)
-	ctx, ctxCancel := context.WithCancel(context.Background())
-	defer ctxCancel()
+	ctx := t.Context()
 
 	// Create a source for the Terraform object to point to
 	source := &sourcev1.GitRepository{

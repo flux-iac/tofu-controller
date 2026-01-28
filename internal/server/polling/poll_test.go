@@ -66,8 +66,7 @@ func Test_poll_empty(t *testing.T) {
 
 	// Now we'll run `reconcile` to step the server once, and afterwards,
 	// we should be able to see what it did.
-	ctx, cancel := context.WithCancel(context.TODO())
-	defer cancel()
+	ctx := t.Context()
 	expectToSucceed(t, g, server.reconcile(ctx, original, source, prs, &providerfakes.FakeProvider{}))
 
 	// We expect it to have done nothing! So, check it didn't create
@@ -173,8 +172,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 
 	// Now we'll run `reconcile` to step the server once, and afterwards,
 	// we should be able to see what it did.
-	ctx, cancel := context.WithCancel(context.TODO())
-	defer cancel()
+	ctx := t.Context()
 	expectToSucceed(t, g, server.reconcile(ctx, original, source, prs, &providerfakes.FakeProvider{}))
 
 	// We expect the branch TF objects and corresponding sources
@@ -359,8 +357,7 @@ func Test_poll_noPathChanges(t *testing.T) {
 
 	// Now we'll run `reconcile` to step the server once, and afterwards,
 	// we should be able to see what it did.
-	ctx, cancel := context.WithCancel(context.TODO())
-	defer cancel()
+	ctx := t.Context()
 	expectToSucceed(t, g, server.reconcile(ctx, original, source, prs, gitProvider))
 
 	// We expect it to have done nothing! So, check it didn't create

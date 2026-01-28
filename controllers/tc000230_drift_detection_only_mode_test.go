@@ -145,21 +145,21 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 
 	It("should create and apply the plan successfully")
 	By("checking that the Ready condition is True with reason TerraformAppliedSucceed")
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, testTFKey, &createdTFResource)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdTFResource.Status.Conditions {
 			if c.Type == "Ready" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":   c.Type,
 					"Reason": c.Reason,
 				}
 			}
 		}
 		return createdTFResource.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":   "Ready",
 		"Reason": infrav1.TFExecApplySucceedReason,
 	}))
@@ -170,14 +170,14 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 	g.Expect(k8sClient.Update(ctx, &createdTFResource)).Should(Succeed())
 
 	By("checking that the Ready condition is true with reason NoDrift")
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, testTFKey, &createdTFResource)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdTFResource.Status.Conditions {
 			if c.Type == "Ready" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":   c.Type,
 					"Status": c.Status,
 					"Reason": c.Reason,
@@ -185,7 +185,7 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 			}
 		}
 		return createdTFResource.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":   "Ready",
 		"Status": metav1.ConditionTrue,
 		"Reason": infrav1.NoDriftReason,
@@ -197,14 +197,14 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 	g.Expect(k8sClient.Update(ctx, &createdTFResource)).Should(Succeed())
 
 	By("checking that the Ready condition remains true with reason NoDrift")
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, testTFKey, &createdTFResource)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdTFResource.Status.Conditions {
 			if c.Type == "Ready" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":   c.Type,
 					"Status": c.Status,
 					"Reason": c.Reason,
@@ -212,7 +212,7 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 			}
 		}
 		return createdTFResource.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":   "Ready",
 		"Status": metav1.ConditionTrue,
 		"Reason": infrav1.NoDriftReason,
@@ -241,14 +241,14 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 	g.Expect(k8sClient.Delete(ctx, &cmPayload)).Should(Succeed())
 
 	By("checking that the Ready condition transitioned to False with reason DriftDetected")
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, testTFKey, &createdTFResource)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdTFResource.Status.Conditions {
 			if c.Type == "Ready" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":   c.Type,
 					"Status": c.Status,
 					"Reason": c.Reason,
@@ -256,7 +256,7 @@ func Test_000230_drift_detection_only_mode(t *testing.T) {
 			}
 		}
 		return createdTFResource.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":   "Ready",
 		"Status": metav1.ConditionFalse,
 		"Reason": infrav1.DriftDetectedReason,

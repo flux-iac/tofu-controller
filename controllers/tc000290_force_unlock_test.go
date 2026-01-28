@@ -142,14 +142,14 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 
 	It("should have its plan reconciled")
 	By("checking that the Plan's Status of the TF program is Planned Succeed.")
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == infrav1.ConditionTypePlan {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
@@ -157,7 +157,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 			}
 		}
 		return createdHelloWorldTF.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
 		"Message": "Plan generated",
@@ -167,31 +167,31 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 	By("checking that the Secret contains plan-master-b8e362c206 in its labels")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
 	tfplanSecret := corev1.Secret{}
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, tfplanKey, &tfplanSecret)
 		if err != nil {
 			return nil
 		}
-		return map[string]interface{}{
+		return map[string]any{
 			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
 			"Is TFPlan empty ?":     string(tfplanSecret.Data["tfplan"]) == "",
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] == "gzip",
 		}
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"SavedPlan":             "plan-master-b8e362c206",
 		"Is TFPlan empty ?":     false,
 		"HasEncodingAnnotation": true,
 	}))
 
 	By("checking that the applied status of the TF program Successfully, and plan-master-b8e3 is applied")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == infrav1.ConditionTypeApply {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
 					"Message":         c.Message,
@@ -200,7 +200,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
@@ -228,7 +228,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 
 	It("should fail to reconcile")
 	By("checking that the StateLocked condition exists with Status True")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 
 		if err != nil {
@@ -237,7 +237,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == infrav1.ConditionTypeStateLocked {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":           c.Type,
 					"Status":         c.Status,
 					"Reason":         c.Reason,
@@ -248,7 +248,7 @@ func Test_000290_force_unlock_lock_identifier_test(t *testing.T) {
 		}
 
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":           infrav1.ConditionTypeStateLocked,
 		"Status":         metav1.ConditionTrue,
 		"Reason":         infrav1.TFExecLockHeldReason,
@@ -380,14 +380,14 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 
 	It("should have its plan reconciled")
 	By("checking that the Plan's Status of the TF program is Planned Succeed.")
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == infrav1.ConditionTypePlan {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
@@ -395,7 +395,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 			}
 		}
 		return createdHelloWorldTF.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
 		"Message": "Plan generated",
@@ -405,31 +405,31 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 	By("checking that the Secret contains plan-master-b8e362c206 in its labels")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
 	tfplanSecret := corev1.Secret{}
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, tfplanKey, &tfplanSecret)
 		if err != nil {
 			return nil
 		}
-		return map[string]interface{}{
+		return map[string]any{
 			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
 			"Is TFPlan empty ?":     string(tfplanSecret.Data["tfplan"]) == "",
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] == "gzip",
 		}
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"SavedPlan":             "plan-master-b8e362c206",
 		"Is TFPlan empty ?":     false,
 		"HasEncodingAnnotation": true,
 	}))
 
 	By("checking that the applied status of the TF program Successfully, and plan-master-b8e3 is applied")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == infrav1.ConditionTypeApply {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
 					"Message":         c.Message,
@@ -438,7 +438,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
@@ -466,14 +466,14 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 
 	It("should fail to reconcile")
 	By("checking that the StateLocked condition exists with Status True")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == infrav1.ConditionTypeStateLocked {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":           c.Type,
 					"Status":         c.Status,
 					"Reason":         c.Reason,
@@ -483,7 +483,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":           infrav1.ConditionTypeStateLocked,
 		"Status":         metav1.ConditionTrue,
 		"Reason":         infrav1.TFExecLockHeldReason,
@@ -504,14 +504,14 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 
 	It("should reconcile")
 	By("checking that the StateLocked condition exists with Status False")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == infrav1.ConditionTypeStateLocked {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Status":  c.Status,
 					"Reason":  c.Reason,
@@ -521,7 +521,7 @@ func Test_000290_force_unlock_yes_unlock_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":    infrav1.ConditionTypeStateLocked,
 		"Status":  metav1.ConditionFalse,
 		"Reason":  infrav1.TFExecForceUnlockReason,
@@ -655,14 +655,14 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 
 	It("should have its plan reconciled")
 	By("checking that the Plan's Status of the TF program is Planned Succeed.")
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == infrav1.ConditionTypePlan {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
@@ -670,7 +670,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 			}
 		}
 		return createdHelloWorldTF.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
 		"Message": "Plan generated",
@@ -680,31 +680,31 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 	By("checking that the Secret contains plan-master-b8e362c206 in its labels")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
 	tfplanSecret := corev1.Secret{}
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, tfplanKey, &tfplanSecret)
 		if err != nil {
 			return nil
 		}
-		return map[string]interface{}{
+		return map[string]any{
 			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
 			"Is TFPlan empty ?":     string(tfplanSecret.Data["tfplan"]) == "",
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] == "gzip",
 		}
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"SavedPlan":             "plan-master-b8e362c206",
 		"Is TFPlan empty ?":     false,
 		"HasEncodingAnnotation": true,
 	}))
 
 	By("checking that the applied status of the TF program Successfully, and plan-master-b8e3 is applied")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == infrav1.ConditionTypeApply {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
 					"Message":         c.Message,
@@ -713,7 +713,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
@@ -741,7 +741,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 
 	It("should reconcile")
 	By("checking that the StateLocked condition exists with Status False")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
@@ -749,7 +749,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			//t.Logf("====\n\n%#v\n\n====", c)
 			if c.Type == infrav1.ConditionTypeStateLocked {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":           c.Type,
 					"Status":         c.Status,
 					"Reason":         c.Reason,
@@ -760,7 +760,7 @@ func Test_000290_force_unlock_auto_unlock_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":           infrav1.ConditionTypeStateLocked,
 		"Status":         metav1.ConditionFalse,
 		"Reason":         infrav1.TFExecForceUnlockReason,

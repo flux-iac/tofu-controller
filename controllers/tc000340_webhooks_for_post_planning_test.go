@@ -37,7 +37,7 @@ func Test_000340_PrepareWebhookPayloadSpecAndPlan(t *testing.T) {
 			APIVersion: "infra.contrib.fluxcd.io/v1alpha2",
 		},
 	}
-	err := terraform.FromBytes([]byte(fmt.Sprintf(`
+	err := terraform.FromBytes(fmt.Appendf(nil, `
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -55,7 +55,7 @@ spec:
   - stage: post-planning
     url: %s
     errorMessageTemplate: "Violation: ${{ (index .violations 0).message }}"
-`, "helloworld", "gitrepo", "http://localhost:8080/terraform/admission")), runnerServer.Scheme)
+`, "helloworld", "gitrepo", "http://localhost:8080/terraform/admission"), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 	mockRunnerClient := &mockRunnerClientForTestWebhooksForPostPlanning{}
 	payload, err := reconciler.prepareWebhookPayload(terraform, mockRunnerClient, "SpecAndPlan", uuid.New().String())
@@ -91,8 +91,8 @@ status:
 	expectedBytes, err := expected.MarshalJSON()
 	g.Expect(err).ToNot(HaveOccurred())
 
-	var payloadMap map[string]interface{}
-	var expectedMap map[string]interface{}
+	var payloadMap map[string]any
+	var expectedMap map[string]any
 
 	err = json.Unmarshal(payload, &payloadMap)
 	g.Expect(err).ToNot(HaveOccurred())
@@ -109,7 +109,7 @@ func Test_000340_PrepareWebhookPayloadSpecOnly(t *testing.T) {
 			APIVersion: "infra.contrib.fluxcd.io/v1alpha2",
 		},
 	}
-	err := terraform.FromBytes([]byte(fmt.Sprintf(`
+	err := terraform.FromBytes(fmt.Appendf(nil, `
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -128,7 +128,7 @@ spec:
     url: %s
     errorMessageTemplate: "Violation: ${{ (index .violations 0).message }}"
     payloadType: SpecOnly
-`, "helloworld", "gitrepo", "http://localhost:8080/terraform/admission")), runnerServer.Scheme)
+`, "helloworld", "gitrepo", "http://localhost:8080/terraform/admission"), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 	mockRunnerClient := &mockRunnerClientForTestWebhooksForPostPlanning{}
 	payload, err := reconciler.prepareWebhookPayload(terraform, mockRunnerClient, "SpecOnly", uuid.New().String())
@@ -162,8 +162,8 @@ spec:
 	expectedBytes, err := expected.MarshalJSON()
 	g.Expect(err).ToNot(HaveOccurred())
 
-	var payloadMap map[string]interface{}
-	var expectedMap map[string]interface{}
+	var payloadMap map[string]any
+	var expectedMap map[string]any
 
 	err = json.Unmarshal(payload, &payloadMap)
 	g.Expect(err).ToNot(HaveOccurred())
@@ -180,7 +180,7 @@ func Test_000340_PrepareWebhookPayloadPlanOnly(t *testing.T) {
 			APIVersion: "infra.contrib.fluxcd.io/v1alpha2",
 		},
 	}
-	err := terraform.FromBytes([]byte(fmt.Sprintf(`
+	err := terraform.FromBytes(fmt.Appendf(nil, `
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -199,7 +199,7 @@ spec:
     url: %s
     errorMessageTemplate: "Violation: ${{ (index .violations 0).message }}"
     payloadType: PlanOnly
-`, "helloworld", "gitrepo", "http://localhost:8080/terraform/admission")), runnerServer.Scheme)
+`, "helloworld", "gitrepo", "http://localhost:8080/terraform/admission"), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 	mockRunnerClient := &mockRunnerClientForTestWebhooksForPostPlanning{}
 	payload, err := reconciler.prepareWebhookPayload(terraform, mockRunnerClient, "PlanOnly", uuid.New().String())
@@ -213,8 +213,8 @@ dummy: plan
 	expectedBytes, err := expected.MarshalJSON()
 	g.Expect(err).ToNot(HaveOccurred())
 
-	var payloadMap map[string]interface{}
-	var expectedMap map[string]interface{}
+	var payloadMap map[string]any
+	var expectedMap map[string]any
 
 	err = json.Unmarshal(payload, &payloadMap)
 	g.Expect(err).ToNot(HaveOccurred())
@@ -288,7 +288,7 @@ func Test_000340_webhooks_for_post_planning_test(t *testing.T) {
 	Given("a Terraform resource with auto approve, attached to the given GitRepository resource.")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
 	var helloWorldTF infrav1.Terraform
-	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+	err := helloWorldTF.FromBytes(fmt.Appendf(nil, `
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -316,7 +316,7 @@ spec:
     url: some-invalid-url
     testExpression: "${{ .passed }}"
     errorMessageTemplate: "SHOULD FAIL Violation: ${{ (index .violations 0).message }}"
-`, terraformName, sourceName, server.URL()+"/terraform/admission/pass", server.URL()+"/terraform/admission/fail")), runnerServer.Scheme)
+`, terraformName, sourceName, server.URL()+"/terraform/admission/pass", server.URL()+"/terraform/admission/fail"), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	It("should be created and attached successfully.")
@@ -345,14 +345,14 @@ spec:
 	}, timeout, interval).ShouldNot(BeZero())
 
 	It("should stop by the webhook because it returns passed=false.")
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Plan" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
@@ -361,7 +361,7 @@ spec:
 			}
 		}
 		return createdHelloWorldTF.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "PostPlanningWebhookFailed",
 		"Message": "SHOULD FAIL Violation: Max nodes count in GCP in terraform helloworld (1 occurrences)",
