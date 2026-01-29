@@ -18,7 +18,7 @@ permissions:
 env:
   VERSION: ${{ github.event.inputs.version || github.event.client_payload.version }}
   BUILD_DATE: ${{ github.event.inputs.build_date || github.event.client_payload.build_date }}
-  LIBCRYPTO_VERSION: "3.5.4-r0"
+  LIBCRYPTO_VERSION: "3.5.5-r0"
 
 jobs:
   release-base:
