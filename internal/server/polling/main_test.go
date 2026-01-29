@@ -1,6 +1,7 @@
 package polling
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"sync/atomic"
@@ -81,5 +82,5 @@ func Test_scaffold(t *testing.T) {
 	ns := newNamespace(t, g)
 	// here is where you'd create some objects in the namespace, as
 	// part of your test case.
-	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(t.Context(), ns)) })
+	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(context.Background(), ns)) })
 }

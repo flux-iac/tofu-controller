@@ -1,6 +1,7 @@
 package polling
 
 import (
+	"context"
 	"testing"
 
 	"github.com/flux-iac/tofu-controller/internal/config"
@@ -84,7 +85,7 @@ func Test_poll_empty(t *testing.T) {
 	expectToEqual(t, g, len(srcList.Items), 1) // just `source`
 	expectToEqual(t, g, srcList.Items[0].Name, source.Name)
 
-	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(t.Context(), ns)) })
+	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(context.Background(), ns)) })
 }
 
 // This checks that branch Terraform objects are created,
@@ -278,7 +279,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 		expectToEqual(t, g, item.Name, config.SourceName(original.Name, source.Name, "3"))
 	}
 
-	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(t.Context(), ns)) })
+	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(context.Background(), ns)) })
 }
 
 // If there are no Terraform changes in a Pull Request, and
@@ -376,5 +377,5 @@ func Test_poll_noPathChanges(t *testing.T) {
 	expectToEqual(t, g, len(srcList.Items), 1, "source list") // just `source`
 	expectToEqual(t, g, srcList.Items[0].Name, source.Name)
 
-	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(t.Context(), ns)) })
+	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(context.Background(), ns)) })
 }

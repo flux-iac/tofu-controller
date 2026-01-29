@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -41,7 +42,7 @@ func Test_000016_default_observed_generation(t *testing.T) {
 	}
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	t.Cleanup(func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) })
+	t.Cleanup(func() { g.Expect(k8sClient.Delete(context.Background(), &helloWorldTF)).Should(Succeed()) })
 
 	It("should have observedGeneration set to -1")
 	helloWorldTFKey := client.ObjectKeyFromObject(&helloWorldTF)
