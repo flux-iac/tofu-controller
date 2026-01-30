@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"encoding/json"
 	"os"
 	"os/exec"
@@ -28,7 +27,7 @@ func Test_000082_varsfrom_accepts_many_configmaps_with_last_supplied_precedence(
 	)
 
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// By("setting up some variables")
 	configMapDatas := []struct {

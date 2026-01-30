@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,7 +13,7 @@ func TestTerraformEmptyInstanceID(t *testing.T) {
 		TfInstance: "71bd530c-ba53-45ee-9b2c-f054b53be16e",
 	}
 
-	_, err := server.Init(context.Background(), req)
+	_, err := server.Init(t.Context(), req)
 	if err != nil {
 		var emptyErr *TerraformSessionNotInitializedError
 		assert.ErrorAs(t, err, &emptyErr)
@@ -32,7 +31,7 @@ func TestTerraformMismatchInstanceIDs(t *testing.T) {
 		TfInstance: "b17126a3-faf1-4265-a828-06f130b8c841",
 	}
 
-	_, err := server.Init(context.Background(), req)
+	_, err := server.Init(t.Context(), req)
 	if err != nil {
 		var mismatchErr *TerraformSessionMismatchError
 		assert.ErrorAs(t, err, &mismatchErr)

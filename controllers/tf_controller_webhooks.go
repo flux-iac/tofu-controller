@@ -189,7 +189,7 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, t
 		log.Info(fmt.Sprintf("webhook returned %d: %s", post.StatusCode, post.Status))
 
 		// read json from post.Body, unmarshall to map[string]interface{}
-		jsonReply := map[string]interface{}{}
+		jsonReply := map[string]any{}
 		err = json.NewDecoder(post.Body).Decode(&jsonReply)
 		if err != nil {
 			err = fmt.Errorf("failed to decode webhook reply: %w", err)

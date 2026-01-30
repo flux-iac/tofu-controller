@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -27,7 +26,7 @@ func Test_000310_node_selector_test(t *testing.T) {
 		terraformName = "node-selector-test-terraform"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")
@@ -84,7 +83,7 @@ func Test_000310_node_selector_test(t *testing.T) {
 	Given("a Terraform resource with manual approve, attached to the given GitRepository")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`, with no .spec.approvePlan specified.")
 	helloWorldTF := infrav1.Terraform{}
-	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+	err := helloWorldTF.FromBytes(fmt.Appendf(nil, `
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -101,7 +100,7 @@ spec:
     spec:
       nodeSelector:
         node.io/selector: testing
-`, terraformName, sourceName)), runnerServer.Scheme)
+`, terraformName, sourceName), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	It("should be created and attached successfully.")
@@ -139,7 +138,7 @@ func Test_000310_affinity_test(t *testing.T) {
 		terraformName = "affinity-test-terraform"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")
@@ -196,7 +195,7 @@ func Test_000310_affinity_test(t *testing.T) {
 	Given("a Terraform resource with manual approve, attached to the given GitRepository")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`, with no .spec.approvePlan specified.")
 	helloWorldTF := infrav1.Terraform{}
-	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+	err := helloWorldTF.FromBytes(fmt.Appendf(nil, `
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -220,7 +219,7 @@ spec:
                 operator: In
                 values:
                 - testing
-`, terraformName, sourceName)), runnerServer.Scheme)
+`, terraformName, sourceName), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	It("should be created and attached successfully.")
@@ -274,7 +273,7 @@ func Test_000310_tolerations_test(t *testing.T) {
 		terraformName = "tolerations-test-terraform"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")
@@ -331,7 +330,7 @@ func Test_000310_tolerations_test(t *testing.T) {
 	Given("a Terraform resource with manual approve, attached to the given GitRepository")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`, with no .spec.approvePlan specified.")
 	helloWorldTF := infrav1.Terraform{}
-	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+	err := helloWorldTF.FromBytes(fmt.Appendf(nil, `
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -350,7 +349,7 @@ spec:
       - key: node.io/selector
         operator: Equal
         value: testing
-`, terraformName, sourceName)), runnerServer.Scheme)
+`, terraformName, sourceName), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	It("should be created and attached successfully.")

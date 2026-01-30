@@ -97,23 +97,23 @@ func (i *Informer) Start(ctx context.Context) error {
 	return nil
 }
 
-func (i *Informer) SetAddHandler(fn func(interface{})) {
+func (i *Informer) SetAddHandler(fn func(any)) {
 	i.handlers.AddFunc = fn
 }
 
-func (i *Informer) SetUpdateHandler(fn func(interface{}, interface{})) {
+func (i *Informer) SetUpdateHandler(fn func(any, any)) {
 	i.handlers.UpdateFunc = fn
 }
 
-func (i *Informer) SetDeleteHandler(fn func(interface{})) {
+func (i *Informer) SetDeleteHandler(fn func(any)) {
 	i.handlers.DeleteFunc = fn
 }
 
-func (i *Informer) addHandler(obj interface{}) {}
+func (i *Informer) addHandler(obj any) {}
 
 // updateHandler is called when a Terraform object is updated.
 // It checks if the plan has been updated and if so, it creates a new PR comment to show the plan diff.
-func (i *Informer) updateHandler(oldObj, newObj interface{}) {
+func (i *Informer) updateHandler(oldObj, newObj any) {
 	if !i.synced {
 		return
 	}
@@ -207,7 +207,7 @@ func (i *Informer) updateHandler(oldObj, newObj interface{}) {
 	i.addCommentToPullRequest(ctx, new, formatPlanOutput(plan))
 }
 
-func (i *Informer) deleteHandler(obj interface{}) {}
+func (i *Informer) deleteHandler(obj any) {}
 
 func (i *Informer) addCommentToPullRequest(ctx context.Context, tf *infrav1.Terraform, content []byte) {
 	repo, err := i.getRepo(ctx, tf)

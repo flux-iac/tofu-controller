@@ -434,7 +434,7 @@ func getLabelsAsHCL(labels map[string]string, indent int) string {
 	var result string
 	for k, v := range labels {
 		// print space for indentation
-		for i := 0; i < indent; i++ {
+		for range indent {
 			result += " "
 		}
 		result = result + fmt.Sprintf("%q = %q\n", k, v)

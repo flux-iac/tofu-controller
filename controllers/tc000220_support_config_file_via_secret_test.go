@@ -1,5 +1,4 @@
 //go:build skip
-// +build skip
 
 package controllers
 
@@ -38,7 +37,7 @@ func Test_000220_support_config_file_via_secret_test(t *testing.T) {
 	)
 
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")

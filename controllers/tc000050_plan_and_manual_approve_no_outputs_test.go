@@ -12,7 +12,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"context"
 	"time"
 )
 
@@ -28,7 +27,7 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 		sourceName    = "gr-plan-and-manual-approve-no-output"
 		terraformName = "tf-plan-and-manual-approve-no-output"
 	)
-	ctx := context.Background()
+	ctx := t.Context()
 	g := NewWithT(t)
 
 	Given("a GitRepository")
@@ -132,14 +131,14 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 	By("checking that the planned status of the TF is created successfully.")
 	By("checking the reason is `TerraformPlannedWithChanges`.")
 	By("checking the pending plan is the $planId.")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Plan" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Pending": createdHelloWorldTF.Status.Plan.Pending,
@@ -147,21 +146,21 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
 		"Pending": planId,
 	}))
 
 	By("checking the message of the ready status contains $planId.")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Ready" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
@@ -169,7 +168,7 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout*3, interval).Should(Equal(map[string]interface{}{
+	}, timeout*3, interval).Should(Equal(map[string]any{
 		"Type":    "Ready",
 		"Reason":  "TerraformPlannedWithChanges",
 		"Message": "Plan generated: set approvePlan: \"plan-master-b8e362c206\" to approve this plan.",
@@ -179,17 +178,17 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 	By("checking that the label of the planned secret is the $planId.")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
 	tfplanSecret := corev1.Secret{}
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, tfplanKey, &tfplanSecret)
 		if err != nil {
 			return nil
 		}
-		return map[string]interface{}{
+		return map[string]any{
 			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
 			"TFPlanEmpty":           string(tfplanSecret.Data["tfplan"]) == "",
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
 		}
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"SavedPlan":             planId,
 		"TFPlanEmpty":           false,
 		"HasEncodingAnnotation": true,
@@ -202,14 +201,14 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 	It("should continue the reconciliation process to the apply state.")
 	By("checking that the applied status reason is TerraformAppliedSucceed.")
 	By("checking that the last applied plan is really the pending plan.")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Apply" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
 					"LastAppliedPlan": createdHelloWorldTF.Status.Plan.LastApplied,
@@ -217,7 +216,7 @@ func Test_000050_plan_and_manual_approve_no_outputs_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"LastAppliedPlan": planId,

@@ -1,7 +1,6 @@
 package config_test
 
 import (
-	"context"
 	"os"
 	"testing"
 
@@ -48,7 +47,7 @@ func Test_ReadConfig_empty(t *testing.T) {
 
 	fakeClient := fake.NewClientBuilder().WithObjects(objects...).Build()
 
-	conf, err := config.ReadConfig(context.Background(), fakeClient, types.NamespacedName{
+	conf, err := config.ReadConfig(t.Context(), fakeClient, types.NamespacedName{
 		Name: "branch-planner-config",
 	})
 	g.Expect(err).To(gomega.Succeed())
@@ -88,7 +87,7 @@ func Test_ReadConfig_resources(t *testing.T) {
 
 	fakeClient := fake.NewClientBuilder().WithObjects(objects...).Build()
 
-	conf, err := config.ReadConfig(context.Background(), fakeClient, types.NamespacedName{
+	conf, err := config.ReadConfig(t.Context(), fakeClient, types.NamespacedName{
 		Name: "branch-planner-config",
 	})
 	g.Expect(err).To(gomega.Succeed())

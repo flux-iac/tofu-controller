@@ -44,7 +44,7 @@ func (r *TerraformRunnerServer) tfShowPlanFileRaw(ctx context.Context, planPath 
 
 func sanitizeLog(log string) string {
 	lines := strings.Split(log, "\n")
-	for i := 0; i < len(lines); i++ {
+	for i := range lines {
 		if strings.Contains(lines[i], "on generated.auto.tfvars.json line") {
 			if i+1 < len(lines) {
 				// Extract the JSON part after the line number
@@ -52,7 +52,7 @@ func sanitizeLog(log string) string {
 				if len(parts) < 2 {
 					continue
 				}
-				var jsonObj map[string]interface{}
+				var jsonObj map[string]any
 				if err := json.Unmarshal([]byte(parts[1]), &jsonObj); err != nil {
 					continue
 				}

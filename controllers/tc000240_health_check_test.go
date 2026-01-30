@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -14,7 +13,7 @@ func Test_000240_health_check_test(t *testing.T) {
 	Spec("This spec verifies health check functionalities")
 
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	tcpTestCases := []struct {
 		name    string

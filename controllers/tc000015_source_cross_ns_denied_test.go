@@ -30,7 +30,7 @@ func Test_000015_cross_namespace_source_denied_test(t *testing.T) {
 		terraformName = "tf-cross-ns"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")
@@ -50,7 +50,7 @@ func Test_000015_cross_namespace_source_denied_test(t *testing.T) {
 	By("creating the GitRepository resource in the cluster.")
 	It("should be created successfully.")
 	g.Expect(k8sClient.Create(ctx, &testRepo)).Should(Succeed())
-	t.Cleanup(func() { g.Expect(k8sClient.Delete(ctx, &testRepo)).Should(Succeed()) })
+	t.Cleanup(func() { g.Expect(k8sClient.Delete(context.Background(), &testRepo)).Should(Succeed()) })
 
 	Given("a Terraform resource, attached to a GitRepository resource in another namespace.")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
@@ -72,14 +72,14 @@ func Test_000015_cross_namespace_source_denied_test(t *testing.T) {
 	}
 	It("should be created and attached successfully.")
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
-	t.Cleanup(func() { g.Expect(k8sClient.Delete(ctx, &helloWorldTF)).Should(Succeed()) })
+	t.Cleanup(func() { g.Expect(k8sClient.Delete(context.Background(), &helloWorldTF)).Should(Succeed()) })
 
 	It("should be access denied error.")
 	By("checking that the Ready's reason of the TF resource become `AccessDenied`.")
 
 	helloWorldTFKey := client.ObjectKeyFromObject(&helloWorldTF)
 	var readyCondition *metav1.Condition
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		var createdHelloWorldTF infrav1.Terraform
 		g.Expect(k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)).To(Succeed())
 		conditions := createdHelloWorldTF.Status.Conditions

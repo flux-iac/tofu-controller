@@ -34,7 +34,7 @@ func Test_000013_source_not_found_test(t *testing.T) {
 		terraformName = "tf-source-not-found"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a Terraform resource with auto approve, attached to a non-existed GitRepository resource.")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
