@@ -49,7 +49,7 @@ func TestLoadTFPlanWithForceTrue(t *testing.T) {
 			Namespace:   req.Namespace,
 			Annotations: map[string]string{SavedPlanSecretAnnotation: "plan-not-1"},
 			Labels: map[string]string{
-				plan.TFPlanNameLabel:      req.Name,
+				plan.TFPlanNameLabel:      plan.SafeLabelValue(req.Name),
 				plan.TFPlanWorkspaceLabel: terraform.WorkspaceName(),
 			},
 		},
@@ -106,7 +106,7 @@ func TestLoadTFPlanWithForceFalse(t *testing.T) {
 			Namespace:   req.Namespace,
 			Annotations: map[string]string{SavedPlanSecretAnnotation: "plan-not-1"},
 			Labels: map[string]string{
-				plan.TFPlanNameLabel:      req.Name,
+				plan.TFPlanNameLabel:      plan.SafeLabelValue(req.Name),
 				plan.TFPlanWorkspaceLabel: terraform.WorkspaceName(),
 			},
 		},

@@ -74,7 +74,7 @@ func readPlanFromConfigmap(ctx context.Context, kubeClient client.Client, resour
 
 	// List relevant configmaps
 	if err := kubeClient.List(ctx, configMaps, client.InNamespace(namespace), client.MatchingLabels{
-		plan.TFPlanNameLabel:      resource,
+		plan.TFPlanNameLabel:      plan.SafeLabelValue(resource),
 		plan.TFPlanWorkspaceLabel: workspace,
 	}); err != nil {
 		return "", fmt.Errorf("unable to list existing plan configmaps: %s", err)
@@ -98,7 +98,7 @@ func readPlanFromSecret(ctx context.Context, kubeClient client.Client, resource 
 
 	// List relevant secrets
 	if err := kubeClient.List(ctx, secrets, client.InNamespace(namespace), client.MatchingLabels{
-		plan.TFPlanNameLabel:      resource,
+		plan.TFPlanNameLabel:      plan.SafeLabelValue(resource),
 		plan.TFPlanWorkspaceLabel: workspace,
 	}); err != nil {
 		return "", fmt.Errorf("unable to list existing plan secrets: %s", err)

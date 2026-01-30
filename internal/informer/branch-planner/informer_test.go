@@ -68,7 +68,7 @@ func TestInformer(t *testing.T) {
 			Name:      "tfplan-default-helloworld",
 			Namespace: ns.Name,
 			Labels: map[string]string{
-				plan.TFPlanNameLabel:      "helloworld",
+				plan.TFPlanNameLabel:      plan.SafeLabelValue("helloworld"),
 				plan.TFPlanWorkspaceLabel: "default",
 			},
 			Annotations: map[string]string{

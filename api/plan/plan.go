@@ -17,9 +17,10 @@ const (
 	TFPlanWorkspaceLabel = "infra.contrib.fluxcd.io/plan-workspace"
 
 	// Kubernetes Annotation names associated with Terraform Plans
-	TFPlanChunkAnnotation = "infra.contrib.fluxcd.io/plan-chunk"
-	TFPlanHashAnnotation  = "infra.contrib.fluxcd.io/plan-hash"
-	TFPlanSavedAnnotation = "savedPlan"
+	TFPlanFullNameAnnotation = "infra.contrib.fluxcd.io/plan-full-name"
+	TFPlanChunkAnnotation    = "infra.contrib.fluxcd.io/plan-chunk"
+	TFPlanHashAnnotation     = "infra.contrib.fluxcd.io/plan-hash"
+	TFPlanSavedAnnotation    = "savedPlan"
 
 	TFPlanName = "tfplan"
 
@@ -27,6 +28,24 @@ const (
 	// that can be stored in a Kubernetes Secret or ConfigMap
 	resourceDataMaxSizeBytes = 1 * 1024 * 1024 // 1MB
 )
+
+// SafeLabelValue returns a string that is safe to use as a Kubernetes label value.
+func SafeLabelValue(value string) string {
+	// Values that are equal to or less than 63 characters are already good
+	if len(value) <= 63 {
+		return value
+	}
+
+	// Create haash
+	checksum := sha256.Sum256([]byte(value))
+
+	// Build a prefix to append to end of truncated value
+	checksumPrefix := fmt.Sprintf("-%x", checksum[:8])
+
+	prefix := value[:63-len(checksumPrefix)]
+
+	return prefix + checksumPrefix
+}
 
 type Plan struct {
 	name      string
@@ -191,12 +210,13 @@ func (p *Plan) ToSecret(suffix string) ([]*v1.Secret, error) {
 				Name:      secretIdentifier,
 				Namespace: p.namespace,
 				Annotations: map[string]string{
-					"encoding":            "gzip",
-					TFPlanSavedAnnotation: p.planID,
-					TFPlanHashAnnotation:  fmt.Sprintf("%x", sha256.Sum256(p.bytes)),
+					"encoding":               "gzip",
+					TFPlanFullNameAnnotation: p.name + suffix,
+					TFPlanSavedAnnotation:    p.planID,
+					TFPlanHashAnnotation:     fmt.Sprintf("%x", sha256.Sum256(p.bytes)),
 				},
 				Labels: map[string]string{
-					TFPlanNameLabel:      p.name + suffix,
+					TFPlanNameLabel:      SafeLabelValue(p.name + suffix),
 					TFPlanWorkspaceLabel: p.workspace,
 				},
 				OwnerReferences: []metav1.OwnerReference{
@@ -231,13 +251,14 @@ func (p *Plan) ToSecret(suffix string) ([]*v1.Secret, error) {
 				Name:      fmt.Sprintf("%s-%d", secretIdentifier, chunk),
 				Namespace: p.namespace,
 				Annotations: map[string]string{
-					"encoding":            "gzip",
-					TFPlanSavedAnnotation: p.planID,
-					TFPlanChunkAnnotation: fmt.Sprintf("%d", chunk),
-					TFPlanHashAnnotation:  fmt.Sprintf("%x", sha256.Sum256(planData)),
+					"encoding":               "gzip",
+					TFPlanFullNameAnnotation: p.name + suffix,
+					TFPlanSavedAnnotation:    p.planID,
+					TFPlanChunkAnnotation:    fmt.Sprintf("%d", chunk),
+					TFPlanHashAnnotation:     fmt.Sprintf("%x", sha256.Sum256(planData)),
 				},
 				Labels: map[string]string{
-					TFPlanNameLabel:      p.name + suffix,
+					TFPlanNameLabel:      SafeLabelValue(p.name + suffix),
 					TFPlanWorkspaceLabel: p.workspace,
 				},
 				OwnerReferences: []metav1.OwnerReference{
@@ -276,11 +297,12 @@ func (p *Plan) ToConfigMap(suffix string) ([]*v1.ConfigMap, error) {
 				Name:      configMapIdentifier,
 				Namespace: p.namespace,
 				Annotations: map[string]string{
-					TFPlanSavedAnnotation: p.planID,
-					TFPlanHashAnnotation:  fmt.Sprintf("%x", sha256.Sum256(p.bytes)),
+					TFPlanFullNameAnnotation: p.name + suffix,
+					TFPlanSavedAnnotation:    p.planID,
+					TFPlanHashAnnotation:     fmt.Sprintf("%x", sha256.Sum256(p.bytes)),
 				},
 				Labels: map[string]string{
-					TFPlanNameLabel:      p.name + suffix,
+					TFPlanNameLabel:      SafeLabelValue(p.name + suffix),
 					TFPlanWorkspaceLabel: p.workspace,
 				},
 				OwnerReferences: []metav1.OwnerReference{
@@ -315,12 +337,13 @@ func (p *Plan) ToConfigMap(suffix string) ([]*v1.ConfigMap, error) {
 				Name:      fmt.Sprintf("%s-%d", configMapIdentifier, chunk),
 				Namespace: p.namespace,
 				Annotations: map[string]string{
-					TFPlanSavedAnnotation: p.planID,
-					TFPlanChunkAnnotation: fmt.Sprintf("%d", chunk),
-					TFPlanHashAnnotation:  fmt.Sprintf("%x", sha256.Sum256([]byte(planData))),
+					TFPlanFullNameAnnotation: p.name + suffix,
+					TFPlanSavedAnnotation:    p.planID,
+					TFPlanChunkAnnotation:    fmt.Sprintf("%d", chunk),
+					TFPlanHashAnnotation:     fmt.Sprintf("%x", sha256.Sum256([]byte(planData))),
 				},
 				Labels: map[string]string{
-					TFPlanNameLabel:      p.name + suffix,
+					TFPlanNameLabel:      SafeLabelValue(p.name + suffix),
 					TFPlanWorkspaceLabel: p.workspace,
 				},
 				OwnerReferences: []metav1.OwnerReference{
