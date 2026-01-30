@@ -129,7 +129,7 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 		}
 	}
 
-	secrets, err := plan.ToSecret(suffix)
+	secrets, err := tfPlan.ToSecret(suffix)
 	if err != nil {
 		log.Error(err, "unable to generate plan secrets", "planId", planId)
 		return err
