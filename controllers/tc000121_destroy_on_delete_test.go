@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"os"
 	"testing"
 	"time"
@@ -31,7 +30,7 @@ func Test_000121_destroy_on_delete_test(t *testing.T) {
 		terraformName = "tf-destroy-on-delete"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository object")
@@ -145,14 +144,14 @@ func Test_000121_destroy_on_delete_test(t *testing.T) {
 
 	It("should have its plan reconciled")
 	By("checking that the Plan's Status of the TF program is Planned Succeed.")
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Plan" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
@@ -160,7 +159,7 @@ func Test_000121_destroy_on_delete_test(t *testing.T) {
 			}
 		}
 		return createdHelloWorldTF.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
 		"Message": "Plan generated",
@@ -170,31 +169,31 @@ func Test_000121_destroy_on_delete_test(t *testing.T) {
 	By("checking that the Secret contains plan-master-b8e362c206 in its labels")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
 	tfplanSecret := corev1.Secret{}
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, tfplanKey, &tfplanSecret)
 		if err != nil {
 			return nil
 		}
-		return map[string]interface{}{
+		return map[string]any{
 			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
 			"Is TFPlan empty ?":     string(tfplanSecret.Data["tfplan"]) == "",
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] == "gzip",
 		}
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"SavedPlan":             "plan-master-b8e362c206",
 		"Is TFPlan empty ?":     false,
 		"HasEncodingAnnotation": true,
 	}))
 
 	By("checking that the applied status of the TF program Successfully, and plan-master-b8e3 is applied")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Apply" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
 					"Message":         c.Message,
@@ -204,7 +203,7 @@ func Test_000121_destroy_on_delete_test(t *testing.T) {
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",
@@ -254,14 +253,14 @@ func Test_000121_destroy_on_delete_test(t *testing.T) {
 	g.Expect(k8sClient.Delete(ctx, &createdHelloWorldTF)).Should(Succeed())
 
 	It("should create the destroy plan, then apply")
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Plan" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
@@ -269,24 +268,24 @@ func Test_000121_destroy_on_delete_test(t *testing.T) {
 			}
 		}
 		return createdHelloWorldTF.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
 		"Message": "Plan generated",
 	}))
 
 	By("checking that the Secret contains plan-master-b8e362c206 in its labels")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, tfplanKey, &tfplanSecret)
 		if err != nil {
 			return nil
 		}
-		return map[string]interface{}{
+		return map[string]any{
 			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
 			"Is TFPlan empty ?":     string(tfplanSecret.Data["tfplan"]) == "",
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] == "gzip",
 		}
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"SavedPlan":             "plan-master-b8e362c206",
 		"Is TFPlan empty ?":     false,
 		"HasEncodingAnnotation": true,

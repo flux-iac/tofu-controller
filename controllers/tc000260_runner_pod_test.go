@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"encoding/base64"
 	"os"
 	"strings"
@@ -381,7 +380,7 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 		terraformNameSecret = "tf-envvar-variable-output-secret"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
 	g.Expect(err).Should(BeNil())
@@ -502,21 +501,21 @@ func Test_000260_runner_pod_test_env_vars_proxy_output(t *testing.T) {
 
 	It("should apply successfully.")
 	By("checking that the status of the TF resource is `TerraformAppliedSucceed`.")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Apply" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":   c.Type,
 					"Reason": c.Reason,
 				}
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":   infrav1.ConditionTypeApply,
 		"Reason": infrav1.TFExecApplySucceedReason,
 	}))
@@ -564,7 +563,7 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_with_value(t *testing.T)
 		terraformName = "tf-envvar-provider-vars-with-value"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
 	g.Expect(err).Should(BeNil())
@@ -674,21 +673,21 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_with_value(t *testing.T)
 
 	It("should fail to plan.")
 	By("checking that the status of the TF resource is `TFExecPlanFailedReason` due to `no such host` or `server misbehaving` failure.")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if strings.Contains(c.Message, "dial tcp: lookup vault on") && (strings.Contains(c.Message, "no such host") || strings.Contains(c.Message, "server misbehaving")) {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":   c.Type,
 					"Reason": c.Reason,
 				}
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":   "Ready",
 		"Reason": infrav1.TFExecPlanFailedReason,
 	}))
@@ -705,7 +704,7 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_without_value(t *testing
 		terraformName = "tf-envvar-provider-vars-without-value"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
 	g.Expect(err).Should(BeNil())
@@ -805,21 +804,21 @@ func Test_000260_runner_pod_test_env_vars_provider_vars_without_value(t *testing
 
 	It("should fail to plan.")
 	By("checking that the status of the TF resource is `TFExecPlanFailedReason` due to `no vault token found` failure.")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if strings.Contains(c.Message, "no vault token found") {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":   c.Type,
 					"Reason": c.Reason,
 				}
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":   "Ready",
 		"Reason": infrav1.TFExecPlanFailedReason,
 	}))
@@ -837,7 +836,7 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_secretRef(t *testing.T) {
 		terraformSecretRefNameKey = "tf-envvar-valuesfrom-secretref-name-key"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
 	g.Expect(err).Should(BeNil())
@@ -972,21 +971,21 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_secretRef(t *testing.T) {
 
 	It("should fail to plan.")
 	By("checking that the status of the TF resource is `TFExecPlanFailedReason` due to `no such host` failure.")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if strings.Contains(c.Message, "dial tcp: lookup vault on") && (strings.Contains(c.Message, "no such host") || strings.Contains(c.Message, "server misbehaving")) {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":   c.Type,
 					"Reason": c.Reason,
 				}
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":   "Ready",
 		"Reason": infrav1.TFExecPlanFailedReason,
 	}))
@@ -1004,7 +1003,7 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_configMapRef(t *testing.T) {
 		terraformConfigMapRefNameKey = "tf-envvar-valuefrom-configmapref-name-key"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	testEnvKubeConfigPath, err := findKubeConfig(testEnv)
 	g.Expect(err).Should(BeNil())
@@ -1139,21 +1138,21 @@ func Test_000260_runner_pod_test_env_vars_valueFrom_configMapRef(t *testing.T) {
 
 	It("should fail to plan.")
 	By("checking that the status of the TF resource is `TFExecPlanFailedReason` due to `no such host` failure.")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if strings.Contains(c.Message, "dial tcp: lookup vault on") && (strings.Contains(c.Message, "no such host") || strings.Contains(c.Message, "server misbehaving")) {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":   c.Type,
 					"Reason": c.Reason,
 				}
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":   "Ready",
 		"Reason": infrav1.TFExecPlanFailedReason,
 	}))

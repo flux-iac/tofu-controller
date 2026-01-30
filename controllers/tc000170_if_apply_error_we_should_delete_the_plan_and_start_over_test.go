@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -31,7 +30,7 @@ func Test_000170_if_apply_error_the_plan_should_be_deleted_and_start_over_test(t
 		sourceName    = "gr-external-entity-auto-approve-no-output"
 		terraformName = "tf-external-entity-auto-approve-no-output"
 	)
-	ctx := context.Background()
+	ctx := t.Context()
 	g := NewWithT(t)
 
 	Given("a GitRepository")
@@ -151,21 +150,21 @@ func Test_000170_if_apply_error_the_plan_should_be_deleted_and_start_over_test(t
 	}, timeout, interval).ShouldNot(BeZero())
 
 	By("checking that the Ready status of the TF resource should fail, being TFExecApplyFailed.")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Apply" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":   c.Type,
 					"Reason": c.Reason,
 				}
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":   infrav1.ConditionTypeApply,
 		"Reason": "TerraformAppliedFail",
 	}))
@@ -174,21 +173,21 @@ func Test_000170_if_apply_error_the_plan_should_be_deleted_and_start_over_test(t
 	g.Expect(k8sClient.Delete(ctx, &preExistingPayload)).Should(Succeed())
 
 	By("checking that the Ready status of the TF resource should become TerraformAppliedSucceed.")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Apply" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":   c.Type,
 					"Reason": c.Reason,
 				}
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":   infrav1.ConditionTypeApply,
 		"Reason": infrav1.TFExecApplySucceedReason,
 	}))

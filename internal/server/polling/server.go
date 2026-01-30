@@ -3,6 +3,7 @@ package polling
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -349,11 +350,5 @@ func (s *Server) isNamespaceAllowed(name string) bool {
 		return true
 	}
 
-	for _, ns := range s.allowedNamespaces {
-		if ns == name {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(s.allowedNamespaces, name)
 }

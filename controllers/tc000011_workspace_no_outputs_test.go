@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -28,7 +27,7 @@ func Test_000011_workspace_no_outputs_test(t *testing.T) {
 		terraformName = "helloworld-ws-no-outputs"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")
@@ -80,7 +79,7 @@ func Test_000011_workspace_no_outputs_test(t *testing.T) {
 	Given("a Terraform resource with auto approve, attached to the given GitRepository resource.")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
 	var helloWorldTF infrav1.Terraform
-	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+	err := helloWorldTF.FromBytes(fmt.Appendf(nil, `
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -95,7 +94,7 @@ spec:
     name: %s
     namespace: flux-system
   interval: 10s
-`, terraformName, sourceName)), runnerServer.Scheme)
+`, terraformName, sourceName), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	It("should be created and attached successfully.")
@@ -125,14 +124,14 @@ spec:
 
 	It("should be planned.")
 	By("checking that the Plan's reason of the TF resource become `TerraformPlannedWithChanges`.")
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Plan" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
 					"Message": c.Message,
@@ -140,7 +139,7 @@ spec:
 			}
 		}
 		return createdHelloWorldTF.Status
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
 		"Message": "Plan generated",
@@ -150,17 +149,17 @@ spec:
 	By("checking that the Secret contains plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb in its labels.")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-custom-" + terraformName}
 	tfplanSecret := corev1.Secret{}
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, tfplanKey, &tfplanSecret)
 		if err != nil {
 			return nil
 		}
-		return map[string]interface{}{
+		return map[string]any{
 			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
 			"Is TFPlan empty ?":     string(tfplanSecret.Data["tfplan"]) == "",
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] == "gzip",
 		}
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"SavedPlan":             "plan-master-b8e362c206",
 		"Is TFPlan empty ?":     false,
 		"HasEncodingAnnotation": true,
@@ -168,14 +167,14 @@ spec:
 
 	It("should contain an Apply condition saying that the plan were apply successfully.")
 	By("checking that the reason of the Apply condition is TerraformAppliedSucceed, and the LastAppliedPlan is the plan.")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Apply" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
 					"Message":         c.Message,
@@ -184,7 +183,7 @@ spec:
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"Message":         "Applied successfully",

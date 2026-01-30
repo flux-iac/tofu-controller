@@ -124,9 +124,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// Track this active reconciliation for graceful shutdown
 	r.activeReconciliations.Add(1)
-	defer func() {
-		r.activeReconciliations.Done()
-	}()
+	defer r.activeReconciliations.Done()
 
 	traceLog.Info("Reconcile Start")
 
@@ -198,8 +196,8 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if isBeingDeleted(terraform) {
 		dependants := []string{}
 		for _, finalizer := range terraform.GetFinalizers() {
-			if strings.HasPrefix(finalizer, infrav1.TFDependencyOfPrefix) {
-				dependants = append(dependants, strings.TrimPrefix(finalizer, infrav1.TFDependencyOfPrefix))
+			if after, ok := strings.CutPrefix(finalizer, infrav1.TFDependencyOfPrefix); ok {
+				dependants = append(dependants, after)
 			}
 		}
 

@@ -12,7 +12,7 @@ import (
 
 func Test_printHumanReadablePlanIfEnabled(t *testing.T) {
 	g := NewGomegaWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	defer func() {
 		g.Expect(os.Unsetenv("LOG_HUMAN_READABLE_PLAN")).Should(Succeed())

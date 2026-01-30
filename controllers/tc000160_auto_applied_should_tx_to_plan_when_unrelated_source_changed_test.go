@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -31,7 +30,7 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 		sourceName    = "gr-unrelated-source-changed-auto-approve-no-output"
 		terraformName = "tf-unrelated-changed-auto-approve-no-output"
 	)
-	ctx := context.Background()
+	ctx := t.Context()
 	g := NewWithT(t)
 
 	Given("a GitRepository")
@@ -151,14 +150,14 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 	}, timeout, interval).ShouldNot(BeZero())
 
 	By("checking that the applied status of the TF program Successfully, and plan-master-b8e362c206e is applied")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Apply" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":            c.Type,
 					"Reason":          c.Reason,
 					"LastAppliedPlan": createdHelloWorldTF.Status.Plan.LastApplied,
@@ -166,7 +165,7 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 			}
 		}
 		return nil
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
 		"LastAppliedPlan": "plan-master-b8e362c206",
@@ -211,31 +210,31 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 	By("checking that the planned secret should be updated, even with no change - because we did plan.")
 	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
 	tfplanSecret := corev1.Secret{}
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, tfplanKey, &tfplanSecret)
 		if err != nil {
 			return nil
 		}
-		return map[string]interface{}{
+		return map[string]any{
 			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
 			"TFPlanEmpty":           string(tfplanSecret.Data["tfplan"]) == "",
 			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] != "" && tfplanSecret.Annotations["encoding"] == "gzip",
 		}
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"SavedPlan":             "plan-master-ed22ced771",
 		"TFPlanEmpty":           false,
 		"HasEncodingAnnotation": true,
 	}))
 
 	By("checking that the status of the TF resource must be transitioned to planned, no change.")
-	g.Eventually(func() map[string]interface{} {
+	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
 			if c.Type == "Plan" {
-				return map[string]interface{}{
+				return map[string]any{
 					"Type":                  c.Type,
 					"Reason":                c.Reason,
 					"Pending":               createdHelloWorldTF.Status.Plan.Pending,
@@ -248,7 +247,7 @@ func Test_000160_auto_applied_should_tx_to_plan_when_unrelated_source_changed_te
 			}
 		}
 		return nil // plan-master-b8e362c206e3d0cbb7ed22ced771a0056455a2fb
-	}, timeout, interval).Should(Equal(map[string]interface{}{
+	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":                  infrav1.ConditionTypePlan,
 		"Reason":                "TerraformPlannedNoChanges",
 		"LastAppliedRevision":   "master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb",

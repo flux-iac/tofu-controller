@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -23,7 +22,7 @@ func Test_000073_varsfrom_accepts_many_secrets(t *testing.T) {
 		terraformName = "tf-vars-from-many-secrets"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	By("creating a new Git repository object")
 	updatedTime := time.Now()

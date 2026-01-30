@@ -176,8 +176,8 @@ func validateTCPAddress(address string) error {
 
 	// Check if host is a valid IP address or conforms to RFC 952, updated by RFC 1152.
 	if net.ParseIP(host) == nil {
-		labels := strings.Split(host, ".")
-		for _, label := range labels {
+		labels := strings.SplitSeq(host, ".")
+		for label := range labels {
 			if !isValidLabel(label) {
 				return errors.New("invalid host format")
 			}

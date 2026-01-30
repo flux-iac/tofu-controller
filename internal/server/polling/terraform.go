@@ -3,6 +3,7 @@ package polling
 import (
 	"context"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/fluxcd/pkg/runtime/acl"
@@ -184,9 +185,7 @@ func (s *Server) reconcileSource(ctx context.Context, tfName string, originalSou
 
 func (s *Server) createLabels(labels map[string]string, originalName string, branch string, prID string) map[string]string {
 	resultLabels := make(map[string]string)
-	for k, v := range labels {
-		resultLabels[k] = v
-	}
+	maps.Copy(resultLabels, labels)
 
 	resultLabels[bpconfig.LabelKey] = bpconfig.LabelValue
 	resultLabels[bpconfig.LabelPrimaryResourceKey] = originalName

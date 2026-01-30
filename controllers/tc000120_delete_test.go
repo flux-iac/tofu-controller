@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -25,7 +24,7 @@ func Test_000120_delete_test(t *testing.T) {
 		terraformName = "helloworld-delete"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	By("creating a new Git repository object")
 	updatedTime := time.Now()

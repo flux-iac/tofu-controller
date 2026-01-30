@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -27,7 +26,7 @@ func Test_000311_init_container_test(t *testing.T) {
 		terraformName = "init-container-test-terraform"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")
@@ -84,7 +83,7 @@ func Test_000311_init_container_test(t *testing.T) {
 	Given("a Terraform resource with manual approve, attached to the given GitRepository")
 	By("creating a new TF resource and attaching to the repo via `sourceRef`, with no .spec.runnerPodTemplate.spec.initContainers specified.")
 	helloWorldTF := infrav1.Terraform{}
-	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+	err := helloWorldTF.FromBytes(fmt.Appendf(nil, `
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -105,7 +104,7 @@ spec:
         cmd:
         - sleep
         - 5
-`, terraformName, sourceName)), runnerServer.Scheme)
+`, terraformName, sourceName), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	It("should be created and attached successfully.")
@@ -148,7 +147,7 @@ func Test_000311_init_container_delay_all_outputs_test(t *testing.T) {
 		terraformSecretName = "icdao-output-secret"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource.")
@@ -207,7 +206,7 @@ func Test_000311_init_container_delay_all_outputs_test(t *testing.T) {
 	By("creating a new TF resource and attaching to the repo via `sourceRef`.")
 	By("not specifying the outputs list of .spec.writeOutputsToSecret.")
 	helloWorldTF := infrav1.Terraform{}
-	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+	err := helloWorldTF.FromBytes(fmt.Appendf(nil, `
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -231,7 +230,7 @@ spec:
         cmd:
         - sleep
         - 5
-`, terraformName, sourceName, terraformSecretName)), runnerServer.Scheme)
+`, terraformName, sourceName, terraformSecretName), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	It("should be created and attached successfully.")

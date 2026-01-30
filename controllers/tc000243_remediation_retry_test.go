@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -28,7 +27,7 @@ func Test_000243_remediation_retry_test(t *testing.T) {
 		terraformName = "retry"
 	)
 	g := NewWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	Given("a GitRepository")
 	By("defining a new GitRepository resource")
@@ -79,7 +78,7 @@ func Test_000243_remediation_retry_test(t *testing.T) {
 	Given("a Terraform object with auto approve, and attaching it to the bad GitRepository resource.")
 	By("creating a new TF resource and attaching to the bad repo via `sourceRef`.")
 	var helloWorldTF infrav1.Terraform
-	err := helloWorldTF.FromBytes([]byte(fmt.Sprintf(`
+	err := helloWorldTF.FromBytes(fmt.Appendf(nil, `
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
@@ -96,7 +95,7 @@ spec:
     name: %s
     namespace: flux-system
   interval: 10s
-`, terraformName, sourceName)), runnerServer.Scheme)
+`, terraformName, sourceName), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	It("should be created and attached successfully.")
@@ -136,7 +135,7 @@ spec:
 		Message: "Resource reached maximum number of retries.",
 		Status:  metav1.ConditionTrue,
 	}
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
@@ -165,7 +164,7 @@ spec:
 	g.Expect(reconcileResult.Requeue).To(BeFalse())
 
 	recheckHelloWorldTF := infrav1.Terraform{}
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		return k8sClient.Get(ctx, helloWorldTFKey, &recheckHelloWorldTF)
 	}, timeout, interval).Should(Succeed())
 
@@ -196,7 +195,7 @@ spec:
 		Status:  metav1.ConditionTrue,
 		Retries: 2,
 	}
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
@@ -241,7 +240,7 @@ spec:
 	}
 	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
 
-	g.Eventually(func() interface{} {
+	g.Eventually(func() any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
