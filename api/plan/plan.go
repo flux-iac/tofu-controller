@@ -12,13 +12,40 @@ import (
 )
 
 const (
-	TFPlanName                = "tfplan"
-	SavedPlanSecretAnnotation = "savedPlan"
+	// Kubernetes Label names associated with Terraform Plans
+	TFPlanNameLabel      = "infra.contrib.fluxcd.io/plan-name"
+	TFPlanWorkspaceLabel = "infra.contrib.fluxcd.io/plan-workspace"
+
+	// Kubernetes Annotation names associated with Terraform Plans
+	TFPlanFullNameAnnotation = "infra.contrib.fluxcd.io/plan-full-name"
+	TFPlanChunkAnnotation    = "infra.contrib.fluxcd.io/plan-chunk"
+	TFPlanHashAnnotation     = "infra.contrib.fluxcd.io/plan-hash"
+	TFPlanSavedAnnotation    = "savedPlan"
+
+	TFPlanName = "tfplan"
 
 	// resourceDataMaxSizeBytes defines the maximum size of data
 	// that can be stored in a Kubernetes Secret or ConfigMap
 	resourceDataMaxSizeBytes = 1 * 1024 * 1024 // 1MB
 )
+
+// SafeLabelValue returns a string that is safe to use as a Kubernetes label value.
+func SafeLabelValue(value string) string {
+	// Values that are equal to or less than 63 characters are already good
+	if len(value) <= 63 {
+		return value
+	}
+
+	// Create haash
+	checksum := sha256.Sum256([]byte(value))
+
+	// Build a prefix to append to end of truncated value
+	checksumPrefix := fmt.Sprintf("-%x", checksum[:8])
+
+	prefix := value[:63-len(checksumPrefix)]
+
+	return prefix + checksumPrefix
+}
 
 type Plan struct {
 	name      string
@@ -57,7 +84,7 @@ func NewFromSecrets(name string, namespace string, uuid string, secrets []v1.Sec
 
 		// Grab the chunk index from the secret annotation
 		chunkIndex := 0
-		if idxStr, ok := secret.Annotations["infra.contrib.fluxcd.io/plan-chunk"]; ok && idxStr != "" {
+		if idxStr, ok := secret.Annotations[TFPlanChunkAnnotation]; ok && idxStr != "" {
 			var err error
 			chunkIndex, err = strconv.Atoi(idxStr)
 			if err != nil {
@@ -65,12 +92,12 @@ func NewFromSecrets(name string, namespace string, uuid string, secrets []v1.Sec
 			}
 		}
 
-		workspaceName, ok = secret.Labels["infra.contrib.fluxcd.io/plan-workspace"]
+		workspaceName, ok = secret.Labels[TFPlanWorkspaceLabel]
 		if !ok {
 			return nil, fmt.Errorf("missing plan workspace label on secret %s", secret.Name)
 		}
 
-		planID, ok = secret.Annotations[SavedPlanSecretAnnotation]
+		planID, ok = secret.Annotations[TFPlanSavedAnnotation]
 		if !ok {
 			return nil, fmt.Errorf("missing plan ID annotation on secret %s", secret.Name)
 		}
@@ -120,7 +147,7 @@ func NewFromConfigMaps(name string, namespace string, uuid string, configmaps []
 
 		// Grab the chunk index from the configmap annotation
 		chunkIndex := 0
-		if idxStr, ok := configmap.Annotations["infra.contrib.fluxcd.io/plan-chunk"]; ok && idxStr != "" {
+		if idxStr, ok := configmap.Annotations[TFPlanChunkAnnotation]; ok && idxStr != "" {
 			var err error
 			chunkIndex, err = strconv.Atoi(idxStr)
 			if err != nil {
@@ -128,12 +155,12 @@ func NewFromConfigMaps(name string, namespace string, uuid string, configmaps []
 			}
 		}
 
-		workspaceName, ok = configmap.Labels["infra.contrib.fluxcd.io/plan-workspace"]
+		workspaceName, ok = configmap.Labels[TFPlanWorkspaceLabel]
 		if !ok {
 			return nil, fmt.Errorf("missing plan workspace label on configmap %s", configmap.Name)
 		}
 
-		planID, ok = configmap.Annotations[SavedPlanSecretAnnotation]
+		planID, ok = configmap.Annotations[TFPlanSavedAnnotation]
 		if !ok {
 			return nil, fmt.Errorf("missing plan ID annotation on secret %s", configmap.Name)
 		}
@@ -183,13 +210,14 @@ func (p *Plan) ToSecret(suffix string) ([]*v1.Secret, error) {
 				Name:      secretIdentifier,
 				Namespace: p.namespace,
 				Annotations: map[string]string{
-					"encoding":                          "gzip",
-					SavedPlanSecretAnnotation:           p.planID,
-					"infra.contrib.fluxcd.io/plan-hash": fmt.Sprintf("%x", sha256.Sum256(encoded)),
+					"encoding":               "gzip",
+					TFPlanFullNameAnnotation: p.name + suffix,
+					TFPlanSavedAnnotation:    p.planID,
+					TFPlanHashAnnotation:     fmt.Sprintf("%x", sha256.Sum256(p.bytes)),
 				},
 				Labels: map[string]string{
-					"infra.contrib.fluxcd.io/plan-name":      p.name + suffix,
-					"infra.contrib.fluxcd.io/plan-workspace": p.workspace,
+					TFPlanNameLabel:      SafeLabelValue(p.name + suffix),
+					TFPlanWorkspaceLabel: p.workspace,
 				},
 				OwnerReferences: []metav1.OwnerReference{
 					{
@@ -223,14 +251,15 @@ func (p *Plan) ToSecret(suffix string) ([]*v1.Secret, error) {
 				Name:      fmt.Sprintf("%s-%d", secretIdentifier, chunk),
 				Namespace: p.namespace,
 				Annotations: map[string]string{
-					"encoding":                           "gzip",
-					SavedPlanSecretAnnotation:            p.planID,
-					"infra.contrib.fluxcd.io/plan-chunk": fmt.Sprintf("%d", chunk),
-					"infra.contrib.fluxcd.io/plan-hash":  fmt.Sprintf("%x", sha256.Sum256(planData)),
+					"encoding":               "gzip",
+					TFPlanFullNameAnnotation: p.name + suffix,
+					TFPlanSavedAnnotation:    p.planID,
+					TFPlanChunkAnnotation:    fmt.Sprintf("%d", chunk),
+					TFPlanHashAnnotation:     fmt.Sprintf("%x", sha256.Sum256(planData)),
 				},
 				Labels: map[string]string{
-					"infra.contrib.fluxcd.io/plan-name":      p.name + suffix,
-					"infra.contrib.fluxcd.io/plan-workspace": p.workspace,
+					TFPlanNameLabel:      SafeLabelValue(p.name + suffix),
+					TFPlanWorkspaceLabel: p.workspace,
 				},
 				OwnerReferences: []metav1.OwnerReference{
 					{
@@ -268,12 +297,13 @@ func (p *Plan) ToConfigMap(suffix string) ([]*v1.ConfigMap, error) {
 				Name:      configMapIdentifier,
 				Namespace: p.namespace,
 				Annotations: map[string]string{
-					SavedPlanSecretAnnotation:           p.planID,
-					"infra.contrib.fluxcd.io/plan-hash": fmt.Sprintf("%x", sha256.Sum256(p.bytes)),
+					TFPlanFullNameAnnotation: p.name + suffix,
+					TFPlanSavedAnnotation:    p.planID,
+					TFPlanHashAnnotation:     fmt.Sprintf("%x", sha256.Sum256(p.bytes)),
 				},
 				Labels: map[string]string{
-					"infra.contrib.fluxcd.io/plan-name":      p.name + suffix,
-					"infra.contrib.fluxcd.io/plan-workspace": p.workspace,
+					TFPlanNameLabel:      SafeLabelValue(p.name + suffix),
+					TFPlanWorkspaceLabel: p.workspace,
 				},
 				OwnerReferences: []metav1.OwnerReference{
 					{
@@ -307,13 +337,14 @@ func (p *Plan) ToConfigMap(suffix string) ([]*v1.ConfigMap, error) {
 				Name:      fmt.Sprintf("%s-%d", configMapIdentifier, chunk),
 				Namespace: p.namespace,
 				Annotations: map[string]string{
-					SavedPlanSecretAnnotation:            p.planID,
-					"infra.contrib.fluxcd.io/plan-chunk": fmt.Sprintf("%d", chunk),
-					"infra.contrib.fluxcd.io/plan-hash":  fmt.Sprintf("%x", sha256.Sum256([]byte(planData))),
+					TFPlanFullNameAnnotation: p.name + suffix,
+					TFPlanSavedAnnotation:    p.planID,
+					TFPlanChunkAnnotation:    fmt.Sprintf("%d", chunk),
+					TFPlanHashAnnotation:     fmt.Sprintf("%x", sha256.Sum256([]byte(planData))),
 				},
 				Labels: map[string]string{
-					"infra.contrib.fluxcd.io/plan-name":      p.name + suffix,
-					"infra.contrib.fluxcd.io/plan-workspace": p.workspace,
+					TFPlanNameLabel:      SafeLabelValue(p.name + suffix),
+					TFPlanWorkspaceLabel: p.workspace,
 				},
 				OwnerReferences: []metav1.OwnerReference{
 					{

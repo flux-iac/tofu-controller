@@ -58,8 +58,8 @@ func TestShowPlan(t *testing.T) {
 							Name:      "tfplan-default-hello-world",
 							Namespace: "default",
 							Labels: map[string]string{
-								"infra.contrib.fluxcd.io/plan-name":      "hello-world",
-								"infra.contrib.fluxcd.io/plan-workspace": "default",
+								plan.TFPlanNameLabel:      "hello-world",
+								plan.TFPlanWorkspaceLabel: "default",
 							},
 						},
 						Data: map[string][]byte{

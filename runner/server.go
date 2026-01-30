@@ -25,6 +25,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/flux-iac/tofu-controller/api/plan"
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/utils"
 )
@@ -527,8 +528,8 @@ func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *Finali
 	secrets := &v1.SecretList{}
 
 	if err := r.Client.List(ctx, secrets, client.InNamespace(req.Namespace), client.MatchingLabels{
-		"infra.contrib.fluxcd.io/plan-name":      req.Name,
-		"infra.contrib.fluxcd.io/plan-workspace": req.Workspace,
+		plan.TFPlanNameLabel:      plan.SafeLabelValue(req.Name),
+		plan.TFPlanWorkspaceLabel: req.Workspace,
 	}); err != nil {
 		log.Error(err, "unable to list existing plan secrets")
 		return nil, err
