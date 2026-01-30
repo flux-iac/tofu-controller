@@ -10,6 +10,7 @@ import (
 	gom "github.com/onsi/gomega"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/flux-iac/tofu-controller/api/plan"
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/internal/config"
 	"github.com/flux-iac/tofu-controller/internal/git/provider/providerfakes"
@@ -66,11 +67,11 @@ func TestInformer(t *testing.T) {
 			Name:      "tfplan-default-helloworld",
 			Namespace: ns.Name,
 			Labels: map[string]string{
-				"infra.contrib.fluxcd.io/plan-name":      "helloworld",
-				"infra.contrib.fluxcd.io/plan-workspace": "default",
+				plan.TFPlanNameLabel:      plan.SafeLabelValue("helloworld"),
+				plan.TFPlanWorkspaceLabel: "default",
 			},
 			Annotations: map[string]string{
-				"savedPlan": "plan-main-1",
+				plan.TFPlanSavedAnnotation: "plan-main-1",
 			},
 		},
 		Data: map[string]string{

@@ -98,14 +98,14 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 	return &SaveTFPlanReply{Message: "ok"}, nil
 }
 
-func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name string, namespace string, log logr.Logger, planId string, plan *plan.Plan, suffix string, uuid string) error {
+func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name string, namespace string, log logr.Logger, planId string, tfPlan *plan.Plan, suffix string, uuid string) error {
 	existingSecrets := &v1.SecretList{}
 
 	// Try to get any secrets by using the plan labels
 	// This covers "chunked" secrets as well as a single secret
 	if err := r.Client.List(ctx, existingSecrets, client.InNamespace(namespace), client.MatchingLabels{
-		"infra.contrib.fluxcd.io/plan-name":      name + suffix,
-		"infra.contrib.fluxcd.io/plan-workspace": r.terraform.WorkspaceName(),
+		plan.TFPlanNameLabel:      plan.SafeLabelValue(name + suffix),
+		plan.TFPlanWorkspaceLabel: r.terraform.WorkspaceName(),
 	}); err != nil {
 		log.Error(err, "unable to list existing plan secrets")
 		return err
@@ -129,7 +129,7 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 		}
 	}
 
-	secrets, err := plan.ToSecret(suffix)
+	secrets, err := tfPlan.ToSecret(suffix)
 	if err != nil {
 		log.Error(err, "unable to generate plan secrets", "planId", planId)
 		return err
@@ -149,14 +149,14 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 	return nil
 }
 
-func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name string, namespace string, log logr.Logger, planId string, plan *plan.Plan, suffix string, uuid string) error {
+func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name string, namespace string, log logr.Logger, planId string, tfPlan *plan.Plan, suffix string, uuid string) error {
 	existingConfigMaps := &v1.ConfigMapList{}
 
 	// Try to get any ConfigMaps by using the plan labels
 	// This covers "chunked" ConfigMaps as well as a single ConfigMap
 	if err := r.Client.List(ctx, existingConfigMaps, client.InNamespace(namespace), client.MatchingLabels{
-		"infra.contrib.fluxcd.io/plan-name":      name + suffix,
-		"infra.contrib.fluxcd.io/plan-workspace": r.terraform.WorkspaceName(),
+		plan.TFPlanNameLabel:      plan.SafeLabelValue(name + suffix),
+		plan.TFPlanWorkspaceLabel: r.terraform.WorkspaceName(),
 	}); err != nil {
 		log.Error(err, "unable to list existing plan ConfigMaps")
 		return err
@@ -180,7 +180,7 @@ func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name s
 		}
 	}
 
-	configMaps, err := plan.ToConfigMap(suffix)
+	configMaps, err := tfPlan.ToConfigMap(suffix)
 	if err != nil {
 		log.Error(err, "unable to generate plan ConfigMaps", "planId", planId)
 		return err
