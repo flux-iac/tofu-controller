@@ -88,8 +88,8 @@ github.com/aws/aws-sdk-go-v2/service/redshift v1.46.8 h1:UBqd0JhsXpCDUf/7ulfzYTx
 github.com/aws/aws-sdk-go-v2/service/redshift v1.46.8/go.mod h1:UdcfC9kA4bn3cdUdFYVCeXZcoPka6WNzbYyRAX/Vpy0=
 github.com/aws/aws-sdk-go-v2/service/route53 v1.43.2 h1:957e1/SwXIfPi/0OUJkH9YnPZRe9G6Kisd/xUhF7AUE=
 github.com/aws/aws-sdk-go-v2/service/route53 v1.43.2/go.mod h1:343vcjcyOTuHTBBgUrOxPM36/jE96qLZnGL447ldrB0=
-github.com/aws/aws-sdk-go-v2/service/s3 v1.95.1 h1:C2dUPSnEpy4voWFIq3JNd8gN0Y5vYGDo44eUE58a/p8=
-github.com/aws/aws-sdk-go-v2/service/s3 v1.95.1/go.mod h1:5jggDlZ2CLQhwJBiZJb4vfk4f0GxWdEDruWKEJ1xOdo=
+github.com/aws/aws-sdk-go-v2/service/s3 v1.96.0 h1:oeu8VPlOre74lBA/PMhxa5vewaMIMmILM+RraSyB8KA=
+github.com/aws/aws-sdk-go-v2/service/s3 v1.96.0/go.mod h1:5jggDlZ2CLQhwJBiZJb4vfk4f0GxWdEDruWKEJ1xOdo=
 github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.32.8 h1:HNXhQReFG2fbucvPRxDabbIGQf/6dieOfTnzoGPEqXI=
 github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.32.8/go.mod h1:BYr9P/rrcLNJ8A36nT15p8tpoVDZ5lroHuMn/njecBw=
 github.com/aws/aws-sdk-go-v2/service/ses v1.26.2 h1:hGWgo0Ckz68QbnzET2ZlirsgIhSwa055Nlhbosr2944=
@@ -180,10 +180,10 @@ github.com/fluxcd/pkg/apis/event v0.22.0 h1:nCW0TnneMnscSnj9NlaSKcvyC+436MbY1GyK
 github.com/fluxcd/pkg/apis/event v0.22.0/go.mod h1:Hoi4DejaNKVahGkRXqGBjT9h1aKmhc7RCYcsgoTieqc=
 github.com/fluxcd/pkg/apis/meta v1.25.0 h1:fmZgMoe7yITGfhFqdOs7w2GOu3Y/2Vvz4+4p/eay3eA=
 github.com/fluxcd/pkg/apis/meta v1.25.0/go.mod h1:1D92RqAet0/n/cH5S0khBXweirHWkw9rCO0V4NCY6xc=
-github.com/fluxcd/pkg/runtime v0.96.0 h1:sF4ic8131BwbOE+T2pkiXlkr2gCaxAho500zlZJJLck=
-github.com/fluxcd/pkg/runtime v0.96.0/go.mod h1:FyjNMFNAERkCsF/muTWJYU9MZOsq/m4Sc4aQk/EgQ9E=
-github.com/fluxcd/pkg/ssa v0.64.0 h1:B/8VYMIYMeRmolup2HOoWNqXh4UeXi6w2LvXXvl6MZM=
-github.com/fluxcd/pkg/ssa v0.64.0/go.mod h1:RjvVjJIoRo1ecsv91yMuiqzO6cpNag80M6MOB/vrJdc=
+github.com/fluxcd/pkg/runtime v0.97.0 h1:NZ9ZL2RE6J4yNDHI7ZNmL/OnCsDWurzVIvws73FYMz8=
+github.com/fluxcd/pkg/runtime v0.97.0/go.mod h1:FyjNMFNAERkCsF/muTWJYU9MZOsq/m4Sc4aQk/EgQ9E=
+github.com/fluxcd/pkg/ssa v0.65.0 h1:pvPYmBmfqS0sRNoi4/IUoocBbglYuD/OJLgOuxMJ9+o=
+github.com/fluxcd/pkg/ssa v0.65.0/go.mod h1:RjvVjJIoRo1ecsv91yMuiqzO6cpNag80M6MOB/vrJdc=
 github.com/fluxcd/pkg/tar v0.17.0 h1:uNxbFXy8ly8C7fJ8D7w3rjTNJFrb4Hp1aY/30XkfvxY=
 github.com/fluxcd/pkg/tar v0.17.0/go.mod h1:b1xyIRYDD0ket4SV5u0UXYv+ZdN/O/HmIO5jZQdHQls=
 github.com/fluxcd/source-controller/api v1.7.4 h1:+EOVnRA9LmLxOx7J273l7IOEU39m+Slt/nQGBy69ygs=
