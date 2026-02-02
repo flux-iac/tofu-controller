@@ -1,5 +1,5 @@
 ARG BASE_IMAGE
-ARG TOFU_VERSION=1.11.3
+ARG TOFU_VERSION=1.11.4
 
 FROM ghcr.io/opentofu/opentofu:${TOFU_VERSION}-minimal AS tofu
 
