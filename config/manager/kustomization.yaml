@@ -8,4 +8,4 @@ generatorOptions:
 images:
   - name: flux-iac/tofu-controller
     newName: ghcr.io/flux-iac/tofu-controller
-    newTag: v0.16.0
+    newTag: v0.16.1
