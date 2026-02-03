@@ -2,6 +2,20 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.16.1
+
+**Release date:** 2026-02-03
+
+### What's Changed
+
+* chore: modernize code by @artem-nefedov in https://github.com/flux-iac/tofu-controller/pull/1712
+* fix: compute a safe label value for terraform plan resources by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1714
+* fix(deps): bump go and tofu by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1719
+* chore(deps): bump the go-minor group across 3 directories with 3 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1718
+* chore(deps): bump the gh-minor group with 2 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1716
+* chore(deps): bump the gh-patch group with 2 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1715
+* chore(deps): bump the go-patch group across 3 directories with 2 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1717
+
 ## v0.16.0
 
 **Release date:** 2026-01-27
