@@ -4,7 +4,7 @@ go 1.25.6
 
 require (
 	github.com/fluxcd/pkg/apis/meta v1.25.0
-	github.com/fluxcd/pkg/runtime v0.97.0
+	github.com/fluxcd/pkg/runtime v0.99.0
 	github.com/fluxcd/source-controller/api v1.7.4
 	github.com/onsi/gomega v1.39.1
 	k8s.io/api v0.35.0

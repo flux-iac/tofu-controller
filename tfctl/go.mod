@@ -8,7 +8,7 @@ require (
 	github.com/flux-iac/tofu-controller/api v0.0.0-20250321074822-67198a27f35b
 	github.com/fluxcd/cli-utils v0.37.1-flux.1
 	github.com/fluxcd/pkg/apis/meta v1.25.0
-	github.com/fluxcd/pkg/ssa v0.65.0
+	github.com/fluxcd/pkg/ssa v0.66.0
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/hashicorp/go-version v1.8.0
 	github.com/hashicorp/hc-install v0.9.2
@@ -39,7 +39,7 @@ require (
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.9.0 // indirect
-	github.com/fluxcd/pkg/runtime v0.97.0 // indirect
+	github.com/fluxcd/pkg/runtime v0.99.0 // indirect
 	github.com/fluxcd/source-controller/api v1.7.4 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
