@@ -494,6 +494,16 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			terraform.GetGeneration(),
 		))
 
+		if terraform.MustRemediateLastFailure() {
+			log.Info("RemediateLastFailure is true, reseting retries, requeue after interval", "interval", terraform.Spec.Interval.Duration.String())
+			terraform = infrav1.TerraformResetRetry(terraform)
+			if err := r.patchStatus(ctx, req.NamespacedName, terraform.Status); err != nil {
+				log.Error(err, "unable to update status after maximum number of retries reached")
+				return ctrl.Result{Requeue: true}, err
+			}
+			return ctrl.Result{RequeueAfter: terraform.Spec.Interval.Duration}, nil
+		}
+
 		terraform = infrav1.TerraformReachedLimit(terraform)
 		conditions.Delete(terraform, meta.ReconcilingCondition)
 
