@@ -44,6 +44,8 @@ resources:
     memory: 64Mi
 # -- Additional container environment variables.
 extraEnv: {}
+# -- Customize updateStrategy on controller and branch-planner
+updateStrategy: {}
 # -- Pod-level security context
 podSecurityContext:
   fsGroup: 1337

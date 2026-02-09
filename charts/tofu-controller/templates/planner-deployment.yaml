@@ -12,6 +12,9 @@ metadata:
 spec:
   # Planner can't be scaled yet.
   replicas: 1
+  {{- with .Values.updateStrategy }}
+  strategy: {{ toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "planner.selectorLabels" . | nindent 6 }}
