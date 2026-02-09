@@ -183,22 +183,34 @@ ifndef ignore-not-found
   ignore-not-found = false
 endif
 
+.PHONY: install-rbac
+install-rbac: manifests kustomize ## Install RBAC related manifests into the K8s cluster specified in ~/.kube/config.
+	$(KUSTOMIZE) build config/rbac | kubectl apply --server-side -f -
+
+.PHONY: uninstall-rbac
+uninstall-rbac: manifests kustomize ## Uninstall RBAC related manifests from the K8s cluster specified in ~/.kube/config.
+	$(KUSTOMIZE) build config/rbac | kubectl delete --server-side --ignore-not-found=$(ignore-not-found) -f -
+
 .PHONY: install
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/crd | kubectl apply --server-side -f -
+	$(MAKE) install-rbac
 
 .PHONY: uninstall
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/crd | kubectl delete --server-side --ignore-not-found=$(ignore-not-found) -f -
+	$(MAKE) uninstall-rbac
 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	cd config/manager && $(KUSTOMIZE) edit set image flux-iac/tofu-controller=${MANAGER_IMG}:${TAG}
 	$(KUSTOMIZE) build config/default | kubectl apply --server-side -f -
+	$(MAKE) install-rbac
 
 .PHONY: undeploy
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/default | kubectl delete --server-side --ignore-not-found=$(ignore-not-found) -f -
+	$(MAKE) uninstall-rbac
 
 # Deploy controller dev image in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: dev-deploy
