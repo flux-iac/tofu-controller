@@ -527,7 +527,7 @@ func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *Finali
 
 	secrets := &v1.SecretList{}
 
-	if err := r.Client.List(ctx, secrets, client.InNamespace(req.Namespace), client.MatchingLabels{
+	if err := r.List(ctx, secrets, client.InNamespace(req.Namespace), client.MatchingLabels{
 		plan.TFPlanNameLabel:      plan.SafeLabelValue(req.Name),
 		plan.TFPlanWorkspaceLabel: req.Workspace,
 	}); err != nil {
@@ -538,13 +538,13 @@ func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *Finali
 	if len(secrets.Items) == 0 {
 		var legacyPlanSecret v1.Secret
 
-		if err := r.Client.Get(ctx, types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-" + req.Workspace + "-" + req.Name}, &legacyPlanSecret); err == nil {
+		if err := r.Get(ctx, types.NamespacedName{Namespace: req.Namespace, Name: "tfplan-" + req.Workspace + "-" + req.Name}, &legacyPlanSecret); err == nil {
 			secrets.Items = append(secrets.Items, legacyPlanSecret)
 		}
 	}
 
 	for _, s := range secrets.Items {
-		if err := r.Client.Delete(ctx, &s); err != nil {
+		if err := r.Delete(ctx, &s); err != nil {
 			log.Error(err, "unable to delete existing plan secret", "secretName", s.Name)
 			return nil, status.Error(codes.Internal, err.Error())
 		}
@@ -557,8 +557,8 @@ func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *Finali
 	if req.HasSpecifiedOutputSecret {
 		outputsObjectKey := types.NamespacedName{Namespace: req.Namespace, Name: req.OutputSecretName}
 		var outputsSecret v1.Secret
-		if err := r.Client.Get(ctx, outputsObjectKey, &outputsSecret); err == nil {
-			if err := r.Client.Delete(ctx, &outputsSecret); err != nil {
+		if err := r.Get(ctx, outputsObjectKey, &outputsSecret); err == nil {
+			if err := r.Delete(ctx, &outputsSecret); err != nil {
 				// transient failure
 				log.Error(err, "unable to delete the output secret")
 				return nil, status.Error(codes.Internal, err.Error())

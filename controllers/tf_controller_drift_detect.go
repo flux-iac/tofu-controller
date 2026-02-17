@@ -16,12 +16,12 @@ func (r *TerraformReconciler) shouldDetectDrift(terraform *infrav1.Terraform, re
 	// Please do not optimize this logic, as we'd like others to easily understand the logics behind this behaviour.
 
 	// return false when drift detection is disabled
-	if terraform.Spec.DisableDriftDetection == true {
+	if terraform.Spec.DisableDriftDetection {
 		return false
 	}
 
 	// not support when Destroy == true
-	if terraform.Spec.Destroy == true {
+	if terraform.Spec.Destroy {
 		return false
 	}
 
@@ -99,7 +99,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform *infrav
 			}
 		}
 
-		if eventSent == false {
+		if !eventSent {
 			msg := fmt.Sprintf("Drift detection error: %s", err.Error())
 			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.DriftDetectionFailedReason, msg)
 		}

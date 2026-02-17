@@ -100,7 +100,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, patchHelper *patch.Seri
 
 	// this a special case, when backend is completely disabled.
 	// we need to use "destroy" command instead of apply
-	if r.backendCompletelyDisable(terraform) && terraform.Spec.Destroy == true {
+	if r.backendCompletelyDisable(terraform) && terraform.Spec.Destroy {
 		destroyReply, err := runnerClient.Destroy(ctx, &runner.DestroyRequest{
 			TfInstance: tfInstance,
 			Targets:    terraform.Spec.Targets,
@@ -120,7 +120,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, patchHelper *patch.Seri
 				}
 			}
 
-			if eventSent == false {
+			if !eventSent {
 				msg := fmt.Sprintf("Destroy error: %s", err.Error())
 				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecDestroyFailedReason, msg)
 			}
@@ -149,7 +149,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, patchHelper *patch.Seri
 				}
 			}
 
-			if eventSent == false {
+			if !eventSent {
 				msg := fmt.Sprintf("Apply error: %s", err.Error())
 				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecApplyFailedReason, msg)
 			}
@@ -167,7 +167,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, patchHelper *patch.Seri
 		isDestroyApplied = terraform.Status.Plan.IsDestroyPlan
 
 		// if apply was successful, we need to update the inventory, but not if we are destroying
-		if terraform.Spec.EnableInventory && isDestroyApplied == false {
+		if terraform.Spec.EnableInventory && !isDestroyApplied {
 			getInventoryRequest := &runner.GetInventoryRequest{TfInstance: tfInstance}
 			getInventoryReply, err := runnerClient.GetInventory(ctx, getInventoryRequest)
 			if err != nil {
@@ -189,7 +189,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, patchHelper *patch.Seri
 				})
 			}
 			log.Info(fmt.Sprintf("got inventory - entries count: %d", len(inventoryEntries)))
-		} else if terraform.Spec.EnableInventory == false {
+		} else if !terraform.Spec.EnableInventory {
 			log.Info("inventory is disabled")
 			terraform.Status.Inventory = nil
 		}
@@ -197,10 +197,10 @@ func (r *TerraformReconciler) apply(ctx context.Context, patchHelper *patch.Seri
 
 	var msg string
 	if isDestroyApplied {
-		msg = fmt.Sprintf("Destroy applied successfully")
+		msg = "Destroy applied successfully"
 		r.Eventf(terraform, corev1.EventTypeNormal, infrav1.TFExecDestroySucceedReason, msg)
 	} else {
-		msg = fmt.Sprintf("Applied successfully")
+		msg = "Applied successfully"
 		r.Eventf(terraform, corev1.EventTypeNormal, infrav1.TFExecApplySucceedReason, msg)
 	}
 

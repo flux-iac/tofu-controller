@@ -35,13 +35,13 @@ func (r *TerraformReconciler) outputsMayBeDrifted(ctx context.Context, terraform
 	if terraform.Spec.WriteOutputsToSecret != nil {
 		outputsSecretKey := types.NamespacedName{Namespace: terraform.Namespace, Name: terraform.Spec.WriteOutputsToSecret.Name}
 		var outputsSecret corev1.Secret
-		err := r.Client.Get(ctx, outputsSecretKey, &outputsSecret)
+		err := r.Get(ctx, outputsSecretKey, &outputsSecret)
 		if err != nil && apierrors.IsNotFound(err) {
 			return true, nil
 		}
 
 		keysInSecret := []string{}
-		for k, _ := range outputsSecret.Data {
+		for k := range outputsSecret.Data {
 			keysInSecret = append(keysInSecret, k)
 		}
 		sort.Strings(keysInSecret)
@@ -168,7 +168,7 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform *infrav
 		}
 	}
 
-	if len(data) == 0 || terraform.Spec.Destroy == true {
+	if len(data) == 0 || terraform.Spec.Destroy {
 		return infrav1.TerraformOutputsWritten(terraform, revision, "No Outputs written"), nil
 	}
 
@@ -193,7 +193,7 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform *infrav
 
 	if writeOutputsReply.Changed {
 		keysWritten := []string{}
-		for k, _ := range data {
+		for k := range data {
 			keysWritten = append(keysWritten, k)
 		}
 		msg := fmt.Sprintf("Outputs written.\n%d output(s): %s", len(keysWritten), strings.Join(keysWritten, ", "))

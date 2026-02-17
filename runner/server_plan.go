@@ -118,7 +118,7 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 		log.Info("backend seems to be disabled completely, so there will be no plan output file")
 	}
 
-	if req.Refresh == false {
+	if !req.Refresh {
 		planOpt = append(planOpt, tfexec.Refresh(req.Refresh))
 	}
 
