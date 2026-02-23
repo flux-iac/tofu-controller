@@ -257,11 +257,12 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 			Namespace: terraform.Namespace,
 			Name:      vf.Name,
 		}
-		if vf.Kind == "Secret" {
+		switch vf.Kind {
+		case "Secret":
 			var s v1.Secret
 			err := r.Get(ctx, objectKey, &s)
-			if err != nil && vf.Optional == false {
-				log.Error(err, "unable to get object key", "objectKey", objectKey, "secret", s.ObjectMeta.Name)
+			if err != nil && !vf.Optional {
+				log.Error(err, "unable to get object key", "objectKey", objectKey, "secret", s.Name)
 				return nil, err
 			}
 			// if VarsKeys is null, use all
@@ -290,11 +291,11 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 					}
 				}
 			}
-		} else if vf.Kind == "ConfigMap" {
+		case "ConfigMap":
 			var cm v1.ConfigMap
 			err := r.Get(ctx, objectKey, &cm)
-			if err != nil && vf.Optional == false {
-				log.Error(err, "unable to get object key", "objectKey", objectKey, "configmap", cm.ObjectMeta.Name)
+			if err != nil && !vf.Optional {
+				log.Error(err, "unable to get object key", "objectKey", objectKey, "configmap", cm.Name)
 				return nil, err
 			}
 

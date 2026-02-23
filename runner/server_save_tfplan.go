@@ -103,7 +103,7 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 
 	// Try to get any secrets by using the plan labels
 	// This covers "chunked" secrets as well as a single secret
-	if err := r.Client.List(ctx, existingSecrets, client.InNamespace(namespace), client.MatchingLabels{
+	if err := r.List(ctx, existingSecrets, client.InNamespace(namespace), client.MatchingLabels{
 		plan.TFPlanNameLabel:      plan.SafeLabelValue(name + suffix),
 		plan.TFPlanWorkspaceLabel: r.terraform.WorkspaceName(),
 	}); err != nil {
@@ -116,14 +116,14 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 	if len(existingSecrets.Items) == 0 {
 		var legacyPlanSecret v1.Secret
 
-		if err := r.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix}, &legacyPlanSecret); err == nil {
+		if err := r.Get(ctx, types.NamespacedName{Namespace: namespace, Name: "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix}, &legacyPlanSecret); err == nil {
 			existingSecrets.Items = append(existingSecrets.Items, legacyPlanSecret)
 		}
 	}
 
 	// Clear up any of the old secrets first
 	for _, s := range existingSecrets.Items {
-		if err := r.Client.Delete(ctx, &s); err != nil {
+		if err := r.Delete(ctx, &s); err != nil {
 			log.Error(err, "unable to delete existing plan secret", "secretName", s.Name)
 			return err
 		}
@@ -139,7 +139,7 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 	// that above
 	for _, secret := range secrets {
 		// now create the seecret
-		if err := r.Client.Create(ctx, secret); err != nil {
+		if err := r.Create(ctx, secret); err != nil {
 			err = fmt.Errorf("error recording plan status: %s", err)
 			log.Error(err, "unable to create plan secret")
 			return err
@@ -154,7 +154,7 @@ func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name s
 
 	// Try to get any ConfigMaps by using the plan labels
 	// This covers "chunked" ConfigMaps as well as a single ConfigMap
-	if err := r.Client.List(ctx, existingConfigMaps, client.InNamespace(namespace), client.MatchingLabels{
+	if err := r.List(ctx, existingConfigMaps, client.InNamespace(namespace), client.MatchingLabels{
 		plan.TFPlanNameLabel:      plan.SafeLabelValue(name + suffix),
 		plan.TFPlanWorkspaceLabel: r.terraform.WorkspaceName(),
 	}); err != nil {
@@ -167,14 +167,14 @@ func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name s
 	if len(existingConfigMaps.Items) == 0 {
 		var legacyPlanConfigMap v1.ConfigMap
 
-		if err := r.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix}, &legacyPlanConfigMap); err == nil {
+		if err := r.Get(ctx, types.NamespacedName{Namespace: namespace, Name: "tfplan-" + r.terraform.WorkspaceName() + "-" + name + suffix}, &legacyPlanConfigMap); err == nil {
 			existingConfigMaps.Items = append(existingConfigMaps.Items, legacyPlanConfigMap)
 		}
 	}
 
 	// Clear up any of the old ConfigMaps first
 	for _, s := range existingConfigMaps.Items {
-		if err := r.Client.Delete(ctx, &s); err != nil {
+		if err := r.Delete(ctx, &s); err != nil {
 			log.Error(err, "unable to delete existing plan ConfigMap", "configMapName", s.Name)
 			return err
 		}
@@ -190,7 +190,7 @@ func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name s
 	// that above
 	for _, configmap := range configMaps {
 		// now create the configmap
-		if err := r.Client.Create(ctx, configmap); err != nil {
+		if err := r.Create(ctx, configmap); err != nil {
 			err = fmt.Errorf("error recording plan status: %s", err)
 			log.Error(err, "unable to create plan ConfigMap")
 			return err

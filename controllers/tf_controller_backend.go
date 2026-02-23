@@ -22,7 +22,7 @@ func (r *TerraformReconciler) backendCompletelyDisable(terraform *infrav1.Terraf
 		return true
 	}
 
-	return terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.Disable == true
+	return terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.Disable
 }
 
 func (r *TerraformReconciler) setupTerraform(ctx context.Context, patchHelper *patch.SerialPatcher, runnerClient runner.RunnerClient, terraform *infrav1.Terraform, sourceObj sourcev1.Source, revision string, reconciliationLoopID string) (*infrav1.Terraform, string, string, error) {
@@ -233,14 +233,14 @@ terraform {
 
 			if env.ValueFrom.SecretKeyRef != nil {
 				secret := corev1.Secret{}
-				err = r.Client.Get(ctx, types.NamespacedName{
+				err = r.Get(ctx, types.NamespacedName{
 					Namespace: terraform.GetObjectMeta().GetNamespace(),
 					Name:      env.ValueFrom.SecretKeyRef.Name,
 				}, &secret)
 				envs[env.Name] = string(secret.Data[env.ValueFrom.SecretKeyRef.Key])
 			} else if env.ValueFrom.ConfigMapKeyRef != nil {
 				cm := corev1.ConfigMap{}
-				err = r.Client.Get(ctx, types.NamespacedName{
+				err = r.Get(ctx, types.NamespacedName{
 					Namespace: terraform.GetObjectMeta().GetNamespace(),
 					Name:      env.ValueFrom.ConfigMapKeyRef.Name,
 				}, &cm)
