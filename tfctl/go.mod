@@ -8,7 +8,7 @@ require (
 	github.com/flux-iac/tofu-controller/api v0.0.0-20250321074822-67198a27f35b
 	github.com/fluxcd/cli-utils v0.37.1-flux.1
 	github.com/fluxcd/pkg/apis/meta v1.25.0
-	github.com/fluxcd/pkg/ssa v0.65.0
+	github.com/fluxcd/pkg/ssa v0.69.0
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/hashicorp/go-version v1.8.0
 	github.com/hashicorp/hc-install v0.9.2
@@ -22,7 +22,7 @@ require (
 	k8s.io/cli-runtime v0.35.0
 	k8s.io/client-go v0.35.0
 	sigs.k8s.io/controller-runtime v0.23.1
-	sigs.k8s.io/kustomize/kyaml v0.21.0
+	sigs.k8s.io/kustomize/kyaml v0.21.1
 	sigs.k8s.io/yaml v1.6.0
 )
 
@@ -39,8 +39,8 @@ require (
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.9.0 // indirect
-	github.com/fluxcd/pkg/runtime v0.97.0 // indirect
-	github.com/fluxcd/source-controller/api v1.7.4 // indirect
+	github.com/fluxcd/pkg/runtime v0.102.0 // indirect
+	github.com/fluxcd/source-controller/api v1.8.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
@@ -110,7 +110,7 @@ require (
 	k8s.io/kubectl v0.35.0 // indirect
 	k8s.io/utils v0.0.0-20260106112306-0fe9cd71b2f8 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
-	sigs.k8s.io/kustomize/api v0.21.0 // indirect
+	sigs.k8s.io/kustomize/api v0.21.1 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.2-0.20260122202528-d9cc6641c482 // indirect
 )
