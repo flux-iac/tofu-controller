@@ -5,3 +5,5 @@ CVE-2026-33186
 CVE-2025-68121
 # Go stdlib net/url IPv6 parsing - waiting on Go 1.25.8+
 CVE-2026-25679
+# OpenTelemetry Go SDK (waiting on opentofu fix)
+CVE-2026-24051
