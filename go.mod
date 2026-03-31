@@ -243,3 +243,6 @@ replace github.com/olekukonko/tablewriter => github.com/olekukonko/tablewriter v
 
 // https://github.com/maxbrunsfeld/counterfeiter/issues/344
 replace golang.org/x/tools => golang.org/x/tools v0.37.0
+
+// jenkins-x/go-scm incompatible w/ gitea SDK v0.24.x
+replace code.gitea.io/sdk/gitea => code.gitea.io/sdk/gitea v0.20.0
