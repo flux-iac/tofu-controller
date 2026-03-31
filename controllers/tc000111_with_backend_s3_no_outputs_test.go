@@ -147,7 +147,10 @@ func Test_000111_with_backend_s3_no_outputs_test(t *testing.T) {
 			log.Fatalf("Could not get localstack client opt: %v", err)
 		}
 
-		stack, err = localstack.NewInstance(opt)
+		stack, err = localstack.NewInstance(
+			opt,
+			localstack.WithVersion("0.11.4"),
+		)
 		if err != nil {
 			log.Fatalf("Could not connect to Docker %v", err)
 		}
