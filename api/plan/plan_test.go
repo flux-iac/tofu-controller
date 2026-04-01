@@ -4,10 +4,99 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"math/rand"
+	"strings"
 	"testing"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	v1 "k8s.io/api/core/v1"
 )
+
+func TestExceededWorkspaceName(t *testing.T) {
+	// Generate a workspace name that will exceed the 63-character limit
+	exceededWorkspaceName := strings.Repeat("x", 65)
+
+	planData := []byte("example plan data")
+
+	p, err := NewFromBytes("tf", "ns", exceededWorkspaceName, "uid", "plan-id", planData)
+	if err != nil {
+		t.Fatalf("unexpected error creating plan: %v", err)
+	}
+
+	secrets, err := p.ToSecret("-suffix")
+	if err != nil {
+		t.Fatalf("unexpected error converting to secret: %v", err)
+	}
+
+	if len(secrets) != 1 {
+		t.Fatalf("expected 1 secret, got %d", len(secrets))
+	}
+
+	secret := secrets[0]
+
+	// Verify that we've successfully truncated the workspace name
+	workspaceLabelValue := secret.Labels[TFPlanWorkspaceLabel]
+	if len(workspaceLabelValue) > 63 {
+		t.Fatalf("workspace label exceeds 63 chars: %d", len(workspaceLabelValue))
+	}
+
+	if workspaceLabelValue == exceededWorkspaceName {
+		t.Fatalf("expected workspace label to be truncated, got original value")
+	}
+
+	if workspaceLabelValue != SafeLabelValue(exceededWorkspaceName) {
+		t.Fatalf("workspace label mismatch, got %s want %s", workspaceLabelValue, SafeLabelValue(exceededWorkspaceName))
+	}
+
+	// Verify that we've got the full workspace name in the annotation
+	workspaceAnnotationValue := secret.Annotations[TFPlanFullWorkspaceAnnotation]
+	if workspaceAnnotationValue != exceededWorkspaceName {
+		t.Fatalf("workspace annotation mismatch, got %s want %s", workspaceAnnotationValue, exceededWorkspaceName)
+	}
+
+	reconstructedSecret, err := NewFromSecrets("tf", "ns", "uid", []v1.Secret{*secret})
+	if err != nil {
+		t.Fatalf("unexpected error reconstructing plan secret: %v", err)
+	}
+
+	if reconstructedSecret.workspace != exceededWorkspaceName {
+		t.Fatalf("reconstructed workspace mismatch, got %s want %s", reconstructedSecret.workspace, exceededWorkspaceName)
+	}
+}
+
+func TestLegacyNormalWorkspaceName(t *testing.T) {
+	// A "normal" workspace name that is under the 63-character limit
+	workspaceName := "my-workspace"
+
+	planData := []byte("example plan data")
+
+	p, err := NewFromBytes("tf", "ns", workspaceName, "uid", "plan-id", planData)
+	if err != nil {
+		t.Fatalf("unexpected error creating plan: %v", err)
+	}
+
+	secrets, err := p.ToSecret("-suffix")
+	if err != nil {
+		t.Fatalf("unexpected error converting to secret: %v", err)
+	}
+
+	if len(secrets) != 1 {
+		t.Fatalf("expected 1 secret, got %d", len(secrets))
+	}
+
+	secret := secrets[0]
+
+	// remove the new annotation to simulate a "legacy" resource
+	delete(secret.Annotations, TFPlanFullWorkspaceAnnotation)
+
+	reconstructedSecret, err := NewFromSecrets("tf", "ns", "uid", []v1.Secret{*secret})
+	if err != nil {
+		t.Fatalf("unexpected error reconstructing plan secret: %v", err)
+	}
+
+	if reconstructedSecret.workspace != workspaceName {
+		t.Fatalf("reconstructed workspace mismatch, got %s want %s", reconstructedSecret.workspace, workspaceName)
+	}
+}
 
 func TestToSecretSingleChunk(t *testing.T) {
 	planData := []byte("example plan data")
