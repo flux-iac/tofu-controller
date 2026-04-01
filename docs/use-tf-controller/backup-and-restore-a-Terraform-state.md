@@ -22,6 +22,8 @@ kubectl get secret tfstate-${WORKSPACE}-${NAME} \
   | base64 -d | gzip -d > terraform.tfstate
 ```
 
+If you use a [custom backend](https://flux-iac.github.io/tofu-controller/use-tf-controller/with-a-custom-backend/), these secrets will not be present and you will have to backup your custom backend in **GCS** or **S3**.
+
 ## Restore the tfstate
 
 To restore the tfstate file or import an existing tfstate file to the cluster, we can use the following operation:

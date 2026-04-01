@@ -285,7 +285,7 @@ func (i *Informer) getPlan(ctx context.Context, obj *infrav1.Terraform) (string,
 
 	if err := i.client.List(ctx, configMaps, client.InNamespace(obj.GetNamespace()), client.MatchingLabels{
 		plan.TFPlanNameLabel:      plan.SafeLabelValue(obj.GetName()),
-		plan.TFPlanWorkspaceLabel: obj.WorkspaceName(),
+		plan.TFPlanWorkspaceLabel: plan.SafeLabelValue(obj.WorkspaceName()),
 	}); err != nil {
 		return "", fmt.Errorf("unable to list plan configmaps: %s", err)
 	}

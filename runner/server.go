@@ -529,7 +529,7 @@ func (r *TerraformRunnerServer) FinalizeSecrets(ctx context.Context, req *Finali
 
 	if err := r.List(ctx, secrets, client.InNamespace(req.Namespace), client.MatchingLabels{
 		plan.TFPlanNameLabel:      plan.SafeLabelValue(req.Name),
-		plan.TFPlanWorkspaceLabel: req.Workspace,
+		plan.TFPlanWorkspaceLabel: plan.SafeLabelValue(req.Workspace),
 	}); err != nil {
 		log.Error(err, "unable to list existing plan secrets")
 		return nil, err

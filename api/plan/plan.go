@@ -17,10 +17,11 @@ const (
 	TFPlanWorkspaceLabel = "infra.contrib.fluxcd.io/plan-workspace"
 
 	// Kubernetes Annotation names associated with Terraform Plans
-	TFPlanFullNameAnnotation = "infra.contrib.fluxcd.io/plan-full-name"
-	TFPlanChunkAnnotation    = "infra.contrib.fluxcd.io/plan-chunk"
-	TFPlanHashAnnotation     = "infra.contrib.fluxcd.io/plan-hash"
-	TFPlanSavedAnnotation    = "savedPlan"
+	TFPlanFullNameAnnotation      = "infra.contrib.fluxcd.io/plan-full-name"
+	TFPlanFullWorkspaceAnnotation = "infra.contrib.fluxcd.io/plan-full-workspace"
+	TFPlanChunkAnnotation         = "infra.contrib.fluxcd.io/plan-chunk"
+	TFPlanHashAnnotation          = "infra.contrib.fluxcd.io/plan-hash"
+	TFPlanSavedAnnotation         = "savedPlan"
 
 	TFPlanName = "tfplan"
 
@@ -92,9 +93,14 @@ func NewFromSecrets(name string, namespace string, uuid string, secrets []v1.Sec
 			}
 		}
 
-		workspaceName, ok = secret.Labels[TFPlanWorkspaceLabel]
+		// Attempt to get the workspace name from the annotation first (which we don't truncate),
+		// but then fallback to label if it is not found.
+		workspaceName, ok = secret.Annotations[TFPlanFullWorkspaceAnnotation]
 		if !ok {
-			return nil, fmt.Errorf("missing plan workspace label on secret %s", secret.Name)
+			workspaceName, ok = secret.Labels[TFPlanWorkspaceLabel]
+			if !ok {
+				return nil, fmt.Errorf("missing plan workspace label and annotation on secret %s", secret.Name)
+			}
 		}
 
 		planID, ok = secret.Annotations[TFPlanSavedAnnotation]
@@ -155,9 +161,14 @@ func NewFromConfigMaps(name string, namespace string, uuid string, configmaps []
 			}
 		}
 
-		workspaceName, ok = configmap.Labels[TFPlanWorkspaceLabel]
+		// Attempt to get the workspace name from the annotation first (which we don't truncate),
+		// but then fallback to label if it is not found.
+		workspaceName, ok = configmap.Annotations[TFPlanFullWorkspaceAnnotation]
 		if !ok {
-			return nil, fmt.Errorf("missing plan workspace label on configmap %s", configmap.Name)
+			workspaceName, ok = configmap.Labels[TFPlanWorkspaceLabel]
+			if !ok {
+				return nil, fmt.Errorf("missing plan workspace label and annotation on configmap %s", configmap.Name)
+			}
 		}
 
 		planID, ok = configmap.Annotations[TFPlanSavedAnnotation]
@@ -210,14 +221,15 @@ func (p *Plan) ToSecret(suffix string) ([]*v1.Secret, error) {
 				Name:      secretIdentifier,
 				Namespace: p.namespace,
 				Annotations: map[string]string{
-					"encoding":               "gzip",
-					TFPlanFullNameAnnotation: p.name + suffix,
-					TFPlanSavedAnnotation:    p.planID,
-					TFPlanHashAnnotation:     fmt.Sprintf("%x", sha256.Sum256(p.bytes)),
+					"encoding":                    "gzip",
+					TFPlanFullNameAnnotation:      p.name + suffix,
+					TFPlanFullWorkspaceAnnotation: p.workspace,
+					TFPlanSavedAnnotation:         p.planID,
+					TFPlanHashAnnotation:          fmt.Sprintf("%x", sha256.Sum256(p.bytes)),
 				},
 				Labels: map[string]string{
 					TFPlanNameLabel:      SafeLabelValue(p.name + suffix),
-					TFPlanWorkspaceLabel: p.workspace,
+					TFPlanWorkspaceLabel: SafeLabelValue(p.workspace),
 				},
 				OwnerReferences: []metav1.OwnerReference{
 					{
@@ -251,15 +263,16 @@ func (p *Plan) ToSecret(suffix string) ([]*v1.Secret, error) {
 				Name:      fmt.Sprintf("%s-%d", secretIdentifier, chunk),
 				Namespace: p.namespace,
 				Annotations: map[string]string{
-					"encoding":               "gzip",
-					TFPlanFullNameAnnotation: p.name + suffix,
-					TFPlanSavedAnnotation:    p.planID,
-					TFPlanChunkAnnotation:    fmt.Sprintf("%d", chunk),
-					TFPlanHashAnnotation:     fmt.Sprintf("%x", sha256.Sum256(planData)),
+					"encoding":                    "gzip",
+					TFPlanFullNameAnnotation:      p.name + suffix,
+					TFPlanFullWorkspaceAnnotation: p.workspace,
+					TFPlanSavedAnnotation:         p.planID,
+					TFPlanChunkAnnotation:         fmt.Sprintf("%d", chunk),
+					TFPlanHashAnnotation:          fmt.Sprintf("%x", sha256.Sum256(planData)),
 				},
 				Labels: map[string]string{
 					TFPlanNameLabel:      SafeLabelValue(p.name + suffix),
-					TFPlanWorkspaceLabel: p.workspace,
+					TFPlanWorkspaceLabel: SafeLabelValue(p.workspace),
 				},
 				OwnerReferences: []metav1.OwnerReference{
 					{
@@ -297,13 +310,14 @@ func (p *Plan) ToConfigMap(suffix string) ([]*v1.ConfigMap, error) {
 				Name:      configMapIdentifier,
 				Namespace: p.namespace,
 				Annotations: map[string]string{
-					TFPlanFullNameAnnotation: p.name + suffix,
-					TFPlanSavedAnnotation:    p.planID,
-					TFPlanHashAnnotation:     fmt.Sprintf("%x", sha256.Sum256(p.bytes)),
+					TFPlanFullNameAnnotation:      p.name + suffix,
+					TFPlanFullWorkspaceAnnotation: p.workspace,
+					TFPlanSavedAnnotation:         p.planID,
+					TFPlanHashAnnotation:          fmt.Sprintf("%x", sha256.Sum256(p.bytes)),
 				},
 				Labels: map[string]string{
 					TFPlanNameLabel:      SafeLabelValue(p.name + suffix),
-					TFPlanWorkspaceLabel: p.workspace,
+					TFPlanWorkspaceLabel: SafeLabelValue(p.workspace),
 				},
 				OwnerReferences: []metav1.OwnerReference{
 					{
@@ -337,14 +351,15 @@ func (p *Plan) ToConfigMap(suffix string) ([]*v1.ConfigMap, error) {
 				Name:      fmt.Sprintf("%s-%d", configMapIdentifier, chunk),
 				Namespace: p.namespace,
 				Annotations: map[string]string{
-					TFPlanFullNameAnnotation: p.name + suffix,
-					TFPlanSavedAnnotation:    p.planID,
-					TFPlanChunkAnnotation:    fmt.Sprintf("%d", chunk),
-					TFPlanHashAnnotation:     fmt.Sprintf("%x", sha256.Sum256([]byte(planData))),
+					TFPlanFullNameAnnotation:      p.name + suffix,
+					TFPlanFullWorkspaceAnnotation: p.workspace,
+					TFPlanSavedAnnotation:         p.planID,
+					TFPlanChunkAnnotation:         fmt.Sprintf("%d", chunk),
+					TFPlanHashAnnotation:          fmt.Sprintf("%x", sha256.Sum256([]byte(planData))),
 				},
 				Labels: map[string]string{
 					TFPlanNameLabel:      SafeLabelValue(p.name + suffix),
-					TFPlanWorkspaceLabel: p.workspace,
+					TFPlanWorkspaceLabel: SafeLabelValue(p.workspace),
 				},
 				OwnerReferences: []metav1.OwnerReference{
 					{

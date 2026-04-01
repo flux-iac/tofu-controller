@@ -65,6 +65,7 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+          trivyignores: '.trivyignore'
       - name: Run Trivy vulnerability scanner on runner image
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
         with:
@@ -75,6 +76,7 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
           skip-files: '/usr/local/bin/terraform' # false positive
+          trivyignores: '.trivyignore'
       - name: Run Trivy vulnerability scanner on runner image
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
         with:
@@ -85,6 +87,7 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
           skip-files: '/usr/local/bin/terraform' # false positive
+          trivyignores: '.trivyignore'
       - name: Run Trivy vulnerability scanner on planner image
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
         with:
@@ -95,3 +98,4 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
           skip-files: '/usr/local/bin/terraform' # false positive
+          trivyignores: '.trivyignore'

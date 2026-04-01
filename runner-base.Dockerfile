@@ -1,11 +1,11 @@
 # Build the manager binary
-ARG GO_VERSION=1.25.7
+ARG GO_VERSION=1.26.1
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS builder
 
 ARG BUILD_SHA
 ARG BUILD_VERSION
 
-RUN apt-get update && apt-get install -y unzip
+RUN apt-get update && apt-get install -y unzip --no-install-recommends
 
 WORKDIR /workspace
 

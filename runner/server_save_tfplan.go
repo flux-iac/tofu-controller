@@ -105,7 +105,7 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name stri
 	// This covers "chunked" secrets as well as a single secret
 	if err := r.List(ctx, existingSecrets, client.InNamespace(namespace), client.MatchingLabels{
 		plan.TFPlanNameLabel:      plan.SafeLabelValue(name + suffix),
-		plan.TFPlanWorkspaceLabel: r.terraform.WorkspaceName(),
+		plan.TFPlanWorkspaceLabel: plan.SafeLabelValue(r.terraform.WorkspaceName()),
 	}); err != nil {
 		log.Error(err, "unable to list existing plan secrets")
 		return err
@@ -156,7 +156,7 @@ func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name s
 	// This covers "chunked" ConfigMaps as well as a single ConfigMap
 	if err := r.List(ctx, existingConfigMaps, client.InNamespace(namespace), client.MatchingLabels{
 		plan.TFPlanNameLabel:      plan.SafeLabelValue(name + suffix),
-		plan.TFPlanWorkspaceLabel: r.terraform.WorkspaceName(),
+		plan.TFPlanWorkspaceLabel: plan.SafeLabelValue(r.terraform.WorkspaceName()),
 	}); err != nil {
 		log.Error(err, "unable to list existing plan ConfigMaps")
 		return err
