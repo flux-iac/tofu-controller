@@ -2,6 +2,25 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.16.2
+
+**Release date:** 2026-04-01
+
+### What's Changed
+
+* fix: temporarily ignore trivy vulnerabilities by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1738
+* chore(deps): bump actions/cache from 5.0.3 to 5.0.4 in the gh-patch group across 1 directory by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1735
+* build(docker): add --no-install-recommends to apt-get install by @cschindlbeck in https://github.com/flux-iac/tofu-controller/pull/1734
+* fix(deps): perform a fleet of dependency upgrades by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1740
+* chore(docs): backup and restore (add information that custom backends do not create secrets) by @cschindlbeck in https://github.com/flux-iac/tofu-controller/pull/1736
+* chore(deps): bump the go-minor group across 2 directories with 5 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1741
+* fix: handle plan failing if workspace is too long by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1742
+* chore(lints): ran golangci-lint run --fix on codebase by @coillteoir in https://github.com/flux-iac/tofu-controller/pull/1725
+
+## New Contributors
+* @cschindlbeck made their first contribution in https://github.com/flux-iac/tofu-controller/pull/1734
+* @coillteoir made their first contribution in https://github.com/flux-iac/tofu-controller/pull/1725
+
 ## v0.16.1
 
 **Release date:** 2026-02-03

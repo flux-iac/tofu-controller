@@ -43,7 +43,7 @@ spec:
     certRotationCheckFrequency: 30m
     usePodSubdomainResolution: true
     image:
-      tag: v0.16.1
+      tag: v0.16.2
     runner:
       image:
-        tag: v0.16.1
+        tag: v0.16.2
