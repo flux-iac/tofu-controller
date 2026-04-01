@@ -44,12 +44,15 @@ func TestLoadTFPlanWithForceTrue(t *testing.T) {
 
 	tfplanSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        "tfplan-" + terraform.WorkspaceName() + "-" + req.Name,
-			Namespace:   req.Namespace,
-			Annotations: map[string]string{SavedPlanSecretAnnotation: "plan-not-1"},
+			Name:      "tfplan-" + terraform.WorkspaceName() + "-" + req.Name,
+			Namespace: req.Namespace,
+			Annotations: map[string]string{
+				SavedPlanSecretAnnotation:          "plan-not-1",
+				plan.TFPlanFullWorkspaceAnnotation: terraform.WorkspaceName(),
+			},
 			Labels: map[string]string{
 				plan.TFPlanNameLabel:      plan.SafeLabelValue(req.Name),
-				plan.TFPlanWorkspaceLabel: terraform.WorkspaceName(),
+				plan.TFPlanWorkspaceLabel: plan.SafeLabelValue(terraform.WorkspaceName()),
 			},
 		},
 		Data: secretData,
@@ -101,12 +104,15 @@ func TestLoadTFPlanWithForceFalse(t *testing.T) {
 
 	tfplanSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        "tfplan-" + terraform.WorkspaceName() + "-" + req.Name,
-			Namespace:   req.Namespace,
-			Annotations: map[string]string{SavedPlanSecretAnnotation: "plan-not-1"},
+			Name:      "tfplan-" + terraform.WorkspaceName() + "-" + req.Name,
+			Namespace: req.Namespace,
+			Annotations: map[string]string{
+				SavedPlanSecretAnnotation:          "plan-not-1",
+				plan.TFPlanFullWorkspaceAnnotation: terraform.WorkspaceName(),
+			},
 			Labels: map[string]string{
 				plan.TFPlanNameLabel:      plan.SafeLabelValue(req.Name),
-				plan.TFPlanWorkspaceLabel: terraform.WorkspaceName(),
+				plan.TFPlanWorkspaceLabel: plan.SafeLabelValue(terraform.WorkspaceName()),
 			},
 		},
 		Data: secretData,

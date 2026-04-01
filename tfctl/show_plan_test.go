@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/flux-iac/tofu-controller/api/plan"
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/hashicorp/go-version"
 	hc "github.com/hashicorp/hc-install"
@@ -39,7 +40,7 @@ func TestShowPlan(t *testing.T) {
 		{
 			name: "hello-world",
 			resources: func() []client.Object {
-				plan, err := os.ReadFile("testdata/plan.gz")
+				planData, err := os.ReadFile("testdata/plan.gz")
 				g.Expect(err).To(BeNil())
 				return []client.Object{
 					&infrav1.Terraform{
@@ -57,13 +58,16 @@ func TestShowPlan(t *testing.T) {
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "tfplan-default-hello-world",
 							Namespace: "default",
+							Annotations: map[string]string{
+								plan.TFPlanFullWorkspaceAnnotation: "default",
+							},
 							Labels: map[string]string{
-								plan.TFPlanNameLabel:      "hello-world",
-								plan.TFPlanWorkspaceLabel: "default",
+								plan.TFPlanNameLabel:      plan.SafeLabelValue("hello-world"),
+								plan.TFPlanWorkspaceLabel: plan.SafeLabelValue("default"),
 							},
 						},
 						Data: map[string][]byte{
-							"tfplan": plan,
+							"tfplan": planData,
 						},
 					},
 				}
