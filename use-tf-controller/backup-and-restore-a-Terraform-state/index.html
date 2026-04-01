@@ -15,7 +15,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -602,6 +602,7 @@
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span>-ojsonpath<span class="o">=</span><span class="s1">&#39;{.data.tfstate}&#39;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>base64<span class="w"> </span>-d<span class="w"> </span><span class="p">|</span><span class="w"> </span>gzip<span class="w"> </span>-d<span class="w"> </span>&gt;<span class="w"> </span>terraform.tfstate
 </code></pre></div>
+<p>If you use a <a href="https://flux-iac.github.io/tofu-controller/use-tf-controller/with-a-custom-backend/">custom backend</a>, these secrets will not be present and you will have to backup your custom backend in <strong>GCS</strong> or <strong>S3</strong>.</p>
 <h2 id="restore-the-tfstate">Restore the tfstate</h2>
 <p>To restore the tfstate file or import an existing tfstate file to the cluster, we can use the following operation:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>gzip<span class="w"> </span>terraform.tfstate
