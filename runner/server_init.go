@@ -57,11 +57,12 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 			Namespace: terraform.Namespace,
 			Name:      bf.Name,
 		}
-		if bf.Kind == "Secret" {
+		switch bf.Kind {
+		case "Secret":
 			var s corev1.Secret
 			err := r.Get(ctx, objectKey, &s)
-			if err != nil && bf.Optional == false {
-				log.Error(err, "unable to get object key", "objectKey", objectKey, "secret", s.ObjectMeta.Name)
+			if err != nil && !bf.Optional {
+				log.Error(err, "unable to get object key", "objectKey", objectKey, "secret", s.Name)
 				return nil, err
 			}
 			// if VarsKeys is null, use all
@@ -74,11 +75,11 @@ func (r *TerraformRunnerServer) Init(ctx context.Context, req *InitRequest) (*In
 					backendConfigsOpts = append(backendConfigsOpts, tfexec.BackendConfig(key+"="+string(s.Data[key])))
 				}
 			}
-		} else if bf.Kind == "ConfigMap" {
+		case "ConfigMap":
 			var cm corev1.ConfigMap
 			err := r.Get(ctx, objectKey, &cm)
-			if err != nil && bf.Optional == false {
-				log.Error(err, "unable to get object key", "objectKey", objectKey, "configmap", cm.ObjectMeta.Name)
+			if err != nil && !bf.Optional {
+				log.Error(err, "unable to get object key", "objectKey", objectKey, "configmap", cm.Name)
 				return nil, err
 			}
 

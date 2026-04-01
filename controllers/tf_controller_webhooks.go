@@ -66,7 +66,8 @@ func (r *TerraformReconciler) prepareWebhookPayload(terraform *infrav1.Terraform
 		return nil, err
 	}
 
-	if payloadType == "SpecAndPlan" {
+	switch payloadType {
+	case "SpecAndPlan":
 		obj, err = obj.Pipe(
 			yaml.Tee(yaml.Clear("status")),
 			yaml.Tee(
@@ -74,13 +75,13 @@ func (r *TerraformReconciler) prepareWebhookPayload(terraform *infrav1.Terraform
 				yaml.SetField("tfplan", planObj),
 			),
 		)
-	} else if payloadType == "SpecOnly" {
+	case "SpecOnly":
 		obj, err = obj.Pipe(
 			yaml.Tee(yaml.Clear("status")),
 		)
-	} else if payloadType == "PlanOnly" {
+	case "PlanOnly":
 		obj = planObj
-	} else {
+	default:
 		return nil, fmt.Errorf("unknown payload type: %s", payloadType)
 	}
 
@@ -118,7 +119,7 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, t
 		log.Info("processing post-planning webhook", "webhook", webhook.URL)
 
 		// We skip webhook if it's not enabled
-		if webhook.IsEnabled() == false {
+		if !webhook.IsEnabled() {
 			continue
 		}
 
@@ -134,7 +135,7 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, t
 
 		cli := cleanhttp.DefaultClient()
 
-		if disableWebhookTLSVerification == false {
+		if !disableWebhookTLSVerification {
 
 			log.Info("webhook TLS verification is enabled")
 
