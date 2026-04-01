@@ -68,10 +68,11 @@ func TestInformer(t *testing.T) {
 			Namespace: ns.Name,
 			Labels: map[string]string{
 				plan.TFPlanNameLabel:      plan.SafeLabelValue("helloworld"),
-				plan.TFPlanWorkspaceLabel: "default",
+				plan.TFPlanWorkspaceLabel: plan.SafeLabelValue("default"),
 			},
 			Annotations: map[string]string{
-				plan.TFPlanSavedAnnotation: "plan-main-1",
+				plan.TFPlanSavedAnnotation:         "plan-main-1",
+				plan.TFPlanFullWorkspaceAnnotation: "default",
 			},
 		},
 		Data: map[string]string{

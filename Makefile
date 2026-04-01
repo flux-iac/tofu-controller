@@ -112,6 +112,10 @@ normal-controller-test: manifests generate download-crd-deps fmt vet envtest api
 test-internal: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests in the internal directory.
 	$(TEST_SETTINGS) go test ./internal/... -coverprofile cover.out -v
 
+.PHONY: test-plan
+test-plan: ## Run plan package tests.
+	cd api && go test ./plan/... -coverprofile cover.out -v
+
 .PHONY: gen-grpc
 gen-grpc: protoc protoc-gen-go protoc-gen-go-grpc
 	env PATH="$(shell pwd)/bin:$$PATH" $(PROJECT_DIR)/bin/protoc --go_out=. --go_opt=Mrunner/runner.proto=runner/ --go-grpc_out=. --go-grpc_opt=Mrunner/runner.proto=runner/ runner/runner.proto
