@@ -217,7 +217,7 @@ func (p *Plan) ToSecret(suffix string) ([]*v1.Secret, error) {
 				},
 				Labels: map[string]string{
 					TFPlanNameLabel:      SafeLabelValue(p.name + suffix),
-					TFPlanWorkspaceLabel: p.workspace,
+					TFPlanWorkspaceLabel: SafeLabelValue(p.workspace),
 				},
 				OwnerReferences: []metav1.OwnerReference{
 					{
@@ -259,7 +259,7 @@ func (p *Plan) ToSecret(suffix string) ([]*v1.Secret, error) {
 				},
 				Labels: map[string]string{
 					TFPlanNameLabel:      SafeLabelValue(p.name + suffix),
-					TFPlanWorkspaceLabel: p.workspace,
+					TFPlanWorkspaceLabel: SafeLabelValue(p.workspace),
 				},
 				OwnerReferences: []metav1.OwnerReference{
 					{
@@ -303,7 +303,7 @@ func (p *Plan) ToConfigMap(suffix string) ([]*v1.ConfigMap, error) {
 				},
 				Labels: map[string]string{
 					TFPlanNameLabel:      SafeLabelValue(p.name + suffix),
-					TFPlanWorkspaceLabel: p.workspace,
+					TFPlanWorkspaceLabel: SafeLabelValue(p.workspace),
 				},
 				OwnerReferences: []metav1.OwnerReference{
 					{
@@ -344,7 +344,7 @@ func (p *Plan) ToConfigMap(suffix string) ([]*v1.ConfigMap, error) {
 				},
 				Labels: map[string]string{
 					TFPlanNameLabel:      SafeLabelValue(p.name + suffix),
-					TFPlanWorkspaceLabel: p.workspace,
+					TFPlanWorkspaceLabel: SafeLabelValue(p.workspace),
 				},
 				OwnerReferences: []metav1.OwnerReference{
 					{
