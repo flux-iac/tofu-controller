@@ -131,7 +131,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	<-r.CertRotator.Ready
 
 	traceLog.Info("Validate TLS Cert")
-	if isCAValid, _ := r.CertRotator.IsCAValid(); isCAValid == false && r.CertRotator.TriggerCARotation != nil {
+	if isCAValid, _ := r.CertRotator.IsCAValid(); !isCAValid && r.CertRotator.TriggerCARotation != nil {
 		traceLog.Info("TLS Cert invalid")
 		readyCh := make(chan *mtls.TriggerResult)
 		traceLog.Info("Trigger Cert Rotation")
@@ -169,7 +169,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 
 		// Record the duration of the reconciliation.
-		r.Metrics.RecordDuration(ctx, terraform, startTime)
+		r.RecordDuration(ctx, terraform, startTime)
 	}()
 
 	// Make sure the Finalizer exists
@@ -472,7 +472,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// Examine if the object is under deletion
 	traceLog.Info("Check for deletion timestamp to finalize")
-	if !terraform.ObjectMeta.DeletionTimestamp.IsZero() {
+	if !terraform.DeletionTimestamp.IsZero() {
 		traceLog.Info("Calling finalize function")
 		if terraform, result, err := r.finalize(ctx, patchHelper, terraform, runnerClient, sourceObj, reconciliationLoopID); err != nil {
 			traceLog.Info("Patch the status of the Terraform resource")
@@ -641,7 +641,7 @@ func (r *TerraformReconciler) shouldReconcile(terraform *infrav1.Terraform, sour
 }
 
 func isBeingDeleted(terraform *infrav1.Terraform) bool {
-	return !terraform.ObjectMeta.DeletionTimestamp.IsZero()
+	return !terraform.DeletionTimestamp.IsZero()
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -733,7 +733,7 @@ func (r *TerraformReconciler) checkDependencies(ctx context.Context, terraform *
 
 		// Check whether the dependent Terraform isn't being deleted, and then add a
 		// a finalizer if it is missing
-		if tDep.ObjectMeta.DeletionTimestamp.IsZero() && !controllerutil.ContainsFinalizer(tDep, finalizerKey) {
+		if tDep.DeletionTimestamp.IsZero() && !controllerutil.ContainsFinalizer(tDep, finalizerKey) {
 			patch := client.MergeFrom(tDep.DeepCopy())
 			controllerutil.AddFinalizer(tDep, finalizerKey)
 			if err := r.Patch(context.Background(), tDep, patch, client.FieldOwner(r.FieldManager)); err != nil {
@@ -811,8 +811,8 @@ func (r *TerraformReconciler) requestsForRevisionChangeOf(indexKey string) handl
 		}
 		reqs := make([]reconcile.Request, len(sorted))
 		for i, t := range sorted {
-			reqs[i].NamespacedName.Name = t.Name
-			reqs[i].NamespacedName.Namespace = t.Namespace
+			reqs[i].Name = t.Name
+			reqs[i].Namespace = t.Namespace
 		}
 		return reqs
 	}
@@ -841,7 +841,7 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform *infrav1.
 	switch terraform.Spec.SourceRef.Kind {
 	case sourcev1.GitRepositoryKind:
 		var repository sourcev1.GitRepository
-		err := r.Client.Get(ctx, sourceReference, &repository)
+		err := r.Get(ctx, sourceReference, &repository)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				return sourceObj, err
@@ -851,7 +851,7 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform *infrav1.
 		sourceObj = &repository
 	case sourcev1.BucketKind:
 		var bucket sourcev1.Bucket
-		err := r.Client.Get(ctx, sourceReference, &bucket)
+		err := r.Get(ctx, sourceReference, &bucket)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				return sourceObj, err
@@ -861,7 +861,7 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform *infrav1.
 		sourceObj = &bucket
 	case sourcev1.OCIRepositoryKind:
 		var repository sourcev1.OCIRepository
-		err := r.Client.Get(ctx, sourceReference, &repository)
+		err := r.Get(ctx, sourceReference, &repository)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				return sourceObj, err

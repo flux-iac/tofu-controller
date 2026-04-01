@@ -63,7 +63,7 @@ func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutp
 
 	drift := true
 	create := true
-	if err := r.Client.Get(ctx, objectKey, &outputSecret); err == nil {
+	if err := r.Get(ctx, objectKey, &outputSecret); err == nil {
 		// if everything is there, we don't write anything
 		if reflect.DeepEqual(outputSecret.Data, req.Data) {
 			drift = false
@@ -71,7 +71,7 @@ func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutp
 			// found, but need update
 			create = false
 		}
-	} else if apierrors.IsNotFound(err) == false {
+	} else if !apierrors.IsNotFound(err) {
 		log.Error(err, "unable to get output secret")
 		return nil, err
 	}
@@ -99,14 +99,14 @@ func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutp
 				Data: req.Data,
 			}
 
-			err := r.Client.Create(ctx, &outputSecret)
+			err := r.Create(ctx, &outputSecret)
 			if err != nil {
 				log.Error(err, "unable to create secret")
 				return nil, err
 			}
 		} else {
 			outputSecret.Data = req.Data
-			err := r.Client.Update(ctx, &outputSecret)
+			err := r.Update(ctx, &outputSecret)
 			if err != nil {
 				log.Error(err, "unable to update secret")
 				return nil, err
@@ -124,7 +124,7 @@ func (r *TerraformRunnerServer) GetOutputs(ctx context.Context, req *GetOutputsR
 	log.Info("get outputs")
 	outputKey := types.NamespacedName{Namespace: req.Namespace, Name: req.SecretName}
 	outputSecret := corev1.Secret{}
-	err := r.Client.Get(ctx, outputKey, &outputSecret)
+	err := r.Get(ctx, outputKey, &outputSecret)
 	if err != nil {
 		err = fmt.Errorf("error getting terraform output for health checks: %s", err)
 		log.Error(err, "unable to check terraform health")

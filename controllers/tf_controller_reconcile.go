@@ -141,7 +141,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, patchHelper *patch.
 		// immediately return if no drift - reconciliation will retry normally
 		if driftDetectionErr == nil {
 			// reconcile outputs only when outputs are missing
-			if outputsDrifted, err := r.outputsMayBeDrifted(ctx, terraform); outputsDrifted == true && err == nil {
+			if outputsDrifted, err := r.outputsMayBeDrifted(ctx, terraform); outputsDrifted && err == nil {
 				terraform, err = r.processOutputs(ctx, patchHelper, runnerClient, terraform, tfInstance, revision)
 				if err != nil {
 					log.Error(err, "error processing outputs")
@@ -287,7 +287,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, patchHelper *patch.
 				Entries: inventoryEntries,
 			}
 		}
-	} else if terraform.Spec.EnableInventory == false {
+	} else if !terraform.Spec.EnableInventory {
 		log.Info("inventory is disabled")
 		terraform.Status.Inventory = nil
 	}

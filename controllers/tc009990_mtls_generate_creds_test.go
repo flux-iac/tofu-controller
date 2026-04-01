@@ -142,7 +142,7 @@ func Test_009990_mtls_generate_creds_test(t *testing.T) {
 	g.Expect(caValid).To(BeTrue())
 
 	By("verifying that the runner cert secret has the appropriate labels")
-	labels := runnerSecret.ObjectMeta.GetLabels()
+	labels := runnerSecret.GetLabels()
 	g.Expect(labels).To(HaveKey(infrav1.RunnerLabel))
 
 	By("verifying that the runner cert is valid for a range of hostnames in a given namespace")

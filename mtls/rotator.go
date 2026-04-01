@@ -224,10 +224,7 @@ tickerLoop:
 			}
 
 			// GC: garbage collect the old CA artifacts
-			for {
-				if len(cr.artifactCaches) == 0 {
-					break
-				}
+			for len(cr.artifactCaches) != 0 {
 
 				validUntil := cr.artifactCaches[0].ca.validUntil
 				// we must NOT use cr.lookaheadTime() here

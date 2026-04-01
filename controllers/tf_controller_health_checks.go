@@ -31,9 +31,10 @@ func (r *TerraformReconciler) shouldDoHealthChecks(terraform *infrav1.Terraform)
 	var applyCondition metav1.Condition
 	var hcCondition metav1.Condition
 	for _, c := range terraform.Status.Conditions {
-		if c.Type == infrav1.ConditionTypeApply {
+		switch c.Type {
+		case infrav1.ConditionTypeApply:
 			applyCondition = c
-		} else if c.Type == infrav1.ConditionTypeHealthCheck {
+		case infrav1.ConditionTypeHealthCheck:
 			hcCondition = c
 		}
 	}

@@ -83,7 +83,7 @@ func (r *TerraformReconciler) finalize(ctx context.Context, patchHelper *patch.S
 			return terraform, controllerruntime.Result{Requeue: true}, err
 		}
 
-		if thereIsNothingToDestroy(terraform) == false {
+		if !thereIsNothingToDestroy(terraform) {
 			traceLog.Info("Apply the destroy plan")
 			terraform, err = r.apply(ctx, patchHelper, terraform, tfInstance, runnerClient, revision)
 			traceLog.Info("Check for error")
