@@ -1,5 +1,5 @@
 ARG TARGETARCH
-ARG TOFU_VERSION=1.11.4
+ARG TOFU_VERSION=1.11.5
 FROM ghcr.io/opentofu/opentofu:${TOFU_VERSION}-minimal AS tofu
 
 FROM alpine:3.22 AS base
