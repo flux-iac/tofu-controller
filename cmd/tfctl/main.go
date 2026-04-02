@@ -167,7 +167,7 @@ func buildReconcileCmd(app *tfctl.CLI) *cobra.Command {
 		},
 	}
 
-	reconcile.Flags().BoolP("all", "A", false, "Trigger reconcile for all Terraform resources in the namespace")
+	reconcile.Flags().Bool("all", false, "Trigger reconcile for all Terraform resources in the namespace")
 
 	return reconcile
 }
