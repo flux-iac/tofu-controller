@@ -20,8 +20,10 @@ var (
 	BuildVersion string
 )
 
-var defaultNamespace = "flux-system"
-var kubeconfigArgs = genericclioptions.NewConfigFlags(false)
+var (
+	defaultNamespace = "flux-system"
+	kubeconfigArgs   = genericclioptions.NewConfigFlags(false)
+)
 
 func main() {
 	cmd := newRootCommand()
@@ -127,20 +129,47 @@ func buildUninstallCmd(app *tfctl.CLI) *cobra.Command {
 }
 
 var reconcileExamples = `
-  # Reconcile a Terraform resource
+  # Reconcile a specific Terraform resource
   tfctl reconcile --namespace=default my-resource
+
+  # Reconcile all Terraform resources in the namespace
+  tfctl reconcile --all
 `
 
 func buildReconcileCmd(app *tfctl.CLI) *cobra.Command {
-	return &cobra.Command{
+	reconcile := &cobra.Command{
 		Use:     "reconcile NAME",
-		Short:   "Trigger a reconcile of the provided resource",
+		Short:   "Trigger a reconcile of the provided resource or all resources",
 		Example: strings.Trim(reconcileExamples, "\n"),
-		Args:    cobra.ExactArgs(1),
+		Args:    cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Reconcile(os.Stdout, args[0])
+			all, err := cmd.Flags().GetBool("all")
+			if err != nil {
+				return err
+			}
+
+			resource := ""
+
+			if all {
+				if len(args) > 0 {
+					return errors.New("cannot use --all and provide resource name at the same time")
+				}
+			} else {
+				if len(args) == 0 {
+					return errors.New("resource name required unless --all is specified")
+				}
+				resource = args[0]
+				if len(args) > 1 {
+					return errors.New("only one resource name accepted")
+				}
+			}
+			return app.Reconcile(os.Stdout, resource)
 		},
 	}
+
+	reconcile.Flags().BoolP("all", "A", false, "Trigger reconcile for all Terraform resources in the namespace")
+
+	return reconcile
 }
 
 var suspendExamples = `
