@@ -1,5 +1,5 @@
 ARG BASE_IMAGE
-ARG TOFU_VERSION=1.11.5
+ARG TOFU_VERSION=1.11.6
 
 FROM mcr.microsoft.com/azure-cli:2.50.0 AS azcli
 FROM ghcr.io/opentofu/opentofu:${TOFU_VERSION}-minimal AS tofu

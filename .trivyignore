@@ -1,9 +1,4 @@
-# Temporarily ignored until dependencies ship fixes
-# gRPC-Go authorization bypass - waiting on grpc-go v1.79.3+ to be pulled in
+# The following CVEs are awaiting fixes from OpenTofu
 CVE-2026-33186
-# Go stdlib crypto/tls session resumption - waiting on Go 1.25.7+
-CVE-2025-68121
-# Go stdlib net/url IPv6 parsing - waiting on Go 1.25.8+
-CVE-2026-25679
-# OpenTelemetry Go SDK (waiting on opentofu fix)
 CVE-2026-24051
+CVE-2026-34986
