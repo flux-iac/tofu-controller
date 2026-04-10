@@ -76,7 +76,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.53.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.40.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchevents v1.25.7 // indirect
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.39.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.65.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.22.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.177.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/elasticsearchservice v1.30.7 // indirect
