@@ -387,6 +387,23 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 
 		// case 3:
+		// if revision is changed, there's a pending plan awaiting manual approval,
+		// and the user hasn't approved or replanned, we should clear the Pending
+		// Plan to trigger re-plan with the new source revision.
+		//
+		if sourceObj.GetArtifact().Revision != terraform.Status.LastAttemptedRevision &&
+			terraform.Status.Plan.Pending != "" &&
+			!r.forceOrAutoApply(terraform) &&
+			!r.shouldApply(terraform) {
+			traceLog.Info("Source revision changed while plan is pending approval, clearing pending plan to trigger re-plan")
+			terraform.Status.Plan.Pending = ""
+			if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
+				log.Error(err, "unable to update status to clear pending plan (source revision changed)")
+				return ctrl.Result{Requeue: true}, err
+			}
+		}
+
+		// case 4:
 		// return early if it's manually mode and pending
 		//
 		traceLog.Info("Check for pending plan, forceOrAutoApply and shouldApply")
