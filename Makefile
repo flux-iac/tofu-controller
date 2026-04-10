@@ -69,8 +69,8 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 
 # Generate API reference documentation
 .PHONY: api-docs
-api-docs: gen-crd-api-reference-docs
-	$(GEN_CRD_API_REFERENCE_DOCS) -api-dir=./api/v1alpha2 -config=./hack/api-docs/config.json -template-dir=./hack/api-docs/template -out-file=./docs/References/terraform.md
+api-docs: crd-ref-docs
+	$(CRD_REF_DOCS) --source-path=./api/v1alpha2 --config=./hack/api-docs/config.yaml --renderer=markdown --templates-dir=./hack/api-docs/template --output-path=./docs/References/terraform.md
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.
@@ -266,11 +266,11 @@ CONTROLLER_GEN = $(GOBIN)/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
 	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.18.0)
 
-# Find or download gen-crd-api-reference-docs
-GEN_CRD_API_REFERENCE_DOCS = $(GOBIN)/gen-crd-api-reference-docs
-.PHONY: gen-crd-api-reference-docs
-gen-crd-api-reference-docs:
-	$(call go-install-tool,$(GEN_CRD_API_REFERENCE_DOCS),github.com/ahmetb/gen-crd-api-reference-docs@v0.3.0)
+# Find or download crd-ref-docs
+CRD_REF_DOCS = $(GOBIN)/crd-ref-docs
+.PHONY: crd-ref-docs
+crd-ref-docs:
+	$(call go-install-tool,$(CRD_REF_DOCS),github.com/elastic/crd-ref-docs@v0.3.0)
 
 ENVTEST_ARCH ?= amd64
 
