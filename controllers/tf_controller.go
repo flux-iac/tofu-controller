@@ -393,7 +393,6 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		//
 		if sourceObj.GetArtifact().Revision != terraform.Status.LastAttemptedRevision &&
 			terraform.Status.Plan.Pending != "" &&
-			!r.forceOrAutoApply(terraform) &&
 			!r.shouldApply(terraform) {
 			traceLog.Info("Source revision changed while plan is pending approval, clearing pending plan to trigger re-plan")
 			terraform.Status.Plan.Pending = ""
