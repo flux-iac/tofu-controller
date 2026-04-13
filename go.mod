@@ -29,7 +29,7 @@ require (
 	github.com/hashicorp/hcl2 v0.0.0-20191002203319-fb75b3253c80
 	github.com/hashicorp/terraform-exec v0.25.0
 	github.com/hashicorp/terraform-json v0.27.2
-	github.com/jenkins-x/go-scm v1.15.17
+	github.com/jenkins-x/go-scm v1.15.19
 	github.com/kubescape/go-git-url v0.0.31
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.2
 	github.com/onsi/gomega v1.39.1
