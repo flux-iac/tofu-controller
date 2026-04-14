@@ -12,7 +12,7 @@ import (
 	"github.com/theckman/yacspin"
 )
 
-// Install installs the tf-controller resources into the cluster.
+// Install installs the tofu-controller resources into the cluster.
 func (c *CLI) Install(out io.Writer, version string, export bool) (err error) {
 	if version == "" {
 		version = c.release
@@ -28,8 +28,8 @@ func (c *CLI) Install(out io.Writer, version string, export bool) (err error) {
 			Frequency:     100 * time.Millisecond,
 			SpinnerAtEnd:  true,
 			CharSet:       yacspin.CharSets[9],
-			Message:       fmt.Sprintf("Installing tf-controller in %s namespace ", c.namespace),
-			StopMessage:   fmt.Sprintf("tf-controller %s installed ", version),
+			Message:       fmt.Sprintf("Installing tofu-controller in %s namespace ", c.namespace),
+			StopMessage:   fmt.Sprintf("tofu-controller %s installed ", version),
 			StopCharacter: "✓",
 			Colors:        []string{"yellow"},
 			StopColors:    []string{"fgGreen"},
