@@ -253,7 +253,7 @@ protoc: ## Download protoc locally if necessary.
 PROTOC_GEN_GO = $(GOBIN)/protoc-gen-go
 .PHONY: protoc-gen-go
 protoc-gen-go: ## Download controller-gen locally if necessary.
-	$(call go-install-tool,$(PROTOC_GEN_GO),google.golang.org/protobuf/cmd/protoc-gen-go@1.36.6)
+	$(call go-install-tool,$(PROTOC_GEN_GO),google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.6)
 
 PROTOC_GEN_GO_GRPC = $(GOBIN)/protoc-gen-go-grpc
 .PHONY: protoc-gen-go-grpc
