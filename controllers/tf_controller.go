@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -62,6 +63,7 @@ import (
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/mtls"
+	"github.com/flux-iac/tofu-controller/utils"
 )
 
 // TerraformReconciler reconciles a Terraform object
@@ -74,6 +76,10 @@ type TerraformReconciler struct {
 	FieldManager      string
 	patchOptions      []patch.Option
 	requeueDependency time.Duration
+
+	// Quota retry configuration
+	QuotaRetryDelay  time.Duration
+	QuotaRetryJitter time.Duration
 
 	StatusPoller              *polling.StatusPoller
 	Scheme                    *runtime.Scheme
@@ -420,6 +426,21 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	runnerClient, closeConn, err := r.LookupOrCreateRunner(ctx, terraform, sourceObj.GetArtifact().Revision)
 	if err != nil {
 		log.Error(err, "unable to lookup or create runner")
+
+		// Check if this is a quota error
+		if utils.IsQuotaError(err) {
+			// Calculate jitter (0 to QuotaRetryJitter)
+			jitter := time.Duration(rand.Intn(int(r.QuotaRetryJitter.Milliseconds()))) * time.Millisecond
+			jitteredDelay := r.QuotaRetryDelay + jitter
+
+			traceLog.Info("runner quota exhausted, retrying",
+				"retryAfter", jitteredDelay,
+				"baseDelay", r.QuotaRetryDelay,
+				"jitter", jitter)
+			return ctrl.Result{RequeueAfter: jitteredDelay}, nil
+		}
+
+		// Existing error handling for other failures
 		if closeConn != nil {
 			if err := closeConn(); err != nil {
 				log.Error(err, "unable to close connection")
