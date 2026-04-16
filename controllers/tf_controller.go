@@ -75,6 +75,10 @@ type TerraformReconciler struct {
 	patchOptions      []patch.Option
 	requeueDependency time.Duration
 
+	// Quota retry configuration
+	QuotaRetryDelay   time.Duration
+	QuotaRetryJitter  time.Duration
+
 	StatusPoller              *polling.StatusPoller
 	Scheme                    *runtime.Scheme
 	CertRotator               *mtls.CertRotator
