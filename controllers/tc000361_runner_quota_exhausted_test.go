@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/flux-iac/tofu-controller/utils"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -99,69 +100,33 @@ spec:
 	g.Expect(k8sClient.Create(ctx, &terraformResource)).Should(Succeed())
 	defer waitResourceToBeDelete(g, &terraformResource)
 
-	Given("quota error detection functions")
-	By("verifying DetectQuotaError recognizes quota Forbidden errors.")
+	Given("quota error detection")
+	By("verifying IsQuotaError recognizes quota Forbidden errors.")
 	quotaError := apierrors.NewForbidden(schema.GroupResource{Group: "", Resource: "pods"}, "test-pod", errors.New("exceeded quota"))
 	It("should detect quota errors correctly.")
-	g.Expect(DetectQuotaError(quotaError)).Should(BeTrue())
+	g.Expect(utils.IsQuotaError(quotaError)).Should(BeTrue())
 
 	Given("non-quota Forbidden errors")
-	By("verifying DetectQuotaError rejects non-quota Forbidden errors.")
+	By("verifying IsQuotaError rejects non-quota Forbidden errors.")
 	nonQuotaError := apierrors.NewForbidden(schema.GroupResource{Group: "", Resource: "pods"}, "test-pod", errors.New("permission denied"))
 	It("should not detect non-quota errors.")
-	g.Expect(DetectQuotaError(nonQuotaError)).Should(BeFalse())
-
-	Given("QuotaExhaustedError wrapping")
-	By("wrapping a quota error with retry metadata.")
-	retryDelay := 5 * time.Second
-	wrappedErr := NewQuotaExhaustedError(quotaError, retryDelay)
-	It("should preserve the error and retry delay.")
-	g.Expect(wrappedErr.RetryAfter).Should(Equal(retryDelay))
-	g.Expect(wrappedErr.Unwrap()).Should(Equal(quotaError))
-
-	Given("error chain traversal")
-	By("verifying errors.Is works with wrapped quota errors.")
-	It("should find wrapped errors in error chains.")
-	foundErr, isQuota := IsQuotaExhausted(wrappedErr)
-	g.Expect(isQuota).Should(BeTrue())
-	g.Expect(foundErr).Should(Equal(wrappedErr))
-
-	Given("error wrapping with error chain")
-	By("wrapping the QuotaExhaustedError in another error.")
-	chainedErr := fmt.Errorf("runner creation failed: %w", wrappedErr)
-	It("should traverse error chains to find quota errors.")
-	foundErr, isQuota = IsQuotaExhausted(chainedErr)
-	g.Expect(isQuota).Should(BeTrue())
-	g.Expect(errors.Is(chainedErr, quotaError)).Should(BeTrue())
-
-	Given("quota error string representation")
-	By("checking the error message format.")
-	It("should include 'quota exhausted' in the error message.")
-	g.Expect(wrappedErr.Error()).Should(ContainSubstring("quota exhausted"))
-
-	Given("quota error with various retry delays")
-	By("creating multiple QuotaExhaustedErrors with different delays.")
-	shortDelay := NewQuotaExhaustedError(quotaError, 1*time.Second)
-	longDelay := NewQuotaExhaustedError(quotaError, 30*time.Second)
-	It("should preserve different retry delays.")
-	g.Expect(shortDelay.RetryAfter).Should(Equal(1 * time.Second))
-	g.Expect(longDelay.RetryAfter).Should(Equal(30 * time.Second))
+	g.Expect(utils.IsQuotaError(nonQuotaError)).Should(BeFalse())
 
 	Given("quota detection with multiple patterns")
-	By("verifying DetectQuotaError recognizes different quota patterns.")
+	By("verifying IsQuotaError recognizes different quota patterns.")
 	exceeededError := apierrors.NewForbidden(schema.GroupResource{}, "test", errors.New("resource exceeded limit"))
 	resourceLimitError := apierrors.NewForbidden(schema.GroupResource{}, "test", errors.New("resource limit exceeded"))
 	podLimitError := apierrors.NewForbidden(schema.GroupResource{}, "test", errors.New("pod limit reached"))
 	It("should detect all quota-related patterns.")
-	g.Expect(DetectQuotaError(exceeededError)).Should(BeTrue())
-	g.Expect(DetectQuotaError(resourceLimitError)).Should(BeTrue())
-	g.Expect(DetectQuotaError(podLimitError)).Should(BeTrue())
+	g.Expect(utils.IsQuotaError(exceeededError)).Should(BeTrue())
+	g.Expect(utils.IsQuotaError(resourceLimitError)).Should(BeTrue())
+	g.Expect(utils.IsQuotaError(podLimitError)).Should(BeTrue())
 
 	Given("non-Forbidden errors")
-	By("verifying DetectQuotaError rejects non-Forbidden errors even with quota keywords.")
+	By("verifying IsQuotaError rejects non-Forbidden errors even with quota keywords.")
 	notFoundError := apierrors.NewNotFound(schema.GroupResource{}, "test")
 	badRequestWithQuota := apierrors.NewBadRequest("quota exceeded")
 	It("should not detect non-Forbidden errors as quota errors.")
-	g.Expect(DetectQuotaError(notFoundError)).Should(BeFalse())
-	g.Expect(DetectQuotaError(badRequestWithQuota)).Should(BeFalse())
+	g.Expect(utils.IsQuotaError(notFoundError)).Should(BeFalse())
+	g.Expect(utils.IsQuotaError(badRequestWithQuota)).Should(BeFalse())
 }

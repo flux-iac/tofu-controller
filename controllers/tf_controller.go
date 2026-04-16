@@ -63,6 +63,7 @@ import (
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/mtls"
+	"github.com/flux-iac/tofu-controller/utils"
 )
 
 // TerraformReconciler reconciles a Terraform object
@@ -77,8 +78,8 @@ type TerraformReconciler struct {
 	requeueDependency time.Duration
 
 	// Quota retry configuration
-	QuotaRetryDelay   time.Duration
-	QuotaRetryJitter  time.Duration
+	QuotaRetryDelay  time.Duration
+	QuotaRetryJitter time.Duration
 
 	StatusPoller              *polling.StatusPoller
 	Scheme                    *runtime.Scheme
@@ -427,14 +428,14 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		log.Error(err, "unable to lookup or create runner")
 
 		// Check if this is a quota error
-		if quotaErr, isQuota := IsQuotaExhausted(err); isQuota {
+		if utils.IsQuotaError(err) {
 			// Calculate jitter (0 to QuotaRetryJitter)
 			jitter := time.Duration(rand.Intn(int(r.QuotaRetryJitter.Milliseconds()))) * time.Millisecond
-			jitteredDelay := quotaErr.RetryAfter + jitter
+			jitteredDelay := r.QuotaRetryDelay + jitter
 
-			log.V(logger.DebugLevel).Info("runner quota exhausted, retrying",
+			traceLog.Info("runner quota exhausted, retrying",
 				"retryAfter", jitteredDelay,
-				"baseDelay", quotaErr.RetryAfter,
+				"baseDelay", r.QuotaRetryDelay,
 				"jitter", jitter)
 			return ctrl.Result{RequeueAfter: jitteredDelay}, nil
 		}

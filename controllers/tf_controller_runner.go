@@ -337,9 +337,6 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		newRunnerPod := *runnerPodTemplate.DeepCopy()
 		newRunnerPod.Spec = r.runnerPodSpec(terraform, tlsSecretName)
 		if err := r.Create(ctx, &newRunnerPod); err != nil {
-			if DetectQuotaError(err) {
-				return NewQuotaExhaustedError(err, r.QuotaRetryDelay)
-			}
 			return err
 		}
 		return nil
