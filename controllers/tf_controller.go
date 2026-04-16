@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -424,6 +425,21 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	runnerClient, closeConn, err := r.LookupOrCreateRunner(ctx, terraform, sourceObj.GetArtifact().Revision)
 	if err != nil {
 		log.Error(err, "unable to lookup or create runner")
+
+		// Check if this is a quota error
+		if quotaErr, isQuota := IsQuotaExhausted(err); isQuota {
+			// Calculate jitter (0 to QuotaRetryJitter)
+			jitter := time.Duration(rand.Intn(int(r.QuotaRetryJitter.Milliseconds()))) * time.Millisecond
+			jitteredDelay := quotaErr.RetryAfter + jitter
+
+			log.V(logger.DebugLevel).Info("runner quota exhausted, retrying",
+				"retryAfter", jitteredDelay,
+				"baseDelay", quotaErr.RetryAfter,
+				"jitter", jitter)
+			return ctrl.Result{RequeueAfter: jitteredDelay}, nil
+		}
+
+		// Existing error handling for other failures
 		if closeConn != nil {
 			if err := closeConn(); err != nil {
 				log.Error(err, "unable to close connection")
