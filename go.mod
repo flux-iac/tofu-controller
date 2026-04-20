@@ -20,7 +20,7 @@ require (
 	github.com/flux-iac/tofu-controller/tfctl v0.0.0-00010101000000-000000000000
 	github.com/fluxcd/pkg/apis/meta v1.26.0
 	github.com/fluxcd/pkg/runtime v0.103.0
-	github.com/fluxcd/pkg/tar v1.0.0
+	github.com/fluxcd/pkg/tar v1.1.0
 	github.com/fluxcd/source-controller/api v1.8.2
 	github.com/go-logr/logr v1.4.3
 	github.com/google/uuid v1.6.0
@@ -124,7 +124,7 @@ require (
 	github.com/fluxcd/cli-utils v1.0.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.9.0 // indirect
 	github.com/fluxcd/pkg/apis/event v0.25.0 // indirect
-	github.com/fluxcd/pkg/ssa v0.70.0 // indirect
+	github.com/fluxcd/pkg/ssa v0.71.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.1 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect

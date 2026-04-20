@@ -8,7 +8,7 @@ require (
 	github.com/flux-iac/tofu-controller/api v0.0.0-20250321074822-67198a27f35b
 	github.com/fluxcd/cli-utils v1.0.0
 	github.com/fluxcd/pkg/apis/meta v1.26.0
-	github.com/fluxcd/pkg/ssa v0.70.0
+	github.com/fluxcd/pkg/ssa v0.71.0
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/hashicorp/go-version v1.9.0
 	github.com/hashicorp/hc-install v0.9.3
