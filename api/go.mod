@@ -7,9 +7,9 @@ require (
 	github.com/fluxcd/pkg/runtime v0.103.0
 	github.com/fluxcd/source-controller/api v1.8.2
 	github.com/onsi/gomega v1.39.1
-	k8s.io/api v0.35.3
-	k8s.io/apiextensions-apiserver v0.35.3
-	k8s.io/apimachinery v0.35.3
+	k8s.io/api v0.35.4
+	k8s.io/apiextensions-apiserver v0.35.4
+	k8s.io/apimachinery v0.35.4
 	sigs.k8s.io/controller-runtime v0.23.3
 )
 
@@ -54,7 +54,7 @@ require (
 	golang.org/x/time v0.15.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	k8s.io/client-go v0.35.3 // indirect
+	k8s.io/client-go v0.35.4 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20260330154417-16be699c7b31 // indirect
 	k8s.io/utils v0.0.0-20260319190234-28399d86e0b5 // indirect
