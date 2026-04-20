@@ -1,6 +1,6 @@
 module github.com/flux-iac/tofu-controller
 
-go 1.26.1
+go 1.26.2
 
 replace github.com/flux-iac/tofu-controller/api => ./api
 
@@ -12,7 +12,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.32.14
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.14
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.57.1
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.98.0
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.99.0
 	github.com/aws/smithy-go v1.24.3
 	github.com/cyphar/filepath-securejoin v0.6.1
 	github.com/elgohr/go-localstack v1.0.158
@@ -20,7 +20,7 @@ require (
 	github.com/flux-iac/tofu-controller/tfctl v0.0.0-00010101000000-000000000000
 	github.com/fluxcd/pkg/apis/meta v1.26.0
 	github.com/fluxcd/pkg/runtime v0.103.0
-	github.com/fluxcd/pkg/tar v0.17.0
+	github.com/fluxcd/pkg/tar v1.0.0
 	github.com/fluxcd/source-controller/api v1.8.2
 	github.com/go-logr/logr v1.4.3
 	github.com/google/uuid v1.6.0
@@ -29,7 +29,7 @@ require (
 	github.com/hashicorp/hcl2 v0.0.0-20191002203319-fb75b3253c80
 	github.com/hashicorp/terraform-exec v0.25.0
 	github.com/hashicorp/terraform-json v0.27.2
-	github.com/jenkins-x/go-scm v1.15.17
+	github.com/jenkins-x/go-scm v1.15.21
 	github.com/kubescape/go-git-url v0.0.31
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.2
 	github.com/onsi/gomega v1.39.1
@@ -121,7 +121,7 @@ require (
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fatih/color v1.19.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/fluxcd/cli-utils v0.37.2-flux.1 // indirect
+	github.com/fluxcd/cli-utils v1.0.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.9.0 // indirect
 	github.com/fluxcd/pkg/apis/event v0.25.0 // indirect
 	github.com/fluxcd/pkg/ssa v0.70.0 // indirect
