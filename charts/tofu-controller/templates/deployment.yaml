@@ -53,6 +53,9 @@ spec:
         - --use-pod-subdomain-resolution={{ .Values.usePodSubdomainResolution }}
         - --use-priority-queue={{ .Values.usePriorityQueue }}
         - --graceful-shutdown-timeout={{ max (int 0) (int (sub .Values.terminationGracePeriodSeconds 10)) }}s
+        - --quota-retry-enabled={{ .Values.quotaRetryEnabled }}
+        - --quota-retry-delay={{ .Values.quotaRetryDelay }}
+        - --quota-retry-jitter-factor={{ .Values.quotaRetryJitterFactor }}
         env:
           {{- include "pod-namespace" . | indent 8 }}
         - name: RUNNER_POD_IMAGE

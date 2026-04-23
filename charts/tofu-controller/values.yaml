@@ -113,6 +113,15 @@ usePodSubdomainResolution: false
 # -- Argument for `--use-priority-queue` (Controller).
 #  Enable the priority queue feature to prioritize new/changed resources over resources loaded after a restart or resync.
 usePriorityQueue: true
+# -- Argument for `--quota-retry-enabled` (Controller).
+#  Enable quota-aware retry when runner pod creation is rejected due to resource quota exhaustion.
+quotaRetryEnabled: false
+# -- Argument for `--quota-retry-delay` (Controller).
+#  Base delay for retrying when runner quota is exhausted.
+quotaRetryDelay: 5s
+# -- Argument for `--quota-retry-jitter-factor` (Controller).
+#  Jitter factor applied to quota retry delay (e.g. 0.4 means up to 40% added to the base delay).
+quotaRetryJitterFactor: "0.4"
 # -- Grace period for controller pod termination.
 #  Argument for `--graceful-shutdown-timeout` (Controller) is (terminationGracePeriodSeconds - 10) or 0, whichever is higher.
 #  Graceful shutdown will wait for active runners to finish without starting new ones.
