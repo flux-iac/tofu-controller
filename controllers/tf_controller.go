@@ -62,6 +62,7 @@ import (
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/mtls"
+	"github.com/flux-iac/tofu-controller/utils"
 )
 
 // TerraformReconciler reconciles a Terraform object
@@ -74,6 +75,11 @@ type TerraformReconciler struct {
 	FieldManager      string
 	patchOptions      []patch.Option
 	requeueDependency time.Duration
+
+	// Quota retry configuration
+	QuotaRetryEnabled      bool
+	QuotaRetryDelay        time.Duration
+	QuotaRetryJitterFactor float64
 
 	StatusPoller              *polling.StatusPoller
 	Scheme                    *runtime.Scheme
@@ -425,6 +431,18 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				log.Error(err, "unable to close connection")
 			}
 		}
+
+		if r.QuotaRetryEnabled && utils.IsQuotaError(err) {
+			jitteredDelay := wait.Jitter(r.QuotaRetryDelay, r.QuotaRetryJitterFactor)
+			traceLog.Info("runner quota exhausted, retrying",
+				"retryAfter", jitteredDelay,
+				"baseDelay", r.QuotaRetryDelay,
+				"jitterFactor", r.QuotaRetryJitterFactor)
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.RunnerQuotaExhaustedReason,
+				"runner pod creation blocked by resource quota, retrying")
+			return ctrl.Result{RequeueAfter: jitteredDelay}, nil
+		}
+
 		return ctrl.Result{}, err
 	}
 	log.Info("runner is running")
