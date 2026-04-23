@@ -426,6 +426,11 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	runnerClient, closeConn, err := r.LookupOrCreateRunner(ctx, terraform, sourceObj.GetArtifact().Revision)
 	if err != nil {
 		log.Error(err, "unable to lookup or create runner")
+		if closeConn != nil {
+			if err := closeConn(); err != nil {
+				log.Error(err, "unable to close connection")
+			}
+		}
 
 		if r.QuotaRetryEnabled && utils.IsQuotaError(err) {
 			jitteredDelay := wait.Jitter(r.QuotaRetryDelay, r.QuotaRetryJitterFactor)
@@ -433,13 +438,11 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				"retryAfter", jitteredDelay,
 				"baseDelay", r.QuotaRetryDelay,
 				"jitterFactor", r.QuotaRetryJitterFactor)
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.RunnerQuotaExhaustedReason,
+				"runner pod creation blocked by resource quota, retrying")
 			return ctrl.Result{RequeueAfter: jitteredDelay}, nil
 		}
-		if closeConn != nil {
-			if err := closeConn(); err != nil {
-				log.Error(err, "unable to close connection")
-			}
-		}
+
 		return ctrl.Result{}, err
 	}
 	log.Info("runner is running")
