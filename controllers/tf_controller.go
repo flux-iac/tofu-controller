@@ -21,7 +21,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -78,8 +77,9 @@ type TerraformReconciler struct {
 	requeueDependency time.Duration
 
 	// Quota retry configuration
-	QuotaRetryDelay  time.Duration
-	QuotaRetryJitter time.Duration
+	QuotaRetryEnabled      bool
+	QuotaRetryDelay        time.Duration
+	QuotaRetryJitterFactor float64
 
 	StatusPoller              *polling.StatusPoller
 	Scheme                    *runtime.Scheme
@@ -427,20 +427,14 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if err != nil {
 		log.Error(err, "unable to lookup or create runner")
 
-		// Check if this is a quota error
-		if utils.IsQuotaError(err) {
-			// Calculate jitter (0 to QuotaRetryJitter)
-			jitter := time.Duration(rand.Intn(int(r.QuotaRetryJitter.Milliseconds()))) * time.Millisecond
-			jitteredDelay := r.QuotaRetryDelay + jitter
-
+		if r.QuotaRetryEnabled && utils.IsQuotaError(err) {
+			jitteredDelay := wait.Jitter(r.QuotaRetryDelay, r.QuotaRetryJitterFactor)
 			traceLog.Info("runner quota exhausted, retrying",
 				"retryAfter", jitteredDelay,
 				"baseDelay", r.QuotaRetryDelay,
-				"jitter", jitter)
+				"jitterFactor", r.QuotaRetryJitterFactor)
 			return ctrl.Result{RequeueAfter: jitteredDelay}, nil
 		}
-
-		// Existing error handling for other failures
 		if closeConn != nil {
 			if err := closeConn(); err != nil {
 				log.Error(err, "unable to close connection")

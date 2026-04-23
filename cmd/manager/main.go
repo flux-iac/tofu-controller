@@ -100,8 +100,9 @@ func main() {
 		usePodSubdomainResolution bool
 		usePriorityQueue          bool
 		gracefulShutdownTimeout   time.Duration
+		quotaRetryEnabled         bool
 		quotaRetryDelay           time.Duration
-		quotaRetryJitter          time.Duration
+		quotaRetryJitterFactor    float64
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
@@ -127,18 +128,14 @@ func main() {
 	flag.BoolVar(&usePriorityQueue, "use-priority-queue", true, "Enable the priority queue feature.")
 	flag.DurationVar(&gracefulShutdownTimeout, "graceful-shutdown-timeout", 4*time.Minute,
 		"The duration to wait for active reconciliations to complete during shutdown before forcing termination (0 to disable).")
+	flag.BoolVar(&quotaRetryEnabled, "quota-retry-enabled", false, "Enable quota-aware retry when runner pod creation is rejected due to resource quota exhaustion.")
 	flag.DurationVar(
 		&quotaRetryDelay,
 		"quota-retry-delay",
 		5*time.Second,
 		"Base delay for retrying when runner quota is exhausted",
 	)
-	flag.DurationVar(
-		&quotaRetryJitter,
-		"quota-retry-jitter",
-		2*time.Second,
-		"Maximum jitter to add to quota retry delay",
-	)
+	flag.Float64Var(&quotaRetryJitterFactor, "quota-retry-jitter-factor", 0.4, "Jitter factor applied to quota retry delay (e.g. 0.4 means up to 40% added to the base delay).")
 
 	clientOptions.BindFlags(flag.CommandLine)
 	logOptions.BindFlags(flag.CommandLine)
@@ -267,8 +264,9 @@ func main() {
 		Clientset:                 clientset,
 		FieldManager:              "tf-controller",
 		ShutdownTimeout:           gracefulShutdownTimeout,
+		QuotaRetryEnabled:         quotaRetryEnabled,
 		QuotaRetryDelay:           quotaRetryDelay,
-		QuotaRetryJitter:          quotaRetryJitter,
+		QuotaRetryJitterFactor:    quotaRetryJitterFactor,
 	}
 
 	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {
