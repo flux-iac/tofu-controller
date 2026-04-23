@@ -85,6 +85,13 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform *infrav
 		planRequest.Refresh = true
 	}
 
+	if terraform.Spec.TFState != nil {
+		if terraform.Spec.TFState.LockTimeout.Duration.String() != "" {
+			log.Info(fmt.Sprintf("LockTimeout is set: %s", terraform.Spec.TFState.LockTimeout))
+			planRequest.LockTimeout = terraform.Spec.TFState.LockTimeout.Duration.String()
+		}
+	}
+
 	eventSent := false
 	planReply, err := runnerClient.Plan(ctx, planRequest)
 	if err != nil {
