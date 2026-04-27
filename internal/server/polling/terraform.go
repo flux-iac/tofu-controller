@@ -161,7 +161,13 @@ func (s *Server) reconcileSource(ctx context.Context, tfName string, originalSou
 
 		spec := originalSource.Spec.DeepCopy()
 
+		// Clear all higher-precedence reference fields (Name > Commit > SemVer > Tag > Branch)
+		// so that only Branch takes effect on the PR-specific GitRepository.
 		if spec.Reference != nil {
+			spec.Reference.Name = ""
+			spec.Reference.Tag = ""
+			spec.Reference.SemVer = ""
+			spec.Reference.Commit = ""
 			spec.Reference.Branch = branch
 		} else {
 			spec.Reference = &sourcev1.GitRepositoryRef{Branch: branch}
