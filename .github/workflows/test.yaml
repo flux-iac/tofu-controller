@@ -75,7 +75,7 @@ jobs:
           tofu --version
       - name: Setup Kustomize
         if: "!github.event.pull_request.head.repo.fork"
-        uses: fluxcd/pkg/actions/kustomize@63d73fdd0da522e94a54cc3e93607226a433ccb0 # main
+        uses: fluxcd/pkg/actions/kustomize@1bfcca47168cb6d2d7dfdc5b35d8b379a773976d # main
       - name: Run tests
         run: |
           make install-envtest
@@ -102,7 +102,7 @@ jobs:
           tofu --version
       - name: Setup Kustomize
         if: "!github.event.pull_request.head.repo.fork"
-        uses: fluxcd/pkg/actions/kustomize@63d73fdd0da522e94a54cc3e93607226a433ccb0 # main
+        uses: fluxcd/pkg/actions/kustomize@1bfcca47168cb6d2d7dfdc5b35d8b379a773976d # main
       - name: Run tests
         run: |
           make install-envtest
