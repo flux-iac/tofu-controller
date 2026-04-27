@@ -96,7 +96,7 @@ terraform {
 			terraform.Spec.BackendConfig.InClusterConfig,
 			terraform.Spec.BackendConfig.ConfigPath,
 			terraform.Namespace,
-			getLabelsAsHCL(terraform.Labels, 6))
+			getLabelsAsHCL(getBackendLabels(terraform), 6))
 	} else if DisableTFK8SBackend && terraform.Spec.BackendConfig == nil {
 		backendConfig = `
 terraform {
@@ -118,7 +118,7 @@ terraform {
 `,
 			terraform.Name,
 			terraform.Namespace,
-			getLabelsAsHCL(terraform.Labels, 6))
+			getLabelsAsHCL(getBackendLabels(terraform), 6))
 	}
 
 	if r.backendCompletelyDisable(terraform) {
@@ -428,6 +428,19 @@ terraform {
 	}
 
 	return terraform, tfInstance, tmpDir, nil
+}
+
+// getBackendLabels returns the label set used to build the kubernetes backend
+// selector. When Spec.BackendConfig.Labels is non-nil it is authoritative
+// (empty map is a valid explicit opt-out of all labels), otherwise we fall
+// back to the Terraform CR's metadata labels. Pinning the selector to
+// BackendConfig.Labels prevents the backend from losing sight of an existing
+// state Secret when unrelated labels are later added to the CR.
+func getBackendLabels(terraform *infrav1.Terraform) map[string]string {
+	if terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.Labels != nil {
+		return terraform.Spec.BackendConfig.Labels
+	}
+	return terraform.Labels
 }
 
 func getLabelsAsHCL(labels map[string]string, indent int) string {
