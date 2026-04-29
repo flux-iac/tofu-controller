@@ -318,15 +318,6 @@ func (i *Informer) isNewPlan(old, new *infrav1.Terraform) bool {
 	return false
 }
 
-func (i *Informer) getProviderSecret(ctx context.Context, ref client.ObjectKey) (*v1.Secret, error) {
-	obj := &v1.Secret{}
-	if err := i.client.Get(ctx, ref, obj); err != nil {
-		return nil, fmt.Errorf("unable to get Secret: %w", err)
-	}
-
-	return obj, nil
-}
-
 func (i *Informer) getRepo(ctx context.Context, tf *infrav1.Terraform) (provider.Repository, error) {
 	if tf.Spec.SourceRef.Kind != sourcev1.GitRepositoryKind {
 		return provider.Repository{}, fmt.Errorf("branch based planner does not support source kind: %s", tf.Spec.SourceRef.Kind)
@@ -341,14 +332,20 @@ func (i *Informer) getRepo(ctx context.Context, tf *infrav1.Terraform) (provider
 		return provider.Repository{}, fmt.Errorf("unable to get Source: %w", err)
 	}
 
-	gitProvider, repo, err := provider.FromURL(obj.Spec.URL, i.providerOpts...)
-	if err != nil {
-		return provider.Repository{}, fmt.Errorf("failed resolving git provider from URL: %w", err)
+	// Only resolve the provider once; reuse the cached instance for
+	// subsequent calls to avoid creating a new SCM client on every event.
+	if i.gitProvider == nil {
+		gitProvider, repo, err := provider.FromURL(obj.Spec.URL, i.providerOpts...)
+		if err != nil {
+			return provider.Repository{}, fmt.Errorf("failed resolving git provider from URL: %w", err)
+		}
+
+		i.gitProvider = gitProvider
+
+		return repo, nil
 	}
 
-	i.gitProvider = gitProvider
-
-	return repo, nil
+	return provider.RepoFromURL(obj.Spec.URL)
 }
 
 func formatPlanOutput(planOutput string) []byte {

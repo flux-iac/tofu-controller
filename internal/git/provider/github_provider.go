@@ -48,23 +48,31 @@ func (p *GitHubProvider) ListPullRequestChanges(ctx context.Context, pr PullRequ
 }
 
 func (p *GitHubProvider) ListPullRequests(ctx context.Context, repo Repository) ([]PullRequest, error) {
-	prList, _, err := p.client.PullRequests.List(ctx, repo.String(), &scm.PullRequestListOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to list pull requests: %w", err)
-	}
+	var prs []PullRequest
 
-	prs := []PullRequest{}
+	opts := scm.PullRequestListOptions{Page: 1, Size: defaultPageSize}
+	for {
+		prList, res, err := p.client.PullRequests.List(ctx, repo.String(), &opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list pull requests: %w", err)
+		}
 
-	for _, pr := range prList {
-		prs = append(prs, PullRequest{
-			Repository: repo,
-			Number:     pr.Number,
-			BaseBranch: pr.Base.Ref,
-			HeadBranch: pr.Head.Ref,
-			BaseSha:    pr.Base.Sha,
-			HeadSha:    pr.Head.Sha,
-			Closed:     pr.Closed,
-		})
+		for _, pr := range prList {
+			prs = append(prs, PullRequest{
+				Repository: repo,
+				Number:     pr.Number,
+				BaseBranch: pr.Base.Ref,
+				HeadBranch: pr.Head.Ref,
+				BaseSha:    pr.Base.Sha,
+				HeadSha:    pr.Head.Sha,
+				Closed:     pr.Closed,
+			})
+		}
+
+		if res.Page.Next == 0 {
+			break
+		}
+		opts.Page = res.Page.Next
 	}
 
 	return prs, nil
@@ -75,7 +83,7 @@ func (p *GitHubProvider) AddCommentToPullRequest(ctx context.Context, pr PullReq
 		Body: string(body),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to list pull requests: %w", err)
+		return nil, fmt.Errorf("failed to add comment to pull request: %w", err)
 	}
 
 	return &Comment{
@@ -85,22 +93,33 @@ func (p *GitHubProvider) AddCommentToPullRequest(ctx context.Context, pr PullReq
 }
 
 func (p *GitHubProvider) GetLastComments(ctx context.Context, pr PullRequest, since time.Time) ([]*Comment, error) {
-	// TODO make sure that we get the last comment
-	comments, _, err := p.client.Issues.ListComments(ctx, pr.Repository.String(), pr.Number, &scm.ListOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to list pull requests: %w", err)
+	var allComments []*scm.Comment
+
+	opts := scm.ListOptions{Page: 1, Size: defaultPageSize}
+	for {
+		comments, res, err := p.client.Issues.ListComments(ctx, pr.Repository.String(), pr.Number, &opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list pull request comments: %w", err)
+		}
+
+		allComments = append(allComments, comments...)
+
+		if res.Page.Next == 0 {
+			break
+		}
+		opts.Page = res.Page.Next
 	}
 
-	if len(comments) == 0 {
+	if len(allComments) == 0 {
 		return nil, nil
 	}
 
-	sort.Slice(comments, func(i, j int) bool {
-		return comments[i].Created.After(comments[j].Created)
+	sort.Slice(allComments, func(i, j int) bool {
+		return allComments[i].Created.After(allComments[j].Created)
 	})
 
-	commentsSince := []*Comment{}
-	for _, comment := range comments {
+	var commentsSince []*Comment
+	for _, comment := range allComments {
 		if comment.Created.After(since) {
 			commentsSince = append(commentsSince, &Comment{
 				ID:   comment.ID,

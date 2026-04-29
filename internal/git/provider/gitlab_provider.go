@@ -48,23 +48,31 @@ func (p *GitLabProvider) ListPullRequestChanges(ctx context.Context, pr PullRequ
 }
 
 func (p *GitLabProvider) ListPullRequests(ctx context.Context, repo Repository) ([]PullRequest, error) {
-	prList, _, err := p.client.PullRequests.List(ctx, repo.String(), &scm.PullRequestListOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to list merge requests: %w", err)
-	}
+	var prs []PullRequest
 
-	prs := []PullRequest{}
+	opts := scm.PullRequestListOptions{Page: 1, Size: defaultPageSize}
+	for {
+		prList, res, err := p.client.PullRequests.List(ctx, repo.String(), &opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list merge requests: %w", err)
+		}
 
-	for _, pr := range prList {
-		prs = append(prs, PullRequest{
-			Repository: repo,
-			Number:     pr.Number,
-			BaseBranch: pr.Base.Ref,
-			HeadBranch: pr.Head.Ref,
-			BaseSha:    pr.Base.Sha,
-			HeadSha:    pr.Head.Sha,
-			Closed:     pr.Closed,
-		})
+		for _, pr := range prList {
+			prs = append(prs, PullRequest{
+				Repository: repo,
+				Number:     pr.Number,
+				BaseBranch: pr.Base.Ref,
+				HeadBranch: pr.Head.Ref,
+				BaseSha:    pr.Base.Sha,
+				HeadSha:    pr.Head.Sha,
+				Closed:     pr.Closed,
+			})
+		}
+
+		if res.Page.Next == 0 {
+			break
+		}
+		opts.Page = res.Page.Next
 	}
 
 	return prs, nil
@@ -85,21 +93,33 @@ func (p *GitLabProvider) AddCommentToPullRequest(ctx context.Context, pr PullReq
 }
 
 func (p *GitLabProvider) GetLastComments(ctx context.Context, pr PullRequest, since time.Time) ([]*Comment, error) {
-	comments, _, err := p.client.PullRequests.ListComments(ctx, pr.Repository.String(), pr.Number, &scm.ListOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to list merge request comments: %w", err)
+	var allComments []*scm.Comment
+
+	opts := scm.ListOptions{Page: 1, Size: defaultPageSize}
+	for {
+		comments, res, err := p.client.PullRequests.ListComments(ctx, pr.Repository.String(), pr.Number, &opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list merge request comments: %w", err)
+		}
+
+		allComments = append(allComments, comments...)
+
+		if res.Page.Next == 0 {
+			break
+		}
+		opts.Page = res.Page.Next
 	}
 
-	if len(comments) == 0 {
+	if len(allComments) == 0 {
 		return nil, nil
 	}
 
-	sort.Slice(comments, func(i, j int) bool {
-		return comments[i].Created.After(comments[j].Created)
+	sort.Slice(allComments, func(i, j int) bool {
+		return allComments[i].Created.After(allComments[j].Created)
 	})
 
-	commentsSince := []*Comment{}
-	for _, comment := range comments {
+	var commentsSince []*Comment
+	for _, comment := range allComments {
 		if comment.Created.After(since) {
 			commentsSince = append(commentsSince, &Comment{
 				ID:   comment.ID,

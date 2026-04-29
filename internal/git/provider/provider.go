@@ -92,3 +92,17 @@ func FromURL(repoURL string, options ...ProviderOption) (Provider, Repository, e
 
 	return provider, repo, nil
 }
+
+// RepoFromURL parses a repository URL and returns the Repository without
+// creating a provider. This is useful when the provider is already cached.
+func RepoFromURL(repoURL string) (Repository, error) {
+	gitURL, err := giturl.NewGitURL(repoURL)
+	if err != nil {
+		return Repository{}, fmt.Errorf("failed parsing repository url: %w", err)
+	}
+
+	return Repository{
+		Org:  gitURL.GetOwnerName(),
+		Name: gitURL.GetRepoName(),
+	}, nil
+}

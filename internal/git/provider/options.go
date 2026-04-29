@@ -4,7 +4,12 @@ import (
 	"github.com/go-logr/logr"
 )
 
-const APITokenType = "api-token"
+const (
+	APITokenType = "api-token"
+
+	// defaultPageSize is the number of items to request per page from the SCM API.
+	defaultPageSize = 100
+)
 
 type ProviderOption func(Provider) error
 
