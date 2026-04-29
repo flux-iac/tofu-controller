@@ -6,5 +6,6 @@ func newGiteaProvider() *scmProvider {
 		defaultHostname:     "",
 		usePRComments:       false,
 		supportsEditComment: true,
+		oauthTokenPath:      "/login/oauth/access_token",
 	})
 }

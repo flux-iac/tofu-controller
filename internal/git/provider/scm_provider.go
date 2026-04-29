@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/go-scm/scm/factory"
+	"github.com/jenkins-x/go-scm/scm/transport/oauth2"
 )
 
 // commentService abstracts the difference between providers that use
@@ -36,15 +38,29 @@ type scmProviderConfig struct {
 	// supportsEditComment indicates whether the provider supports FindComment/EditComment.
 	// When false, UpdateCommentOfPullRequest will always create a new comment.
 	supportsEditComment bool
+	// oauthTokenPath is the path appended to the server URL to form the OAuth2
+	// token endpoint (e.g. "/site/oauth2/access_token" for Bitbucket Cloud,
+	// "/login/oauth/access_token" for Gitea). Empty means OAuth2 is not supported.
+	oauthTokenPath string
+}
+
+// SCMOAuthConfig holds OAuth2 credentials for generic SCM providers
+// (Bitbucket Cloud, Gitea) that support the refresh token grant.
+type SCMOAuthConfig struct {
+	ClientID     string
+	ClientSecret string
+	Token        string
+	RefreshToken string
 }
 
 // scmProvider is a generic provider implementation backed by go-scm.
 type scmProvider struct {
-	log      logr.Logger
-	apiToken string
-	hostname string
-	config   scmProviderConfig
-	client   *scm.Client
+	log         logr.Logger
+	apiToken    string
+	hostname    string
+	oauthConfig *SCMOAuthConfig
+	config      scmProviderConfig
+	client      *scm.Client
 }
 
 func (p *scmProvider) comments() commentService {
@@ -224,10 +240,6 @@ func (p *scmProvider) SetHostname(hostname string) error {
 }
 
 func (p *scmProvider) Setup() error {
-	if p.apiToken == "" {
-		return fmt.Errorf("missing required option: Token")
-	}
-
 	if p.hostname == "" {
 		if p.config.defaultHostname == "" {
 			return fmt.Errorf("missing required option: hostname (self-hosted provider)")
@@ -235,12 +247,43 @@ func (p *scmProvider) Setup() error {
 		p.hostname = p.config.defaultHostname
 	}
 
+	serverURL := fmt.Sprintf("https://%s", p.hostname)
+
+	// OAuth2 authentication with auto-refresh.
+	if p.oauthConfig != nil && p.config.oauthTokenPath != "" {
+		var err error
+		p.client, err = factory.NewClient(p.config.driverName, serverURL, "")
+		if err != nil {
+			return fmt.Errorf("failed to create %s client: %w", p.config.driverName, err)
+		}
+
+		refresher := &oauth2.Refresher{
+			ClientID:     p.oauthConfig.ClientID,
+			ClientSecret: p.oauthConfig.ClientSecret,
+			Endpoint:     serverURL + p.config.oauthTokenPath,
+			Source: oauth2.StaticTokenSource(&scm.Token{
+				Token:   p.oauthConfig.Token,
+				Refresh: p.oauthConfig.RefreshToken,
+			}),
+		}
+
+		p.client.Client = &http.Client{
+			Transport: &oauth2.Transport{
+				Scheme: "Bearer",
+				Source: refresher,
+			},
+		}
+
+		return nil
+	}
+
+	// Static token authentication.
+	if p.apiToken == "" {
+		return fmt.Errorf("missing required option: Token")
+	}
+
 	var err error
-	p.client, err = factory.NewClient(
-		p.config.driverName,
-		fmt.Sprintf("https://%s", p.hostname),
-		p.apiToken,
-	)
+	p.client, err = factory.NewClient(p.config.driverName, serverURL, p.apiToken)
 	if err != nil {
 		return fmt.Errorf("failed to create %s client: %w", p.config.driverName, err)
 	}

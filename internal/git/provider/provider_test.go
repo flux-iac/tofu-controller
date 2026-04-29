@@ -230,6 +230,29 @@ func TestOptsFromSecretGitLabOAuthWithToken(t *testing.T) {
 	assert.Len(t, opts, 1)
 }
 
+func TestOptsFromSecretGenericOAuth(t *testing.T) {
+	data := map[string][]byte{
+		"oauthClientID":     []byte("client-id"),
+		"oauthClientSecret": []byte("client-secret"),
+		"oauthRefreshToken": []byte("refresh-token"),
+	}
+	opts, err := provider.OptsFromSecret(data)
+	require.NoError(t, err)
+	assert.Len(t, opts, 1)
+}
+
+func TestOptsFromSecretGenericOAuthWithToken(t *testing.T) {
+	data := map[string][]byte{
+		"token":             []byte("current-access-token"),
+		"oauthClientID":     []byte("client-id"),
+		"oauthClientSecret": []byte("client-secret"),
+		"oauthRefreshToken": []byte("refresh-token"),
+	}
+	opts, err := provider.OptsFromSecret(data)
+	require.NoError(t, err)
+	assert.Len(t, opts, 1)
+}
+
 func TestOptsFromSecretEmpty(t *testing.T) {
 	data := map[string][]byte{}
 	_, err := provider.OptsFromSecret(data)

@@ -70,6 +70,16 @@ func WithGitLabOAuth(cfg GitLabOAuthConfig) ProviderOption {
 	}
 }
 
+func WithSCMOAuth(cfg SCMOAuthConfig) ProviderOption {
+	return func(p Provider) error {
+		if sp, ok := p.(*scmProvider); ok {
+			sp.oauthConfig = &cfg
+			return nil
+		}
+		return nil
+	}
+}
+
 // OptsFromSecret builds provider options from a Kubernetes Secret's data map.
 // It detects the auth type based on which keys are present:
 //
@@ -114,6 +124,22 @@ func OptsFromSecret(data map[string][]byte) ([]ProviderOption, error) {
 		}, nil
 	}
 
+	// Generic OAuth2 authentication (Bitbucket Cloud, Gitea)
+	if data["oauthClientID"] != nil && data["oauthClientSecret"] != nil && data["oauthRefreshToken"] != nil {
+		cfg := SCMOAuthConfig{
+			ClientID:     string(data["oauthClientID"]),
+			ClientSecret: string(data["oauthClientSecret"]),
+			RefreshToken: string(data["oauthRefreshToken"]),
+		}
+		if data["token"] != nil {
+			cfg.Token = string(data["token"])
+		}
+
+		return []ProviderOption{
+			WithSCMOAuth(cfg),
+		}, nil
+	}
+
 	// API token authentication
 	if data["token"] != nil {
 		return []ProviderOption{
@@ -121,5 +147,5 @@ func OptsFromSecret(data map[string][]byte) ([]ProviderOption, error) {
 		}, nil
 	}
 
-	return nil, fmt.Errorf("secret must contain a 'token' key, GitHub App keys (githubAppID, githubAppInstallationID, githubAppPrivateKey), or GitLab OAuth keys (gitlabOAuthClientID, gitlabOAuthClientSecret, gitlabOAuthRefreshToken)")
+	return nil, fmt.Errorf("secret must contain a 'token' key, GitHub App keys, GitLab OAuth keys, or OAuth keys (oauthClientID, oauthClientSecret, oauthRefreshToken)")
 }

@@ -6,6 +6,7 @@ func newBitbucketCloudProvider() *scmProvider {
 		defaultHostname:     "bitbucket.org",
 		usePRComments:       true,
 		supportsEditComment: false,
+		oauthTokenPath:      "/site/oauth2/access_token",
 	})
 }
 

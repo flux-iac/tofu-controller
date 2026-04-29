@@ -319,6 +319,42 @@ derived from the GitRepository source URL (e.g. `https://gitea.mycompany.com/org
 **Note:** Azure DevOps and Gogs are not supported because the go-scm library does not
 implement the comment APIs required by Branch Planner for these providers.
 
+### OAuth2 Auto-Refresh (Bitbucket Cloud and Gitea)
+
+Bitbucket Cloud and Gitea support OAuth2 with refresh tokens, which eliminates
+manual token rotation. The token is refreshed automatically before it expires.
+
+For **Bitbucket Cloud**, register an [OAuth consumer](https://support.atlassian.com/bitbucket-cloud/docs/use-oauth-on-bitbucket-cloud/)
+with the `pullrequest:write` scope and perform the initial authorization flow to
+obtain a refresh token.
+
+For **Gitea**, register an [OAuth2 application](https://docs.gitea.com/development/oauth2-provider)
+in your Gitea instance settings and perform the initial authorization flow.
+
+Create the Secret with OAuth2 credentials:
+
+```bash
+kubectl create secret generic branch-planner-token \
+    --namespace=flux-system \
+    --from-literal="oauthClientID=${CLIENT_ID}" \
+    --from-literal="oauthClientSecret=${CLIENT_SECRET}" \
+    --from-literal="oauthRefreshToken=${REFRESH_TOKEN}"
+```
+
+The access token is obtained and refreshed automatically. The token endpoint
+is determined by the provider (Bitbucket Cloud uses `/site/oauth2/access_token`,
+Gitea uses `/login/oauth/access_token`).
+
+### Authentication Summary
+
+| Provider | Static Token | Auto-Refresh |
+|----------|-------------|--------------|
+| GitHub | `token` (PAT) | `githubAppID` + `githubAppInstallationID` + `githubAppPrivateKey` |
+| GitLab | `token` (PAT/Project/Group Token) | `gitlabOAuthClientID` + `gitlabOAuthClientSecret` + `gitlabOAuthRefreshToken` |
+| Bitbucket Cloud | `token` (App password) | `oauthClientID` + `oauthClientSecret` + `oauthRefreshToken` |
+| Bitbucket Server | `token` (PAT) | Not available (OAuth 1.0a only) |
+| Gitea | `token` (PAT) | `oauthClientID` + `oauthClientSecret` + `oauthRefreshToken` |
+
 ## Enable Branch Planner
 
 To enable branch planner, set the `branchPlanner.enabled` to `true` in the Helm
