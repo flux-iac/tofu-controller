@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/jenkins-x/go-scm/scm"
-	"github.com/jenkins-x/go-scm/scm/driver/github"
 	"github.com/jenkins-x/go-scm/scm/factory"
 )
 
@@ -189,8 +188,6 @@ func (p *GitHubProvider) SetHostname(hostname string) error {
 }
 
 func (p *GitHubProvider) Setup() error {
-	var err error
-
 	if p.apiToken == "" {
 		return fmt.Errorf("missing required option: Token")
 	}
@@ -199,22 +196,17 @@ func (p *GitHubProvider) Setup() error {
 		p.hostname = "github.com"
 	}
 
-	if p.hostname != "" {
-		p.client, err = github.New(fmt.Sprintf("https://%s", p.hostname))
-		if err != nil {
-			return fmt.Errorf("failed to create new github client: %w", err)
-		}
-	} else {
-		p.client = github.NewDefault()
-	}
-
+	var err error
 	p.client, err = factory.NewClient(
 		"github",
 		fmt.Sprintf("https://%s", p.hostname),
 		p.apiToken,
 	)
+	if err != nil {
+		return fmt.Errorf("failed to create github client: %w", err)
+	}
 
-	return err
+	return nil
 }
 
 func newGitHubProvider() *GitHubProvider {

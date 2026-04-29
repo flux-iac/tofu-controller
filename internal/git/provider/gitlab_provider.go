@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/jenkins-x/go-scm/scm"
-	"github.com/jenkins-x/go-scm/scm/driver/gitlab"
 	"github.com/jenkins-x/go-scm/scm/factory"
 )
 
@@ -184,8 +183,6 @@ func (p *GitLabProvider) SetHostname(hostname string) error {
 }
 
 func (p *GitLabProvider) Setup() error {
-	var err error
-
 	if p.apiToken == "" {
 		return fmt.Errorf("missing required option: Token")
 	}
@@ -194,22 +191,17 @@ func (p *GitLabProvider) Setup() error {
 		p.hostname = "gitlab.com"
 	}
 
-	if p.hostname != "" {
-		p.client, err = gitlab.New(fmt.Sprintf("https://%s", p.hostname))
-		if err != nil {
-			return fmt.Errorf("failed to create new gitlab client: %w", err)
-		}
-	} else {
-		p.client = gitlab.NewDefault()
-	}
-
+	var err error
 	p.client, err = factory.NewClient(
 		"gitlab",
 		fmt.Sprintf("https://%s", p.hostname),
 		p.apiToken,
 	)
+	if err != nil {
+		return fmt.Errorf("failed to create gitlab client: %w", err)
+	}
 
-	return err
+	return nil
 }
 
 func newGitLabProvider() *GitLabProvider {
