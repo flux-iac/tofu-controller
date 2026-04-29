@@ -163,6 +163,29 @@ func TestOptsFromSecretInvalidAppID(t *testing.T) {
 	assert.Contains(t, err.Error(), "githubAppID")
 }
 
+func TestOptsFromSecretGitLabOAuth(t *testing.T) {
+	data := map[string][]byte{
+		"gitlabOAuthClientID":     []byte("client-id"),
+		"gitlabOAuthClientSecret": []byte("client-secret"),
+		"gitlabOAuthRefreshToken": []byte("refresh-token"),
+	}
+	opts, err := provider.OptsFromSecret(data)
+	require.NoError(t, err)
+	assert.Len(t, opts, 1)
+}
+
+func TestOptsFromSecretGitLabOAuthWithToken(t *testing.T) {
+	data := map[string][]byte{
+		"token":                   []byte("current-access-token"),
+		"gitlabOAuthClientID":     []byte("client-id"),
+		"gitlabOAuthClientSecret": []byte("client-secret"),
+		"gitlabOAuthRefreshToken": []byte("refresh-token"),
+	}
+	opts, err := provider.OptsFromSecret(data)
+	require.NoError(t, err)
+	assert.Len(t, opts, 1)
+}
+
 func TestOptsFromSecretEmpty(t *testing.T) {
 	data := map[string][]byte{}
 	_, err := provider.OptsFromSecret(data)

@@ -232,6 +232,48 @@ kubectl create secret generic branch-planner-token \
 The installation token is generated and refreshed automatically by the
 controller. You do not need to manage token expiry.
 
+##### GitLab OAuth2 (recommended for GitLab)
+
+GitLab OAuth2 provides automatic token refresh, removing the need to
+manually rotate tokens before they expire. This is the recommended
+approach for production GitLab deployments.
+
+1. Register an [OAuth2 application](https://docs.gitlab.com/ee/integration/oauth_provider.html)
+   in your GitLab instance (under User Settings > Applications, or
+   Group/Admin settings for broader scope). Set the redirect URI to
+   `http://localhost` (it is only used during the initial token grant)
+   and select the `api` scope.
+
+2. Perform the initial OAuth2 authorization to obtain a refresh token.
+   You can use any OAuth2 tool or `curl`:
+
+    ```bash
+    # 1. Visit this URL in your browser and authorize:
+    # https://gitlab.com/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=http://localhost&response_type=code&scope=api
+
+    # 2. Copy the 'code' parameter from the redirect URL, then exchange it:
+    curl -s -X POST "https://gitlab.com/oauth/token" \
+      -d "client_id=${CLIENT_ID}" \
+      -d "client_secret=${CLIENT_SECRET}" \
+      -d "code=${AUTH_CODE}" \
+      -d "grant_type=authorization_code" \
+      -d "redirect_uri=http://localhost"
+    ```
+
+3. Create the Secret with the OAuth2 credentials:
+
+    ```bash
+    kubectl create secret generic branch-planner-token \
+        --namespace=flux-system \
+        --from-literal="gitlabOAuthClientID=${CLIENT_ID}" \
+        --from-literal="gitlabOAuthClientSecret=${CLIENT_SECRET}" \
+        --from-literal="gitlabOAuthRefreshToken=${REFRESH_TOKEN}"
+    ```
+
+The access token is obtained and refreshed automatically by the
+controller using the refresh token. You do not need to manage token
+expiry.
+
 #### Resources
 
 If the `resources` list is empty, nothing will be watched. The resource definition

@@ -21,6 +21,15 @@ type GitHubAppConfig struct {
 	PrivateKey     []byte
 }
 
+// GitLabOAuthConfig holds the configuration for GitLab OAuth2 authentication
+// with automatic token refresh.
+type GitLabOAuthConfig struct {
+	ClientID     string
+	ClientSecret string
+	Token        string
+	RefreshToken string
+}
+
 type ProviderOption func(Provider) error
 
 func WithLogger(log logr.Logger) ProviderOption {
@@ -51,11 +60,22 @@ func WithGitHubApp(cfg GitHubAppConfig) ProviderOption {
 	}
 }
 
+func WithGitLabOAuth(cfg GitLabOAuthConfig) ProviderOption {
+	return func(p Provider) error {
+		if gl, ok := p.(*GitLabProvider); ok {
+			gl.oauthConfig = &cfg
+			return nil
+		}
+		return nil
+	}
+}
+
 // OptsFromSecret builds provider options from a Kubernetes Secret's data map.
 // It detects the auth type based on which keys are present:
 //
-//   - "token": API token auth (PAT, Project/Group Access Token, etc.)
 //   - "githubAppID" + "githubAppInstallationID" + "githubAppPrivateKey": GitHub App auth
+//   - "gitlabOAuthClientID" + "gitlabOAuthClientSecret" + "gitlabOAuthRefreshToken": GitLab OAuth2 with auto-refresh
+//   - "token": API token auth (PAT, Project/Group Access Token, etc.)
 func OptsFromSecret(data map[string][]byte) ([]ProviderOption, error) {
 	// GitHub App authentication
 	if data["githubAppID"] != nil && data["githubAppInstallationID"] != nil && data["githubAppPrivateKey"] != nil {
@@ -78,6 +98,22 @@ func OptsFromSecret(data map[string][]byte) ([]ProviderOption, error) {
 		}, nil
 	}
 
+	// GitLab OAuth2 authentication with auto-refresh
+	if data["gitlabOAuthClientID"] != nil && data["gitlabOAuthClientSecret"] != nil && data["gitlabOAuthRefreshToken"] != nil {
+		cfg := GitLabOAuthConfig{
+			ClientID:     string(data["gitlabOAuthClientID"]),
+			ClientSecret: string(data["gitlabOAuthClientSecret"]),
+			RefreshToken: string(data["gitlabOAuthRefreshToken"]),
+		}
+		if data["token"] != nil {
+			cfg.Token = string(data["token"])
+		}
+
+		return []ProviderOption{
+			WithGitLabOAuth(cfg),
+		}, nil
+	}
+
 	// API token authentication
 	if data["token"] != nil {
 		return []ProviderOption{
@@ -85,5 +121,5 @@ func OptsFromSecret(data map[string][]byte) ([]ProviderOption, error) {
 		}, nil
 	}
 
-	return nil, fmt.Errorf("secret must contain either a 'token' key or GitHub App keys (githubAppID, githubAppInstallationID, githubAppPrivateKey)")
+	return nil, fmt.Errorf("secret must contain a 'token' key, GitHub App keys (githubAppID, githubAppInstallationID, githubAppPrivateKey), or GitLab OAuth keys (gitlabOAuthClientID, gitlabOAuthClientSecret, gitlabOAuthRefreshToken)")
 }

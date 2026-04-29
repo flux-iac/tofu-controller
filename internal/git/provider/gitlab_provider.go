@@ -4,20 +4,24 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/jenkins-x/go-scm/scm"
+	"github.com/jenkins-x/go-scm/scm/driver/gitlab"
 	"github.com/jenkins-x/go-scm/scm/factory"
+	"github.com/jenkins-x/go-scm/scm/transport/oauth2"
 )
 
 type GitLabProvider struct {
-	log      logr.Logger
-	apiToken string
-	hostname string
-	client   *scm.Client
+	log         logr.Logger
+	apiToken    string
+	hostname    string
+	oauthConfig *GitLabOAuthConfig
+	client      *scm.Client
 }
 
 func (p *GitLabProvider) ListPullRequestChanges(ctx context.Context, pr PullRequest) ([]Change, error) {
@@ -183,20 +187,48 @@ func (p *GitLabProvider) SetHostname(hostname string) error {
 }
 
 func (p *GitLabProvider) Setup() error {
-	if p.apiToken == "" {
-		return fmt.Errorf("missing required option: Token")
-	}
-
 	if p.hostname == "" {
 		p.hostname = "gitlab.com"
 	}
 
+	serverURL := fmt.Sprintf("https://%s", p.hostname)
+
+	// OAuth2 authentication: uses a refresh token to obtain and
+	// automatically renew access tokens before they expire.
+	if p.oauthConfig != nil {
+		var err error
+		p.client, err = gitlab.New(serverURL)
+		if err != nil {
+			return fmt.Errorf("failed to create gitlab client: %w", err)
+		}
+
+		refresher := &oauth2.Refresher{
+			ClientID:     p.oauthConfig.ClientID,
+			ClientSecret: p.oauthConfig.ClientSecret,
+			Endpoint:     serverURL + "/oauth/token",
+			Source: oauth2.StaticTokenSource(&scm.Token{
+				Token:   p.oauthConfig.Token,
+				Refresh: p.oauthConfig.RefreshToken,
+			}),
+		}
+
+		p.client.Client = &http.Client{
+			Transport: &oauth2.Transport{
+				Scheme: "Bearer",
+				Source: refresher,
+			},
+		}
+
+		return nil
+	}
+
+	// Static token authentication (PAT, Project/Group Access Token).
+	if p.apiToken == "" {
+		return fmt.Errorf("missing required option: Token or GitLabOAuth config")
+	}
+
 	var err error
-	p.client, err = factory.NewClient(
-		"gitlab",
-		fmt.Sprintf("https://%s", p.hostname),
-		p.apiToken,
-	)
+	p.client, err = factory.NewClient("gitlab", serverURL, p.apiToken)
 	if err != nil {
 		return fmt.Errorf("failed to create gitlab client: %w", err)
 	}
