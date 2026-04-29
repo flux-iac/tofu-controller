@@ -31,6 +31,21 @@ func TestFromURL(t *testing.T) {
 			repoName: "tofu-controller",
 		},
 		{
+			url:      "https://gitlab.com/flux-iac/tofu-controller",
+			repoOrg:  "flux-iac",
+			repoName: "tofu-controller",
+		},
+		{
+			url:      "https://gitlab.com/flux-iac/tofu-controller.git",
+			repoOrg:  "flux-iac",
+			repoName: "tofu-controller",
+		},
+		{
+			url:      "ssh://git@gitlab.com/flux-iac/tofu-controller.git",
+			repoOrg:  "flux-iac",
+			repoName: "tofu-controller",
+		},
+		{
 			url:         "https://github.com/flux-iac",
 			shouldError: true,
 		},

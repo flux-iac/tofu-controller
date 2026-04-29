@@ -16,7 +16,6 @@ import (
 	"github.com/flux-iac/tofu-controller/internal/git/provider"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/go-logr/logr"
-	giturl "github.com/kubescape/go-git-url"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -38,6 +37,7 @@ type Informer struct {
 	log            logr.Logger
 	client         client.Client
 	gitProvider    provider.Provider
+	providerOpts   []provider.ProviderOption
 
 	mux    *sync.RWMutex
 	synced bool
@@ -341,15 +341,14 @@ func (i *Informer) getRepo(ctx context.Context, tf *infrav1.Terraform) (provider
 		return provider.Repository{}, fmt.Errorf("unable to get Source: %w", err)
 	}
 
-	gitURL, err := giturl.NewGitURL(obj.Spec.URL)
+	gitProvider, repo, err := provider.FromURL(obj.Spec.URL, i.providerOpts...)
 	if err != nil {
-		return provider.Repository{}, fmt.Errorf("failed parsing repository url: %w", err)
+		return provider.Repository{}, fmt.Errorf("failed resolving git provider from URL: %w", err)
 	}
 
-	return provider.Repository{
-		Org:  gitURL.GetOwnerName(),
-		Name: gitURL.GetRepoName(),
-	}, nil
+	i.gitProvider = gitProvider
+
+	return repo, nil
 }
 
 func formatPlanOutput(planOutput string) []byte {

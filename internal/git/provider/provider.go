@@ -42,6 +42,8 @@ func New(provider ProviderType, options ...ProviderOption) (Provider, error) {
 	switch provider {
 	case ProviderGitHub:
 		p = newGitHubProvider()
+	case ProviderGitlab:
+		p = newGitLabProvider()
 	default:
 		return nil, fmt.Errorf("unknown provider: %s", provider)
 	}
