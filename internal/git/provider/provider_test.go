@@ -57,6 +57,12 @@ func TestFromURL(t *testing.T) {
 			repoName: "my-repo",
 		},
 		{
+			url:         "https://dev.azure.com/myorg/myproject/_git/myrepo",
+			repoOrg:     "myorg",
+			repoName:    "myrepo",
+			repoProject: "myproject",
+		},
+		{
 			url:         "https://github.com/flux-iac",
 			shouldError: true,
 		},
@@ -135,6 +141,12 @@ func TestNewGiteaProviderMissingHostname(t *testing.T) {
 	_, err := provider.New(provider.ProviderGitea, provider.WithToken("api-token", "test-token"))
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "hostname")
+}
+
+func TestNewAzureProvider(t *testing.T) {
+	p, err := provider.New(provider.ProviderAzure, provider.WithToken("api-token", "test-token"))
+	require.NoError(t, err)
+	assert.NotNil(t, p)
 }
 
 func TestNewUnknownProvider(t *testing.T) {

@@ -308,6 +308,7 @@ Branch Planner automatically detects the Git provider from the GitRepository sou
 | Bitbucket Cloud | `https://bitbucket.org/team/repo` | Bitbucket | Create only |
 | Bitbucket Server | Self-hosted (set via `WithDomain`) | Bitbucket Server | Full |
 | Gitea | Self-hosted (set via `WithDomain`) | Gitea | Full |
+| Azure DevOps | `https://dev.azure.com/org/project/_git/repo` | Azure | Experimental |
 
 The same `branch-planner-token` Secret is used for all providers. The API token format depends on your provider.
 
@@ -316,8 +317,14 @@ The same `branch-planner-token` Secret is used for all providers. The API token 
 **Note:** Bitbucket Server and Gitea are self-hosted only and require the hostname to be
 derived from the GitRepository source URL (e.g. `https://gitea.mycompany.com/org/repo`).
 
-**Note:** Azure DevOps and Gogs are not supported because the go-scm library does not
-implement the comment APIs required by Branch Planner for these providers.
+**Note:** Azure DevOps support is experimental. The underlying go-scm library has limited
+implementation of the comment APIs for Azure DevOps — listing PRs and changes works, but
+commenting may return errors. This will improve as go-scm adds full Azure DevOps support.
+Azure DevOps URLs include a project component (e.g. `dev.azure.com/org/project/_git/repo`)
+which is automatically extracted.
+
+**Note:** Gogs is not supported because the go-scm library does not implement the comment
+APIs required by Branch Planner.
 
 ### OAuth2 Auto-Refresh (Bitbucket Cloud and Gitea)
 
@@ -354,6 +361,7 @@ Gitea uses `/login/oauth/access_token`).
 | Bitbucket Cloud | `token` (App password) | `oauthClientID` + `oauthClientSecret` + `oauthRefreshToken` |
 | Bitbucket Server | `token` (PAT) | Not available (OAuth 1.0a only) |
 | Gitea | `token` (PAT) | `oauthClientID` + `oauthClientSecret` + `oauthRefreshToken` |
+| Azure DevOps | `token` (PAT) | Not available |
 
 ## Enable Branch Planner
 

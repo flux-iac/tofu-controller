@@ -8,6 +8,7 @@ import (
 	"github.com/go-logr/logr"
 	giturl "github.com/kubescape/go-git-url"
 	giturlapis "github.com/kubescape/go-git-url/apis"
+	azureparserv1 "github.com/kubescape/go-git-url/azureparser/v1"
 )
 
 type ProviderType string
@@ -52,6 +53,8 @@ func New(provider ProviderType, options ...ProviderOption) (Provider, error) {
 		p = newBitbucketServerProvider()
 	case ProviderGitea:
 		p = newGiteaProvider()
+	case ProviderAzure:
+		p = newAzureProvider()
 	default:
 		return nil, fmt.Errorf("unknown provider: %s", provider)
 	}
@@ -81,10 +84,9 @@ func FromURL(repoURL string, options ...ProviderOption) (Provider, Repository, e
 		Name: gitURL.GetRepoName(),
 	}
 
-	// Uncomment this when implementing Azure provider
-	// if targetProvider == ProviderAzure {
-	// 	repo.Project = gitURL.(*azureparserv1.AzureURL).GetProjectName()
-	// }
+	if targetProvider == ProviderAzure {
+		repo.Project = gitURL.(*azureparserv1.AzureURL).GetProjectName()
+	}
 
 	// Pass the hostname from the URL so self-hosted instances
 	// (e.g. gitlab.mycompany.com, github.enterprise.com) are
@@ -109,8 +111,14 @@ func RepoFromURL(repoURL string) (Repository, error) {
 		return Repository{}, fmt.Errorf("failed parsing repository url: %w", err)
 	}
 
-	return Repository{
+	repo := Repository{
 		Org:  gitURL.GetOwnerName(),
 		Name: gitURL.GetRepoName(),
-	}, nil
+	}
+
+	if ProviderType(gitURL.GetProvider()) == ProviderAzure {
+		repo.Project = gitURL.(*azureparserv1.AzureURL).GetProjectName()
+	}
+
+	return repo, nil
 }
