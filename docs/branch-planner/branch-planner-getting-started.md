@@ -299,14 +299,25 @@ If no ConfigMap is found, the Branch Planner will not watch any namespaces for T
 
 Branch Planner automatically detects the Git provider from the GitRepository source URL:
 
-| Provider | Example URL | Detected As |
-|----------|-------------|-------------|
-| GitHub | `https://github.com/org/repo` | GitHub |
-| GitHub Enterprise | `https://github.mycompany.com/org/repo` | GitHub |
-| GitLab | `https://gitlab.com/group/project` | GitLab |
-| Self-hosted GitLab | `https://gitlab.mycompany.com/group/project` | GitLab |
+| Provider | Example URL | Detected As | Comment Editing |
+|----------|-------------|-------------|-----------------|
+| GitHub | `https://github.com/org/repo` | GitHub | Full |
+| GitHub Enterprise | `https://github.mycompany.com/org/repo` | GitHub | Full |
+| GitLab | `https://gitlab.com/group/project` | GitLab | Full |
+| Self-hosted GitLab | `https://gitlab.mycompany.com/group/project` | GitLab | Full |
+| Bitbucket Cloud | `https://bitbucket.org/team/repo` | Bitbucket | Create only |
+| Bitbucket Server | Self-hosted (set via `WithDomain`) | Bitbucket Server | Full |
+| Gitea | Self-hosted (set via `WithDomain`) | Gitea | Full |
 
 The same `branch-planner-token` Secret is used for all providers. The API token format depends on your provider.
+
+**Note:** Bitbucket Cloud does not support editing existing comments through the API. Each plan update will create a new comment instead of updating the previous one.
+
+**Note:** Bitbucket Server and Gitea are self-hosted only and require the hostname to be
+derived from the GitRepository source URL (e.g. `https://gitea.mycompany.com/org/repo`).
+
+**Note:** Azure DevOps and Gogs are not supported because the go-scm library does not
+implement the comment APIs required by Branch Planner for these providers.
 
 ## Enable Branch Planner
 

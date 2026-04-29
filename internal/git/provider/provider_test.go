@@ -47,6 +47,16 @@ func TestFromURL(t *testing.T) {
 			repoName: "tofu-controller",
 		},
 		{
+			url:      "https://bitbucket.org/team/my-repo",
+			repoOrg:  "team",
+			repoName: "my-repo",
+		},
+		{
+			url:      "ssh://git@bitbucket.org/team/my-repo.git",
+			repoOrg:  "team",
+			repoName: "my-repo",
+		},
+		{
 			url:         "https://github.com/flux-iac",
 			shouldError: true,
 		},
@@ -91,6 +101,40 @@ func TestNewGitHubProvider(t *testing.T) {
 	p, err := provider.New(provider.ProviderGitHub, provider.WithToken("api-token", "test-token"))
 	require.NoError(t, err)
 	assert.NotNil(t, p)
+}
+
+func TestNewBitbucketCloudProvider(t *testing.T) {
+	p, err := provider.New(provider.ProviderBitbucket, provider.WithToken("api-token", "test-token"))
+	require.NoError(t, err)
+	assert.NotNil(t, p)
+}
+
+func TestNewBitbucketServerProvider(t *testing.T) {
+	p, err := provider.New(provider.ProviderBitbucketServer, provider.WithToken("api-token", "test-token"), provider.WithDomain("bitbucket.mycompany.com"))
+	require.NoError(t, err)
+	assert.NotNil(t, p)
+}
+
+func TestNewBitbucketServerProviderMissingHostname(t *testing.T) {
+	_, err := provider.New(provider.ProviderBitbucketServer, provider.WithToken("api-token", "test-token"))
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "hostname")
+}
+
+func TestNewGiteaProvider(t *testing.T) {
+	// Gitea's factory.NewClient verifies the server by calling /api/v1/version,
+	// so creation fails with a dial error for fake hostnames. We verify that the
+	// error is a network error (not a config error) to confirm the provider was
+	// correctly configured up to the point of the network call.
+	_, err := provider.New(provider.ProviderGitea, provider.WithToken("api-token", "test-token"), provider.WithDomain("gitea.test.invalid"))
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "gitea.test.invalid")
+}
+
+func TestNewGiteaProviderMissingHostname(t *testing.T) {
+	_, err := provider.New(provider.ProviderGitea, provider.WithToken("api-token", "test-token"))
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "hostname")
 }
 
 func TestNewUnknownProvider(t *testing.T) {

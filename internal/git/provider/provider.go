@@ -13,10 +13,12 @@ import (
 type ProviderType string
 
 const (
-	ProviderGitHub    = ProviderType(giturlapis.ProviderGitHub)
-	ProviderGitlab    = ProviderType(giturlapis.ProviderGitLab)
-	ProviderBitbucket = ProviderType(giturlapis.ProviderBitBucket)
-	ProviderAzure     = ProviderType(giturlapis.ProviderAzure)
+	ProviderGitHub          = ProviderType(giturlapis.ProviderGitHub)
+	ProviderGitlab          = ProviderType(giturlapis.ProviderGitLab)
+	ProviderBitbucket       = ProviderType(giturlapis.ProviderBitBucket)
+	ProviderAzure           = ProviderType(giturlapis.ProviderAzure)
+	ProviderBitbucketServer = ProviderType("bitbucketserver")
+	ProviderGitea           = ProviderType("gitea")
 )
 
 type URLParserFn = func(repoURL string, options ...ProviderOption) (Provider, Repository, error)
@@ -44,6 +46,12 @@ func New(provider ProviderType, options ...ProviderOption) (Provider, error) {
 		p = newGitHubProvider()
 	case ProviderGitlab:
 		p = newGitLabProvider()
+	case ProviderBitbucket:
+		p = newBitbucketCloudProvider()
+	case ProviderBitbucketServer:
+		p = newBitbucketServerProvider()
+	case ProviderGitea:
+		p = newGiteaProvider()
 	default:
 		return nil, fmt.Errorf("unknown provider: %s", provider)
 	}

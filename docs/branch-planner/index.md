@@ -4,7 +4,7 @@ The GitOps methodology streamlines infrastructure provisioning and management, u
 
 The Branch Planner's most important feature is its seamless integration with the Pull Request / Merge Request user interface. When enabled through Helm values, it watches repositories that contain Terraform resources at regular intervals—checking their referenced Source, and polling for Pull Requests (GitHub) or Merge Requests (GitLab) using the provider's API and the provided token. When changes are proposed on a new branch, Branch Planner runs a plan in the cluster and displays the results directly as comments on your PR/MR. Once you're satisfied with the results, you can merge your branch into the `main` branch to trigger the TF-Controller to reconcile the updated code.
 
-Branch Planner supports both **GitHub** (including GitHub Enterprise) and **GitLab** (including self-hosted instances). The provider is automatically detected from the GitRepository source URL.
+Branch Planner supports **GitHub** (including GitHub Enterprise), **GitLab** (including self-hosted), **Bitbucket Cloud**, **Bitbucket Server**, and **Gitea**. The provider is automatically detected from the GitRepository source URL.
 
 ![branch planner](branch-planner.png)
 
