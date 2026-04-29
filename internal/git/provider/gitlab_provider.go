@@ -71,7 +71,7 @@ func (p *GitLabProvider) ListPullRequests(ctx context.Context, repo Repository) 
 }
 
 func (p *GitLabProvider) AddCommentToPullRequest(ctx context.Context, pr PullRequest, body []byte) (*Comment, error) {
-	comment, _, err := p.client.Issues.CreateComment(ctx, pr.Repository.String(), pr.Number, &scm.CommentInput{
+	comment, _, err := p.client.PullRequests.CreateComment(ctx, pr.Repository.String(), pr.Number, &scm.CommentInput{
 		Body: string(body),
 	})
 	if err != nil {
@@ -85,7 +85,7 @@ func (p *GitLabProvider) AddCommentToPullRequest(ctx context.Context, pr PullReq
 }
 
 func (p *GitLabProvider) GetLastComments(ctx context.Context, pr PullRequest, since time.Time) ([]*Comment, error) {
-	comments, _, err := p.client.Issues.ListComments(ctx, pr.Repository.String(), pr.Number, &scm.ListOptions{})
+	comments, _, err := p.client.PullRequests.ListComments(ctx, pr.Repository.String(), pr.Number, &scm.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list merge request comments: %w", err)
 	}
@@ -113,11 +113,11 @@ func (p *GitLabProvider) GetLastComments(ctx context.Context, pr PullRequest, si
 }
 
 func (p *GitLabProvider) UpdateCommentOfPullRequest(ctx context.Context, pr PullRequest, commentID int, body []byte) error {
-	comment, _, err := p.client.Issues.FindComment(ctx, pr.Repository.String(), pr.Number, commentID)
+	comment, _, err := p.client.PullRequests.FindComment(ctx, pr.Repository.String(), pr.Number, commentID)
 
 	if err != nil {
 		if errors.Is(err, scm.ErrNotFound) {
-			_, _, err = p.client.Issues.CreateComment(ctx, pr.Repository.String(), pr.Number, &scm.CommentInput{
+			_, _, err = p.client.PullRequests.CreateComment(ctx, pr.Repository.String(), pr.Number, &scm.CommentInput{
 				Body: string(body),
 			})
 		}
@@ -126,14 +126,14 @@ func (p *GitLabProvider) UpdateCommentOfPullRequest(ctx context.Context, pr Pull
 	}
 
 	if strings.Contains(comment.Body, "```hcl") {
-		_, _, err := p.client.Issues.CreateComment(ctx, pr.Repository.String(), pr.Number, &scm.CommentInput{
+		_, _, err := p.client.PullRequests.CreateComment(ctx, pr.Repository.String(), pr.Number, &scm.CommentInput{
 			Body: string(body),
 		})
 
 		return err
 	}
 
-	_, _, err = p.client.Issues.EditComment(ctx, pr.Repository.String(), pr.Number, commentID, &scm.CommentInput{
+	_, _, err = p.client.PullRequests.EditComment(ctx, pr.Repository.String(), pr.Number, commentID, &scm.CommentInput{
 		Body: string(body),
 	})
 
