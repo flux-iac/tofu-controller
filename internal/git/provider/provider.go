@@ -78,6 +78,13 @@ func FromURL(repoURL string, options ...ProviderOption) (Provider, Repository, e
 	// 	repo.Project = gitURL.(*azureparserv1.AzureURL).GetProjectName()
 	// }
 
+	// Pass the hostname from the URL so self-hosted instances
+	// (e.g. gitlab.mycompany.com, github.enterprise.com) are
+	// configured with the correct API endpoint.
+	if hostname := gitURL.GetHostName(); hostname != "" {
+		options = append([]ProviderOption{WithDomain(hostname)}, options...)
+	}
+
 	provider, err := New(targetProvider, options...)
 	if err != nil {
 		return nil, repo, err

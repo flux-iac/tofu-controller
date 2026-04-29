@@ -3,15 +3,20 @@
 ## Prerequisites
 
 1. Flux is installed on the cluster.
-2. A GitHub API token. For public repositories, it's sufficient to enable `Public Repositories` without
-any additional permissions. For private repositories, you need the following permissions:
-  - `Pull requests` with Read-Write access. This is required to check Pull Request
-  changes, list comments, and create or update comments.
-  - `Metadata` with Read-only access. This is automatically marked as "mandatory"
-  because of the permissions listed above.
+2. An API token for your Git provider (GitHub or GitLab).
+   - **GitHub**: For public repositories, it's sufficient to enable `Public Repositories` without
+   any additional permissions. For private repositories, you need the following permissions:
+     - `Pull requests` with Read-Write access. This is required to check Pull Request
+     changes, list comments, and create or update comments.
+     - `Metadata` with Read-only access. This is automatically marked as "mandatory"
+     because of the permissions listed above.
+   - **GitLab**: Create a [Personal Access Token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html)
+   or [Project Access Token](https://docs.gitlab.com/ee/user/project/settings/project_access_tokens.html)
+   with the `api` scope. This is required to list merge requests, read changes, and
+   create or update comments on merge requests.
 3. General knowledge about Tofu-Controller [(see docs)](https://flux-iac.github.io/tofu-controller/).
 
-## Quick Start
+## Quick Start (GitHub)
 
 This section describes how to install Branch Planner using a HelmRelease object in the `flux-system` namespace with minimum configuration on a KinD cluster.
 
@@ -80,6 +85,78 @@ This section describes how to install Branch Planner using a HelmRelease object 
 
 6. Now you can create a pull request on your GitHub repo. The Branch Planner will create a new Terraform object with the plan-only mode enabled and will generate a new plan for you. It will post the plan as a new comment in the pull request.
 
+## Quick Start (GitLab)
+
+Branch Planner supports GitLab (both gitlab.com and self-hosted instances). The provider is automatically detected from the GitRepository source URL.
+
+1. Follow steps 1 and 2 above to create a cluster and install Flux.
+
+2. Create a secret that contains a GitLab API token.
+
+    ```shell
+    kubectl create secret generic branch-planner-token \
+        --namespace=flux-system \
+        --from-literal="token=${GITLAB_TOKEN}"
+    ```
+
+3. Install Branch Planner (same as step 4 above).
+
+4. Create a Terraform object with a Source pointing to your GitLab repository.
+
+    ```bash
+    export GITLAB_GROUP=<your group or user>
+    export GITLAB_PROJECT=<your project>
+
+    cat <<EOF | kubectl apply -f -
+    ---
+    apiVersion: source.toolkit.fluxcd.io/v1
+    kind: GitRepository
+    metadata:
+      name: branch-planner-demo
+      namespace: flux-system
+    spec:
+      interval: 30s
+      url: https://gitlab.com/${GITLAB_GROUP}/${GITLAB_PROJECT}
+      ref:
+        branch: main
+    ---
+    apiVersion: infra.contrib.fluxcd.io/v1alpha2
+    kind: Terraform
+    metadata:
+      name: branch-planner-demo
+      namespace: flux-system
+    spec:
+      approvePlan: auto
+      path: ./
+      interval: 1m
+      sourceRef:
+        kind: GitRepository
+        name: branch-planner-demo
+        namespace: flux-system
+    EOF
+    ```
+
+5. Now you can create a merge request on your GitLab project. The Branch Planner will create a new Terraform object with the plan-only mode enabled and will generate a new plan for you. It will post the plan as a new comment on your merge request.
+
+### Self-Hosted GitLab
+
+For self-hosted GitLab instances, use the URL of your instance in the GitRepository source. The Branch Planner automatically extracts the hostname from the source URL and configures the API client accordingly.
+
+```yaml
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: my-infra
+  namespace: flux-system
+spec:
+  interval: 30s
+  url: https://gitlab.mycompany.com/infrastructure/terraform-modules
+  ref:
+    branch: main
+```
+
+No additional configuration is required beyond pointing the source URL to your self-hosted instance.
+
 ## Configure Branch Planner
 
 Branch Planner uses a ConfigMap as configuration. The ConfigMap is optional but useful for fine-tuning Branch Planner.
@@ -91,7 +168,7 @@ That ConfigMap allows users to specify which Terraform resources in a cluster th
 
 The ConfigMap has two fields:
 
-1. `secretName`, which contains the API token to access GitHub.
+1. `secretName`, which contains the API token to access your Git provider (GitHub or GitLab).
 2. `resources`, which defines a list of resources to watch.
 
 ```yaml
@@ -111,12 +188,22 @@ data:
 #### Secret
 
 Branch Planner uses the referenced Secret with a `token` field that acquires the
-API token to fetch pull request information.
+API token to fetch pull request or merge request information.
+
+For GitHub:
 
 ```bash
 kubectl create secret generic branch-planner-token \
     --namespace=flux-system \
     --from-literal="token=${GITHUB_TOKEN}"
+```
+
+For GitLab:
+
+```bash
+kubectl create secret generic branch-planner-token \
+    --namespace=flux-system \
+    --from-literal="token=${GITLAB_TOKEN}"
 ```
 
 #### Resources
@@ -138,7 +225,20 @@ data:
 
 ### Default Configuration
 
-If no ConfigMap is found, the Branch Planner will not watch any namespaces for Terraform resources and look for a GitHub token in a secret named `branch-planner-token` in the `flux-system` namespace. Supplying a secret with a token is a necessary task, otherwise Branch Planner will not be able to interact with the GitHub API.
+If no ConfigMap is found, the Branch Planner will not watch any namespaces for Terraform resources and look for a token in a secret named `branch-planner-token` in the `flux-system` namespace. Supplying a secret with a token is a necessary task, otherwise Branch Planner will not be able to interact with the Git provider API.
+
+### Supported Providers
+
+Branch Planner automatically detects the Git provider from the GitRepository source URL:
+
+| Provider | Example URL | Detected As |
+|----------|-------------|-------------|
+| GitHub | `https://github.com/org/repo` | GitHub |
+| GitHub Enterprise | `https://github.mycompany.com/org/repo` | GitHub |
+| GitLab | `https://gitlab.com/group/project` | GitLab |
+| Self-hosted GitLab | `https://gitlab.mycompany.com/group/project` | GitLab |
+
+The same `branch-planner-token` Secret is used for all providers. The API token format depends on your provider.
 
 ## Enable Branch Planner
 
