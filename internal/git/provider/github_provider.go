@@ -4,20 +4,24 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/go-logr/logr"
 	"github.com/jenkins-x/go-scm/scm"
+	"github.com/jenkins-x/go-scm/scm/driver/github"
 	"github.com/jenkins-x/go-scm/scm/factory"
 )
 
 type GitHubProvider struct {
-	log      logr.Logger
-	apiToken string
-	hostname string
-	client   *scm.Client
+	log       logr.Logger
+	apiToken  string
+	hostname  string
+	appConfig *GitHubAppConfig
+	client    *scm.Client
 }
 
 func (p *GitHubProvider) ListPullRequestChanges(ctx context.Context, pr PullRequest) ([]Change, error) {
@@ -188,20 +192,45 @@ func (p *GitHubProvider) SetHostname(hostname string) error {
 }
 
 func (p *GitHubProvider) Setup() error {
-	if p.apiToken == "" {
-		return fmt.Errorf("missing required option: Token")
-	}
-
 	if p.hostname == "" {
 		p.hostname = "github.com"
 	}
 
+	serverURL := fmt.Sprintf("https://%s", p.hostname)
+
+	// GitHub App authentication: uses a short-lived installation token
+	// that is automatically refreshed by the ghinstallation transport.
+	if p.appConfig != nil {
+		transport, err := ghinstallation.New(
+			http.DefaultTransport,
+			p.appConfig.AppID,
+			p.appConfig.InstallationID,
+			p.appConfig.PrivateKey,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to create github app transport: %w", err)
+		}
+
+		if p.hostname != "github.com" {
+			transport.BaseURL = serverURL + "/api/v3"
+		}
+
+		p.client, err = github.New(serverURL)
+		if err != nil {
+			return fmt.Errorf("failed to create github client: %w", err)
+		}
+		p.client.Client = &http.Client{Transport: transport}
+
+		return nil
+	}
+
+	// API token authentication (PAT or fine-grained token).
+	if p.apiToken == "" {
+		return fmt.Errorf("missing required option: Token or GitHubApp config")
+	}
+
 	var err error
-	p.client, err = factory.NewClient(
-		"github",
-		fmt.Sprintf("https://%s", p.hostname),
-		p.apiToken,
-	)
+	p.client, err = factory.NewClient("github", serverURL, p.apiToken)
 	if err != nil {
 		return fmt.Errorf("failed to create github client: %w", err)
 	}

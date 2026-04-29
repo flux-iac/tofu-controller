@@ -187,8 +187,14 @@ data:
 
 #### Secret
 
-Branch Planner uses the referenced Secret with a `token` field that acquires the
-API token to fetch pull request or merge request information.
+Branch Planner uses the referenced Secret for authentication. The auth type
+is detected automatically from the keys present in the Secret.
+
+##### API Token (GitHub PAT or GitLab Token)
+
+The simplest option. Use a GitHub Personal Access Token, a GitLab Project
+Access Token, or a GitLab Group Access Token. For production Flux clusters,
+prefer Project/Group Access Tokens over personal tokens.
 
 For GitHub:
 
@@ -198,13 +204,33 @@ kubectl create secret generic branch-planner-token \
     --from-literal="token=${GITHUB_TOKEN}"
 ```
 
-For GitLab:
+For GitLab (Personal, Project, or Group Access Token with `api` scope):
 
 ```bash
 kubectl create secret generic branch-planner-token \
     --namespace=flux-system \
     --from-literal="token=${GITLAB_TOKEN}"
 ```
+
+##### GitHub App (recommended for GitHub)
+
+GitHub Apps provide scoped, short-lived tokens that are automatically
+refreshed. This is the recommended approach for production clusters and
+organizations. The App needs the following repository permissions:
+
+- **Pull requests**: Read & Write
+- **Metadata**: Read-only (automatically selected)
+
+```bash
+kubectl create secret generic branch-planner-token \
+    --namespace=flux-system \
+    --from-literal="githubAppID=${APP_ID}" \
+    --from-literal="githubAppInstallationID=${INSTALLATION_ID}" \
+    --from-file="githubAppPrivateKey=${PATH_TO_PEM_FILE}"
+```
+
+The installation token is generated and refreshed automatically by the
+controller. You do not need to manage token expiry.
 
 #### Resources
 

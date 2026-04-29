@@ -62,13 +62,11 @@ func getProviderOpts(ctx context.Context, clusterClient client.Client, configMap
 		return nil, fmt.Errorf("unable to get bbp config secret: %w", err)
 	}
 
-	if bbpProviderSecret.Data == nil || bbpProviderSecret.Data["token"] == nil {
-		return nil, fmt.Errorf("provider secret has no token")
+	if bbpProviderSecret.Data == nil {
+		return nil, fmt.Errorf("provider secret has no data")
 	}
 
-	return []provider.ProviderOption{
-		provider.WithToken("api-token", string(bbpProviderSecret.Data["token"])),
-	}, nil
+	return provider.OptsFromSecret(bbpProviderSecret.Data)
 }
 
 func createSharedInformer(_ context.Context, client client.Client, dynamicClient dynamic.Interface) (cache.SharedIndexInformer, error) {

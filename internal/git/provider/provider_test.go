@@ -132,6 +132,44 @@ func TestRepoFromURL(t *testing.T) {
 	}
 }
 
+func TestOptsFromSecretToken(t *testing.T) {
+	data := map[string][]byte{
+		"token": []byte("my-token"),
+	}
+	opts, err := provider.OptsFromSecret(data)
+	require.NoError(t, err)
+	assert.Len(t, opts, 1)
+}
+
+func TestOptsFromSecretGitHubApp(t *testing.T) {
+	data := map[string][]byte{
+		"githubAppID":             []byte("12345"),
+		"githubAppInstallationID": []byte("67890"),
+		"githubAppPrivateKey":     []byte("-----BEGIN RSA PRIVATE KEY-----\ntest\n-----END RSA PRIVATE KEY-----"),
+	}
+	opts, err := provider.OptsFromSecret(data)
+	require.NoError(t, err)
+	assert.Len(t, opts, 1)
+}
+
+func TestOptsFromSecretInvalidAppID(t *testing.T) {
+	data := map[string][]byte{
+		"githubAppID":             []byte("not-a-number"),
+		"githubAppInstallationID": []byte("67890"),
+		"githubAppPrivateKey":     []byte("key"),
+	}
+	_, err := provider.OptsFromSecret(data)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "githubAppID")
+}
+
+func TestOptsFromSecretEmpty(t *testing.T) {
+	data := map[string][]byte{}
+	_, err := provider.OptsFromSecret(data)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "secret must contain")
+}
+
 func TestFromURLSelfHosted(t *testing.T) {
 	testCases := []struct {
 		url      string

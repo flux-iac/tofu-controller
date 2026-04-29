@@ -103,6 +103,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.10 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bluekeyes/go-gitdiff v0.8.1 // indirect
+	github.com/bradleyfalzon/ghinstallation/v2 v2.18.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chai2010/gettext-go v1.0.3 // indirect
@@ -146,9 +147,12 @@ require (
 	github.com/go-openapi/swag/typeutils v0.25.5 // indirect
 	github.com/go-openapi/swag/yamlutils v0.25.5 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
+	github.com/google/go-github/v84 v84.0.0 // indirect
+	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b // indirect
