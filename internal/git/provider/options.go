@@ -12,6 +12,10 @@ const (
 
 	// defaultPageSize is the number of items to request per page from the SCM API.
 	defaultPageSize = 100
+
+	// maxPages is the upper bound on pagination to prevent resource exhaustion
+	// from repositories with extremely large numbers of PRs or comments.
+	maxPages = 50
 )
 
 // GitHubAppConfig holds the configuration for GitHub App authentication.
@@ -46,6 +50,9 @@ func WithToken(tokenType, token string) ProviderOption {
 
 func WithDomain(domain string) ProviderOption {
 	return func(p Provider) error {
+		if err := validateHostname(domain); err != nil {
+			return err
+		}
 		return p.SetHostname(domain)
 	}
 }

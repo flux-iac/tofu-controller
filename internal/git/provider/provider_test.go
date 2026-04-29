@@ -272,6 +272,39 @@ func TestOptsFromSecretEmpty(t *testing.T) {
 	assert.Contains(t, err.Error(), "secret must contain")
 }
 
+func TestHostnameValidation(t *testing.T) {
+	malicious := []string{
+		"evil.com/foo?x=",
+		"evil.com/path",
+		"evil.com?query",
+		"evil.com#fragment",
+		"user@evil.com",
+		"evil.com\\path",
+		"evil..com",
+	}
+	for _, hostname := range malicious {
+		t.Run(hostname, func(t *testing.T) {
+			_, err := provider.New(provider.ProviderGitHub, provider.WithToken("api-token", "tok"), provider.WithDomain(hostname))
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), "invalid hostname")
+		})
+	}
+
+	valid := []string{
+		"github.com",
+		"gitlab.mycompany.com",
+		"git.internal.io",
+		"192.168.1.1",
+		"dev.azure.com",
+	}
+	for _, hostname := range valid {
+		t.Run(hostname, func(t *testing.T) {
+			_, err := provider.New(provider.ProviderGitHub, provider.WithToken("api-token", "tok"), provider.WithDomain(hostname))
+			assert.NoError(t, err)
+		})
+	}
+}
+
 func TestFromURLSelfHosted(t *testing.T) {
 	testCases := []struct {
 		url      string

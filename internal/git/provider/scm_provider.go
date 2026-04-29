@@ -118,7 +118,7 @@ func (p *scmProvider) ListPullRequests(ctx context.Context, repo Repository) ([]
 			})
 		}
 
-		if res.Page.Next == 0 {
+		if res.Page.Next == 0 || opts.Page >= maxPages {
 			break
 		}
 		opts.Page = res.Page.Next
@@ -153,7 +153,7 @@ func (p *scmProvider) GetLastComments(ctx context.Context, pr PullRequest, since
 
 		allComments = append(allComments, comments...)
 
-		if res.Page.Next == 0 {
+		if res.Page.Next == 0 || opts.Page >= maxPages {
 			break
 		}
 		opts.Page = res.Page.Next

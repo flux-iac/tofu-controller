@@ -14,6 +14,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.57.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.99.0
 	github.com/aws/smithy-go v1.24.3
+	github.com/bradleyfalzon/ghinstallation/v2 v2.18.0
 	github.com/cyphar/filepath-securejoin v0.6.1
 	github.com/elgohr/go-localstack v1.0.158
 	github.com/flux-iac/tofu-controller/api v0.0.0-20250321074822-67198a27f35b
@@ -103,7 +104,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.10 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bluekeyes/go-gitdiff v0.8.1 // indirect
-	github.com/bradleyfalzon/ghinstallation/v2 v2.18.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chai2010/gettext-go v1.0.3 // indirect

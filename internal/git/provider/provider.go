@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -10,6 +11,19 @@ import (
 	giturlapis "github.com/kubescape/go-git-url/apis"
 	azureparserv1 "github.com/kubescape/go-git-url/azureparser/v1"
 )
+
+// validateHostname rejects hostnames that contain path components,
+// query strings, or other characters that could redirect API requests
+// to unintended endpoints (SSRF).
+func validateHostname(hostname string) error {
+	if hostname == "" {
+		return nil
+	}
+	if strings.ContainsAny(hostname, "/?#@\\") || strings.Contains(hostname, "..") {
+		return fmt.Errorf("invalid hostname: %q", hostname)
+	}
+	return nil
+}
 
 type ProviderType string
 

@@ -72,7 +72,7 @@ func (p *GitHubProvider) ListPullRequests(ctx context.Context, repo Repository) 
 			})
 		}
 
-		if res.Page.Next == 0 {
+		if res.Page.Next == 0 || opts.Page >= maxPages {
 			break
 		}
 		opts.Page = res.Page.Next
@@ -107,7 +107,7 @@ func (p *GitHubProvider) GetLastComments(ctx context.Context, pr PullRequest, si
 
 		allComments = append(allComments, comments...)
 
-		if res.Page.Next == 0 {
+		if res.Page.Next == 0 || opts.Page >= maxPages {
 			break
 		}
 		opts.Page = res.Page.Next
