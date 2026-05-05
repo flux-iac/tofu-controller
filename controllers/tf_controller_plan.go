@@ -77,7 +77,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, patchHelper *patch.Seria
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
 					msg := fmt.Sprintf("Plan error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-					r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecPlanFailedReason, msg)
+					r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecPlanFailedReason, "%s", msg)
 					eventSent = true
 					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
@@ -86,7 +86,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, patchHelper *patch.Seria
 
 		if !eventSent {
 			msg := fmt.Sprintf("Plan error: %s", err.Error())
-			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecPlanFailedReason, msg)
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecPlanFailedReason, "%s", msg)
 		}
 		err = fmt.Errorf("error running Plan: %s", err)
 		return infrav1.TerraformNotReady(
@@ -149,7 +149,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, patchHelper *patch.Seria
 			planId := planid.GetPlanID(revision)
 			approveMessage := planid.GetApproveMessage(planId, "Plan generated")
 			msg := fmt.Sprintf("Planned.\n%s", approveMessage)
-			r.Eventf(terraform, corev1.EventTypeNormal, infrav1.TFExecPlanSucceedReason, msg)
+			r.Eventf(terraform, corev1.EventTypeNormal, infrav1.TFExecPlanSucceedReason, "%s", msg)
 		}
 		terraform = infrav1.TerraformPlannedWithChanges(terraform, revision, forceOrAutoApply, "Plan generated")
 	} else {

@@ -3,6 +3,7 @@ package controllers
 import (
 	"os"
 	"testing"
+	"time"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -11,8 +12,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-
-	"time"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
@@ -218,8 +218,9 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
 
 	// This is the new behavior in v0.13.0
+	patch := client.MergeFrom(createdHelloWorldTF.DeepCopy())
 	createdHelloWorldTF.Spec.ApprovePlan = "replan-master-b8e362c206"
-	g.Expect(k8sClient.Update(ctx, &createdHelloWorldTF)).Should(Succeed())
+	g.Expect(k8sClient.Patch(ctx, &createdHelloWorldTF, patch)).Should(Succeed())
 
 	By("checking the message of the ready status now contains the new $planId.")
 	g.Eventually(func() map[string]any {
@@ -244,8 +245,9 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 	}))
 
 	By("setting the .spec.approvePlan to be plan-main- and a part of commit id (b8e362c206) to approve the plan.")
+	patch = client.MergeFrom(createdHelloWorldTF.DeepCopy())
 	createdHelloWorldTF.Spec.ApprovePlan = "plan-master-ed22ced771"
-	g.Expect(k8sClient.Update(ctx, &createdHelloWorldTF)).Should(Succeed())
+	g.Expect(k8sClient.Patch(ctx, &createdHelloWorldTF, patch)).Should(Succeed())
 
 	It("should continue the reconciliation process to the apply state.")
 	By("checking that the applied status reason is TerraformAppliedSucceed.")
