@@ -6,14 +6,14 @@ replace github.com/flux-iac/tofu-controller/api => ../api
 
 require (
 	github.com/flux-iac/tofu-controller/api v0.0.0-20260505110553-6233d9ea1db8
-	github.com/fluxcd/cli-utils v1.0.0
+	github.com/fluxcd/cli-utils v1.2.0
 	github.com/fluxcd/pkg/apis/meta v1.26.0
 	github.com/fluxcd/pkg/ssa v0.73.0
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/hashicorp/go-version v1.9.0
 	github.com/hashicorp/hc-install v0.9.4
 	github.com/olekukonko/tablewriter v1.0.8
-	github.com/onsi/gomega v1.39.1
+	github.com/onsi/gomega v1.40.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	github.com/theckman/yacspin v0.13.12

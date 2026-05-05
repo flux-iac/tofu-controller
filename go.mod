@@ -8,19 +8,19 @@ replace github.com/flux-iac/tofu-controller/tfctl => ./tfctl
 
 require (
 	github.com/Masterminds/sprig/v3 v3.3.0
-	github.com/aws/aws-sdk-go-v2 v1.41.6
+	github.com/aws/aws-sdk-go-v2 v1.41.7
 	github.com/aws/aws-sdk-go-v2/config v1.32.16
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.15
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.57.2
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.99.0
-	github.com/aws/smithy-go v1.25.0
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.100.1
+	github.com/aws/smithy-go v1.25.1
 	github.com/cyphar/filepath-securejoin v0.6.1
 	github.com/elgohr/go-localstack v1.0.160
 	github.com/flux-iac/tofu-controller/api v0.0.0-20260505110553-6233d9ea1db8
 	github.com/flux-iac/tofu-controller/tfctl v0.0.0-00010101000000-000000000000
 	github.com/fluxcd/pkg/apis/meta v1.26.0
 	github.com/fluxcd/pkg/runtime v0.105.0
-	github.com/fluxcd/pkg/tar v1.0.0
+	github.com/fluxcd/pkg/tar v1.1.0
 	github.com/fluxcd/source-controller/api v1.8.3
 	github.com/go-logr/logr v1.4.3
 	github.com/google/uuid v1.6.0
@@ -32,14 +32,14 @@ require (
 	github.com/jenkins-x/go-scm v1.15.21
 	github.com/kubescape/go-git-url v0.0.31
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.2
-	github.com/onsi/gomega v1.39.1
+	github.com/onsi/gomega v1.40.0
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
 	github.com/zclconf/go-cty v1.18.1
-	google.golang.org/grpc v1.80.0
+	google.golang.org/grpc v1.81.0
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.36.0
@@ -67,11 +67,11 @@ require (
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg v1.0.0 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.8 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.10 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.22 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.22 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.22 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.23 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.23 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.23 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.24 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.53.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.40.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchevents v1.25.7 // indirect
@@ -81,11 +81,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/elasticsearchservice v1.30.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/firehose v1.32.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/iam v1.35.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.8 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.13 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.9 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.15 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.11.22 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.22 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.21 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.23 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.23 // indirect
 	github.com/aws/aws-sdk-go-v2/service/kinesis v1.43.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.88.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/redshift v1.46.8 // indirect
@@ -119,7 +119,7 @@ require (
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fatih/color v1.19.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/fluxcd/cli-utils v1.0.0 // indirect
+	github.com/fluxcd/cli-utils v1.2.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.9.0 // indirect
 	github.com/fluxcd/pkg/apis/event v0.25.0 // indirect
 	github.com/fluxcd/pkg/ssa v0.73.0 // indirect
