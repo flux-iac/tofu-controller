@@ -2,6 +2,15 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.16.3
+
+**Release date:** 2026-05-05
+
+### What's Changed
+
+* fix: use mutex-safe helpers in refreshCACertsIfNeeded to prevent map race by @TarasLykhenko in https://github.com/flux-iac/tofu-controller/pull/1785
+* feat: add ResourceQuota support with jitter-based requeue by @TarasLykhenko in https://github.com/flux-iac/tofu-controller/pull/1769
+
 ## v0.16.2
 
 **Release date:** 2026-04-01
