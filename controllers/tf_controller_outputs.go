@@ -197,7 +197,7 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, terraform *infrav
 			keysWritten = append(keysWritten, k)
 		}
 		msg := fmt.Sprintf("Outputs written.\n%d output(s): %s", len(keysWritten), strings.Join(keysWritten, ", "))
-		r.Eventf(terraform, corev1.EventTypeNormal, infrav1.OutputsWritingFailedReason, msg)
+		r.Eventf(terraform, corev1.EventTypeNormal, infrav1.OutputsWritingFailedReason, "%s", msg)
 	}
 
 	return infrav1.TerraformOutputsWritten(terraform, revision, "Outputs written"), nil

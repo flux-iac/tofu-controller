@@ -16,7 +16,7 @@ require (
 	github.com/aws/smithy-go v1.25.0
 	github.com/cyphar/filepath-securejoin v0.6.1
 	github.com/elgohr/go-localstack v1.0.160
-	github.com/flux-iac/tofu-controller/api v0.0.0-20250321074822-67198a27f35b
+	github.com/flux-iac/tofu-controller/api v0.0.0-20260505110553-6233d9ea1db8
 	github.com/flux-iac/tofu-controller/tfctl v0.0.0-00010101000000-000000000000
 	github.com/fluxcd/pkg/apis/meta v1.26.0
 	github.com/fluxcd/pkg/runtime v0.105.0

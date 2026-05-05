@@ -107,7 +107,7 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform *inf
 				traceLog.Error(err, "Hit an error")
 				msg := fmt.Sprintf("TCP health check error: %s, url: %s", hc.Name, hc.Address)
 				traceLog.Info("Record an event")
-				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.HealthChecksFailedReason, msg)
+				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.HealthChecksFailedReason, "%s", msg)
 				traceLog.Info("Return failed health check")
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
@@ -133,7 +133,7 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform *inf
 				traceLog.Error(err, "Hit an error")
 				msg := fmt.Sprintf("HTTP health check error: %s, url: %s", hc.Name, hc.URL)
 				traceLog.Info("Record an event")
-				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.HealthChecksFailedReason, msg)
+				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.HealthChecksFailedReason, "%s", msg)
 				traceLog.Info("Return failed health check")
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,

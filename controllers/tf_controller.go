@@ -230,7 +230,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			conditions.MarkStalled(terraform, infrav1.AccessDeniedReason, "%s", err)
 			conditions.MarkFalse(terraform, meta.ReadyCondition, infrav1.AccessDeniedReason, "%s", err)
 			conditions.Delete(terraform, meta.ReconcilingCondition)
-			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.AccessDeniedReason, err.Error())
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.AccessDeniedReason, "%s", err.Error())
 
 			// The controller must restart or sourceRef to change
 			// for this to be recoverable
@@ -239,7 +239,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			conditions.MarkStalled(terraform, infrav1.ArtifactFailedReason, "%s", err)
 			conditions.MarkFalse(terraform, meta.ReadyCondition, infrav1.ArtifactFailedReason, "%s", err)
 			conditions.Delete(terraform, meta.ReconcilingCondition)
-			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.ArtifactFailedReason, err.Error())
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.ArtifactFailedReason, "%s", err.Error())
 
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 		}
@@ -316,7 +316,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			// instead we requeue on a fix interval.
 			msg := fmt.Sprintf("Dependencies do not meet ready condition, retrying in %s", terraform.GetRetryInterval().String())
 			log.Info(msg)
-			r.Eventf(terraform, corev1.EventTypeNormal, infrav1.DependencyNotReadyReason, msg)
+			r.Eventf(terraform, corev1.EventTypeNormal, infrav1.DependencyNotReadyReason, "%s", msg)
 
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 		}
@@ -576,7 +576,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			"revision",
 			sourceObj.GetArtifact().Revision)
 		traceLog.Info("Record an event for the failure")
-		r.Eventf(terraform, corev1.EventTypeWarning, infrav1.ReconciliationFailureReason, reconcileErr.Error())
+		r.Eventf(terraform, corev1.EventTypeWarning, infrav1.ReconciliationFailureReason, "%s", reconcileErr.Error())
 
 		if terraform.Spec.Remediation != nil {
 			log.Info(fmt.Sprintf(

@@ -113,7 +113,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, patchHelper *patch.Seri
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.DestroyReply); ok {
 						msg := fmt.Sprintf("Destroy error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-						r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecDestroyFailedReason, msg)
+						r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecDestroyFailedReason, "%s", msg)
 						eventSent = true
 						terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 					}
@@ -122,7 +122,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, patchHelper *patch.Seri
 
 			if !eventSent {
 				msg := fmt.Sprintf("Destroy error: %s", err.Error())
-				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecDestroyFailedReason, msg)
+				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecDestroyFailedReason, "%s", msg)
 			}
 
 			err = fmt.Errorf("error running Destroy: %s", err)
@@ -142,7 +142,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, patchHelper *patch.Seri
 				for _, detail := range st.Details() {
 					if reply, ok := detail.(*runner.ApplyReply); ok {
 						msg := fmt.Sprintf("Apply error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-						r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecApplyFailedReason, msg)
+						r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecApplyFailedReason, "%s", msg)
 						eventSent = true
 						terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 					}
@@ -151,7 +151,7 @@ func (r *TerraformReconciler) apply(ctx context.Context, patchHelper *patch.Seri
 
 			if !eventSent {
 				msg := fmt.Sprintf("Apply error: %s", err.Error())
-				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecApplyFailedReason, msg)
+				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecApplyFailedReason, "%s", msg)
 			}
 
 			err = fmt.Errorf("error running Apply: %s", err)
@@ -198,10 +198,10 @@ func (r *TerraformReconciler) apply(ctx context.Context, patchHelper *patch.Seri
 	var msg string
 	if isDestroyApplied {
 		msg = "Destroy applied successfully"
-		r.Eventf(terraform, corev1.EventTypeNormal, infrav1.TFExecDestroySucceedReason, msg)
+		r.Eventf(terraform, corev1.EventTypeNormal, infrav1.TFExecDestroySucceedReason, "%s", msg)
 	} else {
 		msg = "Applied successfully"
-		r.Eventf(terraform, corev1.EventTypeNormal, infrav1.TFExecApplySucceedReason, msg)
+		r.Eventf(terraform, corev1.EventTypeNormal, infrav1.TFExecApplySucceedReason, "%s", msg)
 	}
 
 	terraform = infrav1.TerraformApplied(terraform, revision, msg, isDestroyApplied, inventoryEntries)
