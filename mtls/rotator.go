@@ -416,12 +416,12 @@ func (cr *CertRotator) refreshCACertsIfNeeded() error {
 
 	if needRegeneration {
 		// generate new certs for all namespaces
-		for namespace := range cr.knownNamespaceTLSMap {
+		for _, namespace := range cr.GetKnownNamespaces() {
 			secret, err := cr.generateNamespaceTLS(namespace)
 			if err != nil {
 				crLog.Error(err, "could not generate TLS for namespace")
 			}
-			cr.knownNamespaceTLSMap[namespace] = &TriggerResult{Secret: secret, Err: err}
+			cr.SetKnownNamespaceTLS(namespace, &TriggerResult{Secret: secret, Err: err})
 		}
 	}
 

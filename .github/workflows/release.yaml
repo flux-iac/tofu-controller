@@ -34,7 +34,7 @@ jobs:
         with:
           version: 4.14.1
       - name: Setup Kustomize
-        uses: fluxcd/pkg/actions/kustomize@63d73fdd0da522e94a54cc3e93607226a433ccb0 # main
+        uses: fluxcd/pkg/actions/kustomize@1bfcca47168cb6d2d7dfdc5b35d8b379a773976d # main
       - name: Setup Cosign
         uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
       - name: Setup Syft
@@ -203,7 +203,7 @@ jobs:
           go-version-file: go.mod
       - name: Create release
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: goreleaser/goreleaser-action@ec59f474b9834571250b370d4735c50f8e2d1e29 # v7.0.0
+        uses: goreleaser/goreleaser-action@1a80836c5c9d9e5755a25cb59ec6f45a3b5f41a8 # v7.2.1
         with:
           version: '~> v2'
           args: release --release-notes=./config/release/notes.md --skip=validate
