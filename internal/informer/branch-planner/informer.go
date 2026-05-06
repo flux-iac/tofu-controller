@@ -349,8 +349,13 @@ func (i *Informer) getRepo(ctx context.Context, tf *infrav1.Terraform) (provider
 	}
 
 	// Resolve the provider exactly once using sync.Once to avoid race
-	// conditions when multiple update events arrive concurrently.
+	// conditions when multiple update events arrive concurrently. Skip
+	// resolution if a provider was already injected (e.g. via WithGitProvider
+	// in tests).
 	i.providerOnce.Do(func() {
+		if i.gitProvider != nil {
+			return
+		}
 		i.gitProvider, _, i.providerErr = provider.FromURL(obj.Spec.URL, i.providerOpts...)
 	})
 	if i.providerErr != nil {

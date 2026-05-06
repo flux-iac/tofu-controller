@@ -137,6 +137,9 @@ func testResources(namespace string) []client.Object {
 			Name:      "branch-planner-token",
 			Namespace: namespace,
 		},
+		Data: map[string][]byte{
+			"token": []byte("test-token"),
+		},
 	}
 	source := &sourcev1.GitRepository{
 		ObjectMeta: metav1.ObjectMeta{
