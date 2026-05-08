@@ -279,10 +279,8 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			"nextAttempt", time.Now().Add(requeueAfter),
 			"requeueAfter", requeueAfter)
 
-		// Remove any Progressing condition since we're skipping reconciliation
-		if conditions.HasAnyReason(terraform, meta.ProgressingReason) {
-			conditions.Delete(terraform, meta.ProgressingReason)
-		}
+		// Clear the Reconciling condition as we are skipping it on this pass
+		conditions.Delete(terraform, meta.ReconcilingCondition)
 
 		return ctrl.Result{RequeueAfter: requeueAfter}, nil
 	}
