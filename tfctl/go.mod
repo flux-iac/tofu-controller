@@ -11,7 +11,7 @@ require (
 	github.com/fluxcd/pkg/ssa v0.74.0
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/hashicorp/go-version v1.9.0
-	github.com/hashicorp/hc-install v0.9.4
+	github.com/hashicorp/hc-install v0.9.5
 	github.com/olekukonko/tablewriter v1.0.8
 	github.com/onsi/gomega v1.40.0
 	github.com/spf13/cobra v1.10.2
