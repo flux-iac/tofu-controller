@@ -75,7 +75,7 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
-          skip-files: '/usr/local/bin/terraform' # false positive
+          skip-files: '/usr/local/bin/tofu' # third-party binary; CVEs tracked upstream in OpenTofu
           trivyignores: '.trivyignore'
       - name: Run Trivy vulnerability scanner on runner image
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
@@ -86,7 +86,7 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
-          skip-files: '/usr/local/bin/terraform' # false positive
+          skip-files: '/usr/local/bin/tofu' # third-party binary; CVEs tracked upstream in OpenTofu
           trivyignores: '.trivyignore'
       - name: Run Trivy vulnerability scanner on planner image
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
@@ -97,5 +97,5 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
-          skip-files: '/usr/local/bin/terraform' # false positive
+          skip-files: '/usr/local/bin/tofu' # third-party binary; CVEs tracked upstream in OpenTofu
           trivyignores: '.trivyignore'
