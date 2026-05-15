@@ -11364,6 +11364,14 @@ spec:
                   performed
                 format: date-time
                 type: string
+              lastPlannedGeneration:
+                description: |-
+                  LastPlannedGeneration is the generation of the Terraform resource
+                  at the time of the last plan. This can be used to detect whether a
+                  pending plan has become stale, due to the spec being modified since the
+                  plan was generated.
+                format: int64
+                type: integer
               lastPlannedRevision:
                 description: |-
                   LastPlannedRevision is the revision used by the last planning process.
