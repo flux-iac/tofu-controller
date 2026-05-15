@@ -363,6 +363,7 @@ _Appears in:_
 | `lastAppliedRevision` _string_ | The last successfully applied revision.<br />The revision format for Git sources is <branch\|tag>/<commit-sha>. |  | Optional: \{\} <br /> |
 | `lastAttemptedRevision` _string_ | LastAttemptedRevision is the revision of the last reconciliation attempt. |  | Optional: \{\} <br /> |
 | `lastPlannedRevision` _string_ | LastPlannedRevision is the revision used by the last planning process.<br />The result could be either no plan change or a new plan generated. |  | Optional: \{\} <br /> |
+| `lastPlannedGeneration` _integer_ | LastPlannedGeneration is the generation of the Terraform resource<br />at the time of the last plan. This can be used to detect whether a<br />pending plan has become stale, due to the spec being modified since the<br />plan was generated. |  | Optional: \{\} <br /> |
 | `lastPlanAt` _[Time](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#time-v1-meta)_ | LastPlanAt is the time when the last terraform plan was performed |  | Optional: \{\} <br /> |
 | `lastDriftDetectedAt` _[Time](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#time-v1-meta)_ | LastDriftDetectedAt is the time when the last drift was detected |  | Optional: \{\} <br /> |
 | `lastAppliedByDriftDetectionAt` _[Time](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#time-v1-meta)_ | LastAppliedByDriftDetectionAt is the time when the last drift was detected and<br />terraform apply was performed as a result |  | Optional: \{\} <br /> |
