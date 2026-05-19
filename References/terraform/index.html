@@ -2366,6 +2366,12 @@ terraform is applied.</p>
 <td>Optional: {} <br /></td>
 </tr>
 <tr>
+<td><code>lastPlannedGeneration</code> <em>integer</em></td>
+<td>LastPlannedGeneration is the generation of the Terraform resource<br />at the time of the last plan. This can be used to detect whether a<br />pending plan has become stale, due to the spec being modified since the<br />plan was generated.</td>
+<td></td>
+<td>Optional: {} <br /></td>
+</tr>
+<tr>
 <td><code>lastPlanAt</code> <em><a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#time-v1-meta">Time</a></em></td>
 <td>LastPlanAt is the time when the last terraform plan was performed</td>
 <td></td>
