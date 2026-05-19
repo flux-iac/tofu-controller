@@ -407,6 +407,22 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 
 		// case 4:
+		// detect when the Terraform spec has changed since we last generated
+		// a plan (we see this as the LastPlannedGeneration will be different
+		// than the current generation).
+		if terraform.Status.LastPlannedGeneration != 0 &&
+			terraform.Generation != terraform.Status.LastPlannedGeneration &&
+			terraform.Status.Plan.Pending != "" &&
+			!r.shouldApply(terraform) {
+			traceLog.Info("Terraform spec has changed while the plan was pending approval, clearing pending plan to trigger re-plan")
+			terraform.Status.Plan.Pending = ""
+			if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
+				log.Error(err, "unable to update status to clear pending plan (tf generation changed)")
+				return ctrl.Result{Requeue: true}, err
+			}
+		}
+
+		// case 5:
 		// return early if it's manually mode and pending
 		//
 		traceLog.Info("Check for pending plan, forceOrAutoApply and shouldApply")

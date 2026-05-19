@@ -400,6 +400,13 @@ type TerraformStatus struct {
 	// +optional
 	LastPlannedRevision string `json:"lastPlannedRevision,omitempty"`
 
+	// LastPlannedGeneration is the generation of the Terraform resource
+	// at the time of the last plan. This can be used to detect whether a
+	// pending plan has become stale, due to the spec being modified since the
+	// plan was generated.
+	// +optional
+	LastPlannedGeneration int64 `json:"lastPlannedGeneration,omitempty"`
+
 	// LastPlanAt is the time when the last terraform plan was performed
 	// +optional
 	LastPlanAt *metav1.Time `json:"lastPlanAt,omitempty"`
@@ -660,10 +667,13 @@ func TerraformPlannedWithChanges(terraform *Terraform, revision string, forceOrA
 		IsDestroyPlan:        terraform.Spec.Destroy,
 		IsDriftDetectionPlan: terraform.HasDrift(),
 	}
+
 	if revision != "" {
 		terraform.Status.LastAttemptedRevision = revision
 		terraform.Status.LastPlannedRevision = revision
 	}
+
+	terraform.Status.LastPlannedGeneration = terraform.Generation
 
 	terraform.Status.LastPlanAt = &metav1.Time{Time: time.Now()}
 
@@ -688,10 +698,13 @@ func TerraformPlannedNoChanges(terraform *Terraform, revision string, message st
 		Pending:       "",
 		IsDestroyPlan: terraform.Spec.Destroy,
 	}
+
 	if revision != "" {
 		terraform.Status.LastAttemptedRevision = revision
 		terraform.Status.LastPlannedRevision = revision
 	}
+
+	terraform.Status.LastPlannedGeneration = terraform.Generation
 
 	terraform.Status.LastPlanAt = &metav1.Time{Time: time.Now()}
 
