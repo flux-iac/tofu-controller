@@ -19,8 +19,8 @@ require (
 	github.com/elgohr/go-localstack v1.0.161
 	github.com/flux-iac/tofu-controller/api v0.0.0-20260505110553-6233d9ea1db8
 	github.com/flux-iac/tofu-controller/tfctl v0.0.0-00010101000000-000000000000
-	github.com/fluxcd/pkg/apis/meta v1.27.0
-	github.com/fluxcd/pkg/runtime v0.106.0
+	github.com/fluxcd/pkg/apis/meta v1.28.0
+	github.com/fluxcd/pkg/runtime v0.107.0
 	github.com/fluxcd/pkg/tar v1.2.0
 	github.com/fluxcd/source-controller/api v1.8.4
 	github.com/go-logr/logr v1.4.3
