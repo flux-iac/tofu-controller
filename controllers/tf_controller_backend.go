@@ -15,6 +15,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (r *TerraformReconciler) backendCompletelyDisable(terraform *infrav1.Terraform) bool {
@@ -96,7 +97,9 @@ terraform {
 			terraform.Spec.BackendConfig.InClusterConfig,
 			terraform.Spec.BackendConfig.ConfigPath,
 			terraform.Namespace,
-			getLabelsAsHCL(terraform.Labels, 6))
+			getLabelsAsHCL(map[string]string{
+				infrav1.TFStateLabelKey: string(terraform.UID),
+			}, 6))
 	} else if DisableTFK8SBackend && terraform.Spec.BackendConfig == nil {
 		backendConfig = `
 terraform {
@@ -118,7 +121,9 @@ terraform {
 `,
 			terraform.Name,
 			terraform.Namespace,
-			getLabelsAsHCL(terraform.Labels, 6))
+			getLabelsAsHCL(map[string]string{
+				infrav1.TFStateLabelKey: string(terraform.UID),
+			}, 6))
 	}
 
 	if r.backendCompletelyDisable(terraform) {
@@ -137,6 +142,14 @@ terraform {
 			log.Info(fmt.Sprintf("write cloud config: %s", writeBackendConfigReply.Message))
 		}
 	} else {
+		if err := r.migrateStateSecretLabel(ctx, terraform); err != nil {
+			return infrav1.TerraformNotReady(
+				terraform,
+				revision,
+				infrav1.TFExecInitFailedReason,
+				fmt.Sprintf("migrate state secret label: %s", err),
+			), tfInstance, tmpDir, err
+		}
 		writeBackendConfigReply, err := runnerClient.WriteBackendConfig(ctx,
 			&runner.WriteBackendConfigRequest{
 				DirPath:       workingDir,
@@ -441,4 +454,44 @@ func getLabelsAsHCL(labels map[string]string, indent int) string {
 	}
 
 	return strings.TrimSpace(result)
+}
+
+func (r *TerraformReconciler) migrateStateSecretLabel(
+	ctx context.Context,
+	terraform *infrav1.Terraform,
+) error {
+	suffix := terraform.Name
+	if terraform.Spec.BackendConfig != nil {
+		suffix = terraform.Spec.BackendConfig.SecretSuffix
+	}
+	secretName := fmt.Sprintf("tfstate-%s-%s", terraform.WorkspaceName(), suffix)
+
+	var secret corev1.Secret
+	if err := r.Get(ctx, client.ObjectKey{
+		Namespace: terraform.Namespace,
+		Name:      secretName,
+	}, &secret); err != nil {
+		return client.IgnoreNotFound(fmt.Errorf("failed to get state secret %s for migration: %w", secretName, err))
+	}
+
+	uid := string(terraform.UID)
+	if secret.Labels[infrav1.TFStateLabelKey] == uid {
+		return nil
+	}
+
+	log := ctrl.LoggerFrom(ctx)
+	patch := client.MergeFrom(secret.DeepCopy())
+	if secret.Labels == nil {
+		secret.Labels = make(map[string]string)
+	}
+	secret.Labels[infrav1.TFStateLabelKey] = uid
+	if err := r.Patch(ctx, &secret, patch,
+		client.FieldOwner(r.FieldManager)); err != nil {
+		return fmt.Errorf(
+			"failed to patch state secret %s with internal label: %w",
+			secretName, err)
+	}
+	log.Info("migrated state secret to internal label",
+		"secret", secretName, "uid", uid)
+	return nil
 }

@@ -47,6 +47,11 @@ const (
 	BucketIndexKey          = ".metadata.bucket"
 	OCIRepositoryIndexKey   = ".metadata.ociRepository"
 	BreakTheGlassAnnotation = "break-the-glass.tf-controller/requestedAt"
+
+	// TFStateLabelKey is the label applied to Kubernetes-backend state Secrets.
+	// Value is the CR UID. Stable for the object lifetime regardless of
+	// metadata.labels changes, preventing stale-label state lookup failures.
+	TFStateLabelKey = "infra.contrib.fluxcd.io/terraform-state"
 )
 
 type ReadInputsFromSecretSpec struct {
