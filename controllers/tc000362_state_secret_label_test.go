@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
-
-	"github.com/flux-iac/tofu-controller/api/plan"
 )
 
 // crLabels simulates the metadata.labels a real Terraform CR carries in production:
@@ -22,24 +20,18 @@ var crLabels = map[string]string{
 	"environment":                           "production",
 }
 
-// Test A — default backend path: HCL contains only the two stable backend-native labels,
-// regardless of what labels the CR carries.
-func Test_000362_default_backend_hcl_uses_stable_labels(t *testing.T) {
-	Spec("Default backend HCL should use only tfstateSecretSuffix and tfstateWorkspace, not CR labels.")
+// Test A — default path (no BackendConfig) and explicit BackendConfig with no Labels set:
+// both call getLabelsAsHCL(nil) and must produce an empty HCL labels block.
+// The backend writes tfstate, tfstateSecretSuffix, tfstateWorkspace, and
+// app.kubernetes.io/managed-by natively onto every Secret; the HCL block must not
+// inject any CR metadata labels.
+func Test_000362_nil_labels_produces_empty_hcl_block(t *testing.T) {
+	Spec("nil labels (default path or BackendConfig without Labels) must produce an empty HCL labels block.")
 	g := NewWithT(t)
 
-	crName := "my-terraform"
-	workspace := "default"
+	hcl := getLabelsAsHCL(nil, 6)
 
-	hcl := getLabelsAsHCL(map[string]string{
-		"tfstateSecretSuffix": plan.SafeLabelValue(crName),
-		"tfstateWorkspace":    plan.SafeLabelValue(workspace),
-	}, 6)
-
-	g.Expect(hcl).To(ContainSubstring("tfstateSecretSuffix"))
-	g.Expect(hcl).To(ContainSubstring(crName))
-	g.Expect(hcl).To(ContainSubstring("tfstateWorkspace"))
-	g.Expect(hcl).To(ContainSubstring(workspace))
+	g.Expect(hcl).To(BeEmpty())
 
 	for k, v := range crLabels {
 		g.Expect(hcl).NotTo(ContainSubstring(k), "CR label key %q must not appear in HCL", k)
@@ -47,27 +39,23 @@ func Test_000362_default_backend_hcl_uses_stable_labels(t *testing.T) {
 	}
 }
 
-// Test B — explicit BackendConfig path: HCL uses BackendConfig.SecretSuffix (not the CR
-// name), and still excludes all CR labels.
-func Test_000362_explicit_backend_hcl_uses_secret_suffix(t *testing.T) {
-	Spec("Explicit BackendConfig HCL should use BackendConfig.SecretSuffix, not CR name or CR labels.")
+// Test B — explicit BackendConfig with Labels set: HCL contains exactly those labels
+// and none of the CR metadata labels.
+func Test_000362_backend_config_labels_used_verbatim(t *testing.T) {
+	Spec("BackendConfig.Labels must appear verbatim in HCL; CR metadata labels must not.")
 	g := NewWithT(t)
 
-	crName := "my-terraform"
-	secretSuffix := "custom-suffix"
-	workspace := "staging"
+	backendLabels := map[string]string{
+		"app": "my-service",
+		"env": "staging",
+	}
 
-	hcl := getLabelsAsHCL(map[string]string{
-		"tfstateSecretSuffix": plan.SafeLabelValue(secretSuffix),
-		"tfstateWorkspace":    plan.SafeLabelValue(workspace),
-	}, 6)
+	hcl := getLabelsAsHCL(backendLabels, 6)
 
-	g.Expect(hcl).To(ContainSubstring("tfstateSecretSuffix"))
-	g.Expect(hcl).To(ContainSubstring(secretSuffix))
-	g.Expect(hcl).To(ContainSubstring("tfstateWorkspace"))
-	g.Expect(hcl).To(ContainSubstring(workspace))
-	// SecretSuffix differs from CR name — CR name must not bleed in
-	g.Expect(hcl).NotTo(ContainSubstring(crName))
+	g.Expect(hcl).To(ContainSubstring(`"app"`))
+	g.Expect(hcl).To(ContainSubstring(`"my-service"`))
+	g.Expect(hcl).To(ContainSubstring(`"env"`))
+	g.Expect(hcl).To(ContainSubstring(`"staging"`))
 
 	for k, v := range crLabels {
 		g.Expect(hcl).NotTo(ContainSubstring(k), "CR label key %q must not appear in HCL", k)

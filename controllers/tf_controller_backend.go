@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/flux-iac/tofu-controller/api/plan"
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
 	"github.com/fluxcd/pkg/runtime/acl"
@@ -97,10 +96,7 @@ terraform {
 			terraform.Spec.BackendConfig.InClusterConfig,
 			terraform.Spec.BackendConfig.ConfigPath,
 			terraform.Namespace,
-			getLabelsAsHCL(map[string]string{
-				"tfstateSecretSuffix": plan.SafeLabelValue(terraform.Spec.BackendConfig.SecretSuffix),
-				"tfstateWorkspace":    plan.SafeLabelValue(terraform.WorkspaceName()),
-			}, 6))
+			getLabelsAsHCL(terraform.Spec.BackendConfig.Labels, 6))
 	} else if DisableTFK8SBackend && terraform.Spec.BackendConfig == nil {
 		backendConfig = `
 terraform {
@@ -122,10 +118,7 @@ terraform {
 `,
 			terraform.Name,
 			terraform.Namespace,
-			getLabelsAsHCL(map[string]string{
-				"tfstateSecretSuffix": plan.SafeLabelValue(terraform.Name),
-				"tfstateWorkspace":    plan.SafeLabelValue(terraform.WorkspaceName()),
-			}, 6))
+			getLabelsAsHCL(nil, 6))
 	}
 
 	if r.backendCompletelyDisable(terraform) {
