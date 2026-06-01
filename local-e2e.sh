@@ -3,7 +3,18 @@
 # Exit the script if any command fails
 set -e
 
+# On Apple Silicon Macs the default amd64 kindest/node image causes the kubelet to fail.
+# Force native arm64 images so kind bootstraps correctly on arm64 hosts.
+case "$(uname -m)" in
+  arm64|aarch64)
+    export DOCKER_DEFAULT_PLATFORM=linux/arm64
+    ;;
+esac
+
 VERSION=e2e-$(git rev-parse --short HEAD)-$(if [[ $(git diff --stat) != '' ]]; then echo 'dirty'; else echo 'clean'; fi)
+
+# Delete any leftover cluster from a previous run so this script is idempotent
+kind delete cluster 2>/dev/null || true
 
 kind create cluster
 
@@ -34,7 +45,7 @@ kubectl -n tofu-system rollout status deploy/source-controller --timeout=1m
 kubectl -n tofu-system rollout status deploy/tofu-controller --timeout=1m
 
 echo "==================== Show Terraform version"
-docker run --rm --entrypoint=/usr/local/bin/terraform test/tf-runner:$VERSION version
+docker run --rm --entrypoint=/usr/local/bin/tofu test/tf-runner:$VERSION version
 
 echo "==================== Add git repository source"
 kubectl -n tofu-system apply -f ./config/testdata/source
