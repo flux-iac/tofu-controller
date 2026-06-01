@@ -264,6 +264,11 @@ type TerraformSpec struct {
 	// +optional
 	StoreReadablePlan string `json:"storeReadablePlan,omitempty"`
 
+	// Plan configures options that apply only to the plan phase. They never
+	// affect the apply phase, which always runs lock-protected.
+	// +optional
+	Plan *PlanSpec `json:"plan,omitempty"`
+
 	// +optional
 	Webhooks []Webhook `json:"webhooks,omitempty"`
 
@@ -540,6 +545,47 @@ type TFStateSpec struct {
 	// +optional
 	// +kubebuilder:default:string="0s"
 	LockTimeout metav1.Duration `json:"lockTimeout,omitempty"`
+}
+
+// PlanSpec configures options that apply only to the plan phase. These never
+// affect the apply phase, which always runs lock-protected.
+//
+// Only options expressible through the underlying terraform-exec library are
+// supported here; arbitrary CLI arguments (and TF_CLI_ARGS* env vars) are not.
+type PlanSpec struct {
+	// Lock controls whether the plan acquires the Terraform state lock.
+	//
+	// Leaving this unset preserves the Terraform default (locking enabled).
+	// Setting it to `false` runs `terraform plan -lock=false`, which allows
+	// multiple plans to run concurrently (for example, parallel Branch Planner
+	// pull requests) without serialising on the state lock.
+	//
+	// Only the plan phase is affected; the apply phase always runs
+	// lock-protected.
+	//
+	// +optional
+	Lock *bool `json:"lock,omitempty"`
+
+	// RefreshOnly runs the plan in refresh-only mode (`-refresh-only`), which
+	// reconciles the state with real infrastructure without proposing any
+	// resource changes.
+	//
+	// +optional
+	RefreshOnly bool `json:"refreshOnly,omitempty"`
+
+	// Replace forces the plan to propose recreation of the given resource
+	// address(es) (`-replace=ADDRESS`).
+	//
+	// +optional
+	Replace []string `json:"replace,omitempty"`
+
+	// Parallelism limits the number of concurrent operations during the plan
+	// phase (`-parallelism=n`). Zero (0) uses Terraform's default. This is
+	// independent of the top-level `Parallelism` field, which applies to apply.
+	//
+	// +kubebuilder:default:=0
+	// +optional
+	Parallelism int32 `json:"parallelism,omitempty"`
 }
 
 type ForceUnlockEnum string
