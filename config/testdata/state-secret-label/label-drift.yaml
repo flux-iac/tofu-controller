@@ -1,0 +1,20 @@
+# Regression test for label-drift state loss.
+# The CR carries Flux labels that Flux routinely changes (e.g. on each kustomization sync).
+# After the label change the controller must reuse the same state Secret — not create a new
+# empty one — because the HCL labels block no longer mirrors CR metadata labels.
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: helloworld-state-label-drift
+  labels:
+    kustomize.toolkit.fluxcd.io/name: global-stack-v1
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+    helm.toolkit.fluxcd.io/name: my-release-v1
+spec:
+  interval: 10s
+  approvePlan: "auto"
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
