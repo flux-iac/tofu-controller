@@ -7,9 +7,9 @@ so there is no way to inject extra plan arguments through the runner's
 environment.
 
 To support extra plan arguments in a typed, validated way, the `Terraform`
-resource exposes an optional `.spec.plan` block. These options apply **only to
-the plan phase**. The apply phase never reads `.spec.plan`, so apply always runs
-lock-protected.
+resource exposes an optional `.spec.plan` block. These options affect **only how
+the plan runs**, not what it contains, so they never carry into the apply phase
+— apply always runs lock-protected.
 
 ## Disabling the state lock for plans
 
@@ -52,33 +52,6 @@ plan phase is affected; the subsequent apply still acquires the lock.
 | Field | terraform flag | Description |
 |-------|----------------|-------------|
 | `plan.lock` | `-lock=false` | Disable state locking for the plan. Leave unset to keep locking enabled. |
-| `plan.refreshOnly` | `-refresh-only` | Plan in refresh-only mode: reconcile state with real infrastructure without proposing resource changes. |
-| `plan.replace` | `-replace=ADDRESS` | Force the plan to propose recreation of the listed resource address(es). |
-| `plan.parallelism` | `-parallelism=n` | Limit concurrent operations during the plan phase. `0` uses Terraform's default. Independent of the top-level `spec.parallelism`, which applies to apply. |
-
-Example combining several options:
-
-```yaml
-apiVersion: infra.contrib.fluxcd.io/v1alpha2
-kind: Terraform
-metadata:
-  name: helloworld
-  namespace: flux-system
-spec:
-  approvePlan: auto
-  interval: 1m
-  path: ./
-  sourceRef:
-    kind: GitRepository
-    name: helloworld
-    namespace: flux-system
-  plan:
-    lock: false
-    refreshOnly: true
-    replace:
-      - aws_instance.example
-    parallelism: 20
-```
 
 ## What is not supported
 

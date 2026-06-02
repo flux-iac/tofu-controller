@@ -84,18 +84,6 @@ func appendPlanSpecOptions(opts []tfexec.PlanOption, plan *infrav1.PlanSpec) []t
 		opts = append(opts, tfexec.Lock(*plan.Lock))
 	}
 
-	if plan.RefreshOnly {
-		opts = append(opts, tfexec.RefreshOnly(true))
-	}
-
-	for _, address := range plan.Replace {
-		opts = append(opts, tfexec.Replace(address))
-	}
-
-	if plan.Parallelism > 0 {
-		opts = append(opts, tfexec.Parallelism(int(plan.Parallelism)))
-	}
-
 	return opts
 }
 

@@ -9,94 +9,42 @@ import (
 	"k8s.io/utils/ptr"
 )
 
-// countByType tallies tfexec plan options by their concrete type name so we can
-// assert which options appendPlanSpecOptions produced. The option structs keep
-// their fields unexported, so the concrete value (e.g. -lock=false vs
-// -lock=true) is verified end-to-end via the runner logs rather than here.
-func countByType(opts []tfexec.PlanOption) map[string]int {
-	counts := map[string]int{}
-	for _, opt := range opts {
-		switch opt.(type) {
-		case *tfexec.LockOption:
-			counts["lock"]++
-		case *tfexec.RefreshOnlyOption:
-			counts["refreshOnly"]++
-		case *tfexec.ReplaceOption:
-			counts["replace"]++
-		case *tfexec.ParallelismOption:
-			counts["parallelism"]++
-		}
-	}
-	return counts
-}
-
+// TestAppendPlanSpecOptions asserts on the exact tfexec option values, not just
+// their types: tfexec.Lock(false) and tfexec.Lock(true) compare unequal under
+// assert.Equal (deep comparison of the option struct), so this distinguishes
+// -lock=false from -lock=true rather than merely confirming a lock option exists.
 func TestAppendPlanSpecOptions(t *testing.T) {
 	tests := []struct {
 		name     string
 		plan     *infrav1.PlanSpec
-		expected map[string]int
+		expected []tfexec.PlanOption
 	}{
 		{
 			name:     "nil spec adds nothing",
 			plan:     nil,
-			expected: map[string]int{},
+			expected: nil,
 		},
 		{
 			name:     "empty spec adds nothing",
 			plan:     &infrav1.PlanSpec{},
-			expected: map[string]int{},
+			expected: nil,
 		},
 		{
-			name:     "lock disabled adds a single lock option",
+			name:     "lock disabled emits -lock=false",
 			plan:     &infrav1.PlanSpec{Lock: ptr.To(false)},
-			expected: map[string]int{"lock": 1},
+			expected: []tfexec.PlanOption{tfexec.Lock(false)},
 		},
 		{
-			name:     "lock enabled adds a single lock option",
+			name:     "lock enabled emits -lock=true",
 			plan:     &infrav1.PlanSpec{Lock: ptr.To(true)},
-			expected: map[string]int{"lock": 1},
-		},
-		{
-			name:     "refreshOnly enabled adds a refresh-only option",
-			plan:     &infrav1.PlanSpec{RefreshOnly: true},
-			expected: map[string]int{"refreshOnly": 1},
-		},
-		{
-			name:     "refreshOnly disabled adds nothing",
-			plan:     &infrav1.PlanSpec{RefreshOnly: false},
-			expected: map[string]int{},
-		},
-		{
-			name:     "replace adds one option per address",
-			plan:     &infrav1.PlanSpec{Replace: []string{"aws_instance.a", "aws_instance.b"}},
-			expected: map[string]int{"replace": 2},
-		},
-		{
-			name:     "positive parallelism adds a parallelism option",
-			plan:     &infrav1.PlanSpec{Parallelism: 20},
-			expected: map[string]int{"parallelism": 1},
-		},
-		{
-			name:     "zero parallelism adds nothing",
-			plan:     &infrav1.PlanSpec{Parallelism: 0},
-			expected: map[string]int{},
-		},
-		{
-			name: "all options combined",
-			plan: &infrav1.PlanSpec{
-				Lock:        ptr.To(false),
-				RefreshOnly: true,
-				Replace:     []string{"aws_instance.a"},
-				Parallelism: 5,
-			},
-			expected: map[string]int{"lock": 1, "refreshOnly": 1, "replace": 1, "parallelism": 1},
+			expected: []tfexec.PlanOption{tfexec.Lock(true)},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			opts := appendPlanSpecOptions(nil, tt.plan)
-			assert.Equal(t, tt.expected, countByType(opts))
+			assert.Equal(t, tt.expected, opts)
 		})
 	}
 }

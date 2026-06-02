@@ -152,8 +152,9 @@ _Appears in:_
 
 ### PlanSpec
 
-PlanSpec configures options that apply only to the plan phase. These never
-affect the apply phase, which always runs lock-protected.
+PlanSpec configures options that apply only to the plan phase, affecting how
+the plan runs without changing what the plan contains. They never carry into
+the apply phase, which always runs lock-protected.
 
 Only options expressible through the underlying terraform-exec library are
 supported here; arbitrary CLI arguments (and TF_CLI_ARGS* env vars) are not.
@@ -164,9 +165,6 @@ _Appears in:_
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
 | `lock` _boolean_ | Lock controls whether the plan acquires the Terraform state lock.<br />Leaving this unset preserves the Terraform default (locking enabled).<br />Setting it to `false` runs `terraform plan -lock=false`, which allows<br />multiple plans to run concurrently (for example, parallel Branch Planner<br />pull requests) without serialising on the state lock.<br />Only the plan phase is affected; the apply phase always runs<br />lock-protected. |  | Optional: \{\} <br /> |
-| `refreshOnly` _boolean_ | RefreshOnly runs the plan in refresh-only mode (`-refresh-only`), which<br />reconciles the state with real infrastructure without proposing any<br />resource changes. |  | Optional: \{\} <br /> |
-| `replace` _string array_ | Replace forces the plan to propose recreation of the given resource<br />address(es) (`-replace=ADDRESS`). |  | Optional: \{\} <br /> |
-| `parallelism` _integer_ | Parallelism limits the number of concurrent operations during the plan<br />phase (`-parallelism=n`). Zero (0) uses Terraform's default. This is<br />independent of the top-level `Parallelism` field, which applies to apply. | 0 | Optional: \{\} <br /> |
 
 
 ### PlanStatus
