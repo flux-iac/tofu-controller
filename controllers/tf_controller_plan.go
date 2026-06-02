@@ -57,7 +57,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, patchHelper *patch.Seria
 
 	// check if destroy is set to true or
 	// the object is being deleted and DestroyResourcesOnDeletion is set to true
-	if terraform.Spec.Destroy || (!terraform.ObjectMeta.DeletionTimestamp.IsZero() && terraform.Spec.DestroyResourcesOnDeletion) {
+	if terraform.Spec.Destroy || (!terraform.DeletionTimestamp.IsZero() && terraform.Spec.DestroyResourcesOnDeletion) {
 		log.Info("plan to destroy")
 		planRequest.Destroy = true
 	}
@@ -77,16 +77,16 @@ func (r *TerraformReconciler) plan(ctx context.Context, patchHelper *patch.Seria
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
 					msg := fmt.Sprintf("Plan error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-					r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecPlanFailedReason, msg)
+					r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecPlanFailedReason, "%s", msg)
 					eventSent = true
 					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
 			}
 		}
 
-		if eventSent == false {
+		if !eventSent {
 			msg := fmt.Sprintf("Plan error: %s", err.Error())
-			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecPlanFailedReason, msg)
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecPlanFailedReason, "%s", msg)
 		}
 		err = fmt.Errorf("error running Plan: %s", err)
 		return infrav1.TerraformNotReady(
@@ -101,7 +101,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, patchHelper *patch.Seria
 	log.Info(fmt.Sprintf("plan: %s, found drift: %v", planReply.Message, drifted))
 
 	// currently the PlanCreated flag is only used here to determine if the destroy plan is empty
-	if planRequest.Destroy && planReply.PlanCreated == false {
+	if planRequest.Destroy && !planReply.PlanCreated {
 		// A corner case
 		// If the destroy plan is empty, we should not call apply
 		terraform = infrav1.TerraformPlannedNoChanges(terraform, revision, "No objects need to be destroyed")
@@ -145,11 +145,11 @@ func (r *TerraformReconciler) plan(ctx context.Context, patchHelper *patch.Seria
 		forceOrAutoApply := r.forceOrAutoApply(terraform)
 
 		// this is the manual mode, we fire the event to show how to apply the plan
-		if forceOrAutoApply == false {
+		if !forceOrAutoApply {
 			planId := planid.GetPlanID(revision)
 			approveMessage := planid.GetApproveMessage(planId, "Plan generated")
 			msg := fmt.Sprintf("Planned.\n%s", approveMessage)
-			r.Eventf(terraform, corev1.EventTypeNormal, infrav1.TFExecPlanSucceedReason, msg)
+			r.Eventf(terraform, corev1.EventTypeNormal, infrav1.TFExecPlanSucceedReason, "%s", msg)
 		}
 		terraform = infrav1.TerraformPlannedWithChanges(terraform, revision, forceOrAutoApply, "Plan generated")
 	} else {

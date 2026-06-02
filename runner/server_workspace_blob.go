@@ -46,7 +46,7 @@ func (r *TerraformRunnerServer) CreateWorkspaceBlob(ctx context.Context, req *Cr
 	var encryptionSecret v1.Secret
 
 	log.Info("fetching secret key", "key", encryptionSecretKey)
-	if err := r.Client.Get(ctx, encryptionSecretKey, &encryptionSecret); err != nil {
+	if err := r.Get(ctx, encryptionSecretKey, &encryptionSecret); err != nil {
 		return nil, err
 	}
 

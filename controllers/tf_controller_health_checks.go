@@ -31,9 +31,10 @@ func (r *TerraformReconciler) shouldDoHealthChecks(terraform *infrav1.Terraform)
 	var applyCondition metav1.Condition
 	var hcCondition metav1.Condition
 	for _, c := range terraform.Status.Conditions {
-		if c.Type == infrav1.ConditionTypeApply {
+		switch c.Type {
+		case infrav1.ConditionTypeApply:
 			applyCondition = c
-		} else if c.Type == infrav1.ConditionTypeHealthCheck {
+		case infrav1.ConditionTypeHealthCheck:
 			hcCondition = c
 		}
 	}
@@ -106,7 +107,7 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform *inf
 				traceLog.Error(err, "Hit an error")
 				msg := fmt.Sprintf("TCP health check error: %s, url: %s", hc.Name, hc.Address)
 				traceLog.Info("Record an event")
-				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.HealthChecksFailedReason, msg)
+				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.HealthChecksFailedReason, "%s", msg)
 				traceLog.Info("Return failed health check")
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,
@@ -132,7 +133,7 @@ func (r *TerraformReconciler) doHealthChecks(ctx context.Context, terraform *inf
 				traceLog.Error(err, "Hit an error")
 				msg := fmt.Sprintf("HTTP health check error: %s, url: %s", hc.Name, hc.URL)
 				traceLog.Info("Record an event")
-				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.HealthChecksFailedReason, msg)
+				r.Eventf(terraform, corev1.EventTypeWarning, infrav1.HealthChecksFailedReason, "%s", msg)
 				traceLog.Info("Return failed health check")
 				return infrav1.TerraformHealthCheckFailed(
 					terraform,

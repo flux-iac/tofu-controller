@@ -536,14 +536,14 @@ func (r *TerraformReconciler) reconcileRunnerSecret(ctx context.Context, terrafo
 
 	// Check if the secret already exists
 	secret := &v1.Secret{}
-	if err := r.Client.Get(ctx, types.NamespacedName{Name: result.Secret.Name, Namespace: terraform.Namespace}, secret); err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Name: result.Secret.Name, Namespace: terraform.Namespace}, secret); err != nil {
 		if errors.IsNotFound(err) {
 			// If secret does not exist, create it
 			result.Secret.SetResourceVersion("")
 			result.Secret.SetUID("")
 			result.Secret.SetGeneration(0)
 
-			if err := r.Client.Create(ctx, result.Secret); err != nil && !errors.IsAlreadyExists(err) {
+			if err := r.Create(ctx, result.Secret); err != nil && !errors.IsAlreadyExists(err) {
 				return nil, err
 			}
 		} else {

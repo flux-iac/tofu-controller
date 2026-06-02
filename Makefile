@@ -13,7 +13,7 @@ BUILD_VERSION ?= $(shell git describe --tags $$(git rev-list --tags --max-count=
 # - .github/workflows/release-runners.yaml
 # - .github/workflows/release.yaml
 # - Tiltfile
-LIBCRYPTO_VERSION ?= 3.5.5-r0
+LIBCRYPTO_VERSION ?= 3.5.6-r0
 
 # source controller version
 SOURCE_VER ?= v1.7.4
@@ -69,8 +69,8 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 
 # Generate API reference documentation
 .PHONY: api-docs
-api-docs: gen-crd-api-reference-docs
-	$(GEN_CRD_API_REFERENCE_DOCS) -api-dir=./api/v1alpha2 -config=./hack/api-docs/config.json -template-dir=./hack/api-docs/template -out-file=./docs/References/terraform.md
+api-docs: crd-ref-docs
+	$(CRD_REF_DOCS) --source-path=./api/v1alpha2 --config=./hack/api-docs/config.yaml --renderer=markdown --templates-dir=./hack/api-docs/template --output-path=./docs/References/terraform.md
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.
@@ -111,6 +111,10 @@ normal-controller-test: manifests generate download-crd-deps fmt vet envtest api
 .PHONY: test-internal
 test-internal: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests in the internal directory.
 	$(TEST_SETTINGS) go test ./internal/... -coverprofile cover.out -v
+
+.PHONY: test-plan
+test-plan: ## Run plan package tests.
+	cd api && go test ./plan/... -coverprofile cover.out -v
 
 .PHONY: gen-grpc
 gen-grpc: protoc protoc-gen-go protoc-gen-go-grpc
@@ -249,7 +253,7 @@ protoc: ## Download protoc locally if necessary.
 PROTOC_GEN_GO = $(GOBIN)/protoc-gen-go
 .PHONY: protoc-gen-go
 protoc-gen-go: ## Download controller-gen locally if necessary.
-	$(call go-install-tool,$(PROTOC_GEN_GO),google.golang.org/protobuf/cmd/protoc-gen-go@1.36.6)
+	$(call go-install-tool,$(PROTOC_GEN_GO),google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.6)
 
 PROTOC_GEN_GO_GRPC = $(GOBIN)/protoc-gen-go-grpc
 .PHONY: protoc-gen-go-grpc
@@ -262,11 +266,11 @@ CONTROLLER_GEN = $(GOBIN)/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
 	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.18.0)
 
-# Find or download gen-crd-api-reference-docs
-GEN_CRD_API_REFERENCE_DOCS = $(GOBIN)/gen-crd-api-reference-docs
-.PHONY: gen-crd-api-reference-docs
-gen-crd-api-reference-docs:
-	$(call go-install-tool,$(GEN_CRD_API_REFERENCE_DOCS),github.com/ahmetb/gen-crd-api-reference-docs@v0.3.0)
+# Find or download crd-ref-docs
+CRD_REF_DOCS = $(GOBIN)/crd-ref-docs
+.PHONY: crd-ref-docs
+crd-ref-docs:
+	$(call go-install-tool,$(CRD_REF_DOCS),github.com/elastic/crd-ref-docs@v0.3.0)
 
 ENVTEST_ARCH ?= amd64
 

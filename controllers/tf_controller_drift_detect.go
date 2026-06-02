@@ -16,12 +16,12 @@ func (r *TerraformReconciler) shouldDetectDrift(terraform *infrav1.Terraform, re
 	// Please do not optimize this logic, as we'd like others to easily understand the logics behind this behaviour.
 
 	// return false when drift detection is disabled
-	if terraform.Spec.DisableDriftDetection == true {
+	if terraform.Spec.DisableDriftDetection {
 		return false
 	}
 
 	// not support when Destroy == true
-	if terraform.Spec.Destroy == true {
+	if terraform.Spec.Destroy {
 		return false
 	}
 
@@ -92,16 +92,16 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform *infrav
 			for _, detail := range st.Details() {
 				if reply, ok := detail.(*runner.PlanReply); ok {
 					msg := fmt.Sprintf("Drift detection error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-					r.Eventf(terraform, corev1.EventTypeWarning, infrav1.DriftDetectionFailedReason, msg)
+					r.Eventf(terraform, corev1.EventTypeWarning, infrav1.DriftDetectionFailedReason, "%s", msg)
 					eventSent = true
 					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
 				}
 			}
 		}
 
-		if eventSent == false {
+		if !eventSent {
 			msg := fmt.Sprintf("Drift detection error: %s", err.Error())
-			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.DriftDetectionFailedReason, msg)
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.DriftDetectionFailedReason, "%s", msg)
 		}
 
 		err = fmt.Errorf("error running Plan: %s", err)
@@ -140,7 +140,7 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform *infrav
 		rawOutput = strings.Replace(rawOutput, "You can apply this plan to save these new output values to the Terraform\nstate, without changing any real infrastructure.", "", 1)
 
 		msg := fmt.Sprintf("Drift detected.\n%s", rawOutput)
-		r.Eventf(terraform, corev1.EventTypeWarning, infrav1.DriftDetectedReason, msg)
+		r.Eventf(terraform, corev1.EventTypeWarning, infrav1.DriftDetectedReason, "%s", msg)
 
 		// If drift detected & we use the auto mode, then we continue
 		terraform = infrav1.TerraformDriftDetected(terraform, revision, infrav1.DriftDetectedReason, rawOutput)

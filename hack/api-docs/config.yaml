@@ -1,0 +1,70 @@
+processor:
+  ignoreTypes:
+    - "ParseError$"
+    - "List$"
+  ignoreFields:
+    - "TypeMeta$"
+
+render:
+  kubernetesVersion: "1.32"
+  knownTypes:
+    - name: Duration
+      package: k8s.io/apimachinery/pkg/apis/meta/v1
+      link: https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#Duration
+    - name: JSON
+      package: k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1
+      link: https://pkg.go.dev/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1#JSON
+    - name: ObjectMeta
+      package: k8s.io/apimachinery/pkg/apis/meta/v1
+      link: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#objectmeta-v1-meta
+    - name: Condition
+      package: k8s.io/apimachinery/pkg/apis/meta/v1
+      link: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#condition-v1-meta
+    - name: Time
+      package: k8s.io/apimachinery/pkg/apis/meta/v1
+      link: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#time-v1-meta
+    - name: SecretReference
+      package: k8s.io/api/core/v1
+      link: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#secretreference-v1-core
+    - name: EnvVar
+      package: k8s.io/api/core/v1
+      link: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#envvar-v1-core
+    - name: EnvVarSource
+      package: k8s.io/api/core/v1
+      link: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#envvarsource-v1-core
+    - name: EnvFromSource
+      package: k8s.io/api/core/v1
+      link: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#envfromsource-v1-core
+    - name: Affinity
+      package: k8s.io/api/core/v1
+      link: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#affinity-v1-core
+    - name: Toleration
+      package: k8s.io/api/core/v1
+      link: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#toleration-v1-core
+    - name: VolumeMount
+      package: k8s.io/api/core/v1
+      link: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volumemount-v1-core
+    - name: Volume
+      package: k8s.io/api/core/v1
+      link: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volume-v1-core
+    - name: Container
+      package: k8s.io/api/core/v1
+      link: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#container-v1-core
+    - name: HostAlias
+      package: k8s.io/api/core/v1
+      link: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#hostalias-v1-core
+    - name: SecurityContext
+      package: k8s.io/api/core/v1
+      link: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#securitycontext-v1-core
+    - name: ResourceRequirements
+      package: k8s.io/api/core/v1
+      link: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core
+    - name: SecretKeyReference
+      package: github.com/fluxcd/pkg/apis/meta
+      link: https://pkg.go.dev/github.com/fluxcd/pkg/apis/meta#SecretKeyReference
+    - name: NamespacedObjectReference
+      package: github.com/fluxcd/pkg/apis/meta
+      link: https://pkg.go.dev/github.com/fluxcd/pkg/apis/meta#NamespacedObjectReference
+    - name: ReconcileRequestStatus
+      package: github.com/fluxcd/pkg/apis/meta
+      link: https://pkg.go.dev/github.com/fluxcd/pkg/apis/meta#ReconcileRequestStatus

@@ -19,9 +19,9 @@ import (
 )
 
 func startInformer(ctx context.Context, log logr.Logger, dynamicClient *dynamic.DynamicClient, clusterClient client.Client, opts *applicationOptions) error {
-	gitProvider, err := createProvider(ctx, clusterClient, opts.pollingConfigMap)
+	providerOpts, err := getProviderOpts(ctx, clusterClient, opts.pollingConfigMap)
 	if err != nil {
-		return fmt.Errorf("failed to create git provider: %w", err)
+		return fmt.Errorf("failed to get provider options: %w", err)
 	}
 
 	sharedInformer, err := createSharedInformer(ctx, clusterClient, dynamicClient)
@@ -32,7 +32,7 @@ func startInformer(ctx context.Context, log logr.Logger, dynamicClient *dynamic.
 	informer, err := planner.NewInformer(
 		planner.WithLogger(log),
 		planner.WithClusterClient(clusterClient),
-		planner.WithGitProvider(gitProvider),
+		planner.WithProviderOpts(providerOpts...),
 		planner.WithSharedInformer(sharedInformer),
 	)
 	if err != nil {
@@ -46,31 +46,27 @@ func startInformer(ctx context.Context, log logr.Logger, dynamicClient *dynamic.
 	return nil
 }
 
-func createProvider(ctx context.Context, clusterClient client.Client, configMapName string) (provider.Provider, error) {
+func getProviderOpts(ctx context.Context, clusterClient client.Client, configMapName string) ([]provider.ProviderOption, error) {
 	cmKey, err := config.ObjectKeyFromName(configMapName)
 	if err != nil {
 		return nil, fmt.Errorf("failed getting object key from config map name: %w", err)
 	}
 
-	config, err := config.ReadConfig(ctx, clusterClient, cmKey)
+	cfg, err := config.ReadConfig(ctx, clusterClient, cmKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config: %w", err)
 	}
 
 	bbpProviderSecret := &corev1.Secret{}
-	if err := clusterClient.Get(ctx, client.ObjectKey{Name: config.SecretName, Namespace: config.SecretNamespace}, bbpProviderSecret); err != nil {
+	if err := clusterClient.Get(ctx, client.ObjectKey{Name: cfg.SecretName, Namespace: cfg.SecretNamespace}, bbpProviderSecret); err != nil {
 		return nil, fmt.Errorf("unable to get bbp config secret: %w", err)
 	}
 
-	if bbpProviderSecret.Data == nil || bbpProviderSecret.Data["token"] == nil {
-		return nil, fmt.Errorf("provider secret has no token")
-	}
-	gitProvider, err := provider.New(provider.ProviderGitHub, provider.WithToken("api-token", string(bbpProviderSecret.Data["token"])))
-	if err != nil {
-		return nil, fmt.Errorf("unable to get provider: %w", err)
+	if bbpProviderSecret.Data == nil {
+		return nil, fmt.Errorf("provider secret has no data")
 	}
 
-	return gitProvider, nil
+	return provider.OptsFromSecret(bbpProviderSecret.Data)
 }
 
 func createSharedInformer(_ context.Context, client client.Client, dynamicClient dynamic.Interface) (cache.SharedIndexInformer, error) {

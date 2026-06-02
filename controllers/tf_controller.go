@@ -62,6 +62,7 @@ import (
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/mtls"
+	"github.com/flux-iac/tofu-controller/utils"
 )
 
 // TerraformReconciler reconciles a Terraform object
@@ -74,6 +75,11 @@ type TerraformReconciler struct {
 	FieldManager      string
 	patchOptions      []patch.Option
 	requeueDependency time.Duration
+
+	// Quota retry configuration
+	QuotaRetryEnabled      bool
+	QuotaRetryDelay        time.Duration
+	QuotaRetryJitterFactor float64
 
 	StatusPoller              *polling.StatusPoller
 	Scheme                    *runtime.Scheme
@@ -131,7 +137,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	<-r.CertRotator.Ready
 
 	traceLog.Info("Validate TLS Cert")
-	if isCAValid, _ := r.CertRotator.IsCAValid(); isCAValid == false && r.CertRotator.TriggerCARotation != nil {
+	if isCAValid, _ := r.CertRotator.IsCAValid(); !isCAValid && r.CertRotator.TriggerCARotation != nil {
 		traceLog.Info("TLS Cert invalid")
 		readyCh := make(chan *mtls.TriggerResult)
 		traceLog.Info("Trigger Cert Rotation")
@@ -169,7 +175,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 
 		// Record the duration of the reconciliation.
-		r.Metrics.RecordDuration(ctx, terraform, startTime)
+		r.RecordDuration(ctx, terraform, startTime)
 	}()
 
 	// Make sure the Finalizer exists
@@ -224,7 +230,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			conditions.MarkStalled(terraform, infrav1.AccessDeniedReason, "%s", err)
 			conditions.MarkFalse(terraform, meta.ReadyCondition, infrav1.AccessDeniedReason, "%s", err)
 			conditions.Delete(terraform, meta.ReconcilingCondition)
-			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.AccessDeniedReason, err.Error())
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.AccessDeniedReason, "%s", err.Error())
 
 			// The controller must restart or sourceRef to change
 			// for this to be recoverable
@@ -233,7 +239,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			conditions.MarkStalled(terraform, infrav1.ArtifactFailedReason, "%s", err)
 			conditions.MarkFalse(terraform, meta.ReadyCondition, infrav1.ArtifactFailedReason, "%s", err)
 			conditions.Delete(terraform, meta.ReconcilingCondition)
-			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.ArtifactFailedReason, err.Error())
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.ArtifactFailedReason, "%s", err.Error())
 
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 		}
@@ -273,10 +279,8 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			"nextAttempt", time.Now().Add(requeueAfter),
 			"requeueAfter", requeueAfter)
 
-		// Remove any Progressing condition since we're skipping reconciliation
-		if conditions.HasAnyReason(terraform, meta.ProgressingReason) {
-			conditions.Delete(terraform, meta.ProgressingReason)
-		}
+		// Clear the Reconciling condition as we are skipping it on this pass
+		conditions.Delete(terraform, meta.ReconcilingCondition)
 
 		return ctrl.Result{RequeueAfter: requeueAfter}, nil
 	}
@@ -310,7 +314,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			// instead we requeue on a fix interval.
 			msg := fmt.Sprintf("Dependencies do not meet ready condition, retrying in %s", terraform.GetRetryInterval().String())
 			log.Info(msg)
-			r.Eventf(terraform, corev1.EventTypeNormal, infrav1.DependencyNotReadyReason, msg)
+			r.Eventf(terraform, corev1.EventTypeNormal, infrav1.DependencyNotReadyReason, "%s", msg)
 
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 		}
@@ -387,6 +391,38 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 
 		// case 3:
+		// if revision is changed, there's a pending plan awaiting manual approval,
+		// and the user hasn't approved or replanned, we should clear the Pending
+		// Plan to trigger re-plan with the new source revision.
+		//
+		if sourceObj.GetArtifact().Revision != terraform.Status.LastAttemptedRevision &&
+			terraform.Status.Plan.Pending != "" &&
+			!r.shouldApply(terraform) {
+			traceLog.Info("Source revision changed while plan is pending approval, clearing pending plan to trigger re-plan")
+			terraform.Status.Plan.Pending = ""
+			if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
+				log.Error(err, "unable to update status to clear pending plan (source revision changed)")
+				return ctrl.Result{Requeue: true}, err
+			}
+		}
+
+		// case 4:
+		// detect when the Terraform spec has changed since we last generated
+		// a plan (we see this as the LastPlannedGeneration will be different
+		// than the current generation).
+		if terraform.Status.LastPlannedGeneration != 0 &&
+			terraform.Generation != terraform.Status.LastPlannedGeneration &&
+			terraform.Status.Plan.Pending != "" &&
+			!r.shouldApply(terraform) {
+			traceLog.Info("Terraform spec has changed while the plan was pending approval, clearing pending plan to trigger re-plan")
+			terraform.Status.Plan.Pending = ""
+			if err := patchHelper.Patch(ctx, terraform, r.patchOptions...); err != nil {
+				log.Error(err, "unable to update status to clear pending plan (tf generation changed)")
+				return ctrl.Result{Requeue: true}, err
+			}
+		}
+
+		// case 5:
 		// return early if it's manually mode and pending
 		//
 		traceLog.Info("Check for pending plan, forceOrAutoApply and shouldApply")
@@ -409,6 +445,18 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				log.Error(err, "unable to close connection")
 			}
 		}
+
+		if r.QuotaRetryEnabled && utils.IsQuotaError(err) {
+			jitteredDelay := wait.Jitter(r.QuotaRetryDelay, r.QuotaRetryJitterFactor)
+			traceLog.Info("runner quota exhausted, retrying",
+				"retryAfter", jitteredDelay,
+				"baseDelay", r.QuotaRetryDelay,
+				"jitterFactor", r.QuotaRetryJitterFactor)
+			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.RunnerQuotaExhaustedReason,
+				"runner pod creation blocked by resource quota, retrying")
+			return ctrl.Result{RequeueAfter: jitteredDelay}, nil
+		}
+
 		return ctrl.Result{}, err
 	}
 	log.Info("runner is running")
@@ -472,7 +520,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// Examine if the object is under deletion
 	traceLog.Info("Check for deletion timestamp to finalize")
-	if !terraform.ObjectMeta.DeletionTimestamp.IsZero() {
+	if !terraform.DeletionTimestamp.IsZero() {
 		traceLog.Info("Calling finalize function")
 		if terraform, result, err := r.finalize(ctx, patchHelper, terraform, runnerClient, sourceObj, reconciliationLoopID); err != nil {
 			traceLog.Info("Patch the status of the Terraform resource")
@@ -542,7 +590,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			"revision",
 			sourceObj.GetArtifact().Revision)
 		traceLog.Info("Record an event for the failure")
-		r.Eventf(terraform, corev1.EventTypeWarning, infrav1.ReconciliationFailureReason, reconcileErr.Error())
+		r.Eventf(terraform, corev1.EventTypeWarning, infrav1.ReconciliationFailureReason, "%s", reconcileErr.Error())
 
 		if terraform.Spec.Remediation != nil {
 			log.Info(fmt.Sprintf(
@@ -641,7 +689,7 @@ func (r *TerraformReconciler) shouldReconcile(terraform *infrav1.Terraform, sour
 }
 
 func isBeingDeleted(terraform *infrav1.Terraform) bool {
-	return !terraform.ObjectMeta.DeletionTimestamp.IsZero()
+	return !terraform.DeletionTimestamp.IsZero()
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -733,7 +781,7 @@ func (r *TerraformReconciler) checkDependencies(ctx context.Context, terraform *
 
 		// Check whether the dependent Terraform isn't being deleted, and then add a
 		// a finalizer if it is missing
-		if tDep.ObjectMeta.DeletionTimestamp.IsZero() && !controllerutil.ContainsFinalizer(tDep, finalizerKey) {
+		if tDep.DeletionTimestamp.IsZero() && !controllerutil.ContainsFinalizer(tDep, finalizerKey) {
 			patch := client.MergeFrom(tDep.DeepCopy())
 			controllerutil.AddFinalizer(tDep, finalizerKey)
 			if err := r.Patch(context.Background(), tDep, patch, client.FieldOwner(r.FieldManager)); err != nil {
@@ -811,8 +859,8 @@ func (r *TerraformReconciler) requestsForRevisionChangeOf(indexKey string) handl
 		}
 		reqs := make([]reconcile.Request, len(sorted))
 		for i, t := range sorted {
-			reqs[i].NamespacedName.Name = t.Name
-			reqs[i].NamespacedName.Namespace = t.Namespace
+			reqs[i].Name = t.Name
+			reqs[i].Namespace = t.Namespace
 		}
 		return reqs
 	}
@@ -841,7 +889,7 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform *infrav1.
 	switch terraform.Spec.SourceRef.Kind {
 	case sourcev1.GitRepositoryKind:
 		var repository sourcev1.GitRepository
-		err := r.Client.Get(ctx, sourceReference, &repository)
+		err := r.Get(ctx, sourceReference, &repository)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				return sourceObj, err
@@ -851,7 +899,7 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform *infrav1.
 		sourceObj = &repository
 	case sourcev1.BucketKind:
 		var bucket sourcev1.Bucket
-		err := r.Client.Get(ctx, sourceReference, &bucket)
+		err := r.Get(ctx, sourceReference, &bucket)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				return sourceObj, err
@@ -861,7 +909,7 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform *infrav1.
 		sourceObj = &bucket
 	case sourcev1.OCIRepositoryKind:
 		var repository sourcev1.OCIRepository
-		err := r.Client.Get(ctx, sourceReference, &repository)
+		err := r.Get(ctx, sourceReference, &repository)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				return sourceObj, err

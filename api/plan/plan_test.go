@@ -3,21 +3,104 @@ package plan
 import (
 	"crypto/sha256"
 	"fmt"
+	"math/rand"
+	"strings"
 	"testing"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	v1 "k8s.io/api/core/v1"
 )
 
-func TestNewFromBytesRejectsTooLarge(t *testing.T) {
-	_, err := NewFromBytes("name", "ns", "ws", "uid", "plan-id", []byte("12345"), 5)
-	if err == nil {
-		t.Fatalf("expected error when plan size exceeds max")
+func TestExceededWorkspaceName(t *testing.T) {
+	// Generate a workspace name that will exceed the 63-character limit
+	exceededWorkspaceName := strings.Repeat("x", 65)
+
+	planData := []byte("example plan data")
+
+	p, err := NewFromBytes("tf", "ns", exceededWorkspaceName, "uid", "plan-id", planData)
+	if err != nil {
+		t.Fatalf("unexpected error creating plan: %v", err)
+	}
+
+	secrets, err := p.ToSecret("-suffix")
+	if err != nil {
+		t.Fatalf("unexpected error converting to secret: %v", err)
+	}
+
+	if len(secrets) != 1 {
+		t.Fatalf("expected 1 secret, got %d", len(secrets))
+	}
+
+	secret := secrets[0]
+
+	// Verify that we've successfully truncated the workspace name
+	workspaceLabelValue := secret.Labels[TFPlanWorkspaceLabel]
+	if len(workspaceLabelValue) > 63 {
+		t.Fatalf("workspace label exceeds 63 chars: %d", len(workspaceLabelValue))
+	}
+
+	if workspaceLabelValue == exceededWorkspaceName {
+		t.Fatalf("expected workspace label to be truncated, got original value")
+	}
+
+	if workspaceLabelValue != SafeLabelValue(exceededWorkspaceName) {
+		t.Fatalf("workspace label mismatch, got %s want %s", workspaceLabelValue, SafeLabelValue(exceededWorkspaceName))
+	}
+
+	// Verify that we've got the full workspace name in the annotation
+	workspaceAnnotationValue := secret.Annotations[TFPlanFullWorkspaceAnnotation]
+	if workspaceAnnotationValue != exceededWorkspaceName {
+		t.Fatalf("workspace annotation mismatch, got %s want %s", workspaceAnnotationValue, exceededWorkspaceName)
+	}
+
+	reconstructedSecret, err := NewFromSecrets("tf", "ns", "uid", []v1.Secret{*secret})
+	if err != nil {
+		t.Fatalf("unexpected error reconstructing plan secret: %v", err)
+	}
+
+	if reconstructedSecret.workspace != exceededWorkspaceName {
+		t.Fatalf("reconstructed workspace mismatch, got %s want %s", reconstructedSecret.workspace, exceededWorkspaceName)
+	}
+}
+
+func TestLegacyNormalWorkspaceName(t *testing.T) {
+	// A "normal" workspace name that is under the 63-character limit
+	workspaceName := "my-workspace"
+
+	planData := []byte("example plan data")
+
+	p, err := NewFromBytes("tf", "ns", workspaceName, "uid", "plan-id", planData)
+	if err != nil {
+		t.Fatalf("unexpected error creating plan: %v", err)
+	}
+
+	secrets, err := p.ToSecret("-suffix")
+	if err != nil {
+		t.Fatalf("unexpected error converting to secret: %v", err)
+	}
+
+	if len(secrets) != 1 {
+		t.Fatalf("expected 1 secret, got %d", len(secrets))
+	}
+
+	secret := secrets[0]
+
+	// remove the new annotation to simulate a "legacy" resource
+	delete(secret.Annotations, TFPlanFullWorkspaceAnnotation)
+
+	reconstructedSecret, err := NewFromSecrets("tf", "ns", "uid", []v1.Secret{*secret})
+	if err != nil {
+		t.Fatalf("unexpected error reconstructing plan secret: %v", err)
+	}
+
+	if reconstructedSecret.workspace != workspaceName {
+		t.Fatalf("reconstructed workspace mismatch, got %s want %s", reconstructedSecret.workspace, workspaceName)
 	}
 }
 
 func TestToSecretSingleChunk(t *testing.T) {
 	planData := []byte("example plan data")
-	plan, err := NewFromBytes("tf", "ns", "ws", "uid", "plan-id", planData, 1024)
+	plan, err := NewFromBytes("tf", "ns", "ws", "uid", "plan-id", planData)
 	if err != nil {
 		t.Fatalf("unexpected error creating plan: %v", err)
 	}
@@ -41,12 +124,12 @@ func TestToSecretSingleChunk(t *testing.T) {
 	if got := secret.Annotations["encoding"]; got != "gzip" {
 		t.Fatalf("unexpected encoding annotation: %s", got)
 	}
-	if got := secret.Annotations[SavedPlanSecretAnnotation]; got != "plan-id" {
+	if got := secret.Annotations[TFPlanSavedAnnotation]; got != "plan-id" {
 		t.Fatalf("unexpected saved plan annotation: %s", got)
 	}
 
 	expectedHash := fmt.Sprintf("%x", sha256.Sum256(plan.bytes))
-	if got := secret.Annotations["infra.contrib.fluxcd.io/plan-hash"]; got != expectedHash {
+	if got := secret.Annotations[TFPlanHashAnnotation]; got != expectedHash {
 		t.Fatalf("unexpected plan hash annotation: %s", got)
 	}
 
@@ -67,7 +150,13 @@ func TestToSecretSingleChunk(t *testing.T) {
 }
 
 func TestToSecretChunked(t *testing.T) {
-	plan, err := NewFromBytes("tf", "ns", "ws", "uid", "plan-id", []byte{}, 1)
+	// Generate incompressible random data larger than resourceDataMaxSizeBytes (1MB)
+	// so that even after gzip encoding, the result exceeds the chunk limit.
+	rng := rand.New(rand.NewSource(42))
+	planData := make([]byte, 2*resourceDataMaxSizeBytes)
+	rng.Read(planData)
+
+	plan, err := NewFromBytes("tf", "ns", "ws", "uid", "plan-id", planData)
 	if err != nil {
 		t.Fatalf("unexpected error creating plan: %v", err)
 	}
@@ -77,9 +166,8 @@ func TestToSecretChunked(t *testing.T) {
 		t.Fatalf("unexpected error converting to secret: %v", err)
 	}
 
-	expectedChunks := int((uint64(len(plan.bytes)) + plan.maxPlanSizeBytes - 1) / plan.maxPlanSizeBytes)
-	if len(secrets) != expectedChunks {
-		t.Fatalf("expected %d secrets, got %d", expectedChunks, len(secrets))
+	if len(secrets) < 2 {
+		t.Fatalf("expected multiple secrets for chunked plan, got %d", len(secrets))
 	}
 
 	for i, secret := range secrets {
@@ -87,14 +175,14 @@ func TestToSecretChunked(t *testing.T) {
 		if secret.Name != expectedName {
 			t.Fatalf("unexpected secret name, got %s want %s", secret.Name, expectedName)
 		}
-		if got := secret.Annotations["infra.contrib.fluxcd.io/plan-chunk"]; got != fmt.Sprintf("%d", i) {
+		if got := secret.Annotations[TFPlanChunkAnnotation]; got != fmt.Sprintf("%d", i) {
 			t.Fatalf("unexpected chunk annotation on secret %d: %s", i, got)
 		}
-		if len(secret.Data[TFPlanName]) > int(plan.maxPlanSizeBytes) {
+		if len(secret.Data[TFPlanName]) > resourceDataMaxSizeBytes {
 			t.Fatalf("secret chunk %d exceeds max size", i)
 		}
 		hash := fmt.Sprintf("%x", sha256.Sum256(secret.Data[TFPlanName]))
-		if secret.Annotations["infra.contrib.fluxcd.io/plan-hash"] != hash {
+		if secret.Annotations[TFPlanHashAnnotation] != hash {
 			t.Fatalf("unexpected plan hash for chunk %d", i)
 		}
 	}
@@ -102,7 +190,7 @@ func TestToSecretChunked(t *testing.T) {
 
 func TestToConfigMapSingleChunk(t *testing.T) {
 	planData := []byte("human readable plan output")
-	plan, err := NewFromBytes("tf", "ns", "ws", "uid", "plan-id", planData, 1024)
+	plan, err := NewFromBytes("tf", "ns", "ws", "uid", "plan-id", planData)
 	if err != nil {
 		t.Fatalf("unexpected error creating plan: %v", err)
 	}
@@ -120,21 +208,24 @@ func TestToConfigMapSingleChunk(t *testing.T) {
 	if cm.Name != "tfplan-ws-tf-human" {
 		t.Fatalf("configmap name mismatch, got %s", cm.Name)
 	}
-	if got := cm.Annotations[SavedPlanSecretAnnotation]; got != "plan-id" {
+	if got := cm.Annotations[TFPlanSavedAnnotation]; got != "plan-id" {
 		t.Fatalf("unexpected saved plan annotation: %s", got)
 	}
 
-	decoded, err := GzipDecode([]byte(cm.Data[TFPlanName]))
-	if err != nil {
-		t.Fatalf("unable to decode configmap plan data: %v", err)
-	}
-	if string(decoded) != string(planData) {
-		t.Fatalf("decoded configmap plan mismatch, got %q", string(decoded))
+	// ConfigMaps store raw plan data (not gzip-encoded)
+	if cm.Data[TFPlanName] != string(planData) {
+		t.Fatalf("configmap plan data mismatch")
 	}
 }
 
 func TestToConfigMapChunked(t *testing.T) {
-	plan, err := NewFromBytes("tf", "ns", "ws", "uid", "plan-id", []byte{}, 1)
+	// Generate data larger than resourceDataMaxSizeBytes (1MB) to force chunking
+	planData := make([]byte, resourceDataMaxSizeBytes+1024)
+	for i := range planData {
+		planData[i] = byte(i % 256)
+	}
+
+	plan, err := NewFromBytes("tf", "ns", "ws", "uid", "plan-id", planData)
 	if err != nil {
 		t.Fatalf("unexpected error creating plan: %v", err)
 	}
@@ -144,10 +235,8 @@ func TestToConfigMapChunked(t *testing.T) {
 		t.Fatalf("unexpected error converting to configmaps: %v", err)
 	}
 
-	planStr := string(plan.bytes)
-	expectedChunks := (len(planStr) + int(plan.maxPlanSizeBytes) - 1) / int(plan.maxPlanSizeBytes)
-	if len(configMaps) != expectedChunks {
-		t.Fatalf("expected %d configmaps, got %d", expectedChunks, len(configMaps))
+	if len(configMaps) < 2 {
+		t.Fatalf("expected multiple configmaps for chunked plan, got %d", len(configMaps))
 	}
 
 	for i, cm := range configMaps {
@@ -155,14 +244,14 @@ func TestToConfigMapChunked(t *testing.T) {
 		if cm.Name != expectedName {
 			t.Fatalf("unexpected configmap name, got %s want %s", cm.Name, expectedName)
 		}
-		if got := cm.Annotations["infra.contrib.fluxcd.io/plan-chunk"]; got != fmt.Sprintf("%d", i) {
+		if got := cm.Annotations[TFPlanChunkAnnotation]; got != fmt.Sprintf("%d", i) {
 			t.Fatalf("unexpected chunk annotation on configmap %d: %s", i, got)
 		}
-		if len(cm.Data[TFPlanName]) > int(plan.maxPlanSizeBytes) {
+		if len(cm.Data[TFPlanName]) > resourceDataMaxSizeBytes {
 			t.Fatalf("configmap chunk %d exceeds max size", i)
 		}
 		hash := fmt.Sprintf("%x", sha256.Sum256([]byte(cm.Data[TFPlanName])))
-		if cm.Annotations["infra.contrib.fluxcd.io/plan-hash"] != hash {
+		if cm.Annotations[TFPlanHashAnnotation] != hash {
 			t.Fatalf("unexpected plan hash for configmap chunk %d", i)
 		}
 	}

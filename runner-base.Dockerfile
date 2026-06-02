@@ -1,11 +1,11 @@
 # Build the manager binary
-ARG GO_VERSION=1.25.6
+ARG GO_VERSION=1.26.3
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS builder
 
 ARG BUILD_SHA
 ARG BUILD_VERSION
 
-RUN apt-get update && apt-get install -y unzip
+RUN apt-get update && apt-get install -y unzip --no-install-recommends
 
 WORKDIR /workspace
 
@@ -37,13 +37,14 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
     -o tf-runner \
     ./cmd/runner/main.go
 
-FROM alpine:3.22
+FROM alpine:3.23
 
 LABEL org.opencontainers.image.source="https://github.com/flux-iac/tofu-controller"
 
 ARG LIBCRYPTO_VERSION
 
 RUN apk update && \
+    apk upgrade --no-cache && \
     apk add --no-cache \
     busybox \
     ca-certificates \

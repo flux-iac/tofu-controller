@@ -45,7 +45,7 @@ func loadTFPlan(
 		// List relevant secrets
 		if err := kubeClient.List(ctx, secrets, client.InNamespace(req.Namespace), client.MatchingLabels{
 			plan.TFPlanNameLabel:      plan.SafeLabelValue(req.Name),
-			plan.TFPlanWorkspaceLabel: terraform.WorkspaceName(),
+			plan.TFPlanWorkspaceLabel: plan.SafeLabelValue(terraform.WorkspaceName()),
 		}); err != nil {
 			log.Error(err, "unable to list existing plan secrets")
 			return nil, err

@@ -1,6 +1,6 @@
 # Tofu Controller
 
-![Version: 0.16.1](https://img.shields.io/badge/Version-0.16.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.16.1](https://img.shields.io/badge/AppVersion-v0.16.1-informational?style=flat-square)
+![Version: 0.16.3](https://img.shields.io/badge/Version-0.16.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.16.3](https://img.shields.io/badge/AppVersion-v0.16.3-informational?style=flat-square)
 
 This is the Helm chart for the [Tofu Controller](https://github.com/flux-iac/tofu-controller), an IAC controller for Flux [Flux](https://fluxcd.io) to reconcile OpenTofu and Terraform resources in the GitOps way.
 
@@ -77,10 +77,13 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | podLabels | object | `{}` | Additional pod labels |
 | podSecurityContext | object | `{"fsGroup":1337}` | Pod-level security context |
 | priorityClassName | string | `""` | PriorityClassName property for the tofu-controller deployment |
+| quotaRetryDelay | string | `"5s"` | Argument for `--quota-retry-delay` (Controller).  Base delay for retrying when runner quota is exhausted. |
+| quotaRetryEnabled | bool | `false` | Argument for `--quota-retry-enabled` (Controller).  Enable quota-aware retry when runner pod creation is rejected due to resource quota exhaustion. |
+| quotaRetryJitterFactor | string | `"0.4"` | Argument for `--quota-retry-jitter-factor` (Controller).  Jitter factor applied to quota retry delay (e.g. 0.4 means up to 40% added to the base delay). |
 | rbac.create | bool | `true` | If `true`, create and use RBAC resources |
 | replicaCount | int | `1` | Number of tofu-controller pods to deploy |
 | resources | object | `{"limits":{"cpu":"1000m","memory":"1Gi"},"requests":{"cpu":"200m","memory":"64Mi"}}` | Resource limits and requests |
-| runner | object | `{"creationTimeout":"5m0s","grpc":{"maxMessageSize":4},"image":{"repository":"ghcr.io/flux-iac/tf-runner","tag":"v0.16.1"},"serviceAccount":{"allowedNamespaces":["flux-system"],"annotations":{},"create":true,"name":""}}` | Runner-specific configurations |
+| runner | object | `{"creationTimeout":"5m0s","grpc":{"maxMessageSize":4},"image":{"repository":"ghcr.io/flux-iac/tf-runner","tag":"v0.16.3"},"serviceAccount":{"allowedNamespaces":["flux-system"],"annotations":{},"create":true,"name":""}}` | Runner-specific configurations |
 | runner.creationTimeout | string | `"5m0s"` | Timeout for runner-creation (Controller) |
 | runner.grpc.maxMessageSize | int | `4` | Maximum GRPC message size (Controller) |
 | runner.image.repository | string | `"ghcr.io/flux-iac/tf-runner"` | Runner image repository |
