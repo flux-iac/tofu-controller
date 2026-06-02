@@ -19,6 +19,15 @@
 
 set -o errexit
 
+# On Apple Silicon Macs where Docker Desktop defaults to amd64/Rosetta 2 emulation,
+# the kindest/node amd64 image causes the kubelet to fail at health-check time.
+# Force native arm64 images so kind bootstraps correctly on arm64 hosts.
+case "$(uname -m)" in
+  arm64|aarch64)
+    export DOCKER_DEFAULT_PLATFORM=linux/arm64
+    ;;
+esac
+
 # desired cluster name; default is "tfdev"
 KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-tfdev}"
 KIND_CLUSTER_OPTS="--name ${KIND_CLUSTER_NAME}"
@@ -45,7 +54,7 @@ running="$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || t
 if [ "${running}" != 'true' ]; then
   docker run \
     -d --restart=always -p "${reg_port}:5000" --name "${reg_name}" \
-    registry:2
+    registry:3
 fi
 
 reg_host="${reg_name}"
@@ -57,15 +66,27 @@ echo "Registry Host: ${reg_host}"
 # delete previous cluster, if any
 kind delete cluster --name=${KIND_CLUSTER_NAME} || true
 
-# create a cluster with the local registry enabled in containerd
+# create a cluster with containerd configured to use per-registry hosts.toml files
+# (containerd v2 removed registry.mirrors in favour of config_path + hosts.toml)
 cat <<EOF | kind create cluster ${KIND_CLUSTER_OPTS} --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 containerdConfigPatches:
 - |-
-  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:${reg_port}"]
-    endpoint = ["http://${reg_host}:5000"]
+  [plugins."io.containerd.grpc.v1.cri".registry]
+    config_path = "/etc/containerd/certs.d"
 EOF
+
+# Wire the local registry mirror into each node via a hosts.toml file.
+# extraMounts cannot be used here because the container path contains a colon
+# (localhost:PORT) which Docker's --volume flag treats as a delimiter.
+for node in $(kind get nodes --name ${KIND_CLUSTER_NAME}); do
+  docker exec "${node}" mkdir -p "/etc/containerd/certs.d/localhost:${reg_port}"
+  docker exec -i "${node}" sh -c "cat > /etc/containerd/certs.d/localhost:${reg_port}/hosts.toml" <<HOSTS
+[host."http://${reg_host}:5000"]
+  capabilities = ["pull", "resolve", "push"]
+HOSTS
+done
 
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
