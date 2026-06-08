@@ -1,0 +1,62 @@
+# Scenario A: default backend (no BackendConfig), CR carries Flux/Helm labels.
+# The state Secret must NOT inherit any of these CR metadata labels.
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: helloworld-state-label-default
+  labels:
+    kustomize.toolkit.fluxcd.io/name: global-stack-deploy
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+    helm.toolkit.fluxcd.io/name: my-release
+    helm.toolkit.fluxcd.io/namespace: flux-system
+spec:
+  interval: 30s
+  approvePlan: "auto"
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+
+# Scenario B: explicit BackendConfig present but Labels omitted.
+# Same expectation as A — no CR metadata labels on the state Secret.
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: helloworld-state-label-backendconfig-nolabels
+  labels:
+    kustomize.toolkit.fluxcd.io/name: global-stack-deploy
+    helm.toolkit.fluxcd.io/name: my-release
+spec:
+  interval: 30s
+  approvePlan: "auto"
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+  backendConfig:
+    secretSuffix: state-label-bc-nolabels
+
+# Scenario C: explicit BackendConfig with custom Labels set.
+# The state Secret must carry exactly those labels and still none of the CR metadata labels.
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: helloworld-state-label-backendconfig-labels
+  labels:
+    kustomize.toolkit.fluxcd.io/name: global-stack-deploy
+    helm.toolkit.fluxcd.io/name: my-release
+spec:
+  interval: 30s
+  approvePlan: "auto"
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+  backendConfig:
+    secretSuffix: state-label-bc-labels
+    labels:
+      env: staging
+      app: my-service
