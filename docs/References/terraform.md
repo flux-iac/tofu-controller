@@ -150,6 +150,23 @@ _Appears in:_
 | `pending` _string_ | Pending holds the identifier of the Lock Holder to be used with Force Unlock |  | Optional: \{\} <br /> |
 
 
+### PlanSpec
+
+PlanSpec configures options that apply only to the plan phase, affecting how
+the plan runs without changing what the plan contains. They never carry into
+the apply phase, which always runs lock-protected.
+
+Only options expressible through the underlying terraform-exec library are
+supported here; arbitrary CLI arguments (and TF_CLI_ARGS* env vars) are not.
+
+_Appears in:_
+- [TerraformSpec](#terraformspec)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `lock` _boolean_ | Lock controls whether the plan acquires the Terraform state lock.<br />Leaving this unset preserves the Terraform default (locking enabled).<br />Setting it to `false` runs `terraform plan -lock=false`, which allows<br />multiple plans to run concurrently (for example, parallel Branch Planner<br />pull requests) without serialising on the state lock.<br />Only the plan phase is affected; the apply phase always runs<br />lock-protected. |  | Optional: \{\} <br /> |
+
+
 ### PlanStatus
 
 _Appears in:_
@@ -339,6 +356,7 @@ _Appears in:_
 | `targets` _string array_ | Targets specify the resource, module or collection of resources to target. |  | Optional: \{\} <br /> |
 | `parallelism` _integer_ | Parallelism limits the number of concurrent operations of Terraform apply step. Zero (0) means using the default value. | 0 | Optional: \{\} <br /> |
 | `storeReadablePlan` _string_ | StoreReadablePlan enables storing the plan in a readable format. | none | Enum: [none json human] <br />Optional: \{\} <br /> |
+| `plan` _[PlanSpec](#planspec)_ | Plan configures options that apply only to the plan phase. They never<br />affect the apply phase, which always runs lock-protected. |  | Optional: \{\} <br /> |
 | `webhooks` _[Webhook](#webhook) array_ |  |  | Optional: \{\} <br /> |
 | `dependsOn` _[NamespacedObjectReference](https://pkg.go.dev/github.com/fluxcd/pkg/apis/meta#NamespacedObjectReference) array_ |  |  | Optional: \{\} <br /> |
 | `enterprise` _[JSON](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#json-v1-apiextensions-k8s-io)_ | Enterprise is the enterprise configuration placeholder. |  | Optional: \{\} <br /> |

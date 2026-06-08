@@ -5826,6 +5826,24 @@ spec:
                   Path to the directory containing Terraform (.tf) files.
                   Defaults to 'None', which translates to the root path of the SourceRef.
                 type: string
+              plan:
+                description: |-
+                  Plan configures options that apply only to the plan phase. They never
+                  affect the apply phase, which always runs lock-protected.
+                properties:
+                  lock:
+                    description: |-
+                      Lock controls whether the plan acquires the Terraform state lock.
+
+                      Leaving this unset preserves the Terraform default (locking enabled).
+                      Setting it to `false` runs `terraform plan -lock=false`, which allows
+                      multiple plans to run concurrently (for example, parallel Branch Planner
+                      pull requests) without serialising on the state lock.
+
+                      Only the plan phase is affected; the apply phase always runs
+                      lock-protected.
+                    type: boolean
+                type: object
               planOnly:
                 description: |-
                   PlanOnly specifies if the reconciliation should or should not stop at plan
