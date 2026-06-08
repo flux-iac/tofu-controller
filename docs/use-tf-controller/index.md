@@ -12,6 +12,7 @@
 - [Use Tofu Controller to provision Terraform resources that are required **health checks**](provision-Terraform-resources-that-are-required-health-checks.md)
 - [Use Tofu Controller to provision resources and **destroy them when the Terraform object gets deleted**](provision-resources-and-destroy-them-when-terraform-object-gets-deleted.md)
 - [Use Tofu Controller to **force unlock** Terraform states](force-unlock-terraform-states.md)
+- [Use Tofu Controller to **configure plan-only options** (e.g. `-lock=false`)](configure-plan-options.md)
 - [Use Tofu Controller with Terraform Runners enabled via Env Variables](with-tf-runner-logging.md)
 - [Use Tofu Controller to provision resources with **customized Runner Pods**](provision-resources-with-customized-runner-pods.md)
 - [Use Tofu Controller with **Terraform Enterprise**](integration-with-terraform-enterprise-or-cloud.md)
