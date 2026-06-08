@@ -2,6 +2,37 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.16.4
+
+**Release date:** 2026-06-08
+
+## What's Changed
+
+* fix: correctly clear reconciling condition when reconciliation is being skipped by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1789
+* chore(deps): bump fluxcd/pkg from 1.31.0 to 1.32.0 in the gh-minor group across 1 directory by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1791
+* chore(deps): bump the go-minor group across 3 directories with 6 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1793
+* chore(deps): bump the gh-patch group across 1 directory with 2 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1790
+* chore(deps): bump the go-patch group across 2 directories with 6 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1792
+* Add multi-provider support for branch planner by @sillychilly-byte in https://github.com/flux-iac/tofu-controller/pull/1780
+* fix: remove CVE exceptions from trivyignore file by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1794
+* chore(deps): bump the go-patch group across 3 directories with 11 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1798
+* chore(deps): bump the go-minor group across 3 directories with 1 update by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1799
+* fix: replan pending terraform resources when spec changes by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1796
+* ci: fix image pushing when running on forks by @gionn in https://github.com/flux-iac/tofu-controller/pull/1805
+* fix: install azure-cli via pip in a virtualenv instead of copying binary by @gionn in https://github.com/flux-iac/tofu-controller/pull/1804
+* fix(deps): bump opentofu to v1.12.1 by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1806
+* fix: make local dev tooling work on Apple Silicon and containerd v2 by @adonispd in https://github.com/flux-iac/tofu-controller/pull/1811
+* fix(deps): bump go to 1.26.4 to patch CVE-2026-42504 by @adonispd in https://github.com/flux-iac/tofu-controller/pull/1813
+* feat: support plan-only options via spec.plan (e.g. -lock=false) by @ricardo-mng in https://github.com/flux-iac/tofu-controller/pull/1812
+* chore(deps): bump the gh-patch group across 1 directory with 3 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1814
+* chore(deps): bump the go-patch group across 2 directories with 7 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1816
+
+## New Contributors
+
+* @sillychilly-byte made their first contribution in https://github.com/flux-iac/tofu-controller/pull/1780
+* @gionn made their first contribution in https://github.com/flux-iac/tofu-controller/pull/1805
+* @adonispd made their first contribution in https://github.com/flux-iac/tofu-controller/pull/1811
+
 ## v0.16.3
 
 **Release date:** 2026-05-05
