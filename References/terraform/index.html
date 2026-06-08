@@ -679,6 +679,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#planspec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PlanSpec
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#planstatus" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1069,6 +1080,17 @@
     <span class="md-ellipsis">
       
         LockStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#planspec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PlanSpec
       
     </span>
   </a>
@@ -1646,6 +1668,32 @@ terraform is applied.</p>
 <tr>
 <td><code>pending</code> <em>string</em></td>
 <td>Pending holds the identifier of the Lock Holder to be used with Force Unlock</td>
+<td></td>
+<td>Optional: {} <br /></td>
+</tr>
+</tbody>
+</table>
+<h3 id="planspec">PlanSpec</h3>
+<p>PlanSpec configures options that apply only to the plan phase, affecting how
+the plan runs without changing what the plan contains. They never carry into
+the apply phase, which always runs lock-protected.</p>
+<p>Only options expressible through the underlying terraform-exec library are
+supported here; arbitrary CLI arguments (and TF_CLI_ARGS* env vars) are not.</p>
+<p><em>Appears in:</em>
+- <a href="#terraformspec">TerraformSpec</a></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Default</th>
+<th>Validation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>lock</code> <em>boolean</em></td>
+<td>Lock controls whether the plan acquires the Terraform state lock.<br />Leaving this unset preserves the Terraform default (locking enabled).<br />Setting it to <code>false</code> runs <code>terraform plan -lock=false</code>, which allows<br />multiple plans to run concurrently (for example, parallel Branch Planner<br />pull requests) without serialising on the state lock.<br />Only the plan phase is affected; the apply phase always runs<br />lock-protected.</td>
 <td></td>
 <td>Optional: {} <br /></td>
 </tr>
@@ -2270,6 +2318,12 @@ terraform is applied.</p>
 <td>StoreReadablePlan enables storing the plan in a readable format.</td>
 <td>none</td>
 <td>Enum: [none json human] <br />Optional: {} <br /></td>
+</tr>
+<tr>
+<td><code>plan</code> <em><a href="#planspec">PlanSpec</a></em></td>
+<td>Plan configures options that apply only to the plan phase. They never<br />affect the apply phase, which always runs lock-protected.</td>
+<td></td>
+<td>Optional: {} <br /></td>
 </tr>
 <tr>
 <td><code>webhooks</code> <em><a href="#webhook">Webhook</a> array</em></td>
