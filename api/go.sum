@@ -17,10 +17,10 @@ github.com/evanphx/json-patch/v5 v5.9.11 h1:/8HVnzMq13/3x9TPvjG08wUGqBTmZBsCWzjT
 github.com/evanphx/json-patch/v5 v5.9.11/go.mod h1:3j+LviiESTElxA4p3EMKAB9HXj3/XEtnUf6OZxqIQTM=
 github.com/fluxcd/pkg/apis/acl v0.10.0 h1:KPfAmELNvtvaz8wixnm/MYXqa+MJf7ntVVMUU93Aenk=
 github.com/fluxcd/pkg/apis/acl v0.10.0/go.mod h1:a87i2A7AlFO5N2J8CxtzaUCCDmuLLWOHwkKu3eJF5fY=
-github.com/fluxcd/pkg/apis/meta v1.27.0 h1:EspByEk5j8w3rs1cGbEh9AjSmpDwQIz7DFG/zzqf6uI=
-github.com/fluxcd/pkg/apis/meta v1.27.0/go.mod h1:2t6JyrRfvIBhx6EBnXfFh/6sCCJ1db9WGaqko0JmNOE=
-github.com/fluxcd/pkg/runtime v0.106.0 h1:SGzUaO/G6bUBLkZIxLGnCVEEURSPuldSG2exYjlrsQk=
-github.com/fluxcd/pkg/runtime v0.106.0/go.mod h1:7lCogUwTGKoG3bfBvCn6eQgPYF7cvVp5R+gL3bB1HX8=
+github.com/fluxcd/pkg/apis/meta v1.29.0 h1:JRFbAqLQ9YJG5AXBb0urvH9ySYZ/WJqq1dPhfzCRvPs=
+github.com/fluxcd/pkg/apis/meta v1.29.0/go.mod h1:3DmYMnyH3XdY8/g2gXfsVIGEd/zpcB2PEkuurv2vgHU=
+github.com/fluxcd/pkg/runtime v0.108.0 h1:sSXz6FWcRT+tkfddiCmehrYaEKqkVFkcBWDhGMNJtH4=
+github.com/fluxcd/pkg/runtime v0.108.0/go.mod h1:TaBSfm7UcRTM4605S6R86DT+XE1kOCC+YIJe8zZ8jno=
 github.com/fluxcd/source-controller/api v1.8.5 h1:mLKc9YVMk46JCt1BQbkG6irkrpBZp95kiXh2+GYB6KQ=
 github.com/fluxcd/source-controller/api v1.8.5/go.mod h1:sio4t49RDx+S1etHRFAEEw8qfVuw0KKlOg8bRVlEYPM=
 github.com/fxamacker/cbor/v2 v2.9.1 h1:2rWm8B193Ll4VdjsJY28jxs70IdDsHRWgQYAI80+rMQ=
