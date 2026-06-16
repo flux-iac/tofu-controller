@@ -78,11 +78,10 @@ type CertRotator struct {
 	extKeyUsages *[]x509.ExtKeyUsage
 	Ready        chan struct{}
 
-	CAName             string
-	CAOrganization     string
-	DNSName            string
-	CAValidityDuration time.Duration
-	// CertValidityDuration   time.Duration
+	CAName                 string
+	CAOrganization         string
+	DNSName                string
+	CAValidityDuration     time.Duration
 	RotationCheckFrequency time.Duration
 	LookaheadInterval      time.Duration
 

@@ -88,7 +88,6 @@ func main() {
 		watchAllNamespaces        bool
 		httpRetry                 int
 		caValidityDuration        time.Duration
-		certValidityDuration      time.Duration
 		rotationCheckFrequency    time.Duration
 		runnerGRPCPort            int
 		runnerCreationTimeout     time.Duration
@@ -114,9 +113,7 @@ func main() {
 		"Watch for custom resources in all namespaces, if set to false it will only watch the runtime namespace.")
 	flag.IntVar(&httpRetry, "http-retry", 9, "The maximum number of retries when failing to fetch artifacts over HTTP.")
 	flag.DurationVar(&caValidityDuration, "ca-cert-validity-duration", 24*7*time.Hour,
-		"The duration that the ca certificate certificates should be valid for. Default is 1 week.")
-	flag.DurationVar(&certValidityDuration, "cert-validity-duration", 6*time.Hour,
-		"(Deprecated) The duration that the mTLS certificate that the runner pod should be valid for.")
+		"The duration that the CA/mTLS certificates should be valid for. Default is 1 week.")
 	flag.DurationVar(&rotationCheckFrequency, "cert-rotation-check-frequency", 30*time.Minute,
 		"The interval that the mTLS certificate rotator should check the certificate validity.")
 	flag.IntVar(&runnerGRPCPort, "runner-grpc-port", 30000, "The port which will be exposed on the runner pod for gRPC connections.")
