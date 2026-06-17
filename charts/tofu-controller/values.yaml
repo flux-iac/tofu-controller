@@ -89,8 +89,6 @@ logLevel: info
 concurrency: 24
 # -- Argument for `--cert-rotation-check-frequency` (Controller)
 certRotationCheckFrequency: 30m0s
-# -- Argument for `--cert-validity-duration` (Controller)
-certValidityDuration: 6h0m
 # -- Argument for `--ca-cert-validity-duration` (Controller)
 caCertValidityDuration: 168h0m
 # -- Argument for `--events-addr` (Controller). The event address, default to the address of the Notification Controller
