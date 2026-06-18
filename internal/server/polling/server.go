@@ -152,11 +152,14 @@ func (s *Server) poll(ctx context.Context, resource types.NamespacedName, secret
 	}
 
 	s.log.Info("initializing git provider", "url", source.Spec.URL)
-	gitProvider, repo, err := s.gitProviderParserFn(
-		source.Spec.URL,
-		provider.WithLogger(s.log),
-		provider.WithToken("api-token", string(secret.Data["token"])),
-	)
+	secretOpts, err := provider.OptsFromSecret(secret.Data)
+	if err != nil {
+		s.log.Error(err, "failed to parse provider secret")
+		return fmt.Errorf("failed to parse provider secret: %w", err)
+	}
+
+	opts := append([]provider.ProviderOption{provider.WithLogger(s.log)}, secretOpts...)
+	gitProvider, repo, err := s.gitProviderParserFn(source.Spec.URL, opts...)
 
 	if err != nil {
 		s.log.Error(err, "failed to get git provider")

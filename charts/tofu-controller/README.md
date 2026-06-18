@@ -1,6 +1,6 @@
 # Tofu Controller
 
-![Version: 0.16.2](https://img.shields.io/badge/Version-0.16.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.16.2](https://img.shields.io/badge/AppVersion-v0.16.2-informational?style=flat-square)
+![Version: 0.16.4](https://img.shields.io/badge/Version-0.16.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.16.4](https://img.shields.io/badge/AppVersion-v0.16.4-informational?style=flat-square)
 
 This is the Helm chart for the [Tofu Controller](https://github.com/flux-iac/tofu-controller), an IAC controller for Flux [Flux](https://fluxcd.io) to reconcile OpenTofu and Terraform resources in the GitOps way.
 
@@ -42,7 +42,6 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | branchPlanner | object | `{"configMap":"branch-planner","deploymentLabels":{},"enabled":false,"image":{"pullPolicy":"IfNotPresent","repository":"ghcr.io/flux-iac/branch-planner","tag":""},"podSecurityContext":{"fsGroup":1337},"pollingInterval":"30s","resources":{"limits":{"cpu":"1000m","memory":"1Gi"},"requests":{"cpu":"200m","memory":"64Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"runAsUser":65532,"seccompProfile":{"type":"RuntimeDefault"}},"sourceInterval":"30s"}` | Branch Planner-specific configurations |
 | caCertValidityDuration | string | `"168h0m"` | Argument for `--ca-cert-validity-duration` (Controller) |
 | certRotationCheckFrequency | string | `"30m0s"` | Argument for `--cert-rotation-check-frequency` (Controller) |
-| certValidityDuration | string | `"6h0m"` | Argument for `--cert-validity-duration` (Controller) |
 | clusterDomain | string | `"cluster.local"` | Argument for `--cluster-domain` (Controller).  ClusterDomain indicates the cluster domain, defaults to cluster.local. |
 | concurrency | int | `24` | Concurrency of the controller (Controller) |
 | deploymentLabels | object | `{}` | Additional deployment labels for the controller |
@@ -83,7 +82,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | rbac.create | bool | `true` | If `true`, create and use RBAC resources |
 | replicaCount | int | `1` | Number of tofu-controller pods to deploy |
 | resources | object | `{"limits":{"cpu":"1000m","memory":"1Gi"},"requests":{"cpu":"200m","memory":"64Mi"}}` | Resource limits and requests |
-| runner | object | `{"creationTimeout":"5m0s","grpc":{"maxMessageSize":4},"image":{"repository":"ghcr.io/flux-iac/tf-runner","tag":"v0.16.2"},"serviceAccount":{"allowedNamespaces":["flux-system"],"annotations":{},"create":true,"name":""}}` | Runner-specific configurations |
+| runner | object | `{"creationTimeout":"5m0s","grpc":{"maxMessageSize":4},"image":{"repository":"ghcr.io/flux-iac/tf-runner","tag":"v0.16.4"},"serviceAccount":{"allowedNamespaces":["flux-system"],"annotations":{},"create":true,"name":""}}` | Runner-specific configurations |
 | runner.creationTimeout | string | `"5m0s"` | Timeout for runner-creation (Controller) |
 | runner.grpc.maxMessageSize | int | `4` | Maximum GRPC message size (Controller) |
 | runner.image.repository | string | `"ghcr.io/flux-iac/tf-runner"` | Runner image repository |

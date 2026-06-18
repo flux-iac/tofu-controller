@@ -12,20 +12,20 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
 
-func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T) {
-	Spec("This spec describes the behaviour of a Terraform resource that is planned, and source changed to re-plan.")
+func Test_000054_pending_plan_should_replan_on_spec_change_test(t *testing.T) {
+	Spec("This spec describes the behaviour of a Terraform resource with a pending plan when the Terraform spec changes while the source revision stays the same.")
 	It("should be reconciled to become planned.")
-	It("should wait for a manually approval.")
-	It("then should be reconciled to the applied state.")
+	It("should wait for a manual approval.")
+	It("when the Terraform spec changes (generation bump) while the source revision is unchanged, it should automatically re-plan without requiring a replan annotation.")
+	It("then should be reconciled to the applied state after approving the re-planned plan.")
 
 	const (
-		sourceName    = "gr-plan-and-manual-approve-replan-no-output"
-		terraformName = "tf-plan-and-manual-approve-replan-no-output"
+		sourceName    = "gr-pending-plan-replan-on-spec-change"
+		terraformName = "tf-pending-plan-replan-on-spec-change"
 	)
 	ctx := t.Context()
 	g := NewWithT(t)
@@ -91,7 +91,7 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 			Namespace: "flux-system",
 		},
 		Spec: infrav1.TerraformSpec{
-			// Note that we do not specify the `ApprovePlan` field
+			// Note that we do not specify the `ApprovePlan` field - this is manual approval mode.
 			Path: "./terraform-hello-world-example",
 			SourceRef: infrav1.CrossNamespaceSourceReference{
 				Kind:      "GitRepository",
@@ -103,7 +103,11 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 	}
 	It("should be created and attached successfully.")
 	tfplanSecret := corev1.Secret{}
-	defer waitResourceToBeDelete(g, &tfplanSecret) // must be deleted after TF resource
+	defer func() {
+		if tfplanSecret.Name != "" {
+			waitResourceToBeDelete(g, &tfplanSecret)
+		}
+	}() // must be deleted after TF resource
 	g.Expect(k8sClient.Create(ctx, &helloWorldTF)).Should(Succeed())
 	defer waitResourceToBeDelete(g, &helloWorldTF)
 
@@ -127,7 +131,10 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 		return len(createdHelloWorldTF.Status.Conditions)
 	}, timeout*3, interval).ShouldNot(BeZero())
 
-	Given("the plan id is the `plan` plus the branch name (master) plus the commit id.")
+	Given("the plan id is the `plan` plus the branch name (master) plus the first 10 chars of the commit hash.")
+	// Plan id is derived from the source revision, so it does NOT change when only
+	// the Terraform spec is modified. The fix re-plans against the same plan id but
+	// with refreshed content from the new spec.
 	const planId = "plan-master-b8e362c206"
 
 	By("checking that the planned status of the TF is created successfully.")
@@ -154,104 +161,74 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 		"Pending": planId,
 	}))
 
-	By("checking the message of the ready status contains $planId.")
+	By("checking that LastPlannedGeneration is recorded against the initial spec generation.")
+	g.Expect(k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)).Should(Succeed())
+	initialGeneration := createdHelloWorldTF.Generation
+	g.Expect(createdHelloWorldTF.Status.LastPlannedGeneration).To(Equal(initialGeneration))
+
+	// This is the key part of the test: modify the Terraform spec (bumping
+	// metadata.generation) while leaving the GitRepository revision unchanged.
+	// The controller should detect that the spec has changed and automatically
+	// invalidate the stale pending plan, then re-plan against the updated spec.
+	By("changing the Terraform spec while the source revision is unchanged")
+	g.Eventually(func() error {
+		if err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF); err != nil {
+			return err
+		}
+		// Bumping Interval is sufficient to advance metadata.generation.
+		createdHelloWorldTF.Spec.Interval = metav1.Duration{Duration: time.Second * 15}
+		return k8sClient.Update(ctx, &createdHelloWorldTF)
+	}, timeout, interval).Should(Succeed())
+
+	// NOTE: We intentionally do NOT set approvePlan to "replan-..." here and we do
+	// NOT change the GitRepository revision. The controller should automatically
+	// detect the spec change (generation bump) and re-plan.
+
+	By("waiting for the controller to observe the new generation and re-plan.")
+	g.Eventually(func() bool {
+		if err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF); err != nil {
+			return false
+		}
+		// Re-plan has completed when LastPlannedGeneration catches up to the
+		// new spec generation.
+		return createdHelloWorldTF.Status.LastPlannedGeneration > initialGeneration &&
+			createdHelloWorldTF.Status.LastPlannedGeneration == createdHelloWorldTF.Generation
+	}, timeout*3, interval).Should(BeTrue())
+
+	By("checking that the re-planned status is still TerraformPlannedWithChanges with the same plan id (source unchanged).")
 	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
 			return nil
 		}
 		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Ready" {
+			if c.Type == "Plan" {
 				return map[string]any{
 					"Type":    c.Type,
 					"Reason":  c.Reason,
-					"Message": c.Message,
+					"Pending": createdHelloWorldTF.Status.Plan.Pending,
 				}
 			}
 		}
 		return nil
-	}, timeout*3, interval).Should(Equal(map[string]any{
-		"Type":    "Ready",
-		"Reason":  "TerraformPlannedWithChanges",
-		"Message": "Plan generated: set approvePlan: \"plan-master-b8e362c206\" to approve this plan.",
-	}))
-
-	By("checking that the planned secret is created.")
-	By("checking that the label of the planned secret is the $planId.")
-	tfplanKey := types.NamespacedName{Namespace: "flux-system", Name: "tfplan-default-" + terraformName}
-	g.Eventually(func() map[string]any {
-		err := k8sClient.Get(ctx, tfplanKey, &tfplanSecret)
-		if err != nil {
-			return nil
-		}
-		return map[string]any{
-			"SavedPlan":             tfplanSecret.Annotations["savedPlan"],
-			"TFPlanEmpty":           string(tfplanSecret.Data["tfplan"]) == "",
-			"HasEncodingAnnotation": tfplanSecret.Annotations["encoding"] == "gzip",
-		}
 	}, timeout, interval).Should(Equal(map[string]any{
-		"SavedPlan":             planId,
-		"TFPlanEmpty":           false,
-		"HasEncodingAnnotation": true,
-	}))
-
-	By("changing source to a new revision")
-	testRepo.Status = sourcev1.GitRepositoryStatus{
-		ObservedGeneration: int64(2),
-		Conditions: []metav1.Condition{
-			{
-				Type:               "Ready",
-				Status:             metav1.ConditionTrue,
-				LastTransitionTime: metav1.Time{Time: updatedTime},
-				Reason:             "GitOperationSucceed",
-				Message:            "Fetched revision: master/ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
-			},
-		},
-		Artifact: &meta.Artifact{
-			Path:           "gitrepository/flux-system/test-tf-controller/ed22ced771a0056455a2fbb8e362c206e3d0cbb7.tar.gz",
-			URL:            server.URL() + "/2222.tar.gz",
-			Revision:       "master/ed22ced771a0056455a2fbb8e362c206e3d0cbb7",
-			Digest:         "sha256:525802635a47a5ae3f9c058a2b958aac0daef08efbe100a4fc16833df5201b94",
-			LastUpdateTime: metav1.Time{Time: updatedTime},
-		},
-	}
-	g.Expect(k8sClient.Status().Update(ctx, &testRepo)).Should(Succeed())
-
-	// This is the new behavior in v0.13.0
-	patch := client.MergeFrom(createdHelloWorldTF.DeepCopy())
-	createdHelloWorldTF.Spec.ApprovePlan = "replan-master-b8e362c206"
-	g.Expect(k8sClient.Patch(ctx, &createdHelloWorldTF, patch)).Should(Succeed())
-
-	By("checking the message of the ready status now contains the new $planId.")
-	g.Eventually(func() map[string]any {
-		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
-		if err != nil {
-			return nil
-		}
-		for _, c := range createdHelloWorldTF.Status.Conditions {
-			if c.Type == "Ready" {
-				return map[string]any{
-					"Type":    c.Type,
-					"Reason":  c.Reason,
-					"Message": c.Message,
-				}
-			}
-		}
-		return nil
-	}, timeout*3, interval).Should(Equal(map[string]any{
-		"Type":    "Ready",
+		"Type":    infrav1.ConditionTypePlan,
 		"Reason":  "TerraformPlannedWithChanges",
-		"Message": "Plan generated: set approvePlan: \"plan-master-ed22ced771\" to approve this plan.",
+		"Pending": planId,
 	}))
 
-	By("setting the .spec.approvePlan to be plan-main- and a part of commit id (b8e362c206) to approve the plan.")
-	patch = client.MergeFrom(createdHelloWorldTF.DeepCopy())
-	createdHelloWorldTF.Spec.ApprovePlan = "plan-master-ed22ced771"
-	g.Expect(k8sClient.Patch(ctx, &createdHelloWorldTF, patch)).Should(Succeed())
+	By("approving the re-planned plan.")
+	g.Eventually(func() error {
+		if err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF); err != nil {
+			return err
+		}
+		createdHelloWorldTF.Spec.ApprovePlan = planId
+		return k8sClient.Update(ctx, &createdHelloWorldTF)
+	}, timeout, interval).Should(Succeed())
 
 	It("should continue the reconciliation process to the apply state.")
 	By("checking that the applied status reason is TerraformAppliedSucceed.")
-	By("checking that the last applied plan is really the pending plan.")
+	By("checking that the last applied plan is the $planId.")
 	g.Eventually(func() map[string]any {
 		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
 		if err != nil {
@@ -270,19 +247,8 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":            infrav1.ConditionTypeApply,
 		"Reason":          infrav1.TFExecApplySucceedReason,
-		"LastAppliedPlan": "plan-master-ed22ced771",
+		"LastAppliedPlan": planId,
 	}))
-	// TODO check Output condition
-
-	It("should contain a list of available outputs in the status.")
-	By("checking that .status.availableOutput in the TF resource.")
-	g.Eventually(func() []string {
-		err := k8sClient.Get(ctx, helloWorldTFKey, &createdHelloWorldTF)
-		if err != nil {
-			return nil
-		}
-		return createdHelloWorldTF.Status.AvailableOutputs
-	}, timeout, interval).Should(Equal([]string{"hello_world"}))
 
 	if os.Getenv("DISABLE_TF_K8S_BACKEND") == "1" {
 		It("should not produce a Secret because the controller runs locally, outside Kubernetes.")
@@ -295,9 +261,6 @@ func Test_000051_plan_and_manual_approve_and_replan_no_outputs_test(t *testing.T
 				return err.Error()
 			}
 			return tfStateSecret.Name
-		}, timeout, interval).Should(Equal("secrets \"tfstate-default-tf-plan-and-manual-approve-replan-no-output\" not found"))
-	} else {
-		// TODO there's must be the default tfstate secret
+		}, timeout, interval).Should(Equal("secrets \"tfstate-default-" + terraformName + "\" not found"))
 	}
-
 }
