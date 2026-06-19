@@ -42,7 +42,6 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | branchPlanner | object | `{"configMap":"branch-planner","deploymentLabels":{},"enabled":false,"image":{"pullPolicy":"IfNotPresent","repository":"ghcr.io/flux-iac/branch-planner","tag":""},"podSecurityContext":{"fsGroup":1337},"pollingInterval":"30s","resources":{"limits":{"cpu":"1000m","memory":"1Gi"},"requests":{"cpu":"200m","memory":"64Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"runAsUser":65532,"seccompProfile":{"type":"RuntimeDefault"}},"sourceInterval":"30s"}` | Branch Planner-specific configurations |
 | caCertValidityDuration | string | `"168h0m"` | Argument for `--ca-cert-validity-duration` (Controller) |
 | certRotationCheckFrequency | string | `"30m0s"` | Argument for `--cert-rotation-check-frequency` (Controller) |
-| certValidityDuration | string | `"6h0m"` | Argument for `--cert-validity-duration` (Controller) |
 | clusterDomain | string | `"cluster.local"` | Argument for `--cluster-domain` (Controller).  ClusterDomain indicates the cluster domain, defaults to cluster.local. |
 | concurrency | int | `24` | Concurrency of the controller (Controller) |
 | deploymentLabels | object | `{}` | Additional deployment labels for the controller |
