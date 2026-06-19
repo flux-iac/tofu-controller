@@ -32,10 +32,10 @@ COPY utils/ utils/
 # Build
 ARG TARGETOS TARGETARCH
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
-    go build \
-    -ldflags "-X main.BuildSHA=${BUILD_SHA} -X main.BuildVersion=${BUILD_VERSION}" \
-    -o tf-runner \
-    ./cmd/runner/main.go
+  go build \
+  -ldflags "-X main.BuildSHA=${BUILD_SHA} -X main.BuildVersion=${BUILD_VERSION}" \
+  -o tf-runner \
+  ./cmd/runner/main.go
 
 FROM alpine:3.23
 
@@ -44,16 +44,17 @@ LABEL org.opencontainers.image.source="https://github.com/flux-iac/tofu-controll
 ARG LIBCRYPTO_VERSION
 
 RUN apk update && \
-    apk upgrade --no-cache && \
-    apk add --no-cache \
-    busybox \
-    ca-certificates \
-    git \
-    gnupg \
-    libcrypto3=${LIBCRYPTO_VERSION} \
-    libssl3=${LIBCRYPTO_VERSION} \
-    openssh-client \
-    tini
+  apk upgrade --no-cache && \
+  apk add --no-cache \
+  busybox \
+  ca-certificates \
+  git \
+  gnupg \
+  libc6-compat \
+  libcrypto3=${LIBCRYPTO_VERSION} \
+  libssl3=${LIBCRYPTO_VERSION} \
+  openssh-client \
+  tini
 
 COPY --from=builder /workspace/tf-runner /usr/local/bin/
 
