@@ -88,7 +88,6 @@ func main() {
 		watchAllNamespaces        bool
 		httpRetry                 int
 		caValidityDuration        time.Duration
-		certValidityDuration      time.Duration
 		rotationCheckFrequency    time.Duration
 		runnerGRPCPort            int
 		runnerCreationTimeout     time.Duration
@@ -100,6 +99,9 @@ func main() {
 		usePodSubdomainResolution bool
 		usePriorityQueue          bool
 		gracefulShutdownTimeout   time.Duration
+		quotaRetryEnabled         bool
+		quotaRetryDelay           time.Duration
+		quotaRetryJitterFactor    float64
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
@@ -111,9 +113,7 @@ func main() {
 		"Watch for custom resources in all namespaces, if set to false it will only watch the runtime namespace.")
 	flag.IntVar(&httpRetry, "http-retry", 9, "The maximum number of retries when failing to fetch artifacts over HTTP.")
 	flag.DurationVar(&caValidityDuration, "ca-cert-validity-duration", 24*7*time.Hour,
-		"The duration that the ca certificate certificates should be valid for. Default is 1 week.")
-	flag.DurationVar(&certValidityDuration, "cert-validity-duration", 6*time.Hour,
-		"(Deprecated) The duration that the mTLS certificate that the runner pod should be valid for.")
+		"The duration that the CA/mTLS certificates should be valid for. Default is 1 week.")
 	flag.DurationVar(&rotationCheckFrequency, "cert-rotation-check-frequency", 30*time.Minute,
 		"The interval that the mTLS certificate rotator should check the certificate validity.")
 	flag.IntVar(&runnerGRPCPort, "runner-grpc-port", 30000, "The port which will be exposed on the runner pod for gRPC connections.")
@@ -125,6 +125,14 @@ func main() {
 	flag.BoolVar(&usePriorityQueue, "use-priority-queue", true, "Enable the priority queue feature.")
 	flag.DurationVar(&gracefulShutdownTimeout, "graceful-shutdown-timeout", 4*time.Minute,
 		"The duration to wait for active reconciliations to complete during shutdown before forcing termination (0 to disable).")
+	flag.BoolVar(&quotaRetryEnabled, "quota-retry-enabled", false, "Enable quota-aware retry when runner pod creation is rejected due to resource quota exhaustion.")
+	flag.DurationVar(
+		&quotaRetryDelay,
+		"quota-retry-delay",
+		5*time.Second,
+		"Base delay for retrying when runner quota is exhausted",
+	)
+	flag.Float64Var(&quotaRetryJitterFactor, "quota-retry-jitter-factor", 0.4, "Jitter factor applied to quota retry delay (e.g. 0.4 means up to 40% added to the base delay).")
 
 	clientOptions.BindFlags(flag.CommandLine)
 	logOptions.BindFlags(flag.CommandLine)
@@ -253,6 +261,9 @@ func main() {
 		Clientset:                 clientset,
 		FieldManager:              "tf-controller",
 		ShutdownTimeout:           gracefulShutdownTimeout,
+		QuotaRetryEnabled:         quotaRetryEnabled,
+		QuotaRetryDelay:           quotaRetryDelay,
+		QuotaRetryJitterFactor:    quotaRetryJitterFactor,
 	}
 
 	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {

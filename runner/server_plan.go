@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	securejoin "github.com/cyphar/filepath-securejoin"
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/hashicorp/terraform-exec/tfexec"
 	tfjson "github.com/hashicorp/terraform-json"
 	"google.golang.org/grpc/codes"
@@ -69,6 +70,21 @@ func sanitizeLog(log string) string {
 	}
 
 	return strings.Join(lines, "\n")
+}
+
+// appendPlanSpecOptions maps the plan-only options from spec.plan onto tfexec
+// plan options. It never affects the apply phase. A nil spec leaves the given
+// options unchanged.
+func appendPlanSpecOptions(opts []tfexec.PlanOption, plan *infrav1.PlanSpec) []tfexec.PlanOption {
+	if plan == nil {
+		return opts
+	}
+
+	if plan.Lock != nil {
+		opts = append(opts, tfexec.Lock(*plan.Lock))
+	}
+
+	return opts
 }
 
 func (r *TerraformRunnerServer) tfPlan(ctx context.Context, opts ...tfexec.PlanOption) (bool, error) {
@@ -155,6 +171,8 @@ func (r *TerraformRunnerServer) Plan(ctx context.Context, req *PlanRequest) (*Pl
 
 		planOpt = append(planOpt, tfexec.VarFile(secureTfVarsFile))
 	}
+
+	planOpt = appendPlanSpecOptions(planOpt, r.terraform.Spec.Plan)
 
 	drifted, err := r.tfPlan(ctx, planOpt...)
 	if err != nil {

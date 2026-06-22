@@ -96,7 +96,7 @@ terraform {
 			terraform.Spec.BackendConfig.InClusterConfig,
 			terraform.Spec.BackendConfig.ConfigPath,
 			terraform.Namespace,
-			getLabelsAsHCL(terraform.Labels, 6))
+			getLabelsAsHCL(terraform.Spec.BackendConfig.Labels, 6))
 	} else if DisableTFK8SBackend && terraform.Spec.BackendConfig == nil {
 		backendConfig = `
 terraform {
@@ -118,7 +118,7 @@ terraform {
 `,
 			terraform.Name,
 			terraform.Namespace,
-			getLabelsAsHCL(terraform.Labels, 6))
+			getLabelsAsHCL(nil, 6))
 	}
 
 	if r.backendCompletelyDisable(terraform) {

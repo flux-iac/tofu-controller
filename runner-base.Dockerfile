@@ -1,5 +1,5 @@
 # Build the manager binary
-ARG GO_VERSION=1.26.2
+ARG GO_VERSION=1.26.4
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS builder
 
 ARG BUILD_SHA
@@ -49,6 +49,7 @@ RUN apk update && \
     busybox \
     ca-certificates \
     git \
+    libc6-compat \
     gnupg \
     libcrypto3=${LIBCRYPTO_VERSION} \
     libssl3=${LIBCRYPTO_VERSION} \

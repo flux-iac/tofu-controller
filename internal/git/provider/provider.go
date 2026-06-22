@@ -3,20 +3,37 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
 	giturl "github.com/kubescape/go-git-url"
 	giturlapis "github.com/kubescape/go-git-url/apis"
+	azureparserv1 "github.com/kubescape/go-git-url/azureparser/v1"
 )
+
+// validateHostname rejects hostnames that contain path components,
+// query strings, or other characters that could redirect API requests
+// to unintended endpoints (SSRF).
+func validateHostname(hostname string) error {
+	if hostname == "" {
+		return nil
+	}
+	if strings.ContainsAny(hostname, "/?#@\\") || strings.Contains(hostname, "..") {
+		return fmt.Errorf("invalid hostname: %q", hostname)
+	}
+	return nil
+}
 
 type ProviderType string
 
 const (
-	ProviderGitHub    = ProviderType(giturlapis.ProviderGitHub)
-	ProviderGitlab    = ProviderType(giturlapis.ProviderGitLab)
-	ProviderBitbucket = ProviderType(giturlapis.ProviderBitBucket)
-	ProviderAzure     = ProviderType(giturlapis.ProviderAzure)
+	ProviderGitHub          = ProviderType(giturlapis.ProviderGitHub)
+	ProviderGitlab          = ProviderType(giturlapis.ProviderGitLab)
+	ProviderBitbucket       = ProviderType(giturlapis.ProviderBitBucket)
+	ProviderAzure           = ProviderType(giturlapis.ProviderAzure)
+	ProviderBitbucketServer = ProviderType("bitbucketserver")
+	ProviderGitea           = ProviderType("gitea")
 )
 
 type URLParserFn = func(repoURL string, options ...ProviderOption) (Provider, Repository, error)
@@ -42,6 +59,16 @@ func New(provider ProviderType, options ...ProviderOption) (Provider, error) {
 	switch provider {
 	case ProviderGitHub:
 		p = newGitHubProvider()
+	case ProviderGitlab:
+		p = newGitLabProvider()
+	case ProviderBitbucket:
+		p = newBitbucketCloudProvider()
+	case ProviderBitbucketServer:
+		p = newBitbucketServerProvider()
+	case ProviderGitea:
+		p = newGiteaProvider()
+	case ProviderAzure:
+		p = newAzureProvider()
 	default:
 		return nil, fmt.Errorf("unknown provider: %s", provider)
 	}
@@ -71,10 +98,16 @@ func FromURL(repoURL string, options ...ProviderOption) (Provider, Repository, e
 		Name: gitURL.GetRepoName(),
 	}
 
-	// Uncomment this when implementing Azure provider
-	// if targetProvider == ProviderAzure {
-	// 	repo.Project = gitURL.(*azureparserv1.AzureURL).GetProjectName()
-	// }
+	if targetProvider == ProviderAzure {
+		repo.Project = gitURL.(*azureparserv1.AzureURL).GetProjectName()
+	}
+
+	// Pass the hostname from the URL so self-hosted instances
+	// (e.g. gitlab.mycompany.com, github.enterprise.com) are
+	// configured with the correct API endpoint.
+	if hostname := gitURL.GetHostName(); hostname != "" {
+		options = append([]ProviderOption{WithDomain(hostname)}, options...)
+	}
 
 	provider, err := New(targetProvider, options...)
 	if err != nil {
@@ -82,4 +115,24 @@ func FromURL(repoURL string, options ...ProviderOption) (Provider, Repository, e
 	}
 
 	return provider, repo, nil
+}
+
+// RepoFromURL parses a repository URL and returns the Repository without
+// creating a provider. This is useful when the provider is already cached.
+func RepoFromURL(repoURL string) (Repository, error) {
+	gitURL, err := giturl.NewGitURL(repoURL)
+	if err != nil {
+		return Repository{}, fmt.Errorf("failed parsing repository url: %w", err)
+	}
+
+	repo := Repository{
+		Org:  gitURL.GetOwnerName(),
+		Name: gitURL.GetRepoName(),
+	}
+
+	if ProviderType(gitURL.GetProvider()) == ProviderAzure {
+		repo.Project = gitURL.(*azureparserv1.AzureURL).GetProjectName()
+	}
+
+	return repo, nil
 }

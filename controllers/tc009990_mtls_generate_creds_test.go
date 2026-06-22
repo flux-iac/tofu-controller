@@ -180,7 +180,7 @@ func Test_009990_mtls_generate_creds_test(t *testing.T) {
 	g.Eventually(func() int {
 		err := k8sClient.Get(ctx, renewedRunnerSecretKey, updatedRunnerSecret)
 		if err != nil {
-			return 1
+			return 0
 		}
 		return bytes.Compare(runnerSecret.Data["tls.crt"], updatedRunnerSecret.Data["tls.crt"])
 	}, timeout*2, interval*4).ShouldNot(BeZero())

@@ -1,0 +1,37 @@
+# Two Terraform CRs in the same namespace sharing the same secretSuffix but using
+# different workspaces. The Kubernetes backend must differentiate their state Secrets
+# via tfstateWorkspace, not CR metadata labels. Both Secrets must be label-clean.
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: helloworld-ws-dev
+  labels:
+    kustomize.toolkit.fluxcd.io/name: shared-stack
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+    helm.toolkit.fluxcd.io/name: shared-release
+spec:
+  interval: 10s
+  approvePlan: "auto"
+  path: ./
+  workspace: dev
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: helloworld-ws-prd
+  labels:
+    kustomize.toolkit.fluxcd.io/name: shared-stack
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+    helm.toolkit.fluxcd.io/name: shared-release
+spec:
+  interval: 10s
+  approvePlan: "auto"
+  path: ./
+  workspace: prd
+  sourceRef:
+    kind: GitRepository
+    name: helloworld

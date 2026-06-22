@@ -1,0 +1,23 @@
+# Regression test for BackendConfig.Labels expansion.
+# Verifies that expanding BackendConfig.Labels after the state Secret already exists
+# reuses the same Secret (state is not lost) and the new labels land on the Secret
+# after the next apply — triggered here by a variable change to force real drift.
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: helloworld-backend-labels-expand
+  labels:
+    kustomize.toolkit.fluxcd.io/name: global-stack-deploy
+    helm.toolkit.fluxcd.io/name: my-release
+spec:
+  interval: 10s
+  approvePlan: "auto"
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+  backendConfig:
+    secretSuffix: backend-labels-expand
+    labels:
+      env: staging

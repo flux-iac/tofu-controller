@@ -264,6 +264,11 @@ type TerraformSpec struct {
 	// +optional
 	StoreReadablePlan string `json:"storeReadablePlan,omitempty"`
 
+	// Plan configures options that apply only to the plan phase. They never
+	// affect the apply phase, which always runs lock-protected.
+	// +optional
+	Plan *PlanSpec `json:"plan,omitempty"`
+
 	// +optional
 	Webhooks []Webhook `json:"webhooks,omitempty"`
 
@@ -400,6 +405,13 @@ type TerraformStatus struct {
 	// +optional
 	LastPlannedRevision string `json:"lastPlannedRevision,omitempty"`
 
+	// LastPlannedGeneration is the generation of the Terraform resource
+	// at the time of the last plan. This can be used to detect whether a
+	// pending plan has become stale, due to the spec being modified since the
+	// plan was generated.
+	// +optional
+	LastPlannedGeneration int64 `json:"lastPlannedGeneration,omitempty"`
+
 	// LastPlanAt is the time when the last terraform plan was performed
 	// +optional
 	LastPlanAt *metav1.Time `json:"lastPlanAt,omitempty"`
@@ -535,6 +547,27 @@ type TFStateSpec struct {
 	LockTimeout metav1.Duration `json:"lockTimeout,omitempty"`
 }
 
+// PlanSpec configures options that apply only to the plan phase, affecting how
+// the plan runs without changing what the plan contains. They never carry into
+// the apply phase, which always runs lock-protected.
+//
+// Only options expressible through the underlying terraform-exec library are
+// supported here; arbitrary CLI arguments (and TF_CLI_ARGS* env vars) are not.
+type PlanSpec struct {
+	// Lock controls whether the plan acquires the Terraform state lock.
+	//
+	// Leaving this unset preserves the Terraform default (locking enabled).
+	// Setting it to `false` runs `terraform plan -lock=false`, which allows
+	// multiple plans to run concurrently (for example, parallel Branch Planner
+	// pull requests) without serialising on the state lock.
+	//
+	// Only the plan phase is affected; the apply phase always runs
+	// lock-protected.
+	//
+	// +optional
+	Lock *bool `json:"lock,omitempty"`
+}
+
 type ForceUnlockEnum string
 
 const (
@@ -660,10 +693,13 @@ func TerraformPlannedWithChanges(terraform *Terraform, revision string, forceOrA
 		IsDestroyPlan:        terraform.Spec.Destroy,
 		IsDriftDetectionPlan: terraform.HasDrift(),
 	}
+
 	if revision != "" {
 		terraform.Status.LastAttemptedRevision = revision
 		terraform.Status.LastPlannedRevision = revision
 	}
+
+	terraform.Status.LastPlannedGeneration = terraform.Generation
 
 	terraform.Status.LastPlanAt = &metav1.Time{Time: time.Now()}
 
@@ -688,10 +724,13 @@ func TerraformPlannedNoChanges(terraform *Terraform, revision string, message st
 		Pending:       "",
 		IsDestroyPlan: terraform.Spec.Destroy,
 	}
+
 	if revision != "" {
 		terraform.Status.LastAttemptedRevision = revision
 		terraform.Status.LastPlannedRevision = revision
 	}
+
+	terraform.Status.LastPlannedGeneration = terraform.Generation
 
 	terraform.Status.LastPlanAt = &metav1.Time{Time: time.Now()}
 

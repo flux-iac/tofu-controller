@@ -44,6 +44,10 @@ const (
 	// a resource was denied by an ACL assertion.
 	AccessDeniedReason = "AccessDenied"
 
+	// RunnerQuotaExhaustedReason is the event reason emitted when a runner pod
+	// cannot be created because the namespace resource quota is exhausted.
+	RunnerQuotaExhaustedReason = "RunnerQuotaExhausted"
+
 	// ArtifactFailedReason represents the fact that the artifact download
 	// for the Teraform failed.
 	ArtifactFailedReason = "ArtifactFailed"

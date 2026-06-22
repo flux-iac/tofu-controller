@@ -5,7 +5,6 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"log"
 	"strconv"
 	"sync"
 	"text/template"
@@ -16,7 +15,6 @@ import (
 	"github.com/flux-iac/tofu-controller/internal/git/provider"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/go-logr/logr"
-	giturl "github.com/kubescape/go-git-url"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -30,6 +28,9 @@ var (
 
 	//go:embed error-comment.tpl
 	errorCommentTemplate string
+
+	parsedPlanTemplate  = template.Must(template.New("plan-comment").Parse(planCommentTemplate))
+	parsedErrorTemplate = template.Must(template.New("error-comment").Parse(errorCommentTemplate))
 )
 
 type Informer struct {
@@ -38,6 +39,9 @@ type Informer struct {
 	log            logr.Logger
 	client         client.Client
 	gitProvider    provider.Provider
+	providerOpts   []provider.ProviderOption
+	providerOnce   sync.Once
+	providerErr    error
 
 	mux    *sync.RWMutex
 	synced bool
@@ -171,7 +175,13 @@ func (i *Informer) updateHandler(oldObj, newObj any) {
 				return
 			}
 
-			i.addCommentToPullRequest(ctx, new, formatErrorOutput(condition.Message))
+			content, err := formatErrorOutput(condition.Message)
+			if err != nil {
+				i.log.Error(err, "failed to format error output")
+				return
+			}
+
+			i.addCommentToPullRequest(ctx, new, content)
 
 			return
 		}
@@ -204,7 +214,13 @@ func (i *Informer) updateHandler(oldObj, newObj any) {
 
 	i.log.Info("Updated plan", "pr-id", new.Labels[config.LabelPRIDKey])
 
-	i.addCommentToPullRequest(ctx, new, formatPlanOutput(plan))
+	content, err := formatPlanOutput(plan)
+	if err != nil {
+		i.log.Error(err, "failed to format plan output")
+		return
+	}
+
+	i.addCommentToPullRequest(ctx, new, content)
 }
 
 func (i *Informer) deleteHandler(obj any) {}
@@ -318,15 +334,6 @@ func (i *Informer) isNewPlan(old, new *infrav1.Terraform) bool {
 	return false
 }
 
-func (i *Informer) getProviderSecret(ctx context.Context, ref client.ObjectKey) (*v1.Secret, error) {
-	obj := &v1.Secret{}
-	if err := i.client.Get(ctx, ref, obj); err != nil {
-		return nil, fmt.Errorf("unable to get Secret: %w", err)
-	}
-
-	return obj, nil
-}
-
 func (i *Informer) getRepo(ctx context.Context, tf *infrav1.Terraform) (provider.Repository, error) {
 	if tf.Spec.SourceRef.Kind != sourcev1.GitRepositoryKind {
 		return provider.Repository{}, fmt.Errorf("branch based planner does not support source kind: %s", tf.Spec.SourceRef.Kind)
@@ -341,57 +348,41 @@ func (i *Informer) getRepo(ctx context.Context, tf *infrav1.Terraform) (provider
 		return provider.Repository{}, fmt.Errorf("unable to get Source: %w", err)
 	}
 
-	gitURL, err := giturl.NewGitURL(obj.Spec.URL)
-	if err != nil {
-		return provider.Repository{}, fmt.Errorf("failed parsing repository url: %w", err)
+	// Resolve the provider exactly once using sync.Once to avoid race
+	// conditions when multiple update events arrive concurrently. Skip
+	// resolution if a provider was already injected (e.g. via WithGitProvider
+	// in tests).
+	i.providerOnce.Do(func() {
+		if i.gitProvider != nil {
+			return
+		}
+		i.gitProvider, _, i.providerErr = provider.FromURL(obj.Spec.URL, i.providerOpts...)
+	})
+	if i.providerErr != nil {
+		return provider.Repository{}, fmt.Errorf("failed resolving git provider from URL: %w", i.providerErr)
 	}
 
-	return provider.Repository{
-		Org:  gitURL.GetOwnerName(),
-		Name: gitURL.GetRepoName(),
-	}, nil
+	return provider.RepoFromURL(obj.Spec.URL)
 }
 
-func formatPlanOutput(planOutput string) []byte {
-	type Output struct {
-		PlanOutput string
+func formatPlanOutput(planOutput string) ([]byte, error) {
+	data := struct{ PlanOutput string }{PlanOutput: planOutput}
+
+	var buf bytes.Buffer
+	if err := parsedPlanTemplate.Execute(&buf, data); err != nil {
+		return nil, fmt.Errorf("failed to format plan output: %w", err)
 	}
 
-	data := Output{
-		PlanOutput: planOutput,
-	}
-
-	tmpl, err := template.New("plan-comment").Parse(planCommentTemplate)
-	if err != nil {
-		log.Fatalf("Error while parsing the template: %v", err)
-	}
-
-	var tpl bytes.Buffer
-	if err := tmpl.Execute(&tpl, data); err != nil {
-		log.Fatalf("Error while executing the template: %v", err)
-	}
-
-	return tpl.Bytes()
+	return buf.Bytes(), nil
 }
 
-func formatErrorOutput(message string) []byte {
-	type Output struct {
-		ErrorMessage string
+func formatErrorOutput(message string) ([]byte, error) {
+	data := struct{ ErrorMessage string }{ErrorMessage: message}
+
+	var buf bytes.Buffer
+	if err := parsedErrorTemplate.Execute(&buf, data); err != nil {
+		return nil, fmt.Errorf("failed to format error output: %w", err)
 	}
 
-	data := Output{
-		ErrorMessage: message,
-	}
-
-	tmpl, err := template.New("error-comment").Parse(errorCommentTemplate)
-	if err != nil {
-		log.Fatalf("Error while parsing the template: %v", err)
-	}
-
-	var tpl bytes.Buffer
-	if err := tmpl.Execute(&tpl, data); err != nil {
-		log.Fatalf("Error while executing the template: %v", err)
-	}
-
-	return tpl.Bytes()
+	return buf.Bytes(), nil
 }

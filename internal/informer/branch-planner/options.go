@@ -32,6 +32,14 @@ func WithGitProvider(provider provider.Provider) Option {
 	}
 }
 
+func WithProviderOpts(opts ...provider.ProviderOption) Option {
+	return func(i *Informer) error {
+		i.providerOpts = opts
+
+		return nil
+	}
+}
+
 func WithSharedInformer(informer cache.SharedIndexInformer) Option {
 	return func(i *Informer) error {
 		i.sharedInformer = informer
