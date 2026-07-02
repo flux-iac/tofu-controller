@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -48,7 +49,6 @@ func runnerPodTemplate(terraform *infrav1.Terraform, secretName string, revision
 		return v1.Pod{}, err
 	}
 
-	vTrue := true
 	runnerPodTemplate := v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: podNamespace,
@@ -59,11 +59,11 @@ func runnerPodTemplate(terraform *infrav1.Terraform, secretName string, revision
 			// Terraform object is deleted.
 			OwnerReferences: []metav1.OwnerReference{
 				{
-					APIVersion: infrav1.GroupVersion.Group + "/" + infrav1.GroupVersion.Version,
+					APIVersion: infrav1.GroupVersion.String(),
 					Kind:       infrav1.TerraformKind,
 					Name:       terraform.Name,
 					UID:        terraform.UID,
-					Controller: &vTrue,
+					Controller: ptr.To(true),
 				},
 			},
 			Labels: map[string]string{

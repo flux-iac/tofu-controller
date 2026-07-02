@@ -14,6 +14,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
@@ -95,12 +96,15 @@ func Test_000260_runner_pod_test(t *testing.T) {
 	g.Expect(podTemplate.Labels["app.kubernetes.io/instance"]).To(Equal("tf-runner-c7fd0cc6"))
 
 	By("checking that the runner pod is owned by the Terraform object, so that observability tools classify it as a managed pod and GC can clean it up")
-	g.Expect(podTemplate.OwnerReferences).To(HaveLen(1))
-	g.Expect(podTemplate.OwnerReferences[0].APIVersion).To(Equal(infrav1.GroupVersion.Group + "/" + infrav1.GroupVersion.Version))
-	g.Expect(podTemplate.OwnerReferences[0].Kind).To(Equal(infrav1.TerraformKind))
-	g.Expect(podTemplate.OwnerReferences[0].Name).To(Equal(terraformName))
-	g.Expect(podTemplate.OwnerReferences[0].UID).To(Equal(helloWorldTF.UID))
-	g.Expect(podTemplate.OwnerReferences[0].Controller).To(HaveValue(BeTrue()))
+	g.Expect(podTemplate.OwnerReferences).To(Equal([]metav1.OwnerReference{
+		{
+			APIVersion: infrav1.GroupVersion.String(),
+			Kind:       infrav1.TerraformKind,
+			Name:       terraformName,
+			UID:        helloWorldTF.UID,
+			Controller: ptr.To(true),
+		},
+	}))
 }
 
 func Test_000260_runner_pod_test_env_vars(t *testing.T) {
