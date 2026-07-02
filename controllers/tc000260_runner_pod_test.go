@@ -43,6 +43,7 @@ func Test_000260_runner_pod_test(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      terraformName,
 			Namespace: "flux-system",
+			UID:       types.UID("f24960a2-6156-49d4-a2d1-b56d92146c9e"),
 		},
 		Spec: infrav1.TerraformSpec{
 			ApprovePlan: "auto",
@@ -92,6 +93,14 @@ func Test_000260_runner_pod_test(t *testing.T) {
 	}()).To(BeTrue())
 
 	g.Expect(podTemplate.Labels["app.kubernetes.io/instance"]).To(Equal("tf-runner-c7fd0cc6"))
+
+	By("checking that the runner pod is owned by the Terraform object, so that observability tools classify it as a managed pod and GC can clean it up")
+	g.Expect(podTemplate.OwnerReferences).To(HaveLen(1))
+	g.Expect(podTemplate.OwnerReferences[0].APIVersion).To(Equal(infrav1.GroupVersion.Group + "/" + infrav1.GroupVersion.Version))
+	g.Expect(podTemplate.OwnerReferences[0].Kind).To(Equal(infrav1.TerraformKind))
+	g.Expect(podTemplate.OwnerReferences[0].Name).To(Equal(terraformName))
+	g.Expect(podTemplate.OwnerReferences[0].UID).To(Equal(helloWorldTF.UID))
+	g.Expect(podTemplate.OwnerReferences[0].Controller).To(HaveValue(BeTrue()))
 }
 
 func Test_000260_runner_pod_test_env_vars(t *testing.T) {
