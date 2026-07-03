@@ -455,6 +455,28 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	case stateRunning:
 		// do nothing
 		traceLog.Info("Pod is running, do nothing")
+	case stateUnknown:
+		// The pod exists but is neither Running nor Terminating — e.g. it is in
+		// Failed phase after its node rebooted or it was OOM-killed. It will never
+		// serve gRPC again, but it is not being deleted either, so left alone it
+		// lingers forever (and any connection to it hangs under waitForReady).
+		// Force-delete it and recreate a fresh one.
+		log.Info("runner pod in unexpected (non-running, non-terminating) state, force-deleting", "name", terraform.Name)
+		if err := r.Delete(ctx, &runnerPod,
+			client.GracePeriodSeconds(1), // force kill = 1 second
+			client.PropagationPolicy(metav1.DeletePropagationForeground),
+		); err != nil && !errors.IsNotFound(err) {
+			traceLog.Error(err, "Hit an error")
+			return "", err
+		}
+		if err := waitForPodToBeTerminated(); err != nil {
+			traceLog.Error(err, "Hit an error")
+			return "", fmt.Errorf("failed to wait for the stale pod termination: %v", err)
+		}
+		if err := createNewPod(); err != nil {
+			traceLog.Error(err, "Hit an error")
+			return "", err
+		}
 	}
 
 	// wait for pod ip
