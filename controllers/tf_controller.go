@@ -86,6 +86,7 @@ type TerraformReconciler struct {
 	CertRotator               *mtls.CertRotator
 	RunnerGRPCPort            int
 	RunnerCreationTimeout     time.Duration
+	RunnerRPCTimeout          time.Duration
 	RunnerGRPCMaxMessageSize  int
 	AllowBreakTheGlass        bool
 	ClusterDomain             string
