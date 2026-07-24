@@ -18,6 +18,7 @@ package main
 
 import (
 	"os"
+	"strings"
 	"time"
 
 	"github.com/flux-iac/tofu-controller/mtls"
@@ -41,6 +42,7 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/utils/ptr"
 	ctrlcache "sigs.k8s.io/controller-runtime/pkg/cache"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
@@ -75,33 +77,84 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 }
 
+// buildCacheOptions returns the cache configuration for the manager. When
+// watchNamespace is empty (the controller is watching all namespaces), it
+// returns a zero-value Options — a full no-op, since the cache already
+// covers everything. When watchNamespace is set, Terraform CRs stay scoped
+// to that namespace (DefaultNamespaces), but the three source kinds
+// (GitRepository, Bucket, OCIRepository) additionally get their own
+// namespace scope covering watchNamespace plus any additionalSourceNamespaces
+// — letting a namespace-scoped instance resolve sources centralized in a
+// different namespace without widening what it actually reconciles.
+func buildCacheOptions(watchNamespace string, additionalSourceNamespaces []string) ctrlcache.Options {
+	if watchNamespace == "" {
+		return ctrlcache.Options{}
+	}
+
+	opts := ctrlcache.Options{
+		DefaultNamespaces: map[string]ctrlcache.Config{
+			watchNamespace: ctrlcache.Config{},
+		},
+	}
+
+	hasAdditional := false
+	for _, ns := range additionalSourceNamespaces {
+		if strings.TrimSpace(ns) != "" {
+			hasAdditional = true
+			break
+		}
+	}
+	if !hasAdditional {
+		return opts
+	}
+
+	newSourceNamespaces := func() map[string]ctrlcache.Config {
+		m := map[string]ctrlcache.Config{watchNamespace: ctrlcache.Config{}}
+		for _, ns := range additionalSourceNamespaces {
+			if ns = strings.TrimSpace(ns); ns != "" {
+				m[ns] = ctrlcache.Config{}
+			}
+		}
+		return m
+	}
+
+	opts.ByObject = map[ctrlclient.Object]ctrlcache.ByObject{
+		&sourcev1.GitRepository{}: {Namespaces: newSourceNamespaces()},
+		&sourcev1.Bucket{}:        {Namespaces: newSourceNamespaces()},
+		&sourcev1.OCIRepository{}: {Namespaces: newSourceNamespaces()},
+	}
+
+	return opts
+}
+
 func main() {
 	var (
-		metricsAddr               string
-		eventsAddr                string
-		healthAddr                string
-		concurrent                int
-		requeueDependency         time.Duration
-		clientOptions             client.Options
-		logOptions                logger.Options
-		leaderElectionOptions     leaderelection.Options
-		watchAllNamespaces        bool
-		httpRetry                 int
-		caValidityDuration        time.Duration
-		rotationCheckFrequency    time.Duration
-		runnerGRPCPort            int
-		runnerCreationTimeout     time.Duration
-		runnerGRPCMaxMessageSize  int
-		allowBreakTheGlass        bool
-		clusterDomain             string
-		aclOptions                acl.Options
-		allowCrossNamespaceRefs   bool
-		usePodSubdomainResolution bool
-		usePriorityQueue          bool
-		gracefulShutdownTimeout   time.Duration
-		quotaRetryEnabled         bool
-		quotaRetryDelay           time.Duration
-		quotaRetryJitterFactor    float64
+		metricsAddr                string
+		eventsAddr                 string
+		healthAddr                 string
+		concurrent                 int
+		requeueDependency          time.Duration
+		clientOptions              client.Options
+		logOptions                 logger.Options
+		leaderElectionOptions      leaderelection.Options
+		watchAllNamespaces         bool
+		additionalSourceNamespaces []string
+		httpRetry                  int
+		caValidityDuration         time.Duration
+		rotationCheckFrequency     time.Duration
+		runnerGRPCPort             int
+		runnerCreationTimeout      time.Duration
+		runnerGRPCMaxMessageSize   int
+		allowBreakTheGlass         bool
+		clusterDomain              string
+		aclOptions                 acl.Options
+		allowCrossNamespaceRefs    bool
+		usePodSubdomainResolution  bool
+		usePriorityQueue           bool
+		gracefulShutdownTimeout    time.Duration
+		quotaRetryEnabled          bool
+		quotaRetryDelay            time.Duration
+		quotaRetryJitterFactor     float64
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
@@ -111,6 +164,9 @@ func main() {
 	flag.DurationVar(&requeueDependency, "requeue-dependency", 30*time.Second, "The interval at which failing dependencies are reevaluated.")
 	flag.BoolVar(&watchAllNamespaces, "watch-all-namespaces", true,
 		"Watch for custom resources in all namespaces, if set to false it will only watch the runtime namespace.")
+	flag.StringSliceVar(&additionalSourceNamespaces, "additional-source-namespaces", []string{},
+		"When --watch-all-namespaces=false, additional namespaces (besides the runtime namespace) from which "+
+			"source objects (GitRepository, Bucket, OCIRepository) may be read. No effect when watching all namespaces.")
 	flag.IntVar(&httpRetry, "http-retry", 9, "The maximum number of retries when failing to fetch artifacts over HTTP.")
 	flag.DurationVar(&caValidityDuration, "ca-cert-validity-duration", 24*7*time.Hour,
 		"The duration that the CA/mTLS certificates should be valid for. Default is 1 week.")
@@ -173,11 +229,7 @@ func main() {
 		},
 	}
 
-	if watchNamespace != "" {
-		mgrConfig.Cache.DefaultNamespaces = map[string]ctrlcache.Config{
-			watchNamespace: ctrlcache.Config{},
-		}
-	}
+	mgrConfig.Cache = buildCacheOptions(watchNamespace, additionalSourceNamespaces)
 
 	restConfig := client.GetConfigOrDie(clientOptions)
 	mgr, err := ctrl.NewManager(restConfig, mgrConfig)
