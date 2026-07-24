@@ -33,6 +33,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| additionalSourceNamespaces | list | `[]` | List of additional namespaces from which source objects (GitRepository, Bucket, OCIRepository) may be read when watchAllNamespaces is false. Ignored when watchAllNamespaces is true. |
 | affinity | object | `{}` | Affinity properties for the tofu-controller deployment |
 | allowBreakTheGlass | bool | `false` | Argument for `--allow-break-the-glass` (Controller).  AllowBreakTheGlass allows the controller to break the glass and modify Terraform states when the sync loop is broken. |
 | allowCrossNamespaceRefs | bool | `false` | If `true`, enable cross-namespace references for controller and branch-planner |
