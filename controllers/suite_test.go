@@ -89,7 +89,7 @@ func TestMain(m *testing.M) {
 		ControlPlaneStopTimeout: 60 * time.Second,
 	}
 
-	cfg, err := testEnv.Start()
+	cfg, err = testEnv.Start()
 	if err != nil {
 		panic(err.Error())
 	}

@@ -2,6 +2,9 @@
 allowCrossNamespaceRefs: false
 # -- If `true`, controller will watch all namespaces for Terraform resources
 watchAllNamespaces: true
+# -- List of additional namespaces from which source objects (GitRepository, Bucket, OCIRepository)
+# may be read when watchAllNamespaces is false. Ignored when watchAllNamespaces is true.
+additionalSourceNamespaces: []
 # ServiceAccount
 serviceAccount:
   # -- If `true`, create a new service account

@@ -36,6 +36,9 @@ spec:
       - args:
         - --allow-cross-namespace-refs={{ .Values.allowCrossNamespaceRefs }}
         - --watch-all-namespaces={{ .Values.watchAllNamespaces }}
+        {{- with .Values.additionalSourceNamespaces }}
+        - --additional-source-namespaces={{ join "," . }}
+        {{- end }}
         - --log-level={{ .Values.logLevel }}
         - --log-encoding={{ .Values.logEncoding }}
         - --enable-leader-election
