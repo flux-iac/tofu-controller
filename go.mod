@@ -16,7 +16,7 @@ require (
 	github.com/aws/smithy-go v1.27.4
 	github.com/bradleyfalzon/ghinstallation/v2 v2.19.0
 	github.com/cyphar/filepath-securejoin v0.7.0
-	github.com/elgohr/go-localstack v1.0.164
+	github.com/elgohr/go-localstack v1.0.165
 	github.com/flux-iac/tofu-controller/api v0.0.0-20260505110553-6233d9ea1db8
 	github.com/flux-iac/tofu-controller/tfctl v0.0.0-00010101000000-000000000000
 	github.com/fluxcd/pkg/apis/meta v1.31.0
@@ -115,7 +115,7 @@ require (
 	github.com/davidmz/go-pageant v1.0.2 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/docker v28.5.2+incompatible // indirect
-	github.com/docker/go-connections v0.7.0 // indirect
+	github.com/docker/go-connections v0.8.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.13.0 // indirect
 	github.com/evanphx/json-patch/v5 v5.9.11 // indirect
