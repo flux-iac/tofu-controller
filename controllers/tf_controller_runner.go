@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -52,6 +53,19 @@ func runnerPodTemplate(terraform *infrav1.Terraform, secretName string, revision
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: podNamespace,
 			Name:      podName,
+			// The controller ownerReference classifies the runner as a managed pod
+			// (kube-state-metrics' created_by_kind) rather than a bare pod that appears
+			// to restart on every reconcile, and lets Kubernetes GC the runner if the
+			// Terraform object is deleted.
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					APIVersion: infrav1.GroupVersion.String(),
+					Kind:       infrav1.TerraformKind,
+					Name:       terraform.Name,
+					UID:        terraform.UID,
+					Controller: ptr.To(true),
+				},
+			},
 			Labels: map[string]string{
 				"app.kubernetes.io/created-by":   "tofu-controller",
 				"app.kubernetes.io/name":         "tf-runner",

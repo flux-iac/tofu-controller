@@ -855,8 +855,22 @@ func (in Terraform) HasDrift() bool {
 }
 
 // GetDependsOn returns the list of dependencies, namespace scoped.
-func (in Terraform) GetDependsOn() []meta.NamespacedObjectReference {
-	return in.Spec.DependsOn
+//
+// Spec.DependsOn is deliberately kept as []meta.NamespacedObjectReference and
+// converted here. fluxcd/pkg/runtime v0.111.0 requires Dependent to return
+// []meta.DependencyReference, which adds a ReadyExpr CEL field. checkDependencies
+// is hand-rolled and does not evaluate ReadyExpr, so exposing it in the CRD would
+// advertise a field that does nothing. Change the spec type only alongside
+// implementing ReadyExpr.
+func (in Terraform) GetDependsOn() []meta.DependencyReference {
+	refs := make([]meta.DependencyReference, len(in.Spec.DependsOn))
+	for i, d := range in.Spec.DependsOn {
+		refs[i] = meta.DependencyReference{
+			Name:      d.Name,
+			Namespace: d.Namespace,
+		}
+	}
+	return refs
 }
 
 // GetRetryInterval returns the retry interval
