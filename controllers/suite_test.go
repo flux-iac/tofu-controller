@@ -179,6 +179,7 @@ func TestMain(m *testing.M) {
 		CertRotator:               rotator,
 		RunnerGRPCPort:            30000,
 		RunnerCreationTimeout:     120 * time.Second,
+		RunnerRPCTimeout:          30 * time.Minute,
 		RunnerGRPCMaxMessageSize:  4,
 		UsePodSubdomainResolution: false,
 	}

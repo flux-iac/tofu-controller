@@ -328,6 +328,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	type state string
 	const (
 		stateUnknown       state = "unknown"
+		stateFailed        state = "failed"
 		stateRunning       state = "running"
 		stateNotFound      state = "not-found"
 		stateMustBeDeleted state = "must-be-deleted"
@@ -397,6 +398,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 		podState = stateNotFound
 	} else if err != nil {
 		traceLog.Error(err, "Error getting the Runner Pod", "runner-pod-key", runnerPodKey)
+		return "", fmt.Errorf("failed to get the runner pod: %w", err)
 	} else if err == nil {
 		label, found := runnerPod.Labels["tf.weave.works/tls-secret-name"]
 		traceLog.Info("Set label and found", "label", label, "found", found)
@@ -412,6 +414,8 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 			podState = stateTerminating
 		} else if runnerPod.Status.Phase == v1.PodRunning {
 			podState = stateRunning
+		} else if runnerPod.Status.Phase == v1.PodFailed {
+			podState = stateFailed
 		}
 	}
 
@@ -469,13 +473,11 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 	case stateRunning:
 		// do nothing
 		traceLog.Info("Pod is running, do nothing")
-	case stateUnknown:
-		// The pod exists but is neither Running nor Terminating — e.g. it is in
-		// Failed phase after its node rebooted or it was OOM-killed. It will never
-		// serve gRPC again, but it is not being deleted either, so left alone it
-		// lingers forever (and any connection to it hangs under waitForReady).
-		// Force-delete it and recreate a fresh one.
-		log.Info("runner pod in unexpected (non-running, non-terminating) state, force-deleting", "name", terraform.Name)
+	case stateFailed:
+		// A failed pod will never serve gRPC again, so delete it and create a
+		// replacement. Other non-running phases are left alone to continue
+		// starting up.
+		log.Info("runner pod failed, force-deleting", "name", terraform.Name)
 		if err := r.Delete(ctx, &runnerPod,
 			client.GracePeriodSeconds(1), // force kill = 1 second
 			client.PropagationPolicy(metav1.DeletePropagationForeground),
