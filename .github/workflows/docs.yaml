@@ -38,5 +38,9 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A
-          git commit -m "Publish docs from $GITHUB_SHA"
-          git push https://github.com/$GITHUB_REPOSITORY.git gh-pages
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "Publish docs from $GITHUB_SHA"
+            git push https://github.com/$GITHUB_REPOSITORY.git gh-pages
+          else
+            echo "No changes to commit"
+          fi
