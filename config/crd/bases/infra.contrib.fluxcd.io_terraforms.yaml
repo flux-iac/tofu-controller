@@ -11395,6 +11395,12 @@ spec:
                   LastPlannedRevision is the revision used by the last planning process.
                   The result could be either no plan change or a new plan generated.
                 type: string
+              lastSuccessfulReconcileAt:
+                description: |-
+                  LastSuccessfulReconcileAt is the time when the last successful
+                  reconciliation was completed, regardless of whether a plan was generated.
+                format: date-time
+                type: string
               lock:
                 description: LockStatus defines the observed state of a Terraform
                   State Lock

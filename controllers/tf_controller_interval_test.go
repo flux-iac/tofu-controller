@@ -18,7 +18,7 @@ func TestShouldReconcileSkipsWhenIntervalNotElapsed(t *testing.T) {
 	g := NewWithT(t)
 	reconciler := &TerraformReconciler{}
 
-	lastPlan := time.Now().Add(-6 * time.Hour)
+	lastReconcile := time.Now().Add(-6 * time.Hour)
 	tf := &infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Generation: 1,
@@ -27,18 +27,51 @@ func TestShouldReconcileSkipsWhenIntervalNotElapsed(t *testing.T) {
 			Interval: metav1.Duration{Duration: 24 * time.Hour},
 		},
 		Status: infrav1.TerraformStatus{
-			LastPlanAt:            &metav1.Time{Time: lastPlan},
-			LastAttemptedRevision: "main/1234",
-			LastPlannedRevision:   "main/1234",
-			ObservedGeneration:    1,
+			LastPlanAt:                &metav1.Time{Time: lastReconcile},
+			LastSuccessfulReconcileAt: &metav1.Time{Time: lastReconcile},
+			LastAttemptedRevision:     "main/1234",
+			LastPlannedRevision:       "main/1234",
+			ObservedGeneration:        1,
 		},
 	}
 
 	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, nil)
 	g.Expect(shouldReconcile).To(BeFalse())
-	g.Expect(reason).To(Equal("interval has not elapsed since last plan"))
+	g.Expect(reason).To(Equal("interval has not elapsed since last successful reconciliation"))
 	g.Expect(requeueAfter).To(BeNumerically(">", 17*time.Hour))
 	g.Expect(requeueAfter).To(BeNumerically("<=", 24*time.Hour))
+}
+
+func TestShouldReconcileSkipsWhenPlanStaleButRecentlyReconciled(t *testing.T) {
+	Spec("This spec covers checking that interval is honored based on successful reconcile if plan is not changed.")
+	It("should skip reconciliation when LastPlanAt is stale but LastSuccessfulReconcileAt is within the interval.")
+
+	g := NewWithT(t)
+	reconciler := &TerraformReconciler{}
+
+	// The last actual plan happened long ago (plan never changes), but the
+	// object was reconciled recently (e.g. via no-change drift detection).
+	tf := &infrav1.Terraform{
+		ObjectMeta: metav1.ObjectMeta{
+			Generation: 1,
+		},
+		Spec: infrav1.TerraformSpec{
+			Interval: metav1.Duration{Duration: 24 * time.Hour},
+		},
+		Status: infrav1.TerraformStatus{
+			LastPlanAt:                &metav1.Time{Time: time.Now().Add(-90 * 24 * time.Hour)},
+			LastSuccessfulReconcileAt: &metav1.Time{Time: time.Now().Add(-1 * time.Hour)},
+			LastAttemptedRevision:     "main/1234",
+			LastPlannedRevision:       "main/1234",
+			ObservedGeneration:        1,
+		},
+	}
+
+	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, nil)
+	g.Expect(shouldReconcile).To(BeFalse())
+	g.Expect(reason).To(Equal("interval has not elapsed since last successful reconciliation"))
+	g.Expect(requeueAfter).To(BeNumerically(">", 22*time.Hour))
+	g.Expect(requeueAfter).To(BeNumerically("<=", 23*time.Hour))
 }
 
 func TestShouldReconcileWhenIntervalElapsed(t *testing.T) {
@@ -48,7 +81,7 @@ func TestShouldReconcileWhenIntervalElapsed(t *testing.T) {
 	g := NewWithT(t)
 	reconciler := &TerraformReconciler{}
 
-	lastPlan := time.Now().Add(-25 * time.Hour)
+	lastReconcile := time.Now().Add(-25 * time.Hour)
 	tf := &infrav1.Terraform{
 		ObjectMeta: metav1.ObjectMeta{
 			Generation: 1,
@@ -57,8 +90,9 @@ func TestShouldReconcileWhenIntervalElapsed(t *testing.T) {
 			Interval: metav1.Duration{Duration: 24 * time.Hour},
 		},
 		Status: infrav1.TerraformStatus{
-			LastPlanAt:         &metav1.Time{Time: lastPlan},
-			ObservedGeneration: 1,
+			LastPlanAt:                &metav1.Time{Time: lastReconcile},
+			LastSuccessfulReconcileAt: &metav1.Time{Time: lastReconcile},
+			ObservedGeneration:        1,
 		},
 	}
 
