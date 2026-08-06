@@ -2,6 +2,34 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.16.5
+
+**Release date:** 2026-08-06
+
+## What's Changed
+* fix(deps): bump libcrypto3 to 3.5.7-r0 by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1827
+* chore!: remove unused option "--cert-validity-duration" by @artem-nefedov in https://github.com/flux-iac/tofu-controller/pull/1826
+* fix: stop injecting CR metadata labels into Kubernetes backend state Secret selector by @adonispd in https://github.com/flux-iac/tofu-controller/pull/1808
+* fix: install libc6-compat in runner image to fix boundary provider plan by @twuen-lynq in https://github.com/flux-iac/tofu-controller/pull/1825
+* chore: update dependencies by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1850
+* chore(deps): bump the gh-major group across 1 directory with 5 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1846
+* fix(github): use api.github.com base URL for GitHub App auth (#1823) by @hugh-fai in https://github.com/flux-iac/tofu-controller/pull/1843
+* chore(deps): bump the gh-minor group across 1 directory with 11 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1847
+* fix: add controller ownerReference to tf-runner pods by @devantler in https://github.com/flux-iac/tofu-controller/pull/1835
+* chore(deps): bump github.com/elgohr/go-localstack from 1.0.164 to 1.0.165 in the go-patch group across 1 directory by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1851
+* fix: prevent permanent reconcile hang when a runner pod dies mid-reconcile by @agentydragon in https://github.com/flux-iac/tofu-controller/pull/1838
+* chore(deps): bump the go-patch group across 1 directory with 6 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1854
+* fix: do not reconcile after restart for healthy resources by @artem-nefedov in https://github.com/flux-iac/tofu-controller/pull/1857
+* chore(deps): bump google.golang.org/grpc from 1.82.1 to 1.83.0 in the go-minor group across 1 directory by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1855
+* fix(deps): bump python packages by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1858
+* chore(deps): bump the gh-patch group across 1 directory with 7 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1856
+
+## New Contributors
+* @twuen-lynq made their first contribution in https://github.com/flux-iac/tofu-controller/pull/1825
+* @hugh-fai made their first contribution in https://github.com/flux-iac/tofu-controller/pull/1843
+* @devantler made their first contribution in https://github.com/flux-iac/tofu-controller/pull/1835
+* @agentydragon made their first contribution in https://github.com/flux-iac/tofu-controller/pull/1838
+
 ## v0.16.4
 
 **Release date:** 2026-06-08
