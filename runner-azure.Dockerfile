@@ -5,7 +5,7 @@ FROM ghcr.io/opentofu/opentofu:${TOFU_VERSION}-minimal AS tofu
 
 FROM $BASE_IMAGE
 
-ARG AZURE_CLI_VERSION=2.86.0
+ARG AZURE_CLI_VERSION=2.89.0
 
 # Switch to root temporarily for package installation (base image runs as 65532).
 USER root
