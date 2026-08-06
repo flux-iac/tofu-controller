@@ -416,6 +416,11 @@ type TerraformStatus struct {
 	// +optional
 	LastPlanAt *metav1.Time `json:"lastPlanAt,omitempty"`
 
+	// LastSuccessfulReconcileAt is the time when the last successful
+	// reconciliation was completed, regardless of whether a plan was generated.
+	// +optional
+	LastSuccessfulReconcileAt *metav1.Time `json:"lastSuccessfulReconcileAt,omitempty"`
+
 	// LastDriftDetectedAt is the time when the last drift was detected
 	// +optional
 	LastDriftDetectedAt *metav1.Time `json:"lastDriftDetectedAt,omitempty"`
