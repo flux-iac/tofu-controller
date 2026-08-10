@@ -11,6 +11,9 @@ metadata:
 
 spec:
   replicas: {{ .Values.replicaCount }}
+  {{- with .Values.updateStrategy }}
+  strategy: {{ toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "tofu-controller.selectorLabels" . | nindent 6 }}
