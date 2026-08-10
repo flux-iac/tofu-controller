@@ -154,7 +154,7 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret
 	const retryPolicy = `{
 "methodConfig": [{
   "name": [{"service": "runner.Runner"}],
-  "waitForReady": true,
+  "waitForReady": false,
   "retryPolicy": {
     "MaxAttempts": 4,
     "InitialBackoff": ".01s",
