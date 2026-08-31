@@ -16,7 +16,6 @@ permissions:
 env:
   CONTROLLER: ${{ github.event.repository.name }}
   REGISTRY_OWNER: ${{ github.repository_owner }}
-  LIBCRYPTO_VERSION: "3.5.7-r0"
 
 jobs:
   build-push:
@@ -72,8 +71,6 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
           file: ./Dockerfile
-          build-args: |
-            LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
             ghcr.io/${{ env.REGISTRY_OWNER }}/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
@@ -92,8 +89,6 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
           file: ./runner-base.Dockerfile
-          build-args: |
-            LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
             ghcr.io/${{ env.REGISTRY_OWNER }}/tf-runner:${{ steps.prep.outputs.VERSION }}-base
@@ -154,8 +149,6 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
           file: ./planner.Dockerfile
-          build-args: |
-            LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7 - azure-cli does not install correctly on 32 bit arm
           tags: |
             ghcr.io/${{ env.REGISTRY_OWNER }}/branch-planner:${{ steps.prep.outputs.VERSION }}
