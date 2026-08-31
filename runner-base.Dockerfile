@@ -41,8 +41,6 @@ FROM alpine:3.23
 
 LABEL org.opencontainers.image.source="https://github.com/flux-iac/tofu-controller"
 
-ARG LIBCRYPTO_VERSION
-
 RUN apk update && \
     apk upgrade --no-cache && \
     apk add --no-cache \
@@ -51,8 +49,6 @@ RUN apk update && \
     git \
     libc6-compat \
     gnupg \
-    libcrypto3=${LIBCRYPTO_VERSION} \
-    libssl3=${LIBCRYPTO_VERSION} \
     openssh-client \
     tini
 

@@ -11,7 +11,6 @@ permissions:
 env:
   CONTROLLER: ${{ github.event.repository.name }}
   REGISTRY_OWNER: ${{ github.repository_owner }}
-  LIBCRYPTO_VERSION: "3.5.7-r0"
 
 jobs:
   test:
@@ -79,8 +78,6 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
           file: ./Dockerfile
-          build-args: |
-            LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
             ghcr.io/${{ env.REGISTRY_OWNER }}/${{ env.CONTROLLER }}:${{ steps.prep.outputs.VERSION }}
@@ -99,7 +96,6 @@ jobs:
           context: .
           file: ./runner-base.Dockerfile
           build-args: |
-            LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
             BUILD_VERSION=${{ steps.prep.outputs.BUILD_VERSION }}
             BUILD_SHA=${{ steps.prep.outputs.BUILD_SHA }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
@@ -139,8 +135,6 @@ jobs:
           context: .
           file: ./planner.Dockerfile
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
-          build-args: |
-            LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           tags: |
             ghcr.io/${{ env.REGISTRY_OWNER }}/branch-planner:${{ steps.prep.outputs.VERSION }}
           labels: |

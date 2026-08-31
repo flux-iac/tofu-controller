@@ -18,7 +18,6 @@ permissions:
 env:
   VERSION: ${{ github.event.inputs.version || github.event.client_payload.version }}
   BUILD_DATE: ${{ github.event.inputs.build_date || github.event.client_payload.build_date }}
-  LIBCRYPTO_VERSION: "3.5.7-r0"
 
 jobs:
   release-base:
@@ -53,8 +52,6 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
           file: ./runner-base.Dockerfile
-          build-args: |
-            LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           platforms: linux/amd64,linux/arm64 #,linux/arm/v7
           tags: |
             ghcr.io/flux-iac/tf-runner:${{ env.VERSION }}-base
@@ -106,7 +103,6 @@ jobs:
           build-args: |
             BASE_IMAGE=ghcr.io/flux-iac/tf-runner:${{ env.VERSION }}-base
             TF_VERSION=${{ matrix.tf_version }}
-            LIBCRYPTO_VERSION=${{ env.LIBCRYPTO_VERSION }}
           tags: |
             ghcr.io/flux-iac/tf-runner:${{ env.VERSION }}-tf-${{ matrix.tf_version }}
           labels: |
