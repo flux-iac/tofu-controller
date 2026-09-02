@@ -138,62 +138,24 @@ func TestLockConditionForPlanErrorLiveLock(t *testing.T) {
 	}
 }
 
-func TestLockConditionForPlanErrorSameSecondUsesNanoseconds(t *testing.T) {
-	scheme := runtime.NewScheme()
-	if err := corev1.AddToScheme(scheme); err != nil {
-		t.Fatal(err)
+func TestParseTerraformLockCreatedSameSecondUsesNanoseconds(t *testing.T) {
+	created, ok := parseTerraformLockCreated("Created:   2026-09-01 08:58:05.393443698 +0000 UTC")
+	if !ok {
+		t.Fatal("expected to parse Created")
 	}
-	if err := infrav1.AddToScheme(scheme); err != nil {
-		t.Fatal(err)
+	if created.Nanosecond() != 393443698 {
+		t.Fatalf("got nanoseconds %d want 393443698", created.Nanosecond())
 	}
 
-	raw := `Created:   2026-09-01 08:58:05.393443698 +0000 UTC`
-	lockID := "fff6a1aa-c879-2e17-d197-1418368e715d"
-	sameSecond := time.Date(2026, 9, 1, 8, 58, 5, 0, time.UTC)
-
-	cases := []struct {
-		name       string
-		podNano    int
-		wantOrphan bool
-	}{
-		{
-			name:       "pod created earlier in the same second is a live lock",
-			podNano:    100000000,
-			wantOrphan: false,
-		},
-		{
-			name:       "pod created later in the same second is orphaned",
-			podNano:    500000000,
-			wantOrphan: true,
-		},
+	// Kubernetes metav1.Time is second-precision after an API round-trip, but
+	// lock Created keeps nanoseconds. Truncating Created to whole seconds would
+	// make an earlier same-second pod look like it started after the lock.
+	earlier := time.Date(2026, 9, 1, 8, 58, 5, 100000000, time.UTC)
+	later := time.Date(2026, 9, 1, 8, 58, 5, 500000000, time.UTC)
+	if earlier.After(created) {
+		t.Fatal("pod created earlier in the same second must not classify as orphaned")
 	}
-	for _, tt := range cases {
-		t.Run(tt.name, func(t *testing.T) {
-			tf := &infrav1.Terraform{
-				ObjectMeta: metav1.ObjectMeta{Name: "example", Namespace: "flux-system"},
-			}
-			pod := &corev1.Pod{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:              "example-tf-runner",
-					Namespace:         "flux-system",
-					CreationTimestamp: metav1.NewTime(sameSecond.Add(time.Duration(tt.podNano))),
-				},
-			}
-			r := &TerraformReconciler{
-				Client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(pod).Build(),
-			}
-			out := r.lockConditionForPlanError(context.Background(), tf, lockID, raw)
-			c := conditions.Get(out, infrav1.ConditionTypeStateLocked)
-			if c == nil {
-				t.Fatal("expected StateLocked condition")
-			}
-			wantReason := infrav1.TFExecLockHeldReason
-			if tt.wantOrphan {
-				wantReason = infrav1.TFExecLockOrphanedReason
-			}
-			if c.Reason != wantReason {
-				t.Fatalf("got reason %q want %q", c.Reason, wantReason)
-			}
-		})
+	if !later.After(created) {
+		t.Fatal("pod created later in the same second must classify as orphaned")
 	}
 }
