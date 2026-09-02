@@ -125,6 +125,10 @@ const (
 	// state lock is held by another process.
 	TFExecLockHeldReason = "LockHeld"
 
+	// TFExecLockOrphanedReason represents a state lock whose holder
+	// runner Pod is gone (lock Created is before the current runner start).
+	TFExecLockOrphanedReason = "LockOrphaned"
+
 	// TFExecNewFailedReason represents the fact that the creation
 	// of the Terraform process failed.
 	TFExecNewFailedReason = "TFExecNewFailed"

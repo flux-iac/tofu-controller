@@ -79,7 +79,7 @@ func (r *TerraformReconciler) plan(ctx context.Context, patchHelper *patch.Seria
 					msg := fmt.Sprintf("Plan error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
 					r.Eventf(terraform, corev1.EventTypeWarning, infrav1.TFExecPlanFailedReason, "%s", msg)
 					eventSent = true
-					terraform = infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
+					terraform = r.lockConditionForPlanError(ctx, terraform, reply.StateLockIdentifier, err.Error())
 				}
 			}
 		}
