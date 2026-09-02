@@ -126,7 +126,7 @@ const (
 	TFExecLockHeldReason = "LockHeld"
 
 	// TFExecLockOrphanedReason represents a state lock whose holder
-	// runner Pod is gone (lock Created is before the current runner start).
+	// runner Pod is gone (lock Created is before the current runner Pod creationTimestamp).
 	TFExecLockOrphanedReason = "LockOrphaned"
 
 	// TFExecNewFailedReason represents the fact that the creation

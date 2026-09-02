@@ -821,7 +821,7 @@ func TerraformStateLocked(terraform *Terraform, lockID, message string) *Terrafo
 }
 
 // TerraformLockOrphaned marks a lock whose Created timestamp is before the
-// current runner Pod startTime. Operators can tell this apart from a live Apply.
+// current runner Pod creationTimestamp. Operators can tell this apart from a live Apply.
 func TerraformLockOrphaned(terraform *Terraform, lockID, message string) *Terraform {
 	msg := trimString(message, MaxConditionMessageLength)
 	conditions.MarkTrue(terraform, ConditionTypeStateLocked, TFExecLockOrphanedReason, "%s", msg)

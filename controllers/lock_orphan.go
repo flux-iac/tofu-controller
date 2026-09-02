@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -12,20 +13,36 @@ import (
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 )
 
-var terraformLockCreatedRe = regexp.MustCompile(`Created:\s+(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})`)
+// terraformLockCreatedRe captures the remainder of the lock Created line so
+// fractional seconds and a timezone/offset are not dropped.
+var terraformLockCreatedRe = regexp.MustCompile(`Created:\s+(.+)`)
+
+// terraformLockCreatedLayouts match tofu/terraform lock output. The first
+// layout is time.Time.String(), which is what LockInfo typically prints.
+var terraformLockCreatedLayouts = []string{
+	"2006-01-02 15:04:05.999999999 -0700 MST",
+	"2006-01-02 15:04:05.999999999 -0700",
+	time.RFC3339Nano,
+	time.RFC3339,
+	"2006-01-02 15:04:05.999999999",
+	"2006-01-02 15:04:05",
+}
 
 // parseTerraformLockCreated extracts the lock Created wall time from a
-// terraform/tofu "Error acquiring the state lock" message.
+// terraform/tofu "Error acquiring the state lock" message, including
+// sub-second precision and zone/offset when present.
 func parseTerraformLockCreated(raw string) (time.Time, bool) {
 	m := terraformLockCreatedRe.FindStringSubmatch(raw)
 	if len(m) < 2 {
 		return time.Time{}, false
 	}
-	t, err := time.ParseInLocation("2006-01-02 15:04:05", m[1], time.UTC)
-	if err != nil {
-		return time.Time{}, false
+	value := strings.TrimSpace(m[1])
+	for _, layout := range terraformLockCreatedLayouts {
+		if t, err := time.Parse(layout, value); err == nil {
+			return t, true
+		}
 	}
-	return t, true
+	return time.Time{}, false
 }
 
 func (r *TerraformReconciler) lockConditionForPlanError(ctx context.Context, terraform *infrav1.Terraform, lockID, rawErr string) *infrav1.Terraform {
@@ -45,10 +62,10 @@ func (r *TerraformReconciler) lockConditionForPlanError(ctx context.Context, ter
 		return locked
 	}
 	msg := fmt.Sprintf(
-		"State lock %s looks orphaned: lock Created %s is before runner pod start %s",
+		"State lock %s looks orphaned: lock Created %s is before runner pod creationTimestamp %s",
 		lockID,
-		created.UTC().Format(time.RFC3339),
-		pod.CreationTimestamp.UTC().Format(time.RFC3339),
+		created.UTC().Format(time.RFC3339Nano),
+		pod.CreationTimestamp.UTC().Format(time.RFC3339Nano),
 	)
 	ctrl.LoggerFrom(ctx).Info(msg)
 	return infrav1.TerraformLockOrphaned(terraform, lockID, msg)
