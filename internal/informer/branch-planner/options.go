@@ -1,6 +1,8 @@
 package branchplanner
 
 import (
+	"context"
+
 	"github.com/flux-iac/tofu-controller/internal/git/provider"
 	"github.com/go-logr/logr"
 	"k8s.io/client-go/tools/cache"
@@ -32,9 +34,17 @@ func WithGitProvider(provider provider.Provider) Option {
 	}
 }
 
-func WithProviderOpts(opts ...provider.ProviderOption) Option {
+func WithProviderOptsFn(fn func(ctx context.Context) ([]provider.ProviderOption, error)) Option {
 	return func(i *Informer) error {
-		i.providerOpts = opts
+		i.providerOptsFn = fn
+
+		return nil
+	}
+}
+
+func WithCustomProviderURLParserFn(fn provider.URLParserFn) Option {
+	return func(i *Informer) error {
+		i.gitProviderParserFn = fn
 
 		return nil
 	}
