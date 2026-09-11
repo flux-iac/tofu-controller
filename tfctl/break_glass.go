@@ -64,9 +64,7 @@ func (c *CLI) BreakTheGlass(ctx context.Context, out io.Writer, resource string)
 		return err
 	}
 
-	shell(ctx, c.kubeconfigArgs, tfObject)
-
-	return nil
+	return shell(ctx, c.kubeconfigArgs, tfObject)
 }
 
 func requestBreakingTheGlass(ctx context.Context, kubeClient client.Client, namespacedName types.NamespacedName) error {
@@ -206,7 +204,7 @@ func shell(ctx context.Context, kubeconfigArgs *genericclioptions.ConfigFlags, t
 	cmdArgs = append(cmdArgs, podName)
 
 	// add command to run for break-glass
-	cmdArgs = append(cmdArgs, "--", "/bin/sh", "-c", "cd /tmp/"+tfObject.Namespace+"-"+tfObject.Name+" && /bin/sh && rm /tmp/.break-glass")
+	cmdArgs = append(cmdArgs, "--", "/bin/sh", "-c", "trap 'rm -f /tmp/.break-glass' 0; cd /tmp/"+tfObject.Namespace+"-"+tfObject.Name+" && /bin/sh")
 
 	cmd := exec.Command("kubectl", cmdArgs...)
 	cmd.Stdout = os.Stdout
