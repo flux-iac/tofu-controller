@@ -198,13 +198,15 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, patchHelper *patch.
 		lastKnownAction = "Planned"
 	}
 
+	reconciledRevision := revision
+
 	// if we should apply the generated plan, do so
 	if r.shouldApply(terraform) {
-		// an extra check before applying!
-		// replan and make sure the approved plan still matches before the manual apply
+		// plan IDs are minted from the source revision, see #1878.
 		if !r.forceOrAutoApply(terraform) &&
 			terraform.Spec.ApprovePlan != "" &&
-			terraform.Spec.ApprovePlan != infrav1.ApprovePlanAutoValue {
+			terraform.Spec.ApprovePlan != infrav1.ApprovePlanAutoValue &&
+			revision == terraform.Status.LastPlannedRevision {
 			approvedPlan := terraform.Spec.ApprovePlan
 
 			terraform, err = r.plan(ctx, patchHelper, terraform, tfInstance, runnerClient, revision, tmpDir)
@@ -218,13 +220,19 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, patchHelper *patch.
 				return terraform, err
 			}
 
-			if terraform.Status.Plan.Pending == "" || terraform.Status.Plan.Pending != approvedPlan {
+			if !r.shouldApply(terraform) {
 				log.Info("plan changed while waiting for manual approval, waiting for new approval", "approvedPlan", approvedPlan, "pendingPlan", terraform.Status.Plan.Pending)
 				return terraform, nil
 			}
 		}
 
-		terraform, err = r.apply(ctx, patchHelper, terraform, tfInstance, runnerClient, revision)
+		// recording the source revision as applied would strand a revision nothing
+		// was ever planned from: drift detection and shouldReconcile both skip it.
+		if terraform.Status.LastPlannedRevision != "" {
+			reconciledRevision = terraform.Status.LastPlannedRevision
+		}
+
+		terraform, err = r.apply(ctx, patchHelper, terraform, tfInstance, runnerClient, reconciledRevision)
 		if err != nil {
 			log.Error(err, "error applying")
 			return terraform, err
@@ -240,7 +248,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, patchHelper *patch.
 		log.Info("should apply == false")
 	}
 
-	terraform, err = r.processOutputs(ctx, patchHelper, runnerClient, terraform, tfInstance, revision)
+	terraform, err = r.processOutputs(ctx, patchHelper, runnerClient, terraform, tfInstance, reconciledRevision)
 	if err != nil {
 		log.Error(err, "error process outputs")
 		return terraform, err
@@ -249,7 +257,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, patchHelper *patch.
 
 	if r.shouldDoHealthChecks(terraform) {
 
-		terraform, err = r.doHealthChecks(ctx, terraform, revision, runnerClient)
+		terraform, err = r.doHealthChecks(ctx, terraform, reconciledRevision, runnerClient)
 		if err != nil {
 			log.Error(err, "error with health check")
 			return terraform, err
