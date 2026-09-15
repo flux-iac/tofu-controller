@@ -158,7 +158,8 @@ Notes:
    * Auto-discovery by parsing HCL is rejected for the initial implementation. `source` can be a
      variable, and `file()`, `templatefile()`, and `.tfvars` references escape the module graph. A
      missed dependency produces a silently skipped apply, which is this feature's worst failure
-     mode. Auto-discovery may be added later as a union with `extraPaths`, never as a replacement.
+     mode.
+   * Auto-discovery may be added later as a union with `extraPaths`, never as a replacement.
 
 3. **No per-object exclusion field. `.sourceignore` is the exclusion mechanism.**
    * Files excluded by `.sourceignore` or `GitRepository.spec.ignore` are absent from the artifact
@@ -166,7 +167,7 @@ Notes:
      `extraPaths`, leaving only noise *inside* a Terraform directory, which `.sourceignore` handles.
    * Accepted limitation: `.sourceignore` is source-wide. It cannot express "exclude this file from
      the Terraform hash but keep it in the artifact for other consumers of the same
-     `GitRepository`". Judged rare; revisit if users hit it.
+     `GitRepository`".
 
 4. **Variable inputs participate in the hash.**
    * `spec.varsFrom` Secrets and ConfigMaps are hashed alongside file content, so a variable change
@@ -178,9 +179,7 @@ Notes:
    * `spec.changeDetection.enabled` defaults to `false`. An object without the stanza behaves
      exactly as today.
    * The field and the two status fields are optional and additive, which is backward-compatible
-     within an API version. `v1alpha2` is the storage version and there is no conversion webhook;
-     precedent is `f2741dae feat: support plan-only options via spec.plan (#1812)`. A `v1alpha3` is
-     reserved for a breaking change. `v1alpha1` is already deprecated and does not gain the field.
+     within an API version. `v1alpha2` is the storage version.
 
 6. **The gate lives in `shouldReconcile`, and falls through rather than returning early.**
    * `shouldReconcile` is already the throttle and already owns the interval logic. Its
@@ -200,9 +199,7 @@ Notes:
      re-enqueuing on every subsequent watch event.
    * Because `LastAppliedRevision` legitimately lags, `shouldDetectDrift` cannot use its revision
      triple-equality under change detection. It instead compares `lastAppliedSourceDigest` against
-     the current digest, in a parallel branch gated on `changeDetection.enabled`. The existing
-     revision-based logic is left byte-identical, honouring the *"Please do not optimize this
-     logic"* comment on `shouldDetectDrift`.
+     the current digest, in a parallel branch gated on `changeDetection.enabled`.
 
 ## Consequences
 
