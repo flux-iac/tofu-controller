@@ -53,7 +53,7 @@ func (p *GitLabProvider) ListPullRequestChanges(ctx context.Context, pr PullRequ
 func (p *GitLabProvider) ListPullRequests(ctx context.Context, repo Repository) ([]PullRequest, error) {
 	var prs []PullRequest
 
-	opts := scm.PullRequestListOptions{Page: 1, Size: defaultPageSize}
+	opts := scm.PullRequestListOptions{Page: 1, Size: defaultPageSize, Open: true}
 	for {
 		prList, res, err := p.client.PullRequests.List(ctx, repo.String(), &opts)
 		if err != nil {

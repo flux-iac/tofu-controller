@@ -1,5 +1,5 @@
 # Build the manager binary
-ARG GO_VERSION=1.26.5
+ARG GO_VERSION=1.26.6
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS builder
 
 ARG BUILD_SHA
@@ -41,8 +41,6 @@ FROM alpine:3.23
 
 LABEL org.opencontainers.image.source="https://github.com/flux-iac/tofu-controller"
 
-ARG LIBCRYPTO_VERSION
-
 RUN apk update && \
     apk upgrade --no-cache && \
     apk add --no-cache \
@@ -51,8 +49,6 @@ RUN apk update && \
     git \
     libc6-compat \
     gnupg \
-    libcrypto3=${LIBCRYPTO_VERSION} \
-    libssl3=${LIBCRYPTO_VERSION} \
     openssh-client \
     tini
 

@@ -277,6 +277,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		log.Info("Skipping reconciliation",
 			"reason", reason,
 			"lastPlanAt", terraform.Status.LastPlanAt,
+			"lastSuccessfulReconcileAt", terraform.Status.LastSuccessfulReconcileAt,
 			"nextAttempt", time.Now().Add(requeueAfter),
 			"requeueAfter", requeueAfter)
 
@@ -563,6 +564,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if reconcileErr == nil {
 		log.Info("Reset reconciliation failures count. Reason: successful reconciliation")
 		terraform = infrav1.TerraformResetRetry(reconciledTerraform)
+		terraform.Status.LastSuccessfulReconcileAt = &metav1.Time{Time: time.Now()}
 	} else {
 		terraform = reconciledTerraform
 		terraform.IncrementReconciliationFailures()
@@ -680,10 +682,14 @@ func (r *TerraformReconciler) shouldReconcile(terraform *infrav1.Terraform, sour
 		return true, "retry interval has elapsed since last failed reconciliation", 0
 	}
 
-	nextReconcile := terraform.Status.LastPlanAt.Add(terraform.Spec.Interval.Duration)
+	if terraform.Status.LastSuccessfulReconcileAt == nil {
+		return true, "never successfuly reconciled before", 0
+	}
+
+	nextReconcile := terraform.Status.LastSuccessfulReconcileAt.Add(terraform.Spec.Interval.Duration)
 	requeueAfter := time.Until(nextReconcile)
 	if requeueAfter > 0 {
-		return false, "interval has not elapsed since last plan", requeueAfter
+		return false, "interval has not elapsed since last successful reconciliation", requeueAfter
 	}
 
 	return true, "", 0
