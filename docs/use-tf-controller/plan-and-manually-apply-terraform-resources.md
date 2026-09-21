@@ -58,13 +58,3 @@ spec:
     name: helloworld
     namespace: flux-system
 ```
-
-## When the object and the configuration share a repository
-
-Plan IDs derive from the source revision, so the approval commit changes it.
-
-Tofu Controller still applies the plan you approved, under the revision it was planned
-from, then reconciles the approval commit on its own.
-
-While the revision has not moved, Tofu Controller replans right before applying,
-and waits for a new approval if the plan no longer matches.
