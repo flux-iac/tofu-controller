@@ -221,6 +221,10 @@ func Test_poll_reconcile_objects(t *testing.T) {
 		prID := item.Labels[bpconfig.LabelPRIDKey]
 		expectToEqual(t, g, item.Name, config.SourceName(original.Name, source.Name, prID))
 		expectToEqual(t, g, item.Spec.Reference.Branch, "test-branch-"+prID)
+		expectToEqual(t, g, item.Spec.Reference.Name, "")
+		expectToEqual(t, g, item.Spec.Reference.Tag, "")
+		expectToEqual(t, g, item.Spec.Reference.SemVer, "")
+		expectToEqual(t, g, item.Spec.Reference.Commit, "")
 		expectToEqual(t, g, item.Labels[bpconfig.LabelKey], bpconfig.LabelValue)
 		expectToEqual(t, g, item.Labels[bpconfig.LabelPRIDKey], prID)
 		expectToEqual(t, g, item.Labels["test-label"], "123")
@@ -277,6 +281,80 @@ func Test_poll_reconcile_objects(t *testing.T) {
 		}
 		// Only one item left and it should be PR#3.
 		expectToEqual(t, g, item.Name, config.SourceName(original.Name, source.Name, "3"))
+	}
+
+	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(context.Background(), ns)) })
+}
+
+func Test_poll_reconcile_source_with_ref_name(t *testing.T) {
+	g := gomega.NewWithT(t)
+	ns := newNamespace(t, g)
+
+	source := &sourcev1.GitRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "original-source",
+			Namespace: ns.Name,
+		},
+		Spec: sourcev1.GitRepositorySpec{
+			URL: "https://github.com/tf-controller/helloworld",
+			Reference: &sourcev1.GitRepositoryRef{
+				Name: "refs/heads/main",
+			},
+		},
+	}
+	expectToSucceed(t, g, k8sClient.Create(t.Context(), source))
+
+	original := &infrav1.Terraform{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "original",
+			Namespace: ns.Name,
+		},
+		Spec: infrav1.TerraformSpec{
+			SourceRef: infrav1.CrossNamespaceSourceReference{
+				Name: source.Name,
+				Kind: "GitRepository",
+			},
+		},
+	}
+	expectToSucceed(t, g, k8sClient.Create(t.Context(), original))
+
+	repo := provider.Repository{
+		Project: "fake-project",
+		Org:     "fake-org",
+		Name:    "fake-name",
+	}
+	prs := []provider.PullRequest{
+		{
+			Repository: repo,
+			Number:     1,
+			BaseBranch: "main",
+			HeadBranch: "feature-branch",
+		},
+	}
+
+	server, err := New(
+		WithClusterClient(k8sClient),
+	)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	ctx := t.Context()
+	expectToSucceed(t, g, server.reconcile(ctx, original, source, prs, &providerfakes.FakeProvider{}))
+
+	var srcList sourcev1.GitRepositoryList
+	expectToSucceed(t, g, k8sClient.List(t.Context(), &srcList, &client.ListOptions{
+		Namespace: ns.Name,
+	}))
+
+	expectToEqual(t, g, len(srcList.Items), 2)
+	for _, item := range srcList.Items {
+		if item.Name == source.Name {
+			continue
+		}
+		expectToEqual(t, g, item.Spec.Reference.Branch, "feature-branch")
+		expectToEqual(t, g, item.Spec.Reference.Name, "")
+		expectToEqual(t, g, item.Spec.Reference.Tag, "")
+		expectToEqual(t, g, item.Spec.Reference.SemVer, "")
+		expectToEqual(t, g, item.Spec.Reference.Commit, "")
 	}
 
 	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(context.Background(), ns)) })
