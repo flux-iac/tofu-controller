@@ -72,7 +72,7 @@ jobs:
         if: steps.list-changed.outputs.changed == 'true'
 
       - name: Install Flux CLI
-        uses: fluxcd/flux2/action@16602fa989daa99762f1c6d1186ae2ad1c735815 # main
+        uses: fluxcd/flux2/action@dd233c4fadef306a62b7893204f8e3817fecc2b2 # main
         if: steps.list-changed.outputs.changed == 'true'
 
       - name: Install Source controller
