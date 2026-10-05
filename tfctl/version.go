@@ -45,6 +45,11 @@ func (c *CLI) Version(out io.Writer) error {
 	}
 
 	fmt.Fprintf(out, "tofu-controller:\n  manager: %s\n  runner: %s\n", version, runnerVersion)
-	fmt.Fprintf(out, "tfctl:\n  build: %s\n  release: %s\n", c.build, c.release)
-	return nil
+	return c.ClientVersion(out)
+}
+
+// ClientVersion prints the local tfctl version without requiring Kubernetes access.
+func (c *CLI) ClientVersion(out io.Writer) error {
+	_, err := fmt.Fprintf(out, "tfctl:\n  build: %s\n  release: %s\n", c.build, c.release)
+	return err
 }
