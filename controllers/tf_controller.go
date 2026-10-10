@@ -103,8 +103,8 @@ type TerraformReconciler struct {
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms/finalizers,verbs=get;create;update;patch;delete
-//+kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=buckets;gitrepositories;ocirepositories,verbs=get;list;watch
-//+kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=buckets/status;gitrepositories/status;ocirepositories/status,verbs=get
+//+kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=buckets;externalartifacts;gitrepositories;ocirepositories,verbs=get;list;watch
+//+kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=buckets/status;externalartifacts/status;gitrepositories/status;ocirepositories/status,verbs=get
 //+kubebuilder:rbac:groups="",resources=configmaps;secrets;serviceaccounts,verbs=get;list;watch
 //+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 
@@ -700,22 +700,28 @@ func isBeingDeleted(terraform *infrav1.Terraform) bool {
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentReconciles int, httpRetry int) error {
+func (r *TerraformReconciler) SetupWithManager(ctx context.Context, mgr ctrl.Manager, maxConcurrentReconciles int, httpRetry int) error {
 	// Index the Terraforms by the GitRepository references they (may) point at.
-	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, infrav1.GitRepositoryIndexKey,
+	if err := mgr.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.GitRepositoryIndexKey,
 		r.IndexBy(sourcev1.GitRepositoryKind)); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
 	// Index the Terraforms by the Bucket references they (may) point at.
-	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, infrav1.BucketIndexKey,
+	if err := mgr.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.BucketIndexKey,
 		r.IndexBy(sourcev1.BucketKind)); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
 	// Index the Terraforms by the OCIRepository references they (may) point at.
-	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, infrav1.OCIRepositoryIndexKey,
+	if err := mgr.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.OCIRepositoryIndexKey,
 		r.IndexBy(sourcev1.OCIRepositoryKind)); err != nil {
+		return fmt.Errorf("failed setting index fields: %w", err)
+	}
+
+	// Index the Terraforms by the ExternalArtifact references they (may) point at.
+	if err := mgr.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.ExternalArtifactIndexKey,
+		r.IndexBy(sourcev1.ExternalArtifactKind)); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
@@ -748,6 +754,11 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 		Watches(
 			&sourcev1.OCIRepository{},
 			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(infrav1.OCIRepositoryIndexKey)),
+			builder.WithPredicates(SourceRevisionChangePredicate{}),
+		).
+		Watches(
+			&sourcev1.ExternalArtifact{},
+			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(infrav1.ExternalArtifactIndexKey)),
 			builder.WithPredicates(SourceRevisionChangePredicate{}),
 		).
 		Watches(
@@ -924,6 +935,16 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform *infrav1.
 			return sourceObj, fmt.Errorf("unable to get source '%s': %w", sourceReference, err)
 		}
 		sourceObj = &repository
+	case sourcev1.ExternalArtifactKind:
+		var artifact sourcev1.ExternalArtifact
+		err := r.Get(ctx, sourceReference, &artifact)
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				return sourceObj, err
+			}
+			return sourceObj, fmt.Errorf("unable to get source '%s': %w", sourceReference, err)
+		}
+		sourceObj = &artifact
 	default:
 		return sourceObj, fmt.Errorf("source `%s` kind '%s' not supported",
 			terraform.Spec.SourceRef.Name, terraform.Spec.SourceRef.Kind)

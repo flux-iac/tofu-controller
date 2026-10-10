@@ -41,12 +41,13 @@ const (
 	CACertSecretName = "tf-controller.tls"
 	// RunnerTLSSecretName is the name of the secret containing a TLS cert that will be written to
 	// the namespace in which a terraform runner is created
-	RunnerTLSSecretName     = "terraform-runner.tls"
-	RunnerLabel             = "infra.contrib.fluxcd.io/terraform"
-	GitRepositoryIndexKey   = ".metadata.gitRepository"
-	BucketIndexKey          = ".metadata.bucket"
-	OCIRepositoryIndexKey   = ".metadata.ociRepository"
-	BreakTheGlassAnnotation = "break-the-glass.tf-controller/requestedAt"
+	RunnerTLSSecretName      = "terraform-runner.tls"
+	RunnerLabel              = "infra.contrib.fluxcd.io/terraform"
+	GitRepositoryIndexKey    = ".metadata.gitRepository"
+	BucketIndexKey           = ".metadata.bucket"
+	OCIRepositoryIndexKey    = ".metadata.ociRepository"
+	ExternalArtifactIndexKey = ".metadata.externalArtifact"
+	BreakTheGlassAnnotation  = "break-the-glass.tf-controller/requestedAt"
 )
 
 type ReadInputsFromSecretSpec struct {

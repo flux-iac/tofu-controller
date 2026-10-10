@@ -9,6 +9,7 @@
 - [Use Tofu Controller to **set variables** for Terraform resources](set-variables-for-terraform-resources.md)
 - [Use Tofu Controller with a **custom backend**](with-a-custom-backend.md)
 - [Use Tofu Controller with an **OCI Artifact as Source**](with-an-oci-artifact-as-source.md)
+- [Use Tofu Controller with an **External Artifact as Source**](with-an-external-artifact-as-source.md)
 - [Use Tofu Controller to provision Terraform resources that are required **health checks**](provision-Terraform-resources-that-are-required-health-checks.md)
 - [Use Tofu Controller to provision resources and **destroy them when the Terraform object gets deleted**](provision-resources-and-destroy-them-when-terraform-object-gets-deleted.md)
 - [Use Tofu Controller to **force unlock** Terraform states](force-unlock-terraform-states.md)

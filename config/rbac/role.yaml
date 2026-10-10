@@ -55,6 +55,7 @@ rules:
   - source.toolkit.fluxcd.io
   resources:
   - buckets
+  - externalartifacts
   - gitrepositories
   - ocirepositories
   verbs:
@@ -65,6 +66,7 @@ rules:
   - source.toolkit.fluxcd.io
   resources:
   - buckets/status
+  - externalartifacts/status
   - gitrepositories/status
   - ocirepositories/status
   verbs:

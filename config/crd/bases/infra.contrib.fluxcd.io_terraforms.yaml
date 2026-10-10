@@ -10920,6 +10920,7 @@ spec:
                     - GitRepository
                     - Bucket
                     - OCIRepository
+                    - ExternalArtifact
                     type: string
                   name:
                     description: Name of the referent.

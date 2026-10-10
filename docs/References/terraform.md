@@ -89,7 +89,7 @@ _Appears in:_
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
 | `apiVersion` _string_ | API version of the referent. |  | Optional: \{\} <br /> |
-| `kind` _string_ | Kind of the referent. |  | Enum: [GitRepository Bucket OCIRepository] <br />Required: \{\} <br /> |
+| `kind` _string_ | Kind of the referent. |  | Enum: [GitRepository Bucket OCIRepository ExternalArtifact] <br />Required: \{\} <br /> |
 | `name` _string_ | Name of the referent. |  | Required: \{\} <br /> |
 | `namespace` _string_ | Namespace of the referent, defaults to the namespace of the Kubernetes resource object that contains the reference. |  | Optional: \{\} <br /> |
 
