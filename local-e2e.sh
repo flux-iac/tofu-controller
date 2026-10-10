@@ -104,6 +104,18 @@ kubectl -n tofu-system wait terraform/helloworld-vars --for=condition=ready --ti
 # delete after tests
 kubectl -n tofu-system delete -f ./config/testdata/vars
 
+echo "==================== Run ExternalArtifact source tests"
+
+kustomize build ./config/testdata/source-watcher | kubectl apply --server-side -f -
+kubectl -n tofu-system rollout status deploy/source-watcher --timeout=2m
+
+kubectl -n tofu-system apply -f ./config/testdata/external-artifact
+kubectl -n tofu-system wait artifactgenerator/helloworld --for=condition=ready --timeout=4m
+kubectl -n tofu-system wait terraform/helloworld-external-artifact --for=condition=ready --timeout=4m
+
+# delete after tests
+kubectl -n tofu-system delete -f ./config/testdata/external-artifact
+
 source ./config/testdata/assert-helpers.sh
 
 echo "==================== Run state Secret label tests"
