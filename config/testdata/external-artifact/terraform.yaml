@@ -1,0 +1,12 @@
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: helloworld-external-artifact
+spec:
+  interval: 10s
+  approvePlan: auto
+  path: ./
+  sourceRef:
+    kind: ExternalArtifact
+    name: helloworld-module
