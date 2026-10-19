@@ -94,7 +94,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, patchHelper *patch.
 				// check /tmp/.break-glass file exists
 				reply, err := runnerClient.HasBreakTheGlassSessionDone(ctx, &runner.BreakTheGlassRequest{})
 				if err != nil {
-					return nil, err
+					return terraform, err
 				}
 				if reply.Success {
 					done = true
