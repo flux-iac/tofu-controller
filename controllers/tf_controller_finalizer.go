@@ -127,9 +127,10 @@ func (r *TerraformReconciler) finalize(ctx context.Context, patchHelper *patch.S
 		traceLog.Info("Try getting a status from the error")
 		if e, ok := status.FromError(err); ok {
 			switch e.Code() {
-			case codes.Internal:
-				// transient error
-				traceLog.Info("Internal error, transient, requeue")
+			case codes.Internal, codes.Unavailable:
+				// transient error; Unavailable means the runner could not be reached,
+				// and removing the finalizer now would leave its secrets behind
+				traceLog.Info("Internal or unavailable error, transient, requeue")
 				return terraform, controllerruntime.Result{Requeue: true}, err
 			case codes.NotFound:
 				// do nothing, fall through
