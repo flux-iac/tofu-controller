@@ -151,7 +151,21 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret
 		return nil, err
 	}
 
-	const retryPolicy = `{
+	traceLog.Info("Return gRPC new client")
+	maxMsgSize := r.RunnerGRPCMaxMessageSize * 1024 * 1024
+	return grpc.NewClient(
+		fmt.Sprintf("%s:%d", hostname, port),
+		grpc.WithTransportCredentials(credentials),
+		grpc.WithDefaultServiceConfig(runnerServiceConfig),
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(maxMsgSize),
+			grpc.MaxCallSendMsgSize(maxMsgSize),
+		),
+		grpc.WithChainUnaryInterceptor(runnerUnreachableInterceptor(r.RunnerUnreachableTimeout)),
+	)
+}
+
+const runnerServiceConfig = `{
 "methodConfig": [{
   "name": [{"service": "runner.Runner"}],
   "waitForReady": true,
@@ -163,19 +177,6 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret
     "RetryableStatusCodes": [ "UNAVAILABLE" ]
   }
 }]}`
-
-	traceLog.Info("Return gRPC new client")
-	maxMsgSize := r.RunnerGRPCMaxMessageSize * 1024 * 1024
-	return grpc.NewClient(
-		fmt.Sprintf("%s:%d", hostname, port),
-		grpc.WithTransportCredentials(credentials),
-		grpc.WithDefaultServiceConfig(retryPolicy),
-		grpc.WithDefaultCallOptions(
-			grpc.MaxCallRecvMsgSize(maxMsgSize),
-			grpc.MaxCallSendMsgSize(maxMsgSize),
-		),
-	)
-}
 
 func (r *TerraformReconciler) runnerPodSpec(terraform *infrav1.Terraform, tlsSecretName string) v1.PodSpec {
 	serviceAccountName := terraform.Spec.ServiceAccountName

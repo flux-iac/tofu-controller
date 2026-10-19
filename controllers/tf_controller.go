@@ -87,6 +87,7 @@ type TerraformReconciler struct {
 	RunnerGRPCPort            int
 	RunnerCreationTimeout     time.Duration
 	RunnerRPCTimeout          time.Duration
+	RunnerUnreachableTimeout  time.Duration
 	RunnerGRPCMaxMessageSize  int
 	AllowBreakTheGlass        bool
 	ClusterDomain             string
