@@ -820,6 +820,21 @@ func TerraformStateLocked(terraform *Terraform, lockID, message string) *Terrafo
 	return terraform
 }
 
+// TerraformLockOrphaned marks a lock whose Created timestamp is before the
+// current runner Pod creationTimestamp. Operators can tell this apart from a live Apply.
+func TerraformLockOrphaned(terraform *Terraform, lockID, message string) *Terraform {
+	msg := trimString(message, MaxConditionMessageLength)
+	conditions.MarkTrue(terraform, ConditionTypeStateLocked, TFExecLockOrphanedReason, "%s", msg)
+	SetTerraformReadiness(terraform, metav1.ConditionFalse, TFExecLockOrphanedReason, msg, "")
+
+	if terraform.Status.Lock.Pending != "" && terraform.Status.Lock.LastApplied != terraform.Status.Lock.Pending {
+		terraform.Status.Lock.LastApplied = terraform.Status.Lock.Pending
+	}
+
+	terraform.Status.Lock.Pending = lockID
+	return terraform
+}
+
 // TerraformStateLockReleased clears any state lock condition and resets lock tracking fields.
 func TerraformStateLockReleased(terraform *Terraform) *Terraform {
 	conditions.Delete(terraform, ConditionTypeStateLocked)
