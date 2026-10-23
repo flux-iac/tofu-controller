@@ -13,12 +13,8 @@ import (
 type FakeProvider struct {
 	AddCommentToPullRequestStub        func(context.Context, provider.PullRequest, []byte) (*provider.Comment, error)
 	addCommentToPullRequestMutex       sync.RWMutex
-	addCommentToPullRequestArgsForCall []struct {
-		arg1 context.Context
-		arg2 provider.PullRequest
-		arg3 []byte
-	}
-	addCommentToPullRequestReturns struct {
+	addCommentToPullRequestArgsForCall []FakeProviderAddCommentToPullRequestArgs
+	addCommentToPullRequestReturns     struct {
 		result1 *provider.Comment
 		result2 error
 	}
@@ -28,12 +24,8 @@ type FakeProvider struct {
 	}
 	GetLastCommentsStub        func(context.Context, provider.PullRequest, time.Time) ([]*provider.Comment, error)
 	getLastCommentsMutex       sync.RWMutex
-	getLastCommentsArgsForCall []struct {
-		arg1 context.Context
-		arg2 provider.PullRequest
-		arg3 time.Time
-	}
-	getLastCommentsReturns struct {
+	getLastCommentsArgsForCall []FakeProviderGetLastCommentsArgs
+	getLastCommentsReturns     struct {
 		result1 []*provider.Comment
 		result2 error
 	}
@@ -43,11 +35,8 @@ type FakeProvider struct {
 	}
 	ListPullRequestChangesStub        func(context.Context, provider.PullRequest) ([]provider.Change, error)
 	listPullRequestChangesMutex       sync.RWMutex
-	listPullRequestChangesArgsForCall []struct {
-		arg1 context.Context
-		arg2 provider.PullRequest
-	}
-	listPullRequestChangesReturns struct {
+	listPullRequestChangesArgsForCall []FakeProviderListPullRequestChangesArgs
+	listPullRequestChangesReturns     struct {
 		result1 []provider.Change
 		result2 error
 	}
@@ -57,11 +46,8 @@ type FakeProvider struct {
 	}
 	ListPullRequestsStub        func(context.Context, provider.Repository) ([]provider.PullRequest, error)
 	listPullRequestsMutex       sync.RWMutex
-	listPullRequestsArgsForCall []struct {
-		arg1 context.Context
-		arg2 provider.Repository
-	}
-	listPullRequestsReturns struct {
+	listPullRequestsArgsForCall []FakeProviderListPullRequestsArgs
+	listPullRequestsReturns     struct {
 		result1 []provider.PullRequest
 		result2 error
 	}
@@ -71,10 +57,8 @@ type FakeProvider struct {
 	}
 	SetHostnameStub        func(string) error
 	setHostnameMutex       sync.RWMutex
-	setHostnameArgsForCall []struct {
-		arg1 string
-	}
-	setHostnameReturns struct {
+	setHostnameArgsForCall []FakeProviderSetHostnameArgs
+	setHostnameReturns     struct {
 		result1 error
 	}
 	setHostnameReturnsOnCall map[int]struct {
@@ -82,10 +66,8 @@ type FakeProvider struct {
 	}
 	SetLoggerStub        func(logr.Logger) error
 	setLoggerMutex       sync.RWMutex
-	setLoggerArgsForCall []struct {
-		arg1 logr.Logger
-	}
-	setLoggerReturns struct {
+	setLoggerArgsForCall []FakeProviderSetLoggerArgs
+	setLoggerReturns     struct {
 		result1 error
 	}
 	setLoggerReturnsOnCall map[int]struct {
@@ -93,11 +75,8 @@ type FakeProvider struct {
 	}
 	SetTokenStub        func(string, string) error
 	setTokenMutex       sync.RWMutex
-	setTokenArgsForCall []struct {
-		arg1 string
-		arg2 string
-	}
-	setTokenReturns struct {
+	setTokenArgsForCall []FakeProviderSetTokenArgs
+	setTokenReturns     struct {
 		result1 error
 	}
 	setTokenReturnsOnCall map[int]struct {
@@ -105,9 +84,8 @@ type FakeProvider struct {
 	}
 	SetupStub        func() error
 	setupMutex       sync.RWMutex
-	setupArgsForCall []struct {
-	}
-	setupReturns struct {
+	setupArgsForCall []struct{}
+	setupReturns     struct {
 		result1 error
 	}
 	setupReturnsOnCall map[int]struct {
@@ -115,20 +93,66 @@ type FakeProvider struct {
 	}
 	UpdateCommentOfPullRequestStub        func(context.Context, provider.PullRequest, int, []byte) error
 	updateCommentOfPullRequestMutex       sync.RWMutex
-	updateCommentOfPullRequestArgsForCall []struct {
-		arg1 context.Context
-		arg2 provider.PullRequest
-		arg3 int
-		arg4 []byte
-	}
-	updateCommentOfPullRequestReturns struct {
+	updateCommentOfPullRequestArgsForCall []FakeProviderUpdateCommentOfPullRequestArgs
+	updateCommentOfPullRequestReturns     struct {
 		result1 error
 	}
 	updateCommentOfPullRequestReturnsOnCall map[int]struct {
 		result1 error
 	}
 	invocations      map[string][][]interface{}
+	callOrder        []string
 	invocationsMutex sync.RWMutex
+}
+
+// FakeProviderAddCommentToPullRequestArgs holds the arguments of one call to AddCommentToPullRequest.
+type FakeProviderAddCommentToPullRequestArgs struct {
+	Arg1 context.Context
+	Arg2 provider.PullRequest
+	Arg3 []byte
+}
+
+// FakeProviderGetLastCommentsArgs holds the arguments of one call to GetLastComments.
+type FakeProviderGetLastCommentsArgs struct {
+	Arg1 context.Context
+	Arg2 provider.PullRequest
+	Arg3 time.Time
+}
+
+// FakeProviderListPullRequestChangesArgs holds the arguments of one call to ListPullRequestChanges.
+type FakeProviderListPullRequestChangesArgs struct {
+	Arg1 context.Context
+	Arg2 provider.PullRequest
+}
+
+// FakeProviderListPullRequestsArgs holds the arguments of one call to ListPullRequests.
+type FakeProviderListPullRequestsArgs struct {
+	Arg1 context.Context
+	Arg2 provider.Repository
+}
+
+// FakeProviderSetHostnameArgs holds the arguments of one call to SetHostname.
+type FakeProviderSetHostnameArgs struct {
+	Arg1 string
+}
+
+// FakeProviderSetLoggerArgs holds the arguments of one call to SetLogger.
+type FakeProviderSetLoggerArgs struct {
+	Arg1 logr.Logger
+}
+
+// FakeProviderSetTokenArgs holds the arguments of one call to SetToken.
+type FakeProviderSetTokenArgs struct {
+	Arg1 string
+	Arg2 string
+}
+
+// FakeProviderUpdateCommentOfPullRequestArgs holds the arguments of one call to UpdateCommentOfPullRequest.
+type FakeProviderUpdateCommentOfPullRequestArgs struct {
+	Arg1 context.Context
+	Arg2 provider.PullRequest
+	Arg3 int
+	Arg4 []byte
 }
 
 func (fake *FakeProvider) AddCommentToPullRequest(arg1 context.Context, arg2 provider.PullRequest, arg3 []byte) (*provider.Comment, error) {
@@ -139,11 +163,7 @@ func (fake *FakeProvider) AddCommentToPullRequest(arg1 context.Context, arg2 pro
 	}
 	fake.addCommentToPullRequestMutex.Lock()
 	ret, specificReturn := fake.addCommentToPullRequestReturnsOnCall[len(fake.addCommentToPullRequestArgsForCall)]
-	fake.addCommentToPullRequestArgsForCall = append(fake.addCommentToPullRequestArgsForCall, struct {
-		arg1 context.Context
-		arg2 provider.PullRequest
-		arg3 []byte
-	}{arg1, arg2, arg3Copy})
+	fake.addCommentToPullRequestArgsForCall = append(fake.addCommentToPullRequestArgsForCall, FakeProviderAddCommentToPullRequestArgs{arg1, arg2, arg3Copy})
 	stub := fake.AddCommentToPullRequestStub
 	fakeReturns := fake.addCommentToPullRequestReturns
 	fake.recordInvocation("AddCommentToPullRequest", []interface{}{arg1, arg2, arg3Copy})
@@ -173,7 +193,15 @@ func (fake *FakeProvider) AddCommentToPullRequestArgsForCall(i int) (context.Con
 	fake.addCommentToPullRequestMutex.RLock()
 	defer fake.addCommentToPullRequestMutex.RUnlock()
 	argsForCall := fake.addCommentToPullRequestArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.Arg1, argsForCall.Arg2, argsForCall.Arg3
+}
+
+func (fake *FakeProvider) AddCommentToPullRequestArgs() []FakeProviderAddCommentToPullRequestArgs {
+	fake.addCommentToPullRequestMutex.RLock()
+	defer fake.addCommentToPullRequestMutex.RUnlock()
+	args := make([]FakeProviderAddCommentToPullRequestArgs, len(fake.addCommentToPullRequestArgsForCall))
+	copy(args, fake.addCommentToPullRequestArgsForCall)
+	return args
 }
 
 func (fake *FakeProvider) AddCommentToPullRequestReturns(result1 *provider.Comment, result2 error) {
@@ -205,11 +233,7 @@ func (fake *FakeProvider) AddCommentToPullRequestReturnsOnCall(i int, result1 *p
 func (fake *FakeProvider) GetLastComments(arg1 context.Context, arg2 provider.PullRequest, arg3 time.Time) ([]*provider.Comment, error) {
 	fake.getLastCommentsMutex.Lock()
 	ret, specificReturn := fake.getLastCommentsReturnsOnCall[len(fake.getLastCommentsArgsForCall)]
-	fake.getLastCommentsArgsForCall = append(fake.getLastCommentsArgsForCall, struct {
-		arg1 context.Context
-		arg2 provider.PullRequest
-		arg3 time.Time
-	}{arg1, arg2, arg3})
+	fake.getLastCommentsArgsForCall = append(fake.getLastCommentsArgsForCall, FakeProviderGetLastCommentsArgs{arg1, arg2, arg3})
 	stub := fake.GetLastCommentsStub
 	fakeReturns := fake.getLastCommentsReturns
 	fake.recordInvocation("GetLastComments", []interface{}{arg1, arg2, arg3})
@@ -239,7 +263,15 @@ func (fake *FakeProvider) GetLastCommentsArgsForCall(i int) (context.Context, pr
 	fake.getLastCommentsMutex.RLock()
 	defer fake.getLastCommentsMutex.RUnlock()
 	argsForCall := fake.getLastCommentsArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.Arg1, argsForCall.Arg2, argsForCall.Arg3
+}
+
+func (fake *FakeProvider) GetLastCommentsArgs() []FakeProviderGetLastCommentsArgs {
+	fake.getLastCommentsMutex.RLock()
+	defer fake.getLastCommentsMutex.RUnlock()
+	args := make([]FakeProviderGetLastCommentsArgs, len(fake.getLastCommentsArgsForCall))
+	copy(args, fake.getLastCommentsArgsForCall)
+	return args
 }
 
 func (fake *FakeProvider) GetLastCommentsReturns(result1 []*provider.Comment, result2 error) {
@@ -271,10 +303,7 @@ func (fake *FakeProvider) GetLastCommentsReturnsOnCall(i int, result1 []*provide
 func (fake *FakeProvider) ListPullRequestChanges(arg1 context.Context, arg2 provider.PullRequest) ([]provider.Change, error) {
 	fake.listPullRequestChangesMutex.Lock()
 	ret, specificReturn := fake.listPullRequestChangesReturnsOnCall[len(fake.listPullRequestChangesArgsForCall)]
-	fake.listPullRequestChangesArgsForCall = append(fake.listPullRequestChangesArgsForCall, struct {
-		arg1 context.Context
-		arg2 provider.PullRequest
-	}{arg1, arg2})
+	fake.listPullRequestChangesArgsForCall = append(fake.listPullRequestChangesArgsForCall, FakeProviderListPullRequestChangesArgs{arg1, arg2})
 	stub := fake.ListPullRequestChangesStub
 	fakeReturns := fake.listPullRequestChangesReturns
 	fake.recordInvocation("ListPullRequestChanges", []interface{}{arg1, arg2})
@@ -304,7 +333,15 @@ func (fake *FakeProvider) ListPullRequestChangesArgsForCall(i int) (context.Cont
 	fake.listPullRequestChangesMutex.RLock()
 	defer fake.listPullRequestChangesMutex.RUnlock()
 	argsForCall := fake.listPullRequestChangesArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.Arg1, argsForCall.Arg2
+}
+
+func (fake *FakeProvider) ListPullRequestChangesArgs() []FakeProviderListPullRequestChangesArgs {
+	fake.listPullRequestChangesMutex.RLock()
+	defer fake.listPullRequestChangesMutex.RUnlock()
+	args := make([]FakeProviderListPullRequestChangesArgs, len(fake.listPullRequestChangesArgsForCall))
+	copy(args, fake.listPullRequestChangesArgsForCall)
+	return args
 }
 
 func (fake *FakeProvider) ListPullRequestChangesReturns(result1 []provider.Change, result2 error) {
@@ -336,10 +373,7 @@ func (fake *FakeProvider) ListPullRequestChangesReturnsOnCall(i int, result1 []p
 func (fake *FakeProvider) ListPullRequests(arg1 context.Context, arg2 provider.Repository) ([]provider.PullRequest, error) {
 	fake.listPullRequestsMutex.Lock()
 	ret, specificReturn := fake.listPullRequestsReturnsOnCall[len(fake.listPullRequestsArgsForCall)]
-	fake.listPullRequestsArgsForCall = append(fake.listPullRequestsArgsForCall, struct {
-		arg1 context.Context
-		arg2 provider.Repository
-	}{arg1, arg2})
+	fake.listPullRequestsArgsForCall = append(fake.listPullRequestsArgsForCall, FakeProviderListPullRequestsArgs{arg1, arg2})
 	stub := fake.ListPullRequestsStub
 	fakeReturns := fake.listPullRequestsReturns
 	fake.recordInvocation("ListPullRequests", []interface{}{arg1, arg2})
@@ -369,7 +403,15 @@ func (fake *FakeProvider) ListPullRequestsArgsForCall(i int) (context.Context, p
 	fake.listPullRequestsMutex.RLock()
 	defer fake.listPullRequestsMutex.RUnlock()
 	argsForCall := fake.listPullRequestsArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.Arg1, argsForCall.Arg2
+}
+
+func (fake *FakeProvider) ListPullRequestsArgs() []FakeProviderListPullRequestsArgs {
+	fake.listPullRequestsMutex.RLock()
+	defer fake.listPullRequestsMutex.RUnlock()
+	args := make([]FakeProviderListPullRequestsArgs, len(fake.listPullRequestsArgsForCall))
+	copy(args, fake.listPullRequestsArgsForCall)
+	return args
 }
 
 func (fake *FakeProvider) ListPullRequestsReturns(result1 []provider.PullRequest, result2 error) {
@@ -401,9 +443,7 @@ func (fake *FakeProvider) ListPullRequestsReturnsOnCall(i int, result1 []provide
 func (fake *FakeProvider) SetHostname(arg1 string) error {
 	fake.setHostnameMutex.Lock()
 	ret, specificReturn := fake.setHostnameReturnsOnCall[len(fake.setHostnameArgsForCall)]
-	fake.setHostnameArgsForCall = append(fake.setHostnameArgsForCall, struct {
-		arg1 string
-	}{arg1})
+	fake.setHostnameArgsForCall = append(fake.setHostnameArgsForCall, FakeProviderSetHostnameArgs{arg1})
 	stub := fake.SetHostnameStub
 	fakeReturns := fake.setHostnameReturns
 	fake.recordInvocation("SetHostname", []interface{}{arg1})
@@ -433,7 +473,15 @@ func (fake *FakeProvider) SetHostnameArgsForCall(i int) string {
 	fake.setHostnameMutex.RLock()
 	defer fake.setHostnameMutex.RUnlock()
 	argsForCall := fake.setHostnameArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeProvider) SetHostnameArgs() []FakeProviderSetHostnameArgs {
+	fake.setHostnameMutex.RLock()
+	defer fake.setHostnameMutex.RUnlock()
+	args := make([]FakeProviderSetHostnameArgs, len(fake.setHostnameArgsForCall))
+	copy(args, fake.setHostnameArgsForCall)
+	return args
 }
 
 func (fake *FakeProvider) SetHostnameReturns(result1 error) {
@@ -462,9 +510,7 @@ func (fake *FakeProvider) SetHostnameReturnsOnCall(i int, result1 error) {
 func (fake *FakeProvider) SetLogger(arg1 logr.Logger) error {
 	fake.setLoggerMutex.Lock()
 	ret, specificReturn := fake.setLoggerReturnsOnCall[len(fake.setLoggerArgsForCall)]
-	fake.setLoggerArgsForCall = append(fake.setLoggerArgsForCall, struct {
-		arg1 logr.Logger
-	}{arg1})
+	fake.setLoggerArgsForCall = append(fake.setLoggerArgsForCall, FakeProviderSetLoggerArgs{arg1})
 	stub := fake.SetLoggerStub
 	fakeReturns := fake.setLoggerReturns
 	fake.recordInvocation("SetLogger", []interface{}{arg1})
@@ -494,7 +540,15 @@ func (fake *FakeProvider) SetLoggerArgsForCall(i int) logr.Logger {
 	fake.setLoggerMutex.RLock()
 	defer fake.setLoggerMutex.RUnlock()
 	argsForCall := fake.setLoggerArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeProvider) SetLoggerArgs() []FakeProviderSetLoggerArgs {
+	fake.setLoggerMutex.RLock()
+	defer fake.setLoggerMutex.RUnlock()
+	args := make([]FakeProviderSetLoggerArgs, len(fake.setLoggerArgsForCall))
+	copy(args, fake.setLoggerArgsForCall)
+	return args
 }
 
 func (fake *FakeProvider) SetLoggerReturns(result1 error) {
@@ -523,10 +577,7 @@ func (fake *FakeProvider) SetLoggerReturnsOnCall(i int, result1 error) {
 func (fake *FakeProvider) SetToken(arg1 string, arg2 string) error {
 	fake.setTokenMutex.Lock()
 	ret, specificReturn := fake.setTokenReturnsOnCall[len(fake.setTokenArgsForCall)]
-	fake.setTokenArgsForCall = append(fake.setTokenArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
+	fake.setTokenArgsForCall = append(fake.setTokenArgsForCall, FakeProviderSetTokenArgs{arg1, arg2})
 	stub := fake.SetTokenStub
 	fakeReturns := fake.setTokenReturns
 	fake.recordInvocation("SetToken", []interface{}{arg1, arg2})
@@ -556,7 +607,15 @@ func (fake *FakeProvider) SetTokenArgsForCall(i int) (string, string) {
 	fake.setTokenMutex.RLock()
 	defer fake.setTokenMutex.RUnlock()
 	argsForCall := fake.setTokenArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.Arg1, argsForCall.Arg2
+}
+
+func (fake *FakeProvider) SetTokenArgs() []FakeProviderSetTokenArgs {
+	fake.setTokenMutex.RLock()
+	defer fake.setTokenMutex.RUnlock()
+	args := make([]FakeProviderSetTokenArgs, len(fake.setTokenArgsForCall))
+	copy(args, fake.setTokenArgsForCall)
+	return args
 }
 
 func (fake *FakeProvider) SetTokenReturns(result1 error) {
@@ -585,8 +644,7 @@ func (fake *FakeProvider) SetTokenReturnsOnCall(i int, result1 error) {
 func (fake *FakeProvider) Setup() error {
 	fake.setupMutex.Lock()
 	ret, specificReturn := fake.setupReturnsOnCall[len(fake.setupArgsForCall)]
-	fake.setupArgsForCall = append(fake.setupArgsForCall, struct {
-	}{})
+	fake.setupArgsForCall = append(fake.setupArgsForCall, struct{}{})
 	stub := fake.SetupStub
 	fakeReturns := fake.setupReturns
 	fake.recordInvocation("Setup", []interface{}{})
@@ -643,12 +701,7 @@ func (fake *FakeProvider) UpdateCommentOfPullRequest(arg1 context.Context, arg2 
 	}
 	fake.updateCommentOfPullRequestMutex.Lock()
 	ret, specificReturn := fake.updateCommentOfPullRequestReturnsOnCall[len(fake.updateCommentOfPullRequestArgsForCall)]
-	fake.updateCommentOfPullRequestArgsForCall = append(fake.updateCommentOfPullRequestArgsForCall, struct {
-		arg1 context.Context
-		arg2 provider.PullRequest
-		arg3 int
-		arg4 []byte
-	}{arg1, arg2, arg3, arg4Copy})
+	fake.updateCommentOfPullRequestArgsForCall = append(fake.updateCommentOfPullRequestArgsForCall, FakeProviderUpdateCommentOfPullRequestArgs{arg1, arg2, arg3, arg4Copy})
 	stub := fake.UpdateCommentOfPullRequestStub
 	fakeReturns := fake.updateCommentOfPullRequestReturns
 	fake.recordInvocation("UpdateCommentOfPullRequest", []interface{}{arg1, arg2, arg3, arg4Copy})
@@ -678,7 +731,15 @@ func (fake *FakeProvider) UpdateCommentOfPullRequestArgsForCall(i int) (context.
 	fake.updateCommentOfPullRequestMutex.RLock()
 	defer fake.updateCommentOfPullRequestMutex.RUnlock()
 	argsForCall := fake.updateCommentOfPullRequestArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+	return argsForCall.Arg1, argsForCall.Arg2, argsForCall.Arg3, argsForCall.Arg4
+}
+
+func (fake *FakeProvider) UpdateCommentOfPullRequestArgs() []FakeProviderUpdateCommentOfPullRequestArgs {
+	fake.updateCommentOfPullRequestMutex.RLock()
+	defer fake.updateCommentOfPullRequestMutex.RUnlock()
+	args := make([]FakeProviderUpdateCommentOfPullRequestArgs, len(fake.updateCommentOfPullRequestArgsForCall))
+	copy(args, fake.updateCommentOfPullRequestArgsForCall)
+	return args
 }
 
 func (fake *FakeProvider) UpdateCommentOfPullRequestReturns(result1 error) {
@@ -714,9 +775,18 @@ func (fake *FakeProvider) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
+func (fake *FakeProvider) CallOrder() []string {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	order := make([]string, len(fake.callOrder))
+	copy(order, fake.callOrder)
+	return order
+}
+
 func (fake *FakeProvider) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
+	fake.callOrder = append(fake.callOrder, key)
 	if fake.invocations == nil {
 		fake.invocations = map[string][][]interface{}{}
 	}
