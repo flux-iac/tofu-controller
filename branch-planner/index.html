@@ -446,6 +446,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#base-branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base branch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#replan-commands" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -609,6 +620,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#base-branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base branch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#replan-commands" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -644,6 +666,8 @@
 <p>The Branch Planner's most important feature is its seamless integration with the Pull Request / Merge Request user interface. When enabled through Helm values, it watches repositories that contain Terraform resources at regular intervals—checking their referenced Source, and polling for Pull Requests (GitHub) or Merge Requests (GitLab) using the provider's API and the provided token. When changes are proposed on a new branch, Branch Planner runs a plan in the cluster and displays the results directly as comments on your PR/MR. Once you're satisfied with the results, you can merge your branch into the <code>main</code> branch to trigger the TF-Controller to reconcile the updated code.</p>
 <p>Branch Planner supports <strong>GitHub</strong> (including GitHub Enterprise), <strong>GitLab</strong> (including self-hosted), <strong>Bitbucket Cloud</strong>, <strong>Bitbucket Server</strong>, <strong>Gitea</strong>, and <strong>Azure DevOps</strong> (experimental). The provider is automatically detected from the GitRepository source URL.</p>
 <p><img alt="branch planner" src="branch-planner.png" /></p>
+<h3 id="base-branch">Base branch</h3>
+<p>Only Pull Requests whose base branch matches the branch tracked by the Terraform object's source (<code>.spec.ref.branch</code>, or <code>.spec.ref.name</code> of the form <code>refs/heads/&lt;branch&gt;</code>) are planned. Set <code>spec.branchPlanner.baseBranch</code> to override this. Sources that track a tag, semver range or commit need the override, otherwise no Pull Requests are planned.</p>
 <h3 id="replan-commands">Replan commands</h3>
 <p>The Branch Planner also allows users to manually trigger the replan process. By simply commenting <code>!replan</code> under the PR or MR, the Branch Planner will be instructed to generate a new plan and post it under the PR/MR as a new comment.</p>
 <p>Now that you know what Branch Planner can do for you, follow the <a href="branch-planner-getting-started/">guide to get started</a>.</p>

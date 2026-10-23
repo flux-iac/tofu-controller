@@ -1430,6 +1430,12 @@
 <td></td>
 <td>Optional: {} <br /></td>
 </tr>
+<tr>
+<td><code>baseBranch</code> <em>string</em></td>
+<td>BaseBranch restricts branch planning to Pull Requests targeting this branch.<br />Defaults to the branch tracked by the source GitRepository (<code>.spec.ref.branch</code>,<br />or <code>.spec.ref.name</code> of the form <code>refs/heads/&lt;branch&gt;</code>). If unset and the source<br />does not track a branch (tag, semver or commit-only), no Pull Requests are planned.</td>
+<td></td>
+<td>Optional: {} <br /></td>
+</tr>
 </tbody>
 </table>
 <h3 id="cloudspec">CloudSpec</h3>
