@@ -571,6 +571,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#version-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version information
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#shell-completion" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -620,6 +631,17 @@
     <span class="md-ellipsis">
       
         Installation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version information
       
     </span>
   </a>
@@ -679,16 +701,24 @@
 <a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>  resume      Resume reconciliation for the provided resource
 <a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>  suspend     Suspend reconciliation for the provided resource
 <a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>  uninstall   Uninstall the tf-controller
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>  version     Prints tf-controller and tfctl version information
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>  version     Prints tfctl version information
 <a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>
 <a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>Flags:
 <a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>  -h, --help                help for tfctl
 <a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>      --kubeconfig string   Path to the kubeconfig file to use for CLI requests.
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>  -n, --namespace string    The kubernetes namespace to use for CLI requests. (default &quot;flux-system&quot;)
-<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>      --terraform string    The location of the terraform binary. (default &quot;/usr/bin/terraform&quot;)
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>  -n, --namespace string    The kubernetes namespace to use for CLI requests. (default "flux-system")
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>      --terraform string    The location of the terraform binary. (default "/usr/bin/terraform")
 <a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>
-<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>Use &quot;tfctl [command] --help&quot; for more information about a command.
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>Use "tfctl [command] --help" for more information about a command.
 </code></pre></div>
+<h2 id="version-information">Version information</h2>
+<p><code>tfctl version</code> prints the local CLI build and release without loading Kubernetes
+configuration or contacting a cluster.</p>
+<p>To also display the installed controller and runner versions, use
+<code>tfctl version --remote</code>. This preserves the combined output previously returned
+by <code>tfctl version</code> and requires Kubernetes access. Use <code>--namespace</code> to select the
+controller namespace (default: <code>flux-system</code>). Kubernetes configuration,
+connection, and authorization failures remain command errors in remote mode.</p>
 <h2 id="shell-completion">Shell completion</h2>
 <p>It works the same way as flux CLI:</p>
 <p>With <strong>bash</strong>:</p>
@@ -701,12 +731,12 @@
 <p>With <strong>powershell</strong>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Windows</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$env</span><span class="s2">:USERPROFILE\Documents\WindowsPowerShell\Modules&quot;</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nb">cd</span><span class="w"> </span><span class="s2">"</span><span class="nv">$env</span><span class="s2">:USERPROFILE\Documents\WindowsPowerShell\Modules"</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>tfctl<span class="w"> </span>completion<span class="w"> </span>powershell<span class="w"> </span>&gt;&gt;<span class="w"> </span>tfctl-completion.ps1
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
 <a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1"># Linux</span>
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">XDG_CONFIG_HOME</span><span class="k">:-</span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/.config/&quot;</span><span class="si">}</span><span class="s2">/powershell/modules&quot;</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="nb">cd</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">XDG_CONFIG_HOME</span><span class="k">:-</span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.config/"</span><span class="si">}</span><span class="s2">/powershell/modules"</span>
 <a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>tfctl<span class="w"> </span>completion<span class="w"> </span>powershell<span class="w"> </span>&gt;&gt;<span class="w"> </span>tfctl-completions.ps1
 </code></pre></div>
 <p>With <strong>zsh</strong>:</p>

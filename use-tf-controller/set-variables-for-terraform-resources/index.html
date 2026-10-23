@@ -670,7 +670,7 @@ the lattermost instance of the key passed to <code>varsFrom</code>.</p>
 </span></code></pre></div>
 <h2 id="variable-value-as-hcl">Variable Value as HCL</h2>
 <p>The <code>vars</code> field supports HCL string, number, bool, object and list types. For example, the following variable can be populated using the accompanying Terraform spec:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kr">variable</span><span class="w"> </span><span class="nv">&quot;cluster_spec&quot;</span><span class="w"> </span><span class="p">{</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kr">variable</span><span class="w"> </span><span class="nv">"cluster_spec"</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="na">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">object</span><span class="p">({</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="hll"><span class="w">      </span><span class="na">region</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="kt">string</span>
 </span><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="hll"><span class="w">      </span><span class="na">env</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="kt">string</span>

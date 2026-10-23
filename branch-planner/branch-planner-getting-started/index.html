@@ -1055,7 +1055,7 @@
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>branch-planner-token<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span>--namespace<span class="o">=</span>flux-system<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">&quot;token=</span><span class="si">${</span><span class="nv">GITHUB_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">"token=</span><span class="si">${</span><span class="nv">GITHUB_TOKEN</span><span class="si">}</span><span class="s2">"</span>
 </code></pre></div>
 </li>
 <li>
@@ -1111,7 +1111,7 @@
 <p>Create a secret that contains a GitLab API token.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>branch-planner-token<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span>--namespace<span class="o">=</span>flux-system<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">&quot;token=</span><span class="si">${</span><span class="nv">GITLAB_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">"token=</span><span class="si">${</span><span class="nv">GITLAB_TOKEN</span><span class="si">}</span><span class="s2">"</span>
 </code></pre></div>
 </li>
 <li>
@@ -1201,12 +1201,12 @@ prefer Project/Group Access Tokens over personal tokens.</p>
 <p>For GitHub:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>branch-planner-token<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span>--namespace<span class="o">=</span>flux-system<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">&quot;token=</span><span class="si">${</span><span class="nv">GITHUB_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">"token=</span><span class="si">${</span><span class="nv">GITHUB_TOKEN</span><span class="si">}</span><span class="s2">"</span>
 </code></pre></div>
 <p>For GitLab (Personal, Project, or Group Access Token with <code>api</code> scope):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>branch-planner-token<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span>--namespace<span class="o">=</span>flux-system<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">&quot;token=</span><span class="si">${</span><span class="nv">GITLAB_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">"token=</span><span class="si">${</span><span class="nv">GITLAB_TOKEN</span><span class="si">}</span><span class="s2">"</span>
 </code></pre></div>
 <h5 id="github-app-recommended-for-github">GitHub App (recommended for GitHub)</h5>
 <p>GitHub Apps provide scoped, short-lived tokens that are automatically
@@ -1218,9 +1218,9 @@ organizations. The App needs the following repository permissions:</p>
 </ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>branch-planner-token<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span>--namespace<span class="o">=</span>flux-system<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">&quot;githubAppID=</span><span class="si">${</span><span class="nv">APP_ID</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">&quot;githubAppInstallationID=</span><span class="si">${</span><span class="nv">INSTALLATION_ID</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span>--from-file<span class="o">=</span><span class="s2">&quot;githubAppPrivateKey=</span><span class="si">${</span><span class="nv">PATH_TO_PEM_FILE</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">"githubAppID=</span><span class="si">${</span><span class="nv">APP_ID</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">"githubAppInstallationID=</span><span class="si">${</span><span class="nv">INSTALLATION_ID</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span>--from-file<span class="o">=</span><span class="s2">"githubAppPrivateKey=</span><span class="si">${</span><span class="nv">PATH_TO_PEM_FILE</span><span class="si">}</span><span class="s2">"</span>
 </code></pre></div>
 <p>The installation token is generated and refreshed automatically by the
 controller. You do not need to manage token expiry.</p>
@@ -1242,22 +1242,22 @@ approach for production GitLab deployments.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># 1. Visit this URL in your browser and authorize:</span>
 <a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="c1"># https://gitlab.com/oauth/authorize?client_id=${CLIENT_ID}&amp;redirect_uri=http://localhost&amp;response_type=code&amp;scope=api</span>
 <a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># 2. Copy the &#39;code&#39; parameter from the redirect URL, then exchange it:</span>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">&quot;https://gitlab.com/oauth/token&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;client_id=</span><span class="si">${</span><span class="nv">CLIENT_ID</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;client_secret=</span><span class="si">${</span><span class="nv">CLIENT_SECRET</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;code=</span><span class="si">${</span><span class="nv">AUTH_CODE</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;grant_type=authorization_code&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;redirect_uri=http://localhost&quot;</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># 2. Copy the 'code' parameter from the redirect URL, then exchange it:</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">"https://gitlab.com/oauth/token"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">"client_id=</span><span class="si">${</span><span class="nv">CLIENT_ID</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">"client_secret=</span><span class="si">${</span><span class="nv">CLIENT_SECRET</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">"code=</span><span class="si">${</span><span class="nv">AUTH_CODE</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">"grant_type=authorization_code"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">"redirect_uri=http://localhost"</span>
 </code></pre></div>
 </li>
 <li>
 <p>Create the Secret with the OAuth2 credentials:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>branch-planner-token<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">    </span>--namespace<span class="o">=</span>flux-system<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">&quot;gitlabOAuthClientID=</span><span class="si">${</span><span class="nv">CLIENT_ID</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">&quot;gitlabOAuthClientSecret=</span><span class="si">${</span><span class="nv">CLIENT_SECRET</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">&quot;gitlabOAuthRefreshToken=</span><span class="si">${</span><span class="nv">REFRESH_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">"gitlabOAuthClientID=</span><span class="si">${</span><span class="nv">CLIENT_ID</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">"gitlabOAuthClientSecret=</span><span class="si">${</span><span class="nv">CLIENT_SECRET</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">"gitlabOAuthRefreshToken=</span><span class="si">${</span><span class="nv">REFRESH_TOKEN</span><span class="si">}</span><span class="s2">"</span>
 </code></pre></div>
 </li>
 </ol>
@@ -1362,9 +1362,9 @@ in your Gitea instance settings and perform the initial authorization flow.</p>
 <p>Create the Secret with OAuth2 credentials:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>branch-planner-token<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">    </span>--namespace<span class="o">=</span>flux-system<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">&quot;oauthClientID=</span><span class="si">${</span><span class="nv">CLIENT_ID</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">&quot;oauthClientSecret=</span><span class="si">${</span><span class="nv">CLIENT_SECRET</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">&quot;oauthRefreshToken=</span><span class="si">${</span><span class="nv">REFRESH_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">"oauthClientID=</span><span class="si">${</span><span class="nv">CLIENT_ID</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">"oauthClientSecret=</span><span class="si">${</span><span class="nv">CLIENT_SECRET</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">    </span>--from-literal<span class="o">=</span><span class="s2">"oauthRefreshToken=</span><span class="si">${</span><span class="nv">REFRESH_TOKEN</span><span class="si">}</span><span class="s2">"</span>
 </code></pre></div>
 <p>The access token is obtained and refreshed automatically. The token endpoint
 is determined by the provider (Bitbucket Cloud uses <code>/site/oauth2/access_token</code>,

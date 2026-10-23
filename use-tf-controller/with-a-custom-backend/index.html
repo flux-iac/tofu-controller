@@ -569,16 +569,16 @@
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="nt">approvePlan</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">auto</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nt">backendConfig</span><span class="p">:</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="hll"><span class="w">    </span><span class="nt">customConfiguration</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-</span><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="hll"><span class="w">      </span><span class="no">backend &quot;s3&quot; {</span>
-</span><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="hll"><span class="w">        </span><span class="no">bucket                      = &quot;s3-terraform-state1&quot;</span>
-</span><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="hll"><span class="w">        </span><span class="no">key                         = &quot;dev/terraform.tfstate&quot;</span>
-</span><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="hll"><span class="w">        </span><span class="no">region                      = &quot;us-east-1&quot;</span>
-</span><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="hll"><span class="w">        </span><span class="no">endpoint                    = &quot;http://localhost:4566&quot;</span>
+</span><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="hll"><span class="w">      </span><span class="no">backend "s3" {</span>
+</span><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="hll"><span class="w">        </span><span class="no">bucket                      = "s3-terraform-state1"</span>
+</span><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="hll"><span class="w">        </span><span class="no">key                         = "dev/terraform.tfstate"</span>
+</span><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="hll"><span class="w">        </span><span class="no">region                      = "us-east-1"</span>
+</span><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="hll"><span class="w">        </span><span class="no">endpoint                    = "http://localhost:4566"</span>
 </span><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="hll"><span class="w">        </span><span class="no">skip_credentials_validation = true</span>
 </span><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="hll"><span class="w">        </span><span class="no">skip_metadata_api_check     = true</span>
 </span><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="hll"><span class="w">        </span><span class="no">force_path_style            = true</span>
-</span><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="hll"><span class="w">        </span><span class="no">dynamodb_table              = &quot;terraformlock&quot;</span>
-</span><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="hll"><span class="w">        </span><span class="no">dynamodb_endpoint           = &quot;http://localhost:4566&quot;</span>
+</span><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="hll"><span class="w">        </span><span class="no">dynamodb_table              = "terraformlock"</span>
+</span><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="hll"><span class="w">        </span><span class="no">dynamodb_endpoint           = "http://localhost:4566"</span>
 </span><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="hll"><span class="w">        </span><span class="no">encrypt                     = true</span>
 </span><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="hll"><span class="w">      </span><span class="no">}</span>
 </span><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">  </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1m</span>
@@ -613,16 +613,16 @@
 <a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">  </span><span class="nt">approvePlan</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">auto</span>
 <a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">  </span><span class="nt">backendConfig</span><span class="p">:</span>
 <a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">    </span><span class="nt">customConfiguration</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">      </span><span class="no">backend &quot;s3&quot; {</span>
-<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">        </span><span class="no">bucket                      = &quot;s3-terraform-state1&quot;</span>
-<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">        </span><span class="no">key                         = &quot;dev/terraform.tfstate&quot;</span>
-<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">        </span><span class="no">region                      = &quot;us-east-1&quot;</span>
-<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">        </span><span class="no">endpoint                    = &quot;http://localhost:4566&quot;</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">      </span><span class="no">backend "s3" {</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">        </span><span class="no">bucket                      = "s3-terraform-state1"</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">        </span><span class="no">key                         = "dev/terraform.tfstate"</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">        </span><span class="no">region                      = "us-east-1"</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">        </span><span class="no">endpoint                    = "http://localhost:4566"</span>
 <a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">        </span><span class="no">skip_credentials_validation = true</span>
 <a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">        </span><span class="no">skip_metadata_api_check     = true</span>
 <a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">        </span><span class="no">force_path_style            = true</span>
-<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">        </span><span class="no">dynamodb_table              = &quot;terraformlock&quot;</span>
-<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="w">        </span><span class="no">dynamodb_endpoint           = &quot;http://localhost:4566&quot;</span>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">        </span><span class="no">dynamodb_table              = "terraformlock"</span>
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="w">        </span><span class="no">dynamodb_endpoint           = "http://localhost:4566"</span>
 <a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="w">        </span><span class="no">encrypt                     = true</span>
 <a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="w">      </span><span class="no">}</span>
 <a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="w">  </span><span class="nt">backendConfigsFrom</span><span class="p">:</span>
