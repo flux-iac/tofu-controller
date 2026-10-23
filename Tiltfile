@@ -8,7 +8,6 @@ tfNamespace      = "terraform"
 buildSHA         = str(local('git rev-parse --short HEAD')).rstrip('\n')
 buildVersionRef  = str(local('git rev-list --tags --max-count=1')).rstrip('\n')
 buildVersion     = str(local("git describe --tags ${buildVersionRef}")).rstrip('\n')
-LIBCRYPTO_VERSION = "3.5.7-r0"
 
 if os.path.exists('Tiltfile.local'):
    include('Tiltfile.local')
@@ -84,7 +83,6 @@ docker_build(
   build_args={
     'BUILD_SHA': buildSHA,
     'BUILD_VERSION': buildVersion,
-    'LIBCRYPTO_VERSION': LIBCRYPTO_VERSION,
   }
 )
 
@@ -110,7 +108,6 @@ docker_build(
   build_args={
     'BUILD_SHA': buildSHA,
     'BUILD_VERSION': buildVersion,
-    'LIBCRYPTO_VERSION': LIBCRYPTO_VERSION,
   }
 )
 
@@ -137,7 +134,4 @@ docker_build(
   'ghcr.io/flux-iac/tf-runner',
   '',
   dockerfile='runner.Dockerfile.dev',
-  build_args={
-    'LIBCRYPTO_VERSION': LIBCRYPTO_VERSION,
-  }
 )

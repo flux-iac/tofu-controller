@@ -211,11 +211,13 @@ func (p *GitHubProvider) Setup() error {
 			return fmt.Errorf("failed to create github app transport: %w", err)
 		}
 
+		apiURL := "https://api.github.com"
 		if p.hostname != "github.com" {
-			transport.BaseURL = serverURL + "/api/v3"
+			apiURL = serverURL + "/api/v3"
+			transport.BaseURL = apiURL
 		}
 
-		p.client, err = github.New(serverURL)
+		p.client, err = github.New(apiURL)
 		if err != nil {
 			return fmt.Errorf("failed to create github client: %w", err)
 		}

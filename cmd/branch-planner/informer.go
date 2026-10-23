@@ -19,8 +19,9 @@ import (
 )
 
 func startInformer(ctx context.Context, log logr.Logger, dynamicClient *dynamic.DynamicClient, clusterClient client.Client, opts *applicationOptions) error {
-	providerOpts, err := getProviderOpts(ctx, clusterClient, opts.pollingConfigMap)
-	if err != nil {
+	// The informer re-reads the config and secret just in time per
+	// interaction; this call only validates the boot-time configuration.
+	if _, err := getProviderOpts(ctx, clusterClient, opts.pollingConfigMap); err != nil {
 		return fmt.Errorf("failed to get provider options: %w", err)
 	}
 
@@ -32,7 +33,9 @@ func startInformer(ctx context.Context, log logr.Logger, dynamicClient *dynamic.
 	informer, err := planner.NewInformer(
 		planner.WithLogger(log),
 		planner.WithClusterClient(clusterClient),
-		planner.WithProviderOpts(providerOpts...),
+		planner.WithProviderOptsFn(func(ctx context.Context) ([]provider.ProviderOption, error) {
+			return getProviderOpts(ctx, clusterClient, opts.pollingConfigMap)
+		}),
 		planner.WithSharedInformer(sharedInformer),
 	)
 	if err != nil {

@@ -35,6 +35,7 @@ func Test_009990_mtls_generate_creds_test(t *testing.T) {
 	rotator.TriggerCARotation <- mtls.Trigger{Namespace: "", Ready: readyCh}
 	result := <-readyCh
 	g.Expect(result.Err).To(BeNil())
+	firstRotationAt := time.Now()
 
 	caSecret := result.Secret
 	g.Expect(len(caSecret.Data)).To(Equal(4))
@@ -162,6 +163,9 @@ func Test_009990_mtls_generate_creds_test(t *testing.T) {
 	g.Expect(tlsValid).To(BeFalse())
 
 	By("rotating the CA should renew the server cert")
+	// runner TLS Secret names carry the CA validity at second resolution, so a CA
+	// rotated within the same second as the one it replaces never writes its own.
+	time.Sleep(time.Until(firstRotationAt.Truncate(time.Second).Add(time.Second)))
 	rotator.ResetCACache()
 	renewedReadyCh := make(chan *mtls.TriggerResult)
 	rotator.TriggerCARotation <- mtls.Trigger{Namespace: "", Ready: renewedReadyCh}

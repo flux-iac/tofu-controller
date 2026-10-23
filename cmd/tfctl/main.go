@@ -63,7 +63,7 @@ func newRootCommand() *cobra.Command {
 	rootCmd.AddCommand(buildResumeCmd(app))
 	rootCmd.AddCommand(buildSuspendCmd(app))
 	rootCmd.AddCommand(buildUninstallCmd(app))
-	rootCmd.AddCommand(buildVersionCmd(app))
+	rootCmd.AddCommand(buildVersionCmd(app, config))
 
 	rootCmd.AddCommand(buildGetGroup(app))
 	rootCmd.AddCommand(buildShowGroup(app))
@@ -75,18 +75,30 @@ func newRootCommand() *cobra.Command {
 	return rootCmd
 }
 
-func buildVersionCmd(app *tfctl.CLI) *cobra.Command {
-	install := &cobra.Command{
+func buildVersionCmd(app *tfctl.CLI, config *viper.Viper) *cobra.Command {
+	var remote bool
+	version := &cobra.Command{
 		Use:   "version",
-		Short: "Prints tofu-controller and tfctl version information",
+		Short: "Prints tfctl version information",
+		Long:  "Prints local tfctl version information. Use --remote to also query tofu-controller in the cluster.",
 		Args:  cobra.ExactArgs(0),
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			if remote {
+				return app.Init(kubeconfigArgs, config)
+			}
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Version(os.Stdout)
+			if remote {
+				return app.Version(cmd.OutOrStdout())
+			}
+			return app.ClientVersion(cmd.OutOrStdout())
 		},
 	}
-	install.Flags().String("version", "", "The version of tofu-controller to install.")
-	viper.BindPFlag("version", install.Flags().Lookup("version"))
-	return install
+	version.Flags().BoolVar(&remote, "remote", false, "Include tofu-controller version information from the cluster")
+	version.Flags().String("version", "", "The version of tofu-controller to install.")
+	viper.BindPFlag("version", version.Flags().Lookup("version"))
+	return version
 }
 
 var installExamples = `

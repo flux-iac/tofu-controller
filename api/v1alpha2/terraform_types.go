@@ -305,6 +305,13 @@ type BranchPlanner struct {
 	// resources will be created only if there are any changes in terraform files.
 	// +optional
 	EnablePathScope bool `json:"enablePathScope"`
+
+	// BaseBranch restricts branch planning to Pull Requests targeting this branch.
+	// Defaults to the branch tracked by the source GitRepository (`.spec.ref.branch`,
+	// or `.spec.ref.name` of the form `refs/heads/<branch>`). If unset and the source
+	// does not track a branch (tag, semver or commit-only), no Pull Requests are planned.
+	// +optional
+	BaseBranch string `json:"baseBranch,omitempty"`
 }
 
 type Remediation struct {
@@ -415,6 +422,11 @@ type TerraformStatus struct {
 	// LastPlanAt is the time when the last terraform plan was performed
 	// +optional
 	LastPlanAt *metav1.Time `json:"lastPlanAt,omitempty"`
+
+	// LastSuccessfulReconcileAt is the time when the last successful
+	// reconciliation was completed, regardless of whether a plan was generated.
+	// +optional
+	LastSuccessfulReconcileAt *metav1.Time `json:"lastSuccessfulReconcileAt,omitempty"`
 
 	// LastDriftDetectedAt is the time when the last drift was detected
 	// +optional
@@ -855,8 +867,22 @@ func (in Terraform) HasDrift() bool {
 }
 
 // GetDependsOn returns the list of dependencies, namespace scoped.
-func (in Terraform) GetDependsOn() []meta.NamespacedObjectReference {
-	return in.Spec.DependsOn
+//
+// Spec.DependsOn is deliberately kept as []meta.NamespacedObjectReference and
+// converted here. fluxcd/pkg/runtime v0.111.0 requires Dependent to return
+// []meta.DependencyReference, which adds a ReadyExpr CEL field. checkDependencies
+// is hand-rolled and does not evaluate ReadyExpr, so exposing it in the CRD would
+// advertise a field that does nothing. Change the spec type only alongside
+// implementing ReadyExpr.
+func (in Terraform) GetDependsOn() []meta.DependencyReference {
+	refs := make([]meta.DependencyReference, len(in.Spec.DependsOn))
+	for i, d := range in.Spec.DependsOn {
+		refs[i] = meta.DependencyReference{
+			Name:      d.Name,
+			Namespace: d.Namespace,
+		}
+	}
+	return refs
 }
 
 // GetRetryInterval returns the retry interval

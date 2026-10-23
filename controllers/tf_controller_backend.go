@@ -28,6 +28,17 @@ func (r *TerraformReconciler) backendCompletelyDisable(terraform *infrav1.Terraf
 func (r *TerraformReconciler) setupTerraform(ctx context.Context, patchHelper *patch.SerialPatcher, runnerClient runner.RunnerClient, terraform *infrav1.Terraform, sourceObj sourcev1.Source, revision string, reconciliationLoopID string) (*infrav1.Terraform, string, string, error) {
 	log := ctrl.LoggerFrom(ctx)
 
+	// Bound the runner RPCs below (UploadAndExtract ... Init ... SelectWorkspace).
+	// The runner gRPC client is created with waitForReady:true, so an RPC on a
+	// channel that cannot connect (e.g. the runner pod was killed by a node reboot
+	// mid-reconcile) blocks until its context is done. Without a deadline the call
+	// blocks forever, and because controller-runtime does not start a new Reconcile
+	// for a key while the previous one is still running, that Terraform object is
+	// never reconciled again and a worker slot is leaked permanently. A generous,
+	// configurable ceiling turns "never" into "requeue after RunnerRPCTimeout".
+	ctx, cancel := context.WithTimeout(ctx, r.RunnerRPCTimeout)
+	defer cancel()
+
 	tfInstance := "0"
 	tmpDir := ""
 
@@ -48,9 +59,6 @@ func (r *TerraformReconciler) setupTerraform(ctx context.Context, patchHelper *p
 		), tfInstance, tmpDir, err
 	}
 
-	// we fix timeout of UploadAndExtract to be 30s
-	// ctx30s, cancelCtx30s := context.WithTimeout(ctx, 30*time.Second)
-	// defer cancelCtx30s()
 	uploadAndExtractReply, err := runnerClient.UploadAndExtract(ctx, &runner.UploadAndExtractRequest{
 		Namespace: terraform.Namespace,
 		Name:      terraform.Name,

@@ -49,7 +49,7 @@ import (
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
-	kuberecorder "k8s.io/client-go/tools/record"
+	kuberecorder "k8s.io/client-go/tools/events"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -86,6 +86,7 @@ type TerraformReconciler struct {
 	CertRotator               *mtls.CertRotator
 	RunnerGRPCPort            int
 	RunnerCreationTimeout     time.Duration
+	RunnerRPCTimeout          time.Duration
 	RunnerGRPCMaxMessageSize  int
 	AllowBreakTheGlass        bool
 	ClusterDomain             string
@@ -230,7 +231,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			conditions.MarkStalled(terraform, infrav1.AccessDeniedReason, "%s", err)
 			conditions.MarkFalse(terraform, meta.ReadyCondition, infrav1.AccessDeniedReason, "%s", err)
 			conditions.Delete(terraform, meta.ReconcilingCondition)
-			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.AccessDeniedReason, "%s", err.Error())
+			r.Eventf(terraform, nil, corev1.EventTypeWarning, infrav1.AccessDeniedReason, infrav1.ActionResolveSource.String(), "%s", err.Error())
 
 			// The controller must restart or sourceRef to change
 			// for this to be recoverable
@@ -239,7 +240,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			conditions.MarkStalled(terraform, infrav1.ArtifactFailedReason, "%s", err)
 			conditions.MarkFalse(terraform, meta.ReadyCondition, infrav1.ArtifactFailedReason, "%s", err)
 			conditions.Delete(terraform, meta.ReconcilingCondition)
-			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.ArtifactFailedReason, "%s", err.Error())
+			r.Eventf(terraform, nil, corev1.EventTypeWarning, infrav1.ArtifactFailedReason, infrav1.ActionResolveSource.String(), "%s", err.Error())
 
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 		}
@@ -276,6 +277,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		log.Info("Skipping reconciliation",
 			"reason", reason,
 			"lastPlanAt", terraform.Status.LastPlanAt,
+			"lastSuccessfulReconcileAt", terraform.Status.LastSuccessfulReconcileAt,
 			"nextAttempt", time.Now().Add(requeueAfter),
 			"requeueAfter", requeueAfter)
 
@@ -314,7 +316,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			// instead we requeue on a fix interval.
 			msg := fmt.Sprintf("Dependencies do not meet ready condition, retrying in %s", terraform.GetRetryInterval().String())
 			log.Info(msg)
-			r.Eventf(terraform, corev1.EventTypeNormal, infrav1.DependencyNotReadyReason, "%s", msg)
+			r.Eventf(terraform, nil, corev1.EventTypeNormal, infrav1.DependencyNotReadyReason, infrav1.ActionCheckDependencies.String(), "%s", msg)
 
 			return ctrl.Result{RequeueAfter: terraform.GetRetryInterval()}, nil
 		}
@@ -452,7 +454,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				"retryAfter", jitteredDelay,
 				"baseDelay", r.QuotaRetryDelay,
 				"jitterFactor", r.QuotaRetryJitterFactor)
-			r.Eventf(terraform, corev1.EventTypeWarning, infrav1.RunnerQuotaExhaustedReason,
+			r.Eventf(terraform, nil, corev1.EventTypeWarning, infrav1.RunnerQuotaExhaustedReason, infrav1.ActionProvisionRunner.String(),
 				"runner pod creation blocked by resource quota, retrying")
 			return ctrl.Result{RequeueAfter: jitteredDelay}, nil
 		}
@@ -562,6 +564,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if reconcileErr == nil {
 		log.Info("Reset reconciliation failures count. Reason: successful reconciliation")
 		terraform = infrav1.TerraformResetRetry(reconciledTerraform)
+		terraform.Status.LastSuccessfulReconcileAt = &metav1.Time{Time: time.Now()}
 	} else {
 		terraform = reconciledTerraform
 		terraform.IncrementReconciliationFailures()
@@ -590,7 +593,7 @@ func (r *TerraformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			"revision",
 			sourceObj.GetArtifact().Revision)
 		traceLog.Info("Record an event for the failure")
-		r.Eventf(terraform, corev1.EventTypeWarning, infrav1.ReconciliationFailureReason, "%s", reconcileErr.Error())
+		r.Eventf(terraform, nil, corev1.EventTypeWarning, infrav1.ReconciliationFailureReason, infrav1.ActionReconcile.String(), "%s", reconcileErr.Error())
 
 		if terraform.Spec.Remediation != nil {
 			log.Info(fmt.Sprintf(
@@ -679,10 +682,14 @@ func (r *TerraformReconciler) shouldReconcile(terraform *infrav1.Terraform, sour
 		return true, "retry interval has elapsed since last failed reconciliation", 0
 	}
 
-	nextReconcile := terraform.Status.LastPlanAt.Add(terraform.Spec.Interval.Duration)
+	if terraform.Status.LastSuccessfulReconcileAt == nil {
+		return true, "never successfuly reconciled before", 0
+	}
+
+	nextReconcile := terraform.Status.LastSuccessfulReconcileAt.Add(terraform.Spec.Interval.Duration)
 	requeueAfter := time.Until(nextReconcile)
 	if requeueAfter > 0 {
-		return false, "interval has not elapsed since last plan", requeueAfter
+		return false, "interval has not elapsed since last successful reconciliation", requeueAfter
 	}
 
 	return true, "", 0

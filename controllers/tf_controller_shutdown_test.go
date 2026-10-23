@@ -7,7 +7,7 @@ import (
 
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -80,7 +80,7 @@ func TestReconcileRejectedAfterShutdown(t *testing.T) {
 	scheme := runtime.NewScheme()
 	reconciler := &TerraformReconciler{
 		Client:          fake.NewClientBuilder().WithScheme(scheme).Build(),
-		EventRecorder:   &record.FakeRecorder{},
+		EventRecorder:   &events.FakeRecorder{},
 		ShutdownTimeout: 5 * time.Second,
 	}
 

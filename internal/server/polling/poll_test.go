@@ -17,6 +17,7 @@ import (
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/internal/git/provider"
+	"github.com/fluxcd/pkg/git"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 )
 
@@ -108,8 +109,11 @@ func Test_poll_reconcile_objects(t *testing.T) {
 		},
 		Spec: sourcev1.GitRepositorySpec{
 			URL: "https://github.com/tf-controller/helloworld",
+			// Extra ref fields must not be inherited by the PR sources.
 			Reference: &sourcev1.GitRepositoryRef{
 				Branch: "main",
+				Name:   "refs/heads/main",
+				Commit: "0000000000000000000000000000000000000000",
 			},
 		},
 	}
@@ -163,6 +167,13 @@ func Test_poll_reconcile_objects(t *testing.T) {
 			BaseBranch: "main",
 			HeadBranch: "test-branch-3",
 		},
+		{
+			// Targets another branch than the source tracks, so it's not planned.
+			Repository: repo,
+			Number:     4,
+			BaseBranch: "develop",
+			HeadBranch: "test-branch-4",
+		},
 	}
 
 	server, err := New(
@@ -186,6 +197,9 @@ func Test_poll_reconcile_objects(t *testing.T) {
 	}))
 
 	expectToEqual(t, g, len(tfList.Items), 4)
+	for _, item := range tfList.Items {
+		g.Expect(item.Labels[bpconfig.LabelPRIDKey]).NotTo(gomega.Equal("4"))
+	}
 	for _, item := range tfList.Items {
 		if item.Name == original.Name {
 			// Ignore the original source object.
@@ -220,7 +234,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 		}
 		prID := item.Labels[bpconfig.LabelPRIDKey]
 		expectToEqual(t, g, item.Name, config.SourceName(original.Name, source.Name, prID))
-		expectToEqual(t, g, item.Spec.Reference.Branch, "test-branch-"+prID)
+		expectToEqual(t, g, item.Spec.Reference, &sourcev1.GitRepositoryRef{Branch: "test-branch-" + prID})
 		expectToEqual(t, g, item.Labels[bpconfig.LabelKey], bpconfig.LabelValue)
 		expectToEqual(t, g, item.Labels[bpconfig.LabelPRIDKey], prID)
 		expectToEqual(t, g, item.Labels["test-label"], "123")
@@ -378,4 +392,52 @@ func Test_poll_noPathChanges(t *testing.T) {
 	expectToEqual(t, g, srcList.Items[0].Name, source.Name)
 
 	t.Cleanup(func() { expectToSucceed(t, g, k8sClient.Delete(context.Background(), ns)) })
+}
+
+func Test_filterPullRequestsByBaseBranch(t *testing.T) {
+	prs := []provider.PullRequest{
+		{Number: 1, BaseBranch: "main"},
+		{Number: 2, BaseBranch: "develop"},
+		{Number: 3, BaseBranch: "main"},
+		{Number: 4, BaseBranch: git.DefaultBranch},
+	}
+	main := []provider.PullRequest{prs[0], prs[2]}
+	develop := []provider.PullRequest{prs[1]}
+	defaultBranch := []provider.PullRequest{prs[3]}
+
+	tests := []struct {
+		name     string
+		ref      *sourcev1.GitRepositoryRef
+		override string
+		want     []provider.PullRequest
+	}{
+		{"branch", &sourcev1.GitRepositoryRef{Branch: "main"}, "", main},
+		{"override beats source", &sourcev1.GitRepositoryRef{Branch: "main"}, "develop", develop},
+		{"name refs/heads", &sourcev1.GitRepositoryRef{Name: "refs/heads/develop"}, "", develop},
+		{"name refs/pull", &sourcev1.GitRepositoryRef{Name: "refs/pull/1/head"}, "", []provider.PullRequest{}},
+		{"tag", &sourcev1.GitRepositoryRef{Tag: "v1"}, "", []provider.PullRequest{}},
+		{"semver", &sourcev1.GitRepositoryRef{SemVer: ">=1.0.0"}, "", []provider.PullRequest{}},
+		{"commit only", &sourcev1.GitRepositoryRef{Commit: "1111111111111111111111111111111111111111"}, "", []provider.PullRequest{}},
+		{"branch and commit", &sourcev1.GitRepositoryRef{Branch: "main", Commit: "1111111111111111111111111111111111111111"}, "", main},
+		{"nil ref defaults to git default branch", nil, "", defaultBranch},
+		{"empty ref defaults to git default branch", &sourcev1.GitRepositoryRef{}, "", defaultBranch},
+		{"override with tag source", &sourcev1.GitRepositoryRef{Tag: "v1"}, "main", main},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := gomega.NewWithT(t)
+
+			tf := &infrav1.Terraform{}
+			if tt.override != "" {
+				tf.Spec.BranchPlanner = &infrav1.BranchPlanner{BaseBranch: tt.override}
+			}
+			source := &sourcev1.GitRepository{Spec: sourcev1.GitRepositorySpec{Reference: tt.ref}}
+
+			server, err := New()
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+
+			g.Expect(server.filterPullRequestsByBaseBranch(tf, source, prs)).To(gomega.ConsistOf(tt.want))
+		})
+	}
 }

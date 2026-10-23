@@ -661,6 +661,10 @@ func (in *TerraformStatus) DeepCopyInto(out *TerraformStatus) {
 		in, out := &in.LastPlanAt, &out.LastPlanAt
 		*out = (*in).DeepCopy()
 	}
+	if in.LastSuccessfulReconcileAt != nil {
+		in, out := &in.LastSuccessfulReconcileAt, &out.LastSuccessfulReconcileAt
+		*out = (*in).DeepCopy()
+	}
 	if in.LastDriftDetectedAt != nil {
 		in, out := &in.LastDriftDetectedAt, &out.LastDriftDetectedAt
 		*out = (*in).DeepCopy()

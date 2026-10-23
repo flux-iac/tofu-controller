@@ -14,6 +14,7 @@ Package v1alpha2 contains API Schema definitions for the infra v1alpha2 API grou
 ### Resource Types
 - [Terraform](#terraform)
 
+
 ### BackendConfigSpec
 
 BackendConfigSpec is for specifying configuration for Terraform's Kubernetes backend
@@ -52,6 +53,7 @@ _Appears in:_
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
 | `enablePathScope` _boolean_ | EnablePathScope specifies if the Branch Planner should or shouldn't check<br />if a Pull Request has changes under `.spec.path`. If enabled extra<br />resources will be created only if there are any changes in terraform files. |  | Optional: \{\} <br /> |
+| `baseBranch` _string_ | BaseBranch restricts branch planning to Pull Requests targeting this branch.<br />Defaults to the branch tracked by the source GitRepository (`.spec.ref.branch`,<br />or `.spec.ref.name` of the form `refs/heads/<branch>`). If unset and the source<br />does not track a branch (tag, semver or commit-only), no Pull Requests are planned. |  | Optional: \{\} <br /> |
 
 
 ### CloudSpec
@@ -383,6 +385,7 @@ _Appears in:_
 | `lastPlannedRevision` _string_ | LastPlannedRevision is the revision used by the last planning process.<br />The result could be either no plan change or a new plan generated. |  | Optional: \{\} <br /> |
 | `lastPlannedGeneration` _integer_ | LastPlannedGeneration is the generation of the Terraform resource<br />at the time of the last plan. This can be used to detect whether a<br />pending plan has become stale, due to the spec being modified since the<br />plan was generated. |  | Optional: \{\} <br /> |
 | `lastPlanAt` _[Time](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#time-v1-meta)_ | LastPlanAt is the time when the last terraform plan was performed |  | Optional: \{\} <br /> |
+| `lastSuccessfulReconcileAt` _[Time](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#time-v1-meta)_ | LastSuccessfulReconcileAt is the time when the last successful<br />reconciliation was completed, regardless of whether a plan was generated. |  | Optional: \{\} <br /> |
 | `lastDriftDetectedAt` _[Time](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#time-v1-meta)_ | LastDriftDetectedAt is the time when the last drift was detected |  | Optional: \{\} <br /> |
 | `lastAppliedByDriftDetectionAt` _[Time](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#time-v1-meta)_ | LastAppliedByDriftDetectionAt is the time when the last drift was detected and<br />terraform apply was performed as a result |  | Optional: \{\} <br /> |
 | `availableOutputs` _string array_ |  |  | Optional: \{\} <br /> |

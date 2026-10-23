@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/fluxcd/pkg/apis/meta"
+	"github.com/fluxcd/pkg/git"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -177,6 +178,55 @@ func (s *Server) poll(ctx context.Context, resource types.NamespacedName, secret
 	return s.reconcile(ctx, tf, source, prs, gitProvider)
 }
 
+// baseBranch returns the branch the Branch Planner should plan Pull Requests
+// for, or "" if there is none. It follows source-controller's precedence.
+func baseBranch(tf *infrav1.Terraform, source *sourcev1.GitRepository) string {
+	if tf.Spec.BranchPlanner != nil && tf.Spec.BranchPlanner.BaseBranch != "" {
+		return tf.Spec.BranchPlanner.BaseBranch
+	}
+
+	ref := source.Spec.Reference
+	if ref == nil || *ref == (sourcev1.GitRepositoryRef{}) {
+		return git.DefaultBranch
+	}
+
+	if ref.Name != "" {
+		branch, _ := strings.CutPrefix(ref.Name, "refs/heads/")
+		if branch == ref.Name {
+			return ""
+		}
+
+		return branch
+	}
+
+	if ref.SemVer != "" || ref.Tag != "" {
+		return ""
+	}
+
+	return ref.Branch
+}
+
+// filterPullRequestsByBaseBranch keeps only the Pull Requests targeting the
+// branch tracked by the source (or `.spec.branchPlanner.baseBranch`).
+func (s *Server) filterPullRequestsByBaseBranch(tf *infrav1.Terraform, source *sourcev1.GitRepository, prs []provider.PullRequest) []provider.PullRequest {
+	branch := baseBranch(tf, source)
+	if branch == "" {
+		s.log.Info("source does not track a branch and spec.branchPlanner.baseBranch is unset, not planning any pull requests", "name", tf.Name, "namespace", tf.Namespace, "source", source.Name)
+
+		return nil
+	}
+
+	filteredPRs := []provider.PullRequest{}
+
+	for _, pr := range prs {
+		if pr.BaseBranch == branch {
+			filteredPRs = append(filteredPRs, pr)
+		}
+	}
+
+	return filteredPRs
+}
+
 func (s *Server) filterPullRequestsByPath(ctx context.Context, tf *infrav1.Terraform, gitProvider provider.Provider, prs []provider.PullRequest) []provider.PullRequest {
 	if tf.Spec.BranchPlanner == nil || !tf.Spec.BranchPlanner.EnablePathScope {
 		return prs
@@ -212,6 +262,8 @@ func (s *Server) filterPullRequestsByPath(ctx context.Context, tf *infrav1.Terra
 func (s *Server) reconcile(ctx context.Context, original *infrav1.Terraform, source *sourcev1.GitRepository, prs []provider.PullRequest, gitProvider provider.Provider) error {
 	log := s.log.WithValues("terraform", original.Name, "namespace", original.Namespace, "source", source.Name)
 
+	// Filtered-out PRs drop out of prMap, so their planner objects get deleted below.
+	prs = s.filterPullRequestsByBaseBranch(original, source, prs)
 	prs = s.filterPullRequestsByPath(ctx, original, gitProvider, prs)
 
 	log.Info("starting reconciliation ...")

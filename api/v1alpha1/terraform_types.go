@@ -767,8 +767,18 @@ func (in Terraform) HasDrift() bool {
 }
 
 // GetDependsOn returns the list of dependencies, namespace scoped.
-func (in Terraform) GetDependsOn() []meta.NamespacedObjectReference {
-	return in.Spec.DependsOn
+//
+// See the v1alpha2 equivalent for why Spec.DependsOn keeps the
+// meta.NamespacedObjectReference type and is converted here.
+func (in Terraform) GetDependsOn() []meta.DependencyReference {
+	refs := make([]meta.DependencyReference, len(in.Spec.DependsOn))
+	for i, d := range in.Spec.DependsOn {
+		refs[i] = meta.DependencyReference{
+			Name:      d.Name,
+			Namespace: d.Namespace,
+		}
+	}
+	return refs
 }
 
 // GetRetryInterval returns the retry interval
