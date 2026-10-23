@@ -8,6 +8,10 @@ Branch Planner supports **GitHub** (including GitHub Enterprise), **GitLab** (in
 
 ![branch planner](branch-planner.png)
 
+### Base branch
+
+Only Pull Requests whose base branch matches the branch tracked by the Terraform object's source (`.spec.ref.branch`, or `.spec.ref.name` of the form `refs/heads/<branch>`) are planned. Set `spec.branchPlanner.baseBranch` to override this. Sources that track a tag, semver range or commit need the override, otherwise no Pull Requests are planned.
+
 ### Replan commands
 
 The Branch Planner also allows users to manually trigger the replan process. By simply commenting `!replan` under the PR or MR, the Branch Planner will be instructed to generate a new plan and post it under the PR/MR as a new comment.
