@@ -305,6 +305,13 @@ type BranchPlanner struct {
 	// resources will be created only if there are any changes in terraform files.
 	// +optional
 	EnablePathScope bool `json:"enablePathScope"`
+
+	// BaseBranch restricts branch planning to Pull Requests targeting this branch.
+	// Defaults to the branch tracked by the source GitRepository (`.spec.ref.branch`,
+	// or `.spec.ref.name` of the form `refs/heads/<branch>`). If unset and the source
+	// does not track a branch (tag, semver or commit-only), no Pull Requests are planned.
+	// +optional
+	BaseBranch string `json:"baseBranch,omitempty"`
 }
 
 type Remediation struct {
