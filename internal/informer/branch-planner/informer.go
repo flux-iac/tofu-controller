@@ -34,14 +34,13 @@ var (
 )
 
 type Informer struct {
-	sharedInformer cache.SharedIndexInformer
-	handlers       cache.ResourceEventHandlerFuncs
-	log            logr.Logger
-	client         client.Client
-	gitProvider    provider.Provider
-	providerOpts   []provider.ProviderOption
-	providerOnce   sync.Once
-	providerErr    error
+	sharedInformer      cache.SharedIndexInformer
+	handlers            cache.ResourceEventHandlerFuncs
+	log                 logr.Logger
+	client              client.Client
+	gitProvider         provider.Provider
+	providerOptsFn      func(ctx context.Context) ([]provider.ProviderOption, error)
+	gitProviderParserFn provider.URLParserFn
 
 	mux    *sync.RWMutex
 	synced bool
@@ -50,7 +49,9 @@ type Informer struct {
 type Option func(s *Informer) error
 
 func NewInformer(options ...Option) (*Informer, error) {
-	informer := &Informer{}
+	informer := &Informer{
+		gitProviderParserFn: provider.FromURL,
+	}
 
 	for _, opt := range options {
 		if err := opt(informer); err != nil {
@@ -226,7 +227,7 @@ func (i *Informer) updateHandler(oldObj, newObj any) {
 func (i *Informer) deleteHandler(obj any) {}
 
 func (i *Informer) addCommentToPullRequest(ctx context.Context, tf *infrav1.Terraform, content []byte) {
-	repo, err := i.getRepo(ctx, tf)
+	gitProvider, repo, err := i.getRepo(ctx, tf)
 	if err != nil {
 		i.log.Error(err, "failed getting repository")
 		return
@@ -250,13 +251,13 @@ func (i *Informer) addCommentToPullRequest(ctx context.Context, tf *infrav1.Terr
 
 	// If commentID is 0, it means that the comment has not been created yet.
 	if commentID == 0 {
-		if _, err := i.gitProvider.AddCommentToPullRequest(ctx, pr, content); err != nil {
+		if _, err := gitProvider.AddCommentToPullRequest(ctx, pr, content); err != nil {
 			i.log.Error(err, "failed adding comment to pull request", "pr-id", tf.Labels[config.LabelPRIDKey], "namespace", tf.Namespace, "name", tf.Name)
 		}
 		return
 	}
 
-	if err := i.gitProvider.UpdateCommentOfPullRequest(ctx, pr, commentID, content); err != nil {
+	if err := gitProvider.UpdateCommentOfPullRequest(ctx, pr, commentID, content); err != nil {
 		i.log.Error(err, "failed updating comment in pull request", "pr-id", tf.Labels[config.LabelPRIDKey], "comment-id", commentID, "namespace", tf.Namespace, "name", tf.Name)
 
 		return
@@ -334,9 +335,9 @@ func (i *Informer) isNewPlan(old, new *infrav1.Terraform) bool {
 	return false
 }
 
-func (i *Informer) getRepo(ctx context.Context, tf *infrav1.Terraform) (provider.Repository, error) {
+func (i *Informer) getRepo(ctx context.Context, tf *infrav1.Terraform) (provider.Provider, provider.Repository, error) {
 	if tf.Spec.SourceRef.Kind != sourcev1.GitRepositoryKind {
-		return provider.Repository{}, fmt.Errorf("branch based planner does not support source kind: %s", tf.Spec.SourceRef.Kind)
+		return nil, provider.Repository{}, fmt.Errorf("branch based planner does not support source kind: %s", tf.Spec.SourceRef.Kind)
 	}
 
 	ref := client.ObjectKey{
@@ -345,24 +346,39 @@ func (i *Informer) getRepo(ctx context.Context, tf *infrav1.Terraform) (provider
 	}
 	obj := &sourcev1.GitRepository{}
 	if err := i.client.Get(ctx, ref, obj); err != nil {
-		return provider.Repository{}, fmt.Errorf("unable to get Source: %w", err)
+		return nil, provider.Repository{}, fmt.Errorf("unable to get Source: %w", err)
 	}
 
-	// Resolve the provider exactly once using sync.Once to avoid race
-	// conditions when multiple update events arrive concurrently. Skip
-	// resolution if a provider was already injected (e.g. via WithGitProvider
-	// in tests).
-	i.providerOnce.Do(func() {
-		if i.gitProvider != nil {
-			return
-		}
-		i.gitProvider, _, i.providerErr = provider.FromURL(obj.Spec.URL, i.providerOpts...)
-	})
-	if i.providerErr != nil {
-		return provider.Repository{}, fmt.Errorf("failed resolving git provider from URL: %w", i.providerErr)
+	repo, err := provider.RepoFromURL(obj.Spec.URL)
+	if err != nil {
+		return nil, provider.Repository{}, err
 	}
 
-	return provider.RepoFromURL(obj.Spec.URL)
+	// A statically injected provider (e.g. via WithGitProvider in tests)
+	// takes precedence.
+	if i.gitProvider != nil {
+		return i.gitProvider, repo, nil
+	}
+
+	if i.providerOptsFn == nil {
+		return nil, provider.Repository{}, fmt.Errorf("no provider options getter configured")
+	}
+
+	// Resolve the provider per interaction so that a rotated token secret
+	// (e.g. short-lived GitHub App installation tokens) is picked up just
+	// in time.
+	opts, err := i.providerOptsFn(ctx)
+	if err != nil {
+		return nil, provider.Repository{}, fmt.Errorf("failed to get provider options: %w", err)
+	}
+	opts = append([]provider.ProviderOption{provider.WithLogger(i.log)}, opts...)
+
+	gitProvider, _, err := i.gitProviderParserFn(obj.Spec.URL, opts...)
+	if err != nil {
+		return nil, provider.Repository{}, fmt.Errorf("failed resolving git provider from URL: %w", err)
+	}
+
+	return gitProvider, repo, nil
 }
 
 func formatPlanOutput(planOutput string) ([]byte, error) {
