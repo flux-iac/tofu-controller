@@ -108,8 +108,11 @@ func Test_poll_reconcile_objects(t *testing.T) {
 		},
 		Spec: sourcev1.GitRepositorySpec{
 			URL: "https://github.com/tf-controller/helloworld",
+			// Extra ref fields must not be inherited by the PR sources.
 			Reference: &sourcev1.GitRepositoryRef{
 				Branch: "main",
+				Name:   "refs/tags/v1",
+				Commit: "0000000000000000000000000000000000000000",
 			},
 		},
 	}
@@ -220,7 +223,7 @@ func Test_poll_reconcile_objects(t *testing.T) {
 		}
 		prID := item.Labels[bpconfig.LabelPRIDKey]
 		expectToEqual(t, g, item.Name, config.SourceName(original.Name, source.Name, prID))
-		expectToEqual(t, g, item.Spec.Reference.Branch, "test-branch-"+prID)
+		expectToEqual(t, g, item.Spec.Reference, &sourcev1.GitRepositoryRef{Branch: "test-branch-" + prID})
 		expectToEqual(t, g, item.Labels[bpconfig.LabelKey], bpconfig.LabelValue)
 		expectToEqual(t, g, item.Labels[bpconfig.LabelPRIDKey], prID)
 		expectToEqual(t, g, item.Labels["test-label"], "123")
