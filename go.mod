@@ -33,7 +33,7 @@ require (
 	github.com/jenkins-x/go-scm v1.17.1
 	github.com/kubescape/go-git-url v0.0.33
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.14.0
-	github.com/onsi/gomega v1.43.1
+	github.com/onsi/gomega v1.44.0
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
