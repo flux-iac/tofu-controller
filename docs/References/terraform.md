@@ -14,6 +14,7 @@ Package v1alpha2 contains API Schema definitions for the infra v1alpha2 API grou
 ### Resource Types
 - [Terraform](#terraform)
 
+
 ### BackendConfigSpec
 
 BackendConfigSpec is for specifying configuration for Terraform's Kubernetes backend

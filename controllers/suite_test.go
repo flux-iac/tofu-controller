@@ -40,6 +40,7 @@ import (
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
+	"github.com/fluxcd/pkg/runtime/events"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -171,10 +172,15 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
+	eventRecorder, err := events.NewRecorder(ctrl.Log, "", "tf-controller", events.WithManager(k8sManager))
+	if err != nil {
+		panic(err)
+	}
+
 	reconciler = &TerraformReconciler{
 		Client:                    k8sManager.GetClient(),
 		Scheme:                    k8sManager.GetScheme(),
-		EventRecorder:             k8sManager.GetEventRecorderFor("tf-controller"),
+		EventRecorder:             eventRecorder,
 		StatusPoller:              polling.NewStatusPoller(k8sManager.GetClient(), k8sManager.GetRESTMapper(), polling.Options{}),
 		CertRotator:               rotator,
 		RunnerGRPCPort:            30000,
