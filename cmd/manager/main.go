@@ -272,7 +272,7 @@ func main() {
 		QuotaRetryJitterFactor:    quotaRetryJitterFactor,
 	}
 
-	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {
+	if err = reconciler.SetupWithManager(signalHandlerContext, mgr, concurrent, httpRetry); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Terraform")
 		os.Exit(1)
 	}
