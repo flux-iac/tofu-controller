@@ -161,11 +161,8 @@ func (s *Server) reconcileSource(ctx context.Context, tfName string, originalSou
 
 		spec := originalSource.Spec.DeepCopy()
 
-		if spec.Reference != nil {
-			spec.Reference.Branch = branch
-		} else {
-			spec.Reference = &sourcev1.GitRepositoryRef{Branch: branch}
-		}
+		// A PR source must resolve only the PR head branch; setting commit here would make source-controller do a full non-shallow clone every interval (no depth, no ls-remote short-circuit).
+		spec.Reference = &sourcev1.GitRepositoryRef{Branch: branch}
 		spec.Interval = metav1.Duration{
 			Duration: interval,
 		}

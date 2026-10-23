@@ -28,7 +28,7 @@ Available Commands:
   resume      Resume reconciliation for the provided resource
   suspend     Suspend reconciliation for the provided resource
   uninstall   Uninstall the tf-controller
-  version     Prints tf-controller and tfctl version information
+  version     Prints tfctl version information
 
 Flags:
   -h, --help                help for tfctl
@@ -38,6 +38,17 @@ Flags:
 
 Use "tfctl [command] --help" for more information about a command.
 ```
+
+## Version information
+
+`tfctl version` prints the local CLI build and release without loading Kubernetes
+configuration or contacting a cluster.
+
+To also display the installed controller and runner versions, use
+`tfctl version --remote`. This preserves the combined output previously returned
+by `tfctl version` and requires Kubernetes access. Use `--namespace` to select the
+controller namespace (default: `flux-system`). Kubernetes configuration,
+connection, and authorization failures remain command errors in remote mode.
 
 ## Shell completion
 
