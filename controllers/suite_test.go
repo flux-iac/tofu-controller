@@ -186,6 +186,7 @@ func TestMain(m *testing.M) {
 		RunnerGRPCPort:            30000,
 		RunnerCreationTimeout:     120 * time.Second,
 		RunnerRPCTimeout:          30 * time.Minute,
+		RunnerUnreachableTimeout:  5 * time.Minute,
 		RunnerGRPCMaxMessageSize:  4,
 		UsePodSubdomainResolution: false,
 	}

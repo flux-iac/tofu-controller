@@ -10,6 +10,7 @@ import (
 
 	"github.com/fluxcd/pkg/runtime/logger"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -151,7 +152,34 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret
 		return nil, err
 	}
 
-	const retryPolicy = `{
+	traceLog.Info("Return gRPC new client")
+	maxMsgSize := r.RunnerGRPCMaxMessageSize * 1024 * 1024
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(credentials),
+		grpc.WithDefaultServiceConfig(runnerServiceConfig),
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(maxMsgSize),
+			grpc.MaxCallSendMsgSize(maxMsgSize),
+		),
+		grpc.WithChainUnaryInterceptor(runnerUnreachableInterceptor(r.RunnerUnreachableTimeout)),
+	}
+	if r.RunnerUnreachableTimeout > 0 {
+		// If the runner's node disappears without closing the TCP connection, a
+		// call waiting on its reply sends nothing, so the connection stays READY
+		// until the OS keepalive gives up hours later. Ping during calls so the
+		// watchdog above gets to see it. Time must stay above the runner's default
+		// 5m ping enforcement minimum, or the runner answers with GOAWAY
+		// "too_many_pings". Timeout is generous so that a short network blip does
+		// not drop the transport of a healthy apply.
+		opts = append(opts, grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Time:    6 * time.Minute,
+			Timeout: 2 * time.Minute,
+		}))
+	}
+	return grpc.NewClient(fmt.Sprintf("%s:%d", hostname, port), opts...)
+}
+
+const runnerServiceConfig = `{
 "methodConfig": [{
   "name": [{"service": "runner.Runner"}],
   "waitForReady": true,
@@ -163,19 +191,6 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret
     "RetryableStatusCodes": [ "UNAVAILABLE" ]
   }
 }]}`
-
-	traceLog.Info("Return gRPC new client")
-	maxMsgSize := r.RunnerGRPCMaxMessageSize * 1024 * 1024
-	return grpc.NewClient(
-		fmt.Sprintf("%s:%d", hostname, port),
-		grpc.WithTransportCredentials(credentials),
-		grpc.WithDefaultServiceConfig(retryPolicy),
-		grpc.WithDefaultCallOptions(
-			grpc.MaxCallRecvMsgSize(maxMsgSize),
-			grpc.MaxCallSendMsgSize(maxMsgSize),
-		),
-	)
-}
 
 func (r *TerraformReconciler) runnerPodSpec(terraform *infrav1.Terraform, tlsSecretName string) v1.PodSpec {
 	serviceAccountName := terraform.Spec.ServiceAccountName

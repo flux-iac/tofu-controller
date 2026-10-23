@@ -94,7 +94,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, patchHelper *patch.
 				// check /tmp/.break-glass file exists
 				reply, err := runnerClient.HasBreakTheGlassSessionDone(ctx, &runner.BreakTheGlassRequest{})
 				if err != nil {
-					return nil, err
+					return terraform, err
 				}
 				if reply.Success {
 					done = true
@@ -273,7 +273,7 @@ func (r *TerraformReconciler) reconcile(ctx context.Context, patchHelper *patch.
 			log.Error(err, "error getting inventory")
 		}
 
-		for _, iv := range getInventoryReply.Inventories {
+		for _, iv := range getInventoryReply.GetInventories() {
 			inventoryEntries = append(inventoryEntries, infrav1.ResourceRef{
 				Name:       iv.GetName(),
 				Type:       iv.GetType(),
