@@ -59,4 +59,8 @@ const (
 
 	// ActionWriteOutputs writes the Terraform outputs to a Secret.
 	ActionWriteOutputs Action = "WriteOutputs"
+
+	// ActionFinalizeSecrets finalizes the runner's secrets when the Terraform
+	// object is deleted.
+	ActionFinalizeSecrets Action = "FinalizeSecrets"
 )

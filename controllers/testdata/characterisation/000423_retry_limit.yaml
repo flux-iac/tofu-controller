@@ -1,0 +1,1112 @@
+Segments:
+- Events:
+  - Action: Reconcile
+    Message: 'rpc error: code = Unknown desc = failed to untar artifact, error: requires
+      gzip-compressed body: gzip: invalid header'
+    Reason: ReconciliationFailed
+    Type: Warning
+  Name: limit
+  Results:
+  - Error: nil
+    Panicked: false
+    Requeue: true
+    RequeueAfter: none
+  - Error: nil
+    Panicked: false
+    Requeue: false
+    RequeueAfter: retry
+  - Error: nil
+    Panicked: false
+    Requeue: false
+    RequeueAfter: none
+  Timeline:
+  - AvailableOutputs: null
+    Conditions: null
+    Finalizers: null
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions: null
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Initializing
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 1
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 1
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Initializing
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 1
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 1
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 2
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 2
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Initializing
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 2
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 2
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 3
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 3
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Resource reached maximum number of retries.
+      Reason: RetryLimitReached
+      Status: "True"
+      Type: Stalled
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 3
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  TimesAdvanced: null
+- Events: null
+  Name: stalled
+  Results:
+  - Error: nil
+    Panicked: false
+    Requeue: false
+    RequeueAfter: none
+  Timeline:
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Resource reached maximum number of retries.
+      Reason: RetryLimitReached
+      Status: "True"
+      Type: Stalled
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 3
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 3
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Resource reached maximum number of retries.
+      Reason: RetryLimitReached
+      Status: "True"
+      Type: Stalled
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 3
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Resource reached maximum number of retries.
+      Reason: RetryLimitReached
+      Status: "True"
+      Type: Stalled
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 3
+    SpecHash: 7483bac208ab
+    TimesSet: null
+  TimesAdvanced: null
+- Events:
+  - Action: Reconcile
+    Message: 'rpc error: code = Unknown desc = failed to untar artifact, error: requires
+      gzip-compressed body: gzip: invalid header'
+    Reason: ReconciliationFailed
+    Type: Warning
+  Name: fewer-retries
+  Results:
+  - Error: nil
+    Panicked: false
+    Requeue: false
+    RequeueAfter: retry
+  - Error: nil
+    Panicked: false
+    Requeue: false
+    RequeueAfter: none
+  Timeline:
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Resource reached maximum number of retries.
+      Reason: RetryLimitReached
+      Status: "True"
+      Type: Stalled
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 3
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 3
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Initializing
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 1
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 1
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Initializing
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 1
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 1
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 2
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 2
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Resource reached maximum number of retries.
+      Reason: RetryLimitReached
+      Status: "True"
+      Type: Stalled
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 2
+    SpecHash: 417136d5b815
+    TimesSet: null
+  TimesAdvanced: null
+- Events:
+  - Action: Reconcile
+    Message: 'rpc error: code = Unknown desc = failed to untar artifact, error: requires
+      gzip-compressed body: gzip: invalid header'
+    Reason: ReconciliationFailed
+    Type: Warning
+  Name: new-source
+  Results:
+  - Error: nil
+    Panicked: false
+    Requeue: false
+    RequeueAfter: retry
+  - Error: nil
+    Panicked: false
+    Requeue: false
+    RequeueAfter: none
+  Timeline:
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 2
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Initializing
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/aaabbbccc6e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 1
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/aaabbbccc6e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 1
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Initializing
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/aaabbbccc6e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 1
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/aaabbbccc6e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 1
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/aaabbbccc6e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 2
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'rpc error: code = Unknown desc = failed to untar artifact, error:
+        requires gzip-compressed body: gzip: invalid header'
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/aaabbbccc6e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 2
+    SpecHash: 417136d5b815
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Resource reached maximum number of retries.
+      Reason: RetryLimitReached
+      Status: "True"
+      Type: Stalled
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/aaabbbccc6e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: char-000423-stalled
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 2
+    Plan: {}
+    ReconciliationFailures: 2
+    SpecHash: 417136d5b815
+    TimesSet: null
+  TimesAdvanced: null
