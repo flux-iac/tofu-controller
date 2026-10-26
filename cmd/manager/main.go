@@ -92,6 +92,7 @@ func main() {
 		runnerGRPCPort            int
 		runnerCreationTimeout     time.Duration
 		runnerRPCTimeout          time.Duration
+		runnerUnreachableTimeout  time.Duration
 		runnerGRPCMaxMessageSize  int
 		allowBreakTheGlass        bool
 		clusterDomain             string
@@ -123,6 +124,13 @@ func main() {
 		"Maximum duration for the batch of runner RPCs that set up Terraform (upload, "+
 			"backend config, init, workspace select). Bounds the reconcile so a runner pod "+
 			"that dies mid-RPC surfaces as an error and requeues instead of hanging forever.")
+	flag.DurationVar(&runnerUnreachableTimeout, "runner-unreachable-timeout", 5*time.Minute,
+		"Cancel a runner RPC once the connection to a runner that was reachable has not been "+
+			"ready for this long, so a runner pod that dies mid-plan or mid-apply surfaces as an "+
+			"error and requeues instead of hanging forever. Healthy long-running plans and applies "+
+			"keep the connection ready and are not affected, and waiting for a runner that is still "+
+			"starting is not counted. Set to 0 to disable, which also turns off the keepalive "+
+			"pings that notice a runner whose node vanished without closing the connection.")
 	flag.IntVar(&runnerGRPCMaxMessageSize, "runner-grpc-max-message-size", 4, "The maximum message size for gRPC connections in MiB.")
 	flag.BoolVar(&allowBreakTheGlass, "allow-break-the-glass", false, "Allow break the glass mode.")
 	flag.StringVar(&clusterDomain, "cluster-domain", "cluster.local", "The cluster domain used by the cluster.")
@@ -259,6 +267,7 @@ func main() {
 		RunnerGRPCPort:            runnerGRPCPort,
 		RunnerCreationTimeout:     runnerCreationTimeout,
 		RunnerRPCTimeout:          runnerRPCTimeout,
+		RunnerUnreachableTimeout:  runnerUnreachableTimeout,
 		RunnerGRPCMaxMessageSize:  runnerGRPCMaxMessageSize,
 		AllowBreakTheGlass:        allowBreakTheGlass,
 		ClusterDomain:             clusterDomain,
