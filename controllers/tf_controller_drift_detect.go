@@ -124,16 +124,19 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform *infrav
 			TfInstance: tfInstance,
 			Filename:   driftFilename,
 		})
-		if err != nil {
+		if isPlanMessageSizeError(err) {
+			log.Info("WARNING: JSON plan exceeds gRPC message-size limit; retaining exit-code-based drift detection", "error", err.Error())
+		} else if err != nil {
 			return infrav1.TerraformNotReady(terraform, revision, infrav1.DriftDetectionFailedReason, err.Error()), err
-		}
-		var plan tfjson.Plan
-		if err := json.Unmarshal(showReply.JsonOutput, &plan); err != nil {
-			return infrav1.TerraformNotReady(terraform, revision, infrav1.DriftDetectionFailedReason, err.Error()), err
-		}
-		if planHasOnlyDataReads(&plan) {
-			drifted = false
-			log.Info("ignoring data-source-only reads during drift detection")
+		} else {
+			var plan tfjson.Plan
+			if err := json.Unmarshal(showReply.JsonOutput, &plan); err != nil {
+				return infrav1.TerraformNotReady(terraform, revision, infrav1.DriftDetectionFailedReason, err.Error()), err
+			}
+			if planHasOnlyDataReads(&plan) {
+				drifted = false
+				log.Info("ignoring data-source-only reads during drift detection")
+			}
 		}
 	}
 
