@@ -151,6 +151,10 @@ runner:
     # -- List of namespaces that the runner may run within (in addition to namespace of the controller itself)
     allowedNamespaces:
       - flux-system
+    # -- If `true`, bind `tf-runner-role` to the runner service account with a RoleBinding in each allowed namespace
+    # instead of one ClusterRoleBinding, so a runner can only access Secrets, ConfigMaps and Leases in its own namespace.
+    # A Terraform resource whose `cliConfigSecretRef` points to a Secret in another namespace will fail to reconcile.
+    namespacedRoleBindings: false
 # EKS-specific configurations
 # -- Create an AWS EKS Security Group Policy with the supplied Security Group IDs [See](https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html#deploy-securitygrouppolicy)
 eksSecurityGroupPolicy:
