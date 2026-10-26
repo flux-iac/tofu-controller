@@ -3,10 +3,10 @@ module github.com/flux-iac/tofu-controller/api
 go 1.27.3
 
 require (
-	github.com/fluxcd/pkg/apis/meta v1.36.0
-	github.com/fluxcd/pkg/runtime v0.120.0
+	github.com/fluxcd/pkg/apis/meta v1.37.0
+	github.com/fluxcd/pkg/runtime v0.121.0
 	github.com/fluxcd/source-controller/api v1.9.3
-	github.com/onsi/gomega v1.43.0
+	github.com/onsi/gomega v1.44.0
 	k8s.io/api v0.37.1
 	k8s.io/apiextensions-apiserver v0.37.1
 	k8s.io/apimachinery v0.37.1
