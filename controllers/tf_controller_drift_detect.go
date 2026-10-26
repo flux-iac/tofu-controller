@@ -2,8 +2,12 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
+
 	"fmt"
 	"strings"
+
+	tfjson "github.com/hashicorp/terraform-json"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
@@ -114,6 +118,24 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, terraform *infrav
 	}
 	drifted := planReply.Drifted
 	log.Info(fmt.Sprintf("plan for drift: %s found drift: %v", planReply.Message, planReply.Drifted))
+
+	if drifted && !r.backendCompletelyDisable(terraform) {
+		showReply, err := runnerClient.ShowPlanFile(ctx, &runner.ShowPlanFileRequest{
+			TfInstance: tfInstance,
+			Filename:   driftFilename,
+		})
+		if err != nil {
+			return infrav1.TerraformNotReady(terraform, revision, infrav1.DriftDetectionFailedReason, err.Error()), err
+		}
+		var plan tfjson.Plan
+		if err := json.Unmarshal(showReply.JsonOutput, &plan); err != nil {
+			return infrav1.TerraformNotReady(terraform, revision, infrav1.DriftDetectionFailedReason, err.Error()), err
+		}
+		if planHasOnlyDataReads(&plan) {
+			drifted = false
+			log.Info("ignoring data-source-only reads during drift detection")
+		}
+	}
 
 	if drifted {
 		var rawOutput string
