@@ -208,33 +208,6 @@ func TestShouldReconcileWhenNeverPlanned(t *testing.T) {
 	g.Expect(requeueAfter).To(Equal(time.Duration(0)))
 }
 
-func TestShouldReconcileWhenDeleting(t *testing.T) {
-	Spec("This spec covers reconciling while the object is being deleted.")
-	It("should return true without delay.")
-
-	g := NewWithT(t)
-	reconciler := &TerraformReconciler{}
-
-	now := metav1.Now()
-	tf := &infrav1.Terraform{
-		ObjectMeta: metav1.ObjectMeta{
-			Generation:        1,
-			DeletionTimestamp: &now,
-		},
-		Spec: infrav1.TerraformSpec{
-			Interval: metav1.Duration{Duration: 24 * time.Hour},
-		},
-		Status: infrav1.TerraformStatus{
-			LastPlanAt: &metav1.Time{Time: time.Now()},
-		},
-	}
-
-	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, nil)
-	g.Expect(shouldReconcile).To(BeTrue())
-	g.Expect(reason).To(Equal("object is being deleted"))
-	g.Expect(requeueAfter).To(Equal(time.Duration(0)))
-}
-
 func TestShouldReconcileWhenForceEnabled(t *testing.T) {
 	Spec("This spec covers reconciling when force is enabled.")
 	It("should return true without delay.")
@@ -450,4 +423,165 @@ func TestShouldReconcileWaitsForRetryIntervalOnFailure(t *testing.T) {
 	g.Expect(shouldReconcile).To(BeFalse())
 	g.Expect(requeueAfter).To(BeNumerically(">", 19*time.Minute))
 	g.Expect(requeueAfter).To(BeNumerically("<=", 20*time.Minute))
+}
+
+func TestShouldReconcileRetriesAfterDrift(t *testing.T) {
+	Spec("This spec covers re-checking drift that was detected before the interval elapsed.")
+	It("should reconcile once the retry interval has elapsed, although drift is not counted as a failure and a later pass replaced the Ready reason.")
+
+	g := NewWithT(t)
+	reconciler := &TerraformReconciler{}
+
+	tf := &infrav1.Terraform{
+		ObjectMeta: metav1.ObjectMeta{
+			Generation: 1,
+		},
+		Spec: infrav1.TerraformSpec{
+			Interval:      metav1.Duration{Duration: time.Hour},
+			RetryInterval: &metav1.Duration{Duration: 15 * time.Second},
+		},
+		Status: infrav1.TerraformStatus{
+			LastPlanAt:                &metav1.Time{Time: time.Now().Add(-10 * time.Minute)},
+			LastSuccessfulReconcileAt: &metav1.Time{Time: time.Now().Add(-5 * time.Minute)},
+			LastDriftDetectedAt:       &metav1.Time{Time: time.Now().Add(-1 * time.Minute)},
+			LastAttemptedRevision:     "main/1234",
+			LastPlannedRevision:       "main/1234",
+			ObservedGeneration:        1,
+			// The drift retry pass then failed on the runner quota, which
+			// replaced the DriftDetected reason without counting a failure.
+			Conditions: []metav1.Condition{
+				{
+					Message: "runner pod creation blocked by resource quota",
+					Reason:  infrav1.RunnerQuotaExhaustedReason,
+					Type:    meta.ReadyCondition,
+					Status:  metav1.ConditionFalse,
+				},
+			},
+		},
+	}
+
+	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, nil)
+	g.Expect(shouldReconcile).To(BeTrue())
+	g.Expect(reason).To(Equal("retry interval has elapsed since last failed reconciliation"))
+	g.Expect(requeueAfter).To(Equal(time.Duration(0)))
+}
+
+func TestShouldReconcileWaitsRetryIntervalAfterDrift(t *testing.T) {
+	Spec("This spec covers waiting for the retry interval before re-checking drift.")
+	It("should return false with the remaining retry interval.")
+
+	g := NewWithT(t)
+	reconciler := &TerraformReconciler{}
+
+	tf := &infrav1.Terraform{
+		ObjectMeta: metav1.ObjectMeta{
+			Generation: 1,
+		},
+		Spec: infrav1.TerraformSpec{
+			Interval:      metav1.Duration{Duration: time.Hour},
+			RetryInterval: &metav1.Duration{Duration: 10 * time.Minute},
+		},
+		Status: infrav1.TerraformStatus{
+			LastPlanAt:                &metav1.Time{Time: time.Now().Add(-1 * time.Minute)},
+			LastSuccessfulReconcileAt: &metav1.Time{Time: time.Now().Add(-1 * time.Minute)},
+			LastDriftDetectedAt:       &metav1.Time{Time: time.Now()},
+			LastAttemptedRevision:     "main/1234",
+			LastPlannedRevision:       "main/1234",
+			ObservedGeneration:        1,
+			Conditions: []metav1.Condition{
+				{
+					Message: "Drift detected",
+					Reason:  infrav1.DriftDetectedReason,
+					Type:    meta.ReadyCondition,
+					Status:  metav1.ConditionFalse,
+				},
+			},
+		},
+	}
+
+	shouldReconcile, reason, requeueAfter := reconciler.shouldReconcile(tf, nil)
+	g.Expect(shouldReconcile).To(BeFalse())
+	g.Expect(reason).To(Equal("retry interval has not elapsed since last failed reconciliation"))
+	g.Expect(requeueAfter).To(BeNumerically(">", 8*time.Minute))
+	g.Expect(requeueAfter).To(BeNumerically("<=", 9*time.Minute))
+}
+
+func TestShouldReconcileIgnoresResolvedDrift(t *testing.T) {
+	Spec("This spec covers drift that a later successful reconciliation resolved.")
+	It("should wait for the interval, not the retry interval.")
+
+	g := NewWithT(t)
+	reconciler := &TerraformReconciler{}
+
+	tf := &infrav1.Terraform{
+		ObjectMeta: metav1.ObjectMeta{
+			Generation: 1,
+		},
+		Spec: infrav1.TerraformSpec{
+			Interval:      metav1.Duration{Duration: time.Hour},
+			RetryInterval: &metav1.Duration{Duration: 15 * time.Second},
+		},
+		Status: infrav1.TerraformStatus{
+			LastPlanAt:                &metav1.Time{Time: time.Now().Add(-10 * time.Minute)},
+			LastDriftDetectedAt:       &metav1.Time{Time: time.Now().Add(-5 * time.Minute)},
+			LastSuccessfulReconcileAt: &metav1.Time{Time: time.Now().Add(-1 * time.Minute)},
+			LastAttemptedRevision:     "main/1234",
+			LastPlannedRevision:       "main/1234",
+			ObservedGeneration:        1,
+			Conditions: []metav1.Condition{
+				{
+					Message: "Reconciliation in progress",
+					Reason:  meta.ProgressingReason,
+					Type:    meta.ReadyCondition,
+					Status:  metav1.ConditionUnknown,
+				},
+			},
+		},
+	}
+
+	shouldReconcile, reason, _ := reconciler.shouldReconcile(tf, nil)
+	g.Expect(shouldReconcile).To(BeFalse())
+	g.Expect(reason).To(Equal("interval has not elapsed since last successful reconciliation"))
+}
+
+func TestShouldReconcileAfterRunnerFailure(t *testing.T) {
+	Spec("This spec covers a pass that failed to start the runner, for example because its pod was evicted.")
+	It("should reconcile again instead of waiting for the interval.")
+
+	for _, reason := range []string{infrav1.RunnerFailedReason, infrav1.RunnerQuotaExhaustedReason} {
+		t.Run(reason, func(t *testing.T) {
+			g := NewWithT(t)
+			reconciler := &TerraformReconciler{}
+
+			lastReconcile := time.Now().Add(-6 * 24 * time.Hour)
+			tf := &infrav1.Terraform{
+				ObjectMeta: metav1.ObjectMeta{
+					Generation: 1,
+				},
+				Spec: infrav1.TerraformSpec{
+					Interval: metav1.Duration{Duration: 168 * time.Hour},
+				},
+				Status: infrav1.TerraformStatus{
+					LastPlanAt:                &metav1.Time{Time: lastReconcile},
+					LastSuccessfulReconcileAt: &metav1.Time{Time: lastReconcile},
+					LastAttemptedRevision:     "main/1234",
+					LastPlannedRevision:       "main/1234",
+					ObservedGeneration:        1,
+					Conditions: []metav1.Condition{
+						{
+							Message: "failed to create and obtain pod ip",
+							Reason:  reason,
+							Type:    meta.ReadyCondition,
+							Status:  metav1.ConditionFalse,
+						},
+					},
+				},
+			}
+
+			shouldReconcile, why, requeueAfter := reconciler.shouldReconcile(tf, nil)
+			g.Expect(shouldReconcile).To(BeTrue())
+			g.Expect(why).To(Equal("previously failed to start the runner"))
+			g.Expect(requeueAfter).To(BeZero())
+		})
+	}
 }

@@ -14,6 +14,7 @@ Package v1alpha2 contains API Schema definitions for the infra v1alpha2 API grou
 ### Resource Types
 - [Terraform](#terraform)
 
+
 ### BackendConfigSpec
 
 BackendConfigSpec is for specifying configuration for Terraform's Kubernetes backend
@@ -52,6 +53,7 @@ _Appears in:_
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
 | `enablePathScope` _boolean_ | EnablePathScope specifies if the Branch Planner should or shouldn't check<br />if a Pull Request has changes under `.spec.path`. If enabled extra<br />resources will be created only if there are any changes in terraform files. |  | Optional: \{\} <br /> |
+| `baseBranch` _string_ | BaseBranch restricts branch planning to Pull Requests targeting this branch.<br />Defaults to the branch tracked by the source GitRepository (`.spec.ref.branch`,<br />or `.spec.ref.name` of the form `refs/heads/<branch>`). If unset and the source<br />does not track a branch (tag, semver or commit-only), no Pull Requests are planned. |  | Optional: \{\} <br /> |
 
 
 ### CloudSpec

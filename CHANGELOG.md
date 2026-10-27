@@ -2,6 +2,32 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.16.6
+
+**Release date:** 2026-10-26
+
+## What's Changed
+* fix(deps): remove libcrypto3 pin by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1874
+* chore(deps): bump the go-patch group across 1 directory with 7 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1871
+* fix: list only open GitLab merge requests by @matteslip in https://github.com/flux-iac/tofu-controller/pull/1865
+* chore(deps): bump the go-minor group across 1 directory with 12 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1875
+* test: fix flakiness observed with the mTLS CA rotations by @mloiseleur in https://github.com/flux-iac/tofu-controller/pull/1891
+* chore(deps): bump go to 1.26.10 by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1909
+* fix(branch-planner): read branch planner token secret just in time by @isometry in https://github.com/flux-iac/tofu-controller/pull/1883
+* Make tfctl version work without Kubernetes by @ajavanma in https://github.com/flux-iac/tofu-controller/pull/1900
+* chore(deps): go minor bumps by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1910
+* fix(branch-planner): replace the PR source ref and only plan PRs targeting the tracked branch by @isometry in https://github.com/flux-iac/tofu-controller/pull/1908
+* fix(drift): Ignore data-source-only reads by @cgroschupp in https://github.com/flux-iac/tofu-controller/pull/1918
+* fix: cancel runner calls when the runner connection stays down by @kxxil01 in https://github.com/flux-iac/tofu-controller/pull/1907
+* feat(chart): optionally bind the runner role per namespace by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1919
+
+## New Contributors
+* @matteslip made their first contribution in https://github.com/flux-iac/tofu-controller/pull/1865
+* @isometry made their first contribution in https://github.com/flux-iac/tofu-controller/pull/1883
+* @ajavanma made their first contribution in https://github.com/flux-iac/tofu-controller/pull/1900
+* @cgroschupp made their first contribution in https://github.com/flux-iac/tofu-controller/pull/1918
+* @kxxil01 made their first contribution in https://github.com/flux-iac/tofu-controller/pull/1907
+
 ## v0.16.5
 
 **Release date:** 2026-08-06

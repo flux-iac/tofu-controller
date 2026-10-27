@@ -33,8 +33,6 @@ service Runner {
 
   rpc Init(InitRequest) returns (InitReply) {}
   rpc SelectWorkspace(WorkspaceRequest) returns (WorkspaceReply) {}
-  rpc CreateWorkspaceBlob(CreateWorkspaceBlobRequest) returns (CreateWorkspaceBlobReply) {}
-  rpc Upload(UploadRequest) returns (UploadReply) {}
 
   rpc FinalizeSecrets(FinalizeSecretsRequest) returns (FinalizeSecretsReply) {}
   rpc ForceUnlock(ForceUnlockRequest) returns (ForceUnlockReply) {}
@@ -127,6 +125,7 @@ message ProcessCliConfigReply {
 
 message GenerateVarsForTFRequest {
   string workingDir = 1;
+  string tfInstance = 2;
 }
 
 message GenerateVarsForTFReply {
@@ -135,6 +134,7 @@ message GenerateVarsForTFReply {
 
 message GenerateTemplateRequest {
   string workingDir = 1;
+  string tfInstance = 2;
 }
 
 message GenerateTemplateReply {
@@ -152,9 +152,10 @@ message PlanRequest {
 }
 
 message PlanReply {
+  reserved 3;
+  reserved "stateLockIdentifier";
   bool drifted = 1;
   string message = 2;
-  string stateLockIdentifier = 3;
   bool planCreated = 4;
 }
 
@@ -210,8 +211,9 @@ message ApplyRequest {
 }
 
 message ApplyReply {
+  reserved 2;
+  reserved "stateLockIdentifier";
   string message = 1;
-  string stateLockIdentifier = 2;
 }
 
 message GetInventoryRequest {
@@ -234,8 +236,9 @@ message DestroyRequest {
 }
 
 message DestroyReply {
+  reserved 2;
+  reserved "stateLockIdentifier";
   string message = 1;
-  string stateLockIdentifier = 2;
 }
 
 message OutputRequest {
@@ -283,8 +286,9 @@ message InitRequest {
 }
 
 message InitReply {
+  reserved 2;
+  reserved "stateLockIdentifier";
   string message = 1;
-  string stateLockIdentifier = 2;
 }
 
 message WorkspaceRequest {
@@ -293,25 +297,6 @@ message WorkspaceRequest {
 
 
 message WorkspaceReply {
-  string message = 1;
-}
-
-message CreateWorkspaceBlobRequest {
-  string tfInstance = 1;
-  string workingDir = 2;
-  string namespace  = 3;
-}
-
-message CreateWorkspaceBlobReply {
-  bytes blob = 2;
-  bytes sha256Checksum = 3;
-}
-
-message UploadRequest {
-  bytes blob = 1;
-}
-
-message UploadReply {
   string message = 1;
 }
 
@@ -324,17 +309,20 @@ message FinalizeSecretsRequest {
 }
 
 message FinalizeSecretsReply {
+  reserved 2;
+  reserved "notFound";
   string message = 1;
-  bool   notFound = 2;
 }
 
 message ForceUnlockRequest {
   string lockIdentifier = 1;
+  string tfInstance = 2;
 }
 
 message ForceUnlockReply {
+  reserved 2;
+  reserved "success";
   string message = 1;
-  bool   success = 2;
 }
 
 message BreakTheGlassRequest {
@@ -343,4 +331,15 @@ message BreakTheGlassRequest {
 message BreakTheGlassReply {
   string message = 1;
   bool   success = 2;
+}
+
+// StateLock describes a held Terraform state lock. The runner attaches it to
+// the status of calls that fail because of a lock.
+message StateLock {
+  string id = 1;
+  string path = 2;
+  string operation = 3;
+  string who = 4;
+  string version = 5;
+  string created = 6;
 }

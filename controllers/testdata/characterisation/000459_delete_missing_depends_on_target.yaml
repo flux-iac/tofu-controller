@@ -1,0 +1,188 @@
+Segments:
+- Events:
+  - Action: CheckDependencies
+    Message: Dependencies do not meet ready condition, retrying in 2h0m0s
+    Reason: DependencyNotReady
+    Type: Normal
+  Name: blocked
+  Results:
+  - Error: nil
+    Panicked: false
+    Requeue: true
+    RequeueAfter: none
+  - Error: nil
+    Panicked: false
+    Requeue: false
+    RequeueAfter: retry
+  Timeline:
+  - AvailableOutputs: null
+    Conditions: null
+    Finalizers: null
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 4b7f2caf6e75
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions: null
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 4b7f2caf6e75
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 4b7f2caf6e75
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'unable to get ''flux-system/char-000459-never-created'' dependency:
+        Terraform.infra.contrib.fluxcd.io "char-000459-never-created" not found'
+      Reason: DependencyNotReady
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 4b7f2caf6e75
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'unable to get ''flux-system/char-000459-never-created'' dependency:
+        Terraform.infra.contrib.fluxcd.io "char-000459-never-created" not found'
+      Reason: DependencyNotReady
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 4b7f2caf6e75
+    TimesSet: null
+- Events: null
+  Name: delete
+  Results:
+  - Error: nil
+    Panicked: false
+    Requeue: false
+    RequeueAfter: none
+  Timeline:
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'unable to get ''flux-system/char-000459-never-created'' dependency:
+        Terraform.infra.contrib.fluxcd.io "char-000459-never-created" not found'
+      Reason: DependencyNotReady
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 4b7f2caf6e75
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'unable to get ''flux-system/char-000459-never-created'' dependency:
+        Terraform.infra.contrib.fluxcd.io "char-000459-never-created" not found'
+      Reason: DependencyNotReady
+      Status: "False"
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 4b7f2caf6e75
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 2
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 4b7f2caf6e75
+    TimesSet: null

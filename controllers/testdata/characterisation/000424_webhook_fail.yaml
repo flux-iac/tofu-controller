@@ -1,0 +1,193 @@
+Segments:
+- Events:
+  - Action: Reconcile
+    Message: 'SHOULD FAIL Violation: Max nodes count in GCP in terraform helloworld
+      (1 occurrences)'
+    Reason: ReconciliationFailed
+    Type: Warning
+  Name: plan
+  Results:
+  - Error: nil
+    Panicked: false
+    Requeue: true
+    RequeueAfter: none
+  - Error: nil
+    Panicked: false
+    Requeue: false
+    RequeueAfter: retry
+  Timeline:
+  - AvailableOutputs: null
+    Conditions: null
+    Finalizers: null
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: d58abfaccd2d
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions: null
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: d58abfaccd2d
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: d58abfaccd2d
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: d58abfaccd2d
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Initializing
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: d58abfaccd2d
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Terraform Planning
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: d58abfaccd2d
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'SHOULD FAIL Violation: Max nodes count in GCP in terraform helloworld
+        (1 occurrences)'
+      Reason: PostPlanningWebhookFailed
+      Status: "False"
+      Type: Plan
+    - Message: 'SHOULD FAIL Violation: Max nodes count in GCP in terraform helloworld
+        (1 occurrences)'
+      Reason: PostPlanningWebhookFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: d58abfaccd2d
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'SHOULD FAIL Violation: Max nodes count in GCP in terraform helloworld
+        (1 occurrences)'
+      Reason: PostPlanningWebhookFailed
+      Status: "False"
+      Type: Plan
+    - Message: 'SHOULD FAIL Violation: Max nodes count in GCP in terraform helloworld
+        (1 occurrences)'
+      Reason: PostPlanningWebhookFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastPlannedGeneration: 0
+    LastPlannedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 1
+    SpecHash: d58abfaccd2d
+    TimesSet: null

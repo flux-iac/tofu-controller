@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.26.10
+ARG GO_VERSION=1.27.3
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS builder
 
 WORKDIR /build

@@ -1,9 +1,12 @@
 # 3. Workspace BLOB Caching
 
-* Status: [ **proposed** | rejected | accepted | deprecated ]
+* Status: [ proposed | rejected | accepted | **deprecated** ]
 * Date: 2023-09-20 
 * Authors: @chanwit
 * Deciders: TBD 
+
+> **Deprecated:** the controller does not use this. The `CreateWorkspaceBlob` RPC it
+> describes has been removed from the runner.
 
 ## Context
 

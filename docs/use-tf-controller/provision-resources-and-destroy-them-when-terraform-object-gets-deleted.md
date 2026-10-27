@@ -9,6 +9,8 @@ However, you may want to destroy provisioned resources when deleting the Terrafo
 
 ~> **WARNING:** This feature will destroy your resources on the cloud if the Terraform object gets deleted. Use it with caution.
 
+Destroy does not run if the Terraform object is suspended (`.spec.suspend: true`) when you delete it: the object is deleted and the provisioned resources are left in place. The same applies if you suspend an object that is already being deleted: any destroy that has not yet run is skipped. In both cases the controller emits a `DestroySkipped` event.
+
 ```yaml hl_lines="8"
 apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform

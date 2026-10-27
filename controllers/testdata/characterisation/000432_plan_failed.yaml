@@ -1,0 +1,305 @@
+Segments:
+- Events:
+  - Action: Plan
+    Message: |
+      Plan error: exit status 1
+
+      Error: No value for required variable
+
+        on main.tf line 5:
+         5: variable "region" {
+
+      The root module input variable "region" is not set, and has no default value.
+      Use a -var or -var-file command line argument to provide a value for this
+      variable.
+
+      Error: No value for required variable
+
+        on main.tf line 9:
+         9: variable "environment" {
+
+      The root module input variable "environment" is not set, and has no default
+      value. Use a -var or -var-file command line argument to provide a value for
+      this variable.
+
+      Error: No value for required variable
+
+        on main.tf line 13:
+        13: variable "cluster_name" {
+
+      The root module input variable "cluster_name" is not set, and has no default
+      value. Use a -var or -var-file command line argument to provide a value for
+      this variable.
+    Reason: TFExecPlanFailed
+    Type: Warning
+  - Action: Reconcile
+    Message: |
+      error running Plan: exit status 1
+
+      Error: No value for required variable
+
+        on main.tf line 5:
+         5: variable "region" {
+
+      The root module input variable "region" is not set, and has no default value.
+      Use a -var or -var-file command line argument to provide a value for this
+      variable.
+
+      Error: No value for required variable
+
+        on main.tf line 9:
+         9: variable "environment" {
+
+      The root module input variable "environment" is not set, and has no default
+      value. Use a -var or -var-file command line argument to provide a value for
+      this variable.
+
+      Error: No value for required variable
+
+        on main.tf line 13:
+        13: variable "cluster_name" {
+
+      The root module input variable "cluster_name" is not set, and has no default
+      value. Use a -var or -var-file command line argument to provide a value for
+      this variable.
+    Reason: ReconciliationFailed
+    Type: Warning
+  Name: create
+  Results:
+  - Error: nil
+    Panicked: false
+    Requeue: true
+    RequeueAfter: none
+  - Error: nil
+    Panicked: false
+    Requeue: false
+    RequeueAfter: retry
+  Timeline:
+  - AvailableOutputs: null
+    Conditions: null
+    Finalizers: null
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: fe447fa4cc77
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions: null
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: fe447fa4cc77
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: fe447fa4cc77
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: fe447fa4cc77
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Initializing
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: fe447fa4cc77
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Terraform Planning
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: fe447fa4cc77
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: |
+        error running Plan: exit status 1
+
+        Error: No value for required variable
+
+          on main.tf line 5:
+           5: variable "region" {
+
+        The root module input variable "region" is not set, and has no default value.
+        Use a -var or -var-file command line argument to provide a value for this
+        variable.
+
+        Error: No value for required variable
+
+          on main.tf line 9:
+           9: variable "environment" {
+
+        The root module input variable "environment" is not set, and has no default
+        value. Use a -var or -var-file command line argument to provide a value for
+        this variable.
+
+        Error: No value for required variable
+
+          on main.tf line 13:
+          13: variable "cluster_name" {
+
+        The root module input variable "cluster_name" is not set, and has no default
+        value. Use a -var or -var-file command line argument to provide a value for
+        this variable.
+      Reason: TFExecPlanFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: fe447fa4cc77
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: |
+        error running Plan: exit status 1
+
+        Error: No value for required variable
+
+          on main.tf line 5:
+           5: variable "region" {
+
+        The root module input variable "region" is not set, and has no default value.
+        Use a -var or -var-file command line argument to provide a value for this
+        variable.
+
+        Error: No value for required variable
+
+          on main.tf line 9:
+           9: variable "environment" {
+
+        The root module input variable "environment" is not set, and has no default
+        value. Use a -var or -var-file command line argument to provide a value for
+        this variable.
+
+        Error: No value for required variable
+
+          on main.tf line 13:
+          13: variable "cluster_name" {
+
+        The root module input variable "cluster_name" is not set, and has no default
+        value. Use a -var or -var-file command line argument to provide a value for
+        this variable.
+      Reason: TFExecPlanFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 1
+    SpecHash: fe447fa4cc77
+    TimesSet: null
+  TimesAdvanced: null

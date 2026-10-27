@@ -91,20 +91,26 @@ TEST_SETTINGS=INSECURE_LOCAL_RUNNER=1 DISABLE_K8S_LOGS=1 DISABLE_TF_LOGS=1 DISAB
 
 .PHONY: test
 test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests.
-	$(TEST_SETTINGS) go test ./controllers -coverprofile cover.out -v
+	$(TEST_SETTINGS) go test ./controllers -coverprofile cover.out -v -timeout $(TEST_TIMEOUT)
 
-# usage: make TARGET=250 target-test
+# usage: make TARGET=250 target-test [TEST_ARGS='-count=3' | TEST_ARGS='-args -update'] [TEST_TIMEOUT=120m]
+TEST_ARGS ?=
+TEST_TIMEOUT ?= 30m
 .PHONY: target-test
 target-test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests. e.g make TARGET=250 target-test
-	$(TEST_SETTINGS) go test ./controllers -coverprofile cover.out -v -run $(TARGET)
+	$(TEST_SETTINGS) go test ./controllers -coverprofile cover.out -v -run '$(TARGET)' -timeout $(TEST_TIMEOUT) $(TEST_ARGS)
 
 .PHONY: normal-controller-test
 normal-controller-test: manifests generate download-crd-deps fmt vet envtest api-docs ## Run non numbered controller tests.
-	$(TEST_SETTINGS) go test ./controllers -coverprofile cover.out -v -skip "Test_0"
+	$(TEST_SETTINGS) go test ./controllers -coverprofile cover.out -v -skip "Test_0" -timeout $(TEST_TIMEOUT)
 
 .PHONY: test-internal
 test-internal: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests in the internal directory.
 	$(TEST_SETTINGS) go test ./internal/... -coverprofile cover.out -v
+
+.PHONY: test-runner
+test-runner: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests in the runner directory.
+	$(TEST_SETTINGS) go test ./runner/... -coverprofile cover.out -v
 
 .PHONY: test-plan
 test-plan: ## Run plan package tests.

@@ -98,6 +98,7 @@ func main() {
 		runnerGRPCPort            int
 		runnerCreationTimeout     time.Duration
 		runnerRPCTimeout          time.Duration
+		runnerUnreachableTimeout  time.Duration
 		runnerGRPCMaxMessageSize  int
 		allowBreakTheGlass        bool
 		clusterDomain             string
@@ -128,8 +129,16 @@ func main() {
 	flag.DurationVar(&runnerCreationTimeout, "runner-creation-timeout", 120*time.Second, "Timeout for creating a runner pod.")
 	flag.DurationVar(&runnerRPCTimeout, "runner-rpc-timeout", 30*time.Minute,
 		"Maximum duration for the batch of runner RPCs that set up Terraform (upload, "+
-			"backend config, init, workspace select). Bounds the reconcile so a runner pod "+
+			"backend config, init, workspace select), and for finalizing the runner's secrets on "+
+			"deletion. Bounds the reconcile so a runner pod "+
 			"that dies mid-RPC surfaces as an error and requeues instead of hanging forever.")
+	flag.DurationVar(&runnerUnreachableTimeout, "runner-unreachable-timeout", 5*time.Minute,
+		"Cancel a runner RPC once the connection to a runner that was reachable has not been "+
+			"ready for this long, so a runner pod that dies mid-plan or mid-apply surfaces as an "+
+			"error and requeues instead of hanging forever. Healthy long-running plans and applies "+
+			"keep the connection ready and are not affected, and waiting for a runner that is still "+
+			"starting is not counted. Set to 0 to disable, which also turns off the keepalive "+
+			"pings that notice a runner whose node vanished without closing the connection.")
 	flag.IntVar(&runnerGRPCMaxMessageSize, "runner-grpc-max-message-size", 4, "The maximum message size for gRPC connections in MiB.")
 	flag.BoolVar(&allowBreakTheGlass, "allow-break-the-glass", false, "Allow break the glass mode.")
 	flag.StringVar(&clusterDomain, "cluster-domain", "cluster.local", "The cluster domain used by the cluster.")
@@ -209,8 +218,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	var eventRecorder *events.Recorder
-	if eventRecorder, err = events.NewRecorder(mgr, ctrl.Log, eventsAddr, controllerName); err != nil {
+	var eventRecorder events.Recorder
+	if eventRecorder, err = events.NewRecorder(ctrl.Log, eventsAddr, controllerName, events.WithManager(mgr)); err != nil {
 		setupLog.Error(err, "unable to create event recorder")
 		os.Exit(1)
 	}
@@ -277,6 +286,7 @@ func main() {
 		RunnerGRPCPort:            runnerGRPCPort,
 		RunnerCreationTimeout:     runnerCreationTimeout,
 		RunnerRPCTimeout:          runnerRPCTimeout,
+		RunnerUnreachableTimeout:  runnerUnreachableTimeout,
 		RunnerGRPCMaxMessageSize:  runnerGRPCMaxMessageSize,
 		AllowBreakTheGlass:        allowBreakTheGlass,
 		ClusterDomain:             clusterDomain,
@@ -298,6 +308,9 @@ func main() {
 	//+kubebuilder:scaffold:builder
 
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
+		if concurrent > 1 {
+			setupLog.Info("in-process runner serves one Terraform object at a time; set --concurrent=1", "concurrent", concurrent)
+		}
 		runnerServer := &runner.TerraformRunnerServer{
 			Client: mgr.GetClient(),
 			Scheme: mgr.GetScheme(),

@@ -20,8 +20,10 @@ var (
 	BuildVersion string
 )
 
-var defaultNamespace = "flux-system"
-var kubeconfigArgs = genericclioptions.NewConfigFlags(false)
+var (
+	defaultNamespace = "flux-system"
+	kubeconfigArgs   = genericclioptions.NewConfigFlags(false)
+)
 
 func main() {
 	cmd := newRootCommand()
@@ -61,7 +63,7 @@ func newRootCommand() *cobra.Command {
 	rootCmd.AddCommand(buildResumeCmd(app))
 	rootCmd.AddCommand(buildSuspendCmd(app))
 	rootCmd.AddCommand(buildUninstallCmd(app))
-	rootCmd.AddCommand(buildVersionCmd(app))
+	rootCmd.AddCommand(buildVersionCmd(app, config))
 
 	rootCmd.AddCommand(buildGetGroup(app))
 	rootCmd.AddCommand(buildShowGroup(app))
@@ -73,18 +75,30 @@ func newRootCommand() *cobra.Command {
 	return rootCmd
 }
 
-func buildVersionCmd(app *tfctl.CLI) *cobra.Command {
-	install := &cobra.Command{
+func buildVersionCmd(app *tfctl.CLI, config *viper.Viper) *cobra.Command {
+	var remote bool
+	version := &cobra.Command{
 		Use:   "version",
-		Short: "Prints tofu-controller and tfctl version information",
+		Short: "Prints tfctl version information",
+		Long:  "Prints local tfctl version information. Use --remote to also query tofu-controller in the cluster.",
 		Args:  cobra.ExactArgs(0),
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			if remote {
+				return app.Init(kubeconfigArgs, config)
+			}
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Version(os.Stdout)
+			if remote {
+				return app.Version(cmd.OutOrStdout())
+			}
+			return app.ClientVersion(cmd.OutOrStdout())
 		},
 	}
-	install.Flags().String("version", "", "The version of tofu-controller to install.")
-	viper.BindPFlag("version", install.Flags().Lookup("version"))
-	return install
+	version.Flags().BoolVar(&remote, "remote", false, "Include tofu-controller version information from the cluster")
+	version.Flags().String("version", "", "The version of tofu-controller to install.")
+	viper.BindPFlag("version", version.Flags().Lookup("version"))
+	return version
 }
 
 var installExamples = `
@@ -127,20 +141,47 @@ func buildUninstallCmd(app *tfctl.CLI) *cobra.Command {
 }
 
 var reconcileExamples = `
-  # Reconcile a Terraform resource
+  # Reconcile a specific Terraform resource
   tfctl reconcile --namespace=default my-resource
+
+  # Reconcile all Terraform resources in the namespace
+  tfctl reconcile --all
 `
 
 func buildReconcileCmd(app *tfctl.CLI) *cobra.Command {
-	return &cobra.Command{
+	reconcile := &cobra.Command{
 		Use:     "reconcile NAME",
-		Short:   "Trigger a reconcile of the provided resource",
+		Short:   "Trigger a reconcile of the provided resource or all resources",
 		Example: strings.Trim(reconcileExamples, "\n"),
-		Args:    cobra.ExactArgs(1),
+		Args:    cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Reconcile(os.Stdout, args[0])
+			all, err := cmd.Flags().GetBool("all")
+			if err != nil {
+				return err
+			}
+
+			resource := ""
+
+			if all {
+				if len(args) > 0 {
+					return errors.New("cannot use --all and provide resource name at the same time")
+				}
+			} else {
+				if len(args) == 0 {
+					return errors.New("resource name required unless --all is specified")
+				}
+				resource = args[0]
+				if len(args) > 1 {
+					return errors.New("only one resource name accepted")
+				}
+			}
+			return app.Reconcile(os.Stdout, resource)
 		},
 	}
+
+	reconcile.Flags().Bool("all", false, "Trigger reconcile for all Terraform resources in the namespace")
+
+	return reconcile
 }
 
 var suspendExamples = `

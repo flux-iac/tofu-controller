@@ -23,8 +23,8 @@ func Test_externalartifact_source_requires_feature_gate(t *testing.T) {
 		},
 	}
 
-	// Client is nil: with the gate off, getSource must not look the ExternalArtifact up.
+	// Client is nil: with the gate off, resolveSource must not look the ExternalArtifact up.
 	reconciler := &TerraformReconciler{EnableExternalArtifact: false}
-	_, err := reconciler.getSource(t.Context(), terraform)
+	_, err := reconciler.resolveSource(t.Context(), terraform)
 	g.Expect(err).To(HaveOccurred())
 }

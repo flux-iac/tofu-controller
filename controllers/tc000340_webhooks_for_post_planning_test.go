@@ -58,7 +58,7 @@ spec:
 `, "helloworld", "gitrepo", "http://localhost:8080/terraform/admission"), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 	mockRunnerClient := &mockRunnerClientForTestWebhooksForPostPlanning{}
-	payload, err := reconciler.prepareWebhookPayload(terraform, mockRunnerClient, "SpecAndPlan", uuid.New().String())
+	payload, err := reconciler.prepareWebhookPayload(context.Background(), terraform, mockRunnerClient, "SpecAndPlan", uuid.New().String())
 	g.Expect(err).ToNot(HaveOccurred())
 
 	expected, err := yaml.Parse(`
@@ -131,7 +131,7 @@ spec:
 `, "helloworld", "gitrepo", "http://localhost:8080/terraform/admission"), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 	mockRunnerClient := &mockRunnerClientForTestWebhooksForPostPlanning{}
-	payload, err := reconciler.prepareWebhookPayload(terraform, mockRunnerClient, "SpecOnly", uuid.New().String())
+	payload, err := reconciler.prepareWebhookPayload(context.Background(), terraform, mockRunnerClient, "SpecOnly", uuid.New().String())
 	g.Expect(err).ToNot(HaveOccurred())
 
 	expected, err := yaml.Parse(`
@@ -202,7 +202,7 @@ spec:
 `, "helloworld", "gitrepo", "http://localhost:8080/terraform/admission"), runnerServer.Scheme)
 	g.Expect(err).ToNot(HaveOccurred())
 	mockRunnerClient := &mockRunnerClientForTestWebhooksForPostPlanning{}
-	payload, err := reconciler.prepareWebhookPayload(terraform, mockRunnerClient, "PlanOnly", uuid.New().String())
+	payload, err := reconciler.prepareWebhookPayload(context.Background(), terraform, mockRunnerClient, "PlanOnly", uuid.New().String())
 	g.Expect(err).ToNot(HaveOccurred())
 
 	expected, err := yaml.Parse(`
