@@ -5718,6 +5718,16 @@ spec:
     - jsonPath: .metadata.creationTimestamp
       name: Age
       type: date
+    - description: Name of the Secret holding the pending plan
+      jsonPath: .status.artifactRefs.plan.locator.kubernetes.name
+      name: Plan
+      priority: 1
+      type: string
+    - description: Name of the tfstate Secret when it lives in this cluster
+      jsonPath: .status.artifactRefs.state.locator.kubernetes.name
+      name: State
+      priority: 1
+      type: string
     name: v1alpha2
     schema:
       openAPIV3Schema:
@@ -11621,6 +11631,446 @@ spec:
               observedGeneration: -1
             description: TerraformStatus defines the observed state of Terraform
             properties:
+              artifactRefs:
+                description: |-
+                  ArtifactRefs surfaces the Kubernetes objects this Terraform manages
+                  as runtime artifacts (plan, state, outputs). External tooling should
+                  prefer these references over the deprecated string fields and over
+                  label scans.
+                properties:
+                  outputs:
+                    description: |-
+                      Outputs is the Secret named by spec.writeOutputsToSecret, once the
+                      controller has actually written it.
+                    properties:
+                      locator:
+                        description: |-
+                          ArtifactLocator identifies where an artifact physically lives. Exactly one
+                          payload is set, selected by Type; None carries no payload.
+
+                          This follows the discriminated-union shape Flux uses for
+                          meta.KubeConfigReference, including CEL validation that keeps Type and the
+                          payload in agreement, so an invalid combination is rejected by the API
+                          server rather than discovered by a consumer.
+                        properties:
+                          ephemeral:
+                            description: Ephemeral is set when Type is Ephemeral.
+                            properties:
+                              path:
+                                description: Path is the location on the runner's
+                                  filesystem, when known.
+                                type: string
+                            type: object
+                          external:
+                            description: External is set when Type is External.
+                            properties:
+                              backend:
+                                description: |-
+                                  Backend is the Terraform backend that holds the artifact, e.g. "s3",
+                                  "gcs", "azurerm", "http", "consul", or "cloud".
+                                minLength: 1
+                                type: string
+                              location:
+                                description: |-
+                                  Location is a human-readable hint such as "s3://bucket/key" or
+                                  "cloud://org/workspace".
+
+                                  It is best-effort and advisory only: for a custom backend it is parsed
+                                  out of user-supplied HCL whose values may be variables the controller
+                                  cannot resolve, so it is empty whenever no reliable hint is available.
+                                  Consumers must not parse it or depend on its format.
+                                type: string
+                            required:
+                            - backend
+                            type: object
+                          externalCluster:
+                            description: ExternalCluster is set when Type is ExternalCluster.
+                            properties:
+                              apiVersion:
+                                description: API version of the referent, if not specified
+                                  the Kubernetes preferred version will be used.
+                                type: string
+                              inClusterConfig:
+                                description: |-
+                                  InClusterConfig reports whether the backend was told to use the pod's
+                                  own service account. It is false for this locator type by construction.
+                                type: boolean
+                              key:
+                                description: Key is the entry within the object's
+                                  data that holds the artifact.
+                                type: string
+                              kind:
+                                description: Kind of the referent.
+                                type: string
+                              kubeConfigPath:
+                                description: |-
+                                  KubeConfigPath is the path, inside the runner pod, of the kubeconfig
+                                  that was handed to the Terraform backend.
+                                type: string
+                              name:
+                                description: Name of the referent.
+                                type: string
+                              namespace:
+                                description: Namespace of the referent, when not specified
+                                  it acts as LocalObjectReference.
+                                type: string
+                            required:
+                            - kind
+                            - name
+                            type: object
+                          kubernetes:
+                            description: Kubernetes is set when Type is Kubernetes.
+                            properties:
+                              apiVersion:
+                                description: API version of the referent, if not specified
+                                  the Kubernetes preferred version will be used.
+                                type: string
+                              key:
+                                description: |-
+                                  Key is the entry within the object's data that holds the artifact,
+                                  e.g. "tfplan". Empty when the artifact spans every key, as it does for
+                                  the outputs Secret, which stores one key per Terraform output.
+                                type: string
+                              kind:
+                                description: Kind of the referent.
+                                type: string
+                              name:
+                                description: Name of the referent.
+                                type: string
+                              namespace:
+                                description: Namespace of the referent, when not specified
+                                  it acts as LocalObjectReference.
+                                type: string
+                            required:
+                            - kind
+                            - name
+                            type: object
+                          type:
+                            description: Type selects the populated payload below.
+                            enum:
+                            - Kubernetes
+                            - ExternalCluster
+                            - External
+                            - Ephemeral
+                            - None
+                            type: string
+                        required:
+                        - type
+                        type: object
+                        x-kubernetes-validations:
+                        - message: locator type Kubernetes requires the kubernetes
+                            payload
+                          rule: self.type != 'Kubernetes' || has(self.kubernetes)
+                        - message: locator type ExternalCluster requires the externalCluster
+                            payload
+                          rule: self.type != 'ExternalCluster' || has(self.externalCluster)
+                        - message: locator type External requires the external payload
+                          rule: self.type != 'External' || has(self.external)
+                        - message: locator type Ephemeral requires the ephemeral payload
+                          rule: self.type != 'Ephemeral' || has(self.ephemeral)
+                        - message: locator type None must not carry a payload
+                          rule: self.type != 'None' || (!has(self.kubernetes) && !has(self.externalCluster)
+                            && !has(self.external) && !has(self.ephemeral))
+                        - message: at most one locator payload may be set
+                          rule: '[has(self.kubernetes), has(self.externalCluster),
+                            has(self.external), has(self.ephemeral)].filter(p, p).size()
+                            <= 1'
+                    required:
+                    - locator
+                    type: object
+                  plan:
+                    description: |-
+                      Plan is the Secret holding the most recently saved plan. The readable
+                      copies written for spec.storeReadablePlan are a separate artifact and
+                      are not referenced here.
+                    properties:
+                      chunks:
+                        description: Chunks is the number of Secrets the plan is spread
+                          across (>= 1).
+                        format: int32
+                        type: integer
+                      compression:
+                        description: |-
+                          Compression is the encoding applied to the plan body before storage,
+                          currently always "gzip".
+                        type: string
+                      locator:
+                        description: |-
+                          Locator addresses the plan. When the plan is chunked across several
+                          Secrets it addresses chunk 0; siblings share the
+                          infra.contrib.fluxcd.io/plan-name and plan-workspace labels and the
+                          same ownerReference.
+                        properties:
+                          ephemeral:
+                            description: Ephemeral is set when Type is Ephemeral.
+                            properties:
+                              path:
+                                description: Path is the location on the runner's
+                                  filesystem, when known.
+                                type: string
+                            type: object
+                          external:
+                            description: External is set when Type is External.
+                            properties:
+                              backend:
+                                description: |-
+                                  Backend is the Terraform backend that holds the artifact, e.g. "s3",
+                                  "gcs", "azurerm", "http", "consul", or "cloud".
+                                minLength: 1
+                                type: string
+                              location:
+                                description: |-
+                                  Location is a human-readable hint such as "s3://bucket/key" or
+                                  "cloud://org/workspace".
+
+                                  It is best-effort and advisory only: for a custom backend it is parsed
+                                  out of user-supplied HCL whose values may be variables the controller
+                                  cannot resolve, so it is empty whenever no reliable hint is available.
+                                  Consumers must not parse it or depend on its format.
+                                type: string
+                            required:
+                            - backend
+                            type: object
+                          externalCluster:
+                            description: ExternalCluster is set when Type is ExternalCluster.
+                            properties:
+                              apiVersion:
+                                description: API version of the referent, if not specified
+                                  the Kubernetes preferred version will be used.
+                                type: string
+                              inClusterConfig:
+                                description: |-
+                                  InClusterConfig reports whether the backend was told to use the pod's
+                                  own service account. It is false for this locator type by construction.
+                                type: boolean
+                              key:
+                                description: Key is the entry within the object's
+                                  data that holds the artifact.
+                                type: string
+                              kind:
+                                description: Kind of the referent.
+                                type: string
+                              kubeConfigPath:
+                                description: |-
+                                  KubeConfigPath is the path, inside the runner pod, of the kubeconfig
+                                  that was handed to the Terraform backend.
+                                type: string
+                              name:
+                                description: Name of the referent.
+                                type: string
+                              namespace:
+                                description: Namespace of the referent, when not specified
+                                  it acts as LocalObjectReference.
+                                type: string
+                            required:
+                            - kind
+                            - name
+                            type: object
+                          kubernetes:
+                            description: Kubernetes is set when Type is Kubernetes.
+                            properties:
+                              apiVersion:
+                                description: API version of the referent, if not specified
+                                  the Kubernetes preferred version will be used.
+                                type: string
+                              key:
+                                description: |-
+                                  Key is the entry within the object's data that holds the artifact,
+                                  e.g. "tfplan". Empty when the artifact spans every key, as it does for
+                                  the outputs Secret, which stores one key per Terraform output.
+                                type: string
+                              kind:
+                                description: Kind of the referent.
+                                type: string
+                              name:
+                                description: Name of the referent.
+                                type: string
+                              namespace:
+                                description: Namespace of the referent, when not specified
+                                  it acts as LocalObjectReference.
+                                type: string
+                            required:
+                            - kind
+                            - name
+                            type: object
+                          type:
+                            description: Type selects the populated payload below.
+                            enum:
+                            - Kubernetes
+                            - ExternalCluster
+                            - External
+                            - Ephemeral
+                            - None
+                            type: string
+                        required:
+                        - type
+                        type: object
+                        x-kubernetes-validations:
+                        - message: locator type Kubernetes requires the kubernetes
+                            payload
+                          rule: self.type != 'Kubernetes' || has(self.kubernetes)
+                        - message: locator type ExternalCluster requires the externalCluster
+                            payload
+                          rule: self.type != 'ExternalCluster' || has(self.externalCluster)
+                        - message: locator type External requires the external payload
+                          rule: self.type != 'External' || has(self.external)
+                        - message: locator type Ephemeral requires the ephemeral payload
+                          rule: self.type != 'Ephemeral' || has(self.ephemeral)
+                        - message: locator type None must not carry a payload
+                          rule: self.type != 'None' || (!has(self.kubernetes) && !has(self.externalCluster)
+                            && !has(self.external) && !has(self.ephemeral))
+                        - message: at most one locator payload may be set
+                          rule: '[has(self.kubernetes), has(self.externalCluster),
+                            has(self.external), has(self.ephemeral)].filter(p, p).size()
+                            <= 1'
+                      planID:
+                        description: |-
+                          PlanID mirrors Status.Plan.Pending, so one status read fully
+                          identifies the artifact.
+                        type: string
+                    required:
+                    - locator
+                    type: object
+                  state:
+                    description: State is the Terraform state produced by the configured
+                      backend.
+                    properties:
+                      locator:
+                        description: |-
+                          ArtifactLocator identifies where an artifact physically lives. Exactly one
+                          payload is set, selected by Type; None carries no payload.
+
+                          This follows the discriminated-union shape Flux uses for
+                          meta.KubeConfigReference, including CEL validation that keeps Type and the
+                          payload in agreement, so an invalid combination is rejected by the API
+                          server rather than discovered by a consumer.
+                        properties:
+                          ephemeral:
+                            description: Ephemeral is set when Type is Ephemeral.
+                            properties:
+                              path:
+                                description: Path is the location on the runner's
+                                  filesystem, when known.
+                                type: string
+                            type: object
+                          external:
+                            description: External is set when Type is External.
+                            properties:
+                              backend:
+                                description: |-
+                                  Backend is the Terraform backend that holds the artifact, e.g. "s3",
+                                  "gcs", "azurerm", "http", "consul", or "cloud".
+                                minLength: 1
+                                type: string
+                              location:
+                                description: |-
+                                  Location is a human-readable hint such as "s3://bucket/key" or
+                                  "cloud://org/workspace".
+
+                                  It is best-effort and advisory only: for a custom backend it is parsed
+                                  out of user-supplied HCL whose values may be variables the controller
+                                  cannot resolve, so it is empty whenever no reliable hint is available.
+                                  Consumers must not parse it or depend on its format.
+                                type: string
+                            required:
+                            - backend
+                            type: object
+                          externalCluster:
+                            description: ExternalCluster is set when Type is ExternalCluster.
+                            properties:
+                              apiVersion:
+                                description: API version of the referent, if not specified
+                                  the Kubernetes preferred version will be used.
+                                type: string
+                              inClusterConfig:
+                                description: |-
+                                  InClusterConfig reports whether the backend was told to use the pod's
+                                  own service account. It is false for this locator type by construction.
+                                type: boolean
+                              key:
+                                description: Key is the entry within the object's
+                                  data that holds the artifact.
+                                type: string
+                              kind:
+                                description: Kind of the referent.
+                                type: string
+                              kubeConfigPath:
+                                description: |-
+                                  KubeConfigPath is the path, inside the runner pod, of the kubeconfig
+                                  that was handed to the Terraform backend.
+                                type: string
+                              name:
+                                description: Name of the referent.
+                                type: string
+                              namespace:
+                                description: Namespace of the referent, when not specified
+                                  it acts as LocalObjectReference.
+                                type: string
+                            required:
+                            - kind
+                            - name
+                            type: object
+                          kubernetes:
+                            description: Kubernetes is set when Type is Kubernetes.
+                            properties:
+                              apiVersion:
+                                description: API version of the referent, if not specified
+                                  the Kubernetes preferred version will be used.
+                                type: string
+                              key:
+                                description: |-
+                                  Key is the entry within the object's data that holds the artifact,
+                                  e.g. "tfplan". Empty when the artifact spans every key, as it does for
+                                  the outputs Secret, which stores one key per Terraform output.
+                                type: string
+                              kind:
+                                description: Kind of the referent.
+                                type: string
+                              name:
+                                description: Name of the referent.
+                                type: string
+                              namespace:
+                                description: Namespace of the referent, when not specified
+                                  it acts as LocalObjectReference.
+                                type: string
+                            required:
+                            - kind
+                            - name
+                            type: object
+                          type:
+                            description: Type selects the populated payload below.
+                            enum:
+                            - Kubernetes
+                            - ExternalCluster
+                            - External
+                            - Ephemeral
+                            - None
+                            type: string
+                        required:
+                        - type
+                        type: object
+                        x-kubernetes-validations:
+                        - message: locator type Kubernetes requires the kubernetes
+                            payload
+                          rule: self.type != 'Kubernetes' || has(self.kubernetes)
+                        - message: locator type ExternalCluster requires the externalCluster
+                            payload
+                          rule: self.type != 'ExternalCluster' || has(self.externalCluster)
+                        - message: locator type External requires the external payload
+                          rule: self.type != 'External' || has(self.external)
+                        - message: locator type Ephemeral requires the ephemeral payload
+                          rule: self.type != 'Ephemeral' || has(self.ephemeral)
+                        - message: locator type None must not carry a payload
+                          rule: self.type != 'None' || (!has(self.kubernetes) && !has(self.externalCluster)
+                            && !has(self.external) && !has(self.ephemeral))
+                        - message: at most one locator payload may be set
+                          rule: '[has(self.kubernetes), has(self.externalCluster),
+                            has(self.external), has(self.ephemeral)].filter(p, p).size()
+                            <= 1'
+                    required:
+                    - locator
+                    type: object
+                type: object
               availableOutputs:
                 items:
                   type: string
@@ -11782,8 +12232,21 @@ spec:
                   isDriftDetectionPlan:
                     type: boolean
                   lastApplied:
+                    description: |-
+                      LastApplied is the short identifier of the most recently applied plan.
+
+                      Deprecated: prefer Status.ArtifactRefs.Plan together with
+                      Status.LastAppliedRevision. This field is retained for compatibility
+                      with v1alpha2 consumers and is scheduled for removal in v1beta1.
                     type: string
                   pending:
+                    description: |-
+                      Pending is the short identifier of the currently pending plan.
+
+                      Deprecated: prefer Status.ArtifactRefs.Plan.PlanID, which is paired
+                      with a typed object reference to the plan Secret or ConfigMap. This
+                      field is retained for compatibility with v1alpha2 consumers and is
+                      scheduled for removal in v1beta1.
                     type: string
                 type: object
               reconciliationFailures:

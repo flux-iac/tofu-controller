@@ -374,9 +374,20 @@ func (w Webhook) IsEnabled() bool {
 }
 
 type PlanStatus struct {
+	// LastApplied is the short identifier of the most recently applied plan.
+	//
+	// Deprecated: prefer Status.ArtifactRefs.Plan together with
+	// Status.LastAppliedRevision. This field is retained for compatibility
+	// with v1alpha2 consumers and is scheduled for removal in v1beta1.
 	// +optional
 	LastApplied string `json:"lastApplied,omitempty"`
 
+	// Pending is the short identifier of the currently pending plan.
+	//
+	// Deprecated: prefer Status.ArtifactRefs.Plan.PlanID, which is paired
+	// with a typed object reference to the plan Secret or ConfigMap. This
+	// field is retained for compatibility with v1alpha2 consumers and is
+	// scheduled for removal in v1beta1.
 	// +optional
 	Pending string `json:"pending,omitempty"`
 
@@ -385,6 +396,77 @@ type PlanStatus struct {
 
 	// +optional
 	IsDriftDetectionPlan bool `json:"isDriftDetectionPlan,omitempty"`
+}
+
+// ArtifactReferences groups the runtime artifacts the controller publishes
+// after a plan / apply / output cycle, so external tooling can resolve them
+// without reconstructing names from internal conventions or scanning labels.
+//
+// This mirrors the way Flux controllers publish what they produced in their
+// own status: source-controller exposes status.artifact on GitRepository,
+// OCIRepository, Bucket, HelmChart and ExternalArtifact, and
+// kustomize-controller records the objects it applied in
+// Kustomization.status.inventory.
+//
+// Each artifact carries an ArtifactLocator rather than a bare object
+// reference, because an artifact is not always an object in this cluster —
+// Terraform state in particular may live in another cluster, in an object
+// store, only on the runner, or nowhere at all. See ArtifactLocator.
+type ArtifactReferences struct {
+	// Plan is the Secret holding the most recently saved plan. The readable
+	// copies written for spec.storeReadablePlan are a separate artifact and
+	// are not referenced here.
+	// +optional
+	Plan *PlanArtifact `json:"plan,omitempty"`
+
+	// State is the Terraform state produced by the configured backend.
+	// +optional
+	State *StateArtifact `json:"state,omitempty"`
+
+	// Outputs is the Secret named by spec.writeOutputsToSecret, once the
+	// controller has actually written it.
+	// +optional
+	Outputs *OutputsArtifact `json:"outputs,omitempty"`
+}
+
+// PlanArtifact locates the pending plan and describes how it is stored.
+type PlanArtifact struct {
+	// Locator addresses the plan. When the plan is chunked across several
+	// Secrets it addresses chunk 0; siblings share the
+	// infra.contrib.fluxcd.io/plan-name and plan-workspace labels and the
+	// same ownerReference.
+	// +required
+	Locator ArtifactLocator `json:"locator"`
+
+	// PlanID mirrors Status.Plan.Pending, so one status read fully
+	// identifies the artifact.
+	// +optional
+	PlanID string `json:"planID,omitempty"`
+
+	// Chunks is the number of Secrets the plan is spread across (>= 1).
+	// +optional
+	Chunks int32 `json:"chunks,omitempty"`
+
+	// Compression is the encoding applied to the plan body before storage,
+	// currently always "gzip".
+	// +optional
+	Compression string `json:"compression,omitempty"`
+}
+
+// StateArtifact locates the Terraform state. The locator type reports whether
+// the state is readable from this cluster, held elsewhere, or not persisted —
+// the backend itself is named by the locator rather than duplicated here.
+type StateArtifact struct {
+	// +required
+	Locator ArtifactLocator `json:"locator"`
+}
+
+// OutputsArtifact locates the Secret the controller wrote outputs to. The
+// locator carries no Key, because the Secret holds one entry per Terraform
+// output; Status.AvailableOutputs lists their names.
+type OutputsArtifact struct {
+	// +required
+	Locator ArtifactLocator `json:"locator"`
 }
 
 // TerraformStatus defines the observed state of Terraform
@@ -447,6 +529,13 @@ type TerraformStatus struct {
 	// +optional
 	Inventory *ResourceInventory `json:"inventory,omitempty"`
 
+	// ArtifactRefs surfaces the Kubernetes objects this Terraform manages
+	// as runtime artifacts (plan, state, outputs). External tooling should
+	// prefer these references over the deprecated string fields and over
+	// label scans.
+	// +optional
+	ArtifactRefs *ArtifactReferences `json:"artifactRefs,omitempty"`
+
 	// +optional
 	Lock LockStatus `json:"lock,omitempty"`
 
@@ -473,6 +562,8 @@ type LockStatus struct {
 // +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description=""
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].message",description=""
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""
+// +kubebuilder:printcolumn:name="Plan",type="string",JSONPath=".status.artifactRefs.plan.locator.kubernetes.name",priority=1,description="Name of the Secret holding the pending plan"
+// +kubebuilder:printcolumn:name="State",type="string",JSONPath=".status.artifactRefs.state.locator.kubernetes.name",priority=1,description="Name of the tfstate Secret when it lives in this cluster"
 
 // Terraform is the Schema for the terraforms API
 type Terraform struct {

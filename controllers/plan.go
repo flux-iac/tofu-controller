@@ -133,8 +133,10 @@ func (r *TerraformReconciler) plan(ctx context.Context, s *runnerSession, terraf
 			r.Eventf(terraform, nil, corev1.EventTypeNormal, infrav1.TFExecPlanSucceedReason, infrav1.ActionPlan.String(), "%s", msg)
 		}
 		infrav1.TerraformPlannedWithChanges(terraform, s.revision, forceOrAutoApply, "Plan generated")
+		setPlanArtifactRef(terraform, saveTFPlanReply.SavedObjects, planid.GetPlanID(s.revision))
 	} else {
 		infrav1.TerraformPlannedNoChanges(terraform, s.revision, "Plan no changes")
+		clearPlanArtifactRef(terraform)
 	}
 
 	return r.checkpoint(ctx, s, terraform)

@@ -15,6 +15,57 @@ Package v1alpha2 contains API Schema definitions for the infra v1alpha2 API grou
 - [Terraform](#terraform)
 
 
+### ArtifactLocator
+
+ArtifactLocator identifies where an artifact physically lives. Exactly one
+payload is set, selected by Type; None carries no payload.
+
+This follows the discriminated-union shape Flux uses for
+meta.KubeConfigReference, including CEL validation that keeps Type and the
+payload in agreement, so an invalid combination is rejected by the API
+server rather than discovered by a consumer.
+
+_Appears in:_
+- [OutputsArtifact](#outputsartifact)
+- [PlanArtifact](#planartifact)
+- [StateArtifact](#stateartifact)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `type` _[LocatorType](#locatortype)_ | Type selects the populated payload below. |  | Enum: [Kubernetes ExternalCluster External Ephemeral None] <br />Required: \{\} <br /> |
+| `kubernetes` _[KubernetesLocator](#kuberneteslocator)_ | Kubernetes is set when Type is Kubernetes. |  | Optional: \{\} <br /> |
+| `externalCluster` _[ExternalClusterLocator](#externalclusterlocator)_ | ExternalCluster is set when Type is ExternalCluster. |  | Optional: \{\} <br /> |
+| `external` _[ExternalLocator](#externallocator)_ | External is set when Type is External. |  | Optional: \{\} <br /> |
+| `ephemeral` _[EphemeralLocator](#ephemerallocator)_ | Ephemeral is set when Type is Ephemeral. |  | Optional: \{\} <br /> |
+
+
+### ArtifactReferences
+
+ArtifactReferences groups the runtime artifacts the controller publishes
+after a plan / apply / output cycle, so external tooling can resolve them
+without reconstructing names from internal conventions or scanning labels.
+
+This mirrors the way Flux controllers publish what they produced in their
+own status: source-controller exposes status.artifact on GitRepository,
+OCIRepository, Bucket, HelmChart and ExternalArtifact, and
+kustomize-controller records the objects it applied in
+Kustomization.status.inventory.
+
+Each artifact carries an ArtifactLocator rather than a bare object
+reference, because an artifact is not always an object in this cluster —
+Terraform state in particular may live in another cluster, in an object
+store, only on the runner, or nowhere at all. See ArtifactLocator.
+
+_Appears in:_
+- [TerraformStatus](#terraformstatus)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `plan` _[PlanArtifact](#planartifact)_ | Plan is the Secret holding the most recently saved plan. The readable<br />copies written for spec.storeReadablePlan are a separate artifact and<br />are not referenced here. |  | Optional: \{\} <br /> |
+| `state` _[StateArtifact](#stateartifact)_ | State is the Terraform state produced by the configured backend. |  | Optional: \{\} <br /> |
+| `outputs` _[OutputsArtifact](#outputsartifact)_ | Outputs is the Secret named by spec.writeOutputsToSecret, once the<br />controller has actually written it. |  | Optional: \{\} <br /> |
+
+
 ### BackendConfigSpec
 
 BackendConfigSpec is for specifying configuration for Terraform's Kubernetes backend
@@ -96,6 +147,52 @@ _Appears in:_
 | `namespace` _string_ | Namespace of the referent, defaults to the namespace of the Kubernetes resource object that contains the reference. |  | Optional: \{\} <br /> |
 
 
+### EphemeralLocator
+
+EphemeralLocator describes an artifact that only exists on the runner pod.
+
+_Appears in:_
+- [ArtifactLocator](#artifactlocator)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `path` _string_ | Path is the location on the runner's filesystem, when known. |  | Optional: \{\} <br /> |
+
+
+### ExternalClusterLocator
+
+ExternalClusterLocator points at a Kubernetes object in a cluster the
+controller does not have a client for. The reference is reported so the
+object can be found with the right credentials, and the kubeconfig the
+runner used is reported so a reader knows which cluster that is.
+
+_Appears in:_
+- [ArtifactLocator](#artifactlocator)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `apiVersion` _string_ | API version of the referent, if not specified the Kubernetes preferred version will be used. |  | Optional: \{\} <br /> |
+| `kind` _string_ | Kind of the referent. |  | Required: \{\} <br /> |
+| `name` _string_ | Name of the referent. |  | Required: \{\} <br /> |
+| `namespace` _string_ | Namespace of the referent, when not specified it acts as LocalObjectReference. |  | Optional: \{\} <br /> |
+| `key` _string_ | Key is the entry within the object's data that holds the artifact. |  | Optional: \{\} <br /> |
+| `kubeConfigPath` _string_ | KubeConfigPath is the path, inside the runner pod, of the kubeconfig<br />that was handed to the Terraform backend. |  | Optional: \{\} <br /> |
+| `inClusterConfig` _boolean_ | InClusterConfig reports whether the backend was told to use the pod's<br />own service account. It is false for this locator type by construction. |  | Optional: \{\} <br /> |
+
+
+### ExternalLocator
+
+ExternalLocator describes an artifact held outside Kubernetes.
+
+_Appears in:_
+- [ArtifactLocator](#artifactlocator)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `backend` _string_ | Backend is the Terraform backend that holds the artifact, e.g. "s3",<br />"gcs", "azurerm", "http", "consul", or "cloud". |  | MinLength: 1 <br />Required: \{\} <br /> |
+| `location` _string_ | Location is a human-readable hint such as "s3://bucket/key" or<br />"cloud://org/workspace".<br />It is best-effort and advisory only: for a custom backend it is parsed<br />out of user-supplied HCL whose values may be variables the controller<br />cannot resolve, so it is empty whenever no reliable hint is available.<br />Consumers must not parse it or depend on its format. |  | Optional: \{\} <br /> |
+
+
 ### FileMapping
 
 _Appears in:_
@@ -139,6 +236,52 @@ _Appears in:_
 | `timeout` _[Duration](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#duration-v1-meta)_ | The timeout period at which the connection should timeout if unable to<br />complete the request.<br />When not specified, default 20s timeout is used. | 20s | Optional: \{\} <br /> |
 
 
+### KubernetesLocator
+
+KubernetesLocator points at one object in this cluster, down to the data key
+holding the artifact. It embeds the Flux reference type rather than
+redeclaring apiVersion/kind/name/namespace.
+
+_Appears in:_
+- [ArtifactLocator](#artifactlocator)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `apiVersion` _string_ | API version of the referent, if not specified the Kubernetes preferred version will be used. |  | Optional: \{\} <br /> |
+| `kind` _string_ | Kind of the referent. |  | Required: \{\} <br /> |
+| `name` _string_ | Name of the referent. |  | Required: \{\} <br /> |
+| `namespace` _string_ | Namespace of the referent, when not specified it acts as LocalObjectReference. |  | Optional: \{\} <br /> |
+| `key` _string_ | Key is the entry within the object's data that holds the artifact,<br />e.g. "tfplan". Empty when the artifact spans every key, as it does for<br />the outputs Secret, which stores one key per Terraform output. |  | Optional: \{\} <br /> |
+
+
+### LocatorType
+
+_Underlying type:_ _string_
+
+LocatorType selects which payload of an ArtifactLocator is populated.
+
+The set is deliberately about *reachability* rather than about which product
+stores the bytes: a consumer behaves differently for an object it can Get,
+an object that exists in a cluster it cannot address, a payload outside
+Kubernetes entirely, and something that was never persisted. Adding a new
+storage target means adding a type and a payload here rather than
+overloading an existing one.
+
+_Validation:_
+- Enum: [Kubernetes ExternalCluster External Ephemeral None]
+
+_Appears in:_
+- [ArtifactLocator](#artifactlocator)
+
+| Value | Description |
+| --- | --- |
+| `Kubernetes` | LocatorKubernetes is an object in the cluster the controller is running<br />in. It can be resolved with a single client.Get.<br /> |
+| `ExternalCluster` | LocatorExternalCluster is a Kubernetes object that exists, but in a<br />cluster reached through a kubeconfig rather than the controller's own<br />client. It is deliberately not Kubernetes so that consumers do not<br />attempt a Get that would report "not found" for an artifact that is<br />present elsewhere.<br /> |
+| `External` | LocatorExternal is a payload held outside Kubernetes — an object store,<br />an HTTP backend, or Terraform Cloud.<br /> |
+| `Ephemeral` | LocatorEphemeral is a path on the runner pod's filesystem. It does not<br />survive the pod and cannot be read by anything else.<br /> |
+| `None` | LocatorNone means nothing is persisted: the backend is disabled, the<br />plan reported no changes, or outputs are not configured.<br /> |
+
+
 ### LockStatus
 
 LockStatus defines the observed state of a Terraform State Lock
@@ -150,6 +293,35 @@ _Appears in:_
 | --- | --- | --- | --- |
 | `lastApplied` _string_ |  |  | Optional: \{\} <br /> |
 | `pending` _string_ | Pending holds the identifier of the Lock Holder to be used with Force Unlock |  | Optional: \{\} <br /> |
+
+
+### OutputsArtifact
+
+OutputsArtifact locates the Secret the controller wrote outputs to. The
+locator carries no Key, because the Secret holds one entry per Terraform
+output; Status.AvailableOutputs lists their names.
+
+_Appears in:_
+- [ArtifactReferences](#artifactreferences)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `locator` _[ArtifactLocator](#artifactlocator)_ |  |  | Required: \{\} <br /> |
+
+
+### PlanArtifact
+
+PlanArtifact locates the pending plan and describes how it is stored.
+
+_Appears in:_
+- [ArtifactReferences](#artifactreferences)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `locator` _[ArtifactLocator](#artifactlocator)_ | Locator addresses the plan. When the plan is chunked across several<br />Secrets it addresses chunk 0; siblings share the<br />infra.contrib.fluxcd.io/plan-name and plan-workspace labels and the<br />same ownerReference. |  | Required: \{\} <br /> |
+| `planID` _string_ | PlanID mirrors Status.Plan.Pending, so one status read fully<br />identifies the artifact. |  | Optional: \{\} <br /> |
+| `chunks` _integer_ | Chunks is the number of Secrets the plan is spread across (>= 1). |  | Optional: \{\} <br /> |
+| `compression` _string_ | Compression is the encoding applied to the plan body before storage,<br />currently always "gzip". |  | Optional: \{\} <br /> |
 
 
 ### PlanSpec
@@ -176,8 +348,8 @@ _Appears in:_
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
-| `lastApplied` _string_ |  |  | Optional: \{\} <br /> |
-| `pending` _string_ |  |  | Optional: \{\} <br /> |
+| `lastApplied` _string_ | LastApplied is the short identifier of the most recently applied plan.<br />Deprecated: prefer Status.ArtifactRefs.Plan together with<br />Status.LastAppliedRevision. This field is retained for compatibility<br />with v1alpha2 consumers and is scheduled for removal in v1beta1. |  | Optional: \{\} <br /> |
+| `pending` _string_ | Pending is the short identifier of the currently pending plan.<br />Deprecated: prefer Status.ArtifactRefs.Plan.PlanID, which is paired<br />with a typed object reference to the plan Secret or ConfigMap. This<br />field is retained for compatibility with v1alpha2 consumers and is<br />scheduled for removal in v1beta1. |  | Optional: \{\} <br /> |
 | `isDestroyPlan` _boolean_ |  |  | Optional: \{\} <br /> |
 | `isDriftDetectionPlan` _boolean_ |  |  | Optional: \{\} <br /> |
 
@@ -286,6 +458,20 @@ _Appears in:_
 | `spec` _[RunnerPodSpec](#runnerpodspec)_ |  |  | Optional: \{\} <br /> |
 
 
+### StateArtifact
+
+StateArtifact locates the Terraform state. The locator type reports whether
+the state is readable from this cluster, held elsewhere, or not persisted —
+the backend itself is named by the locator rather than duplicated here.
+
+_Appears in:_
+- [ArtifactReferences](#artifactreferences)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `locator` _[ArtifactLocator](#artifactlocator)_ |  |  | Required: \{\} <br /> |
+
+
 ### TFStateSpec
 
 TFStateSpec allows the user to set ForceUnlock
@@ -391,6 +577,7 @@ _Appears in:_
 | `availableOutputs` _string array_ |  |  | Optional: \{\} <br /> |
 | `plan` _[PlanStatus](#planstatus)_ |  |  | Optional: \{\} <br /> |
 | `inventory` _[ResourceInventory](#resourceinventory)_ | Inventory contains the list of Terraform resource object references that have been successfully applied. |  | Optional: \{\} <br /> |
+| `artifactRefs` _[ArtifactReferences](#artifactreferences)_ | ArtifactRefs surfaces the Kubernetes objects this Terraform manages<br />as runtime artifacts (plan, state, outputs). External tooling should<br />prefer these references over the deprecated string fields and over<br />label scans. |  | Optional: \{\} <br /> |
 | `lock` _[LockStatus](#lockstatus)_ |  |  | Optional: \{\} <br /> |
 | `reconciliationFailures` _integer_ | ReconciliationFailures is the number of reconciliation<br />failures since the last success or update. |  | Optional: \{\} <br /> |
 

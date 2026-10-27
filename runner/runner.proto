@@ -186,8 +186,23 @@ message SaveTFPlanRequest {
   string revision = 6;
 }
 
+// SavedObject identifies a single Kubernetes object that the runner persisted
+// while saving a Terraform plan. Surfaced back to the controller so it can
+// publish typed references in TerraformStatus.ArtifactRefs.
+message SavedObject {
+  string apiVersion = 1;
+  string kind = 2;
+  string namespace = 3;
+  string name = 4;
+}
+
 message SaveTFPlanReply {
   string message = 1;
+  // savedObjects lists the Secrets holding the canonical (gzipped) plan.
+  // The first entry is the chunk-0 object when the plan is chunked;
+  // siblings follow in order. Readable representations written for
+  // spec.storeReadablePlan are a separate artifact and are not listed.
+  repeated SavedObject savedObjects = 2;
 }
 
 message LoadTFPlanRequest {

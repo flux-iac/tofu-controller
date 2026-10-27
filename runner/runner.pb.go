@@ -1501,16 +1501,92 @@ func (x *SaveTFPlanRequest) GetRevision() string {
 	return ""
 }
 
-type SaveTFPlanReply struct {
+// SavedObject identifies a single Kubernetes object that the runner persisted
+// while saving a Terraform plan. Surfaced back to the controller so it can
+// publish typed references in TerraformStatus.ArtifactRefs.
+type SavedObject struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	ApiVersion    string                 `protobuf:"bytes,1,opt,name=apiVersion,proto3" json:"apiVersion,omitempty"`
+	Kind          string                 `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
+	Namespace     string                 `protobuf:"bytes,3,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SavedObject) Reset() {
+	*x = SavedObject{}
+	mi := &file_runner_runner_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SavedObject) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SavedObject) ProtoMessage() {}
+
+func (x *SavedObject) ProtoReflect() protoreflect.Message {
+	mi := &file_runner_runner_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SavedObject.ProtoReflect.Descriptor instead.
+func (*SavedObject) Descriptor() ([]byte, []int) {
+	return file_runner_runner_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *SavedObject) GetApiVersion() string {
+	if x != nil {
+		return x.ApiVersion
+	}
+	return ""
+}
+
+func (x *SavedObject) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *SavedObject) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *SavedObject) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type SaveTFPlanReply struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Message string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	// savedObjects lists the Secrets holding the canonical (gzipped) plan.
+	// The first entry is the chunk-0 object when the plan is chunked;
+	// siblings follow in order. Readable representations written for
+	// spec.storeReadablePlan are a separate artifact and are not listed.
+	SavedObjects  []*SavedObject `protobuf:"bytes,2,rep,name=savedObjects,proto3" json:"savedObjects,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SaveTFPlanReply) Reset() {
 	*x = SaveTFPlanReply{}
-	mi := &file_runner_runner_proto_msgTypes[28]
+	mi := &file_runner_runner_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1522,7 +1598,7 @@ func (x *SaveTFPlanReply) String() string {
 func (*SaveTFPlanReply) ProtoMessage() {}
 
 func (x *SaveTFPlanReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[28]
+	mi := &file_runner_runner_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1535,7 +1611,7 @@ func (x *SaveTFPlanReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveTFPlanReply.ProtoReflect.Descriptor instead.
 func (*SaveTFPlanReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{28}
+	return file_runner_runner_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *SaveTFPlanReply) GetMessage() string {
@@ -1543,6 +1619,13 @@ func (x *SaveTFPlanReply) GetMessage() string {
 		return x.Message
 	}
 	return ""
+}
+
+func (x *SaveTFPlanReply) GetSavedObjects() []*SavedObject {
+	if x != nil {
+		return x.SavedObjects
+	}
+	return nil
 }
 
 type LoadTFPlanRequest struct {
@@ -1558,7 +1641,7 @@ type LoadTFPlanRequest struct {
 
 func (x *LoadTFPlanRequest) Reset() {
 	*x = LoadTFPlanRequest{}
-	mi := &file_runner_runner_proto_msgTypes[29]
+	mi := &file_runner_runner_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1570,7 +1653,7 @@ func (x *LoadTFPlanRequest) String() string {
 func (*LoadTFPlanRequest) ProtoMessage() {}
 
 func (x *LoadTFPlanRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[29]
+	mi := &file_runner_runner_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1583,7 +1666,7 @@ func (x *LoadTFPlanRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoadTFPlanRequest.ProtoReflect.Descriptor instead.
 func (*LoadTFPlanRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{29}
+	return file_runner_runner_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *LoadTFPlanRequest) GetTfInstance() string {
@@ -1630,7 +1713,7 @@ type LoadTFPlanReply struct {
 
 func (x *LoadTFPlanReply) Reset() {
 	*x = LoadTFPlanReply{}
-	mi := &file_runner_runner_proto_msgTypes[30]
+	mi := &file_runner_runner_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1642,7 +1725,7 @@ func (x *LoadTFPlanReply) String() string {
 func (*LoadTFPlanReply) ProtoMessage() {}
 
 func (x *LoadTFPlanReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[30]
+	mi := &file_runner_runner_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1655,7 +1738,7 @@ func (x *LoadTFPlanReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoadTFPlanReply.ProtoReflect.Descriptor instead.
 func (*LoadTFPlanReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{30}
+	return file_runner_runner_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *LoadTFPlanReply) GetMessage() string {
@@ -1678,7 +1761,7 @@ type ApplyRequest struct {
 
 func (x *ApplyRequest) Reset() {
 	*x = ApplyRequest{}
-	mi := &file_runner_runner_proto_msgTypes[31]
+	mi := &file_runner_runner_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1690,7 +1773,7 @@ func (x *ApplyRequest) String() string {
 func (*ApplyRequest) ProtoMessage() {}
 
 func (x *ApplyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[31]
+	mi := &file_runner_runner_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1703,7 +1786,7 @@ func (x *ApplyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplyRequest.ProtoReflect.Descriptor instead.
 func (*ApplyRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{31}
+	return file_runner_runner_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *ApplyRequest) GetTfInstance() string {
@@ -1750,7 +1833,7 @@ type ApplyReply struct {
 
 func (x *ApplyReply) Reset() {
 	*x = ApplyReply{}
-	mi := &file_runner_runner_proto_msgTypes[32]
+	mi := &file_runner_runner_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1762,7 +1845,7 @@ func (x *ApplyReply) String() string {
 func (*ApplyReply) ProtoMessage() {}
 
 func (x *ApplyReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[32]
+	mi := &file_runner_runner_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1775,7 +1858,7 @@ func (x *ApplyReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplyReply.ProtoReflect.Descriptor instead.
 func (*ApplyReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{32}
+	return file_runner_runner_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ApplyReply) GetMessage() string {
@@ -1794,7 +1877,7 @@ type GetInventoryRequest struct {
 
 func (x *GetInventoryRequest) Reset() {
 	*x = GetInventoryRequest{}
-	mi := &file_runner_runner_proto_msgTypes[33]
+	mi := &file_runner_runner_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1806,7 +1889,7 @@ func (x *GetInventoryRequest) String() string {
 func (*GetInventoryRequest) ProtoMessage() {}
 
 func (x *GetInventoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[33]
+	mi := &file_runner_runner_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1819,7 +1902,7 @@ func (x *GetInventoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInventoryRequest.ProtoReflect.Descriptor instead.
 func (*GetInventoryRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{33}
+	return file_runner_runner_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *GetInventoryRequest) GetTfInstance() string {
@@ -1838,7 +1921,7 @@ type GetInventoryReply struct {
 
 func (x *GetInventoryReply) Reset() {
 	*x = GetInventoryReply{}
-	mi := &file_runner_runner_proto_msgTypes[34]
+	mi := &file_runner_runner_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1850,7 +1933,7 @@ func (x *GetInventoryReply) String() string {
 func (*GetInventoryReply) ProtoMessage() {}
 
 func (x *GetInventoryReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[34]
+	mi := &file_runner_runner_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1863,7 +1946,7 @@ func (x *GetInventoryReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInventoryReply.ProtoReflect.Descriptor instead.
 func (*GetInventoryReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{34}
+	return file_runner_runner_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *GetInventoryReply) GetInventories() []*Inventory {
@@ -1884,7 +1967,7 @@ type Inventory struct {
 
 func (x *Inventory) Reset() {
 	*x = Inventory{}
-	mi := &file_runner_runner_proto_msgTypes[35]
+	mi := &file_runner_runner_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1896,7 +1979,7 @@ func (x *Inventory) String() string {
 func (*Inventory) ProtoMessage() {}
 
 func (x *Inventory) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[35]
+	mi := &file_runner_runner_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1909,7 +1992,7 @@ func (x *Inventory) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Inventory.ProtoReflect.Descriptor instead.
 func (*Inventory) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{35}
+	return file_runner_runner_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *Inventory) GetName() string {
@@ -1943,7 +2026,7 @@ type DestroyRequest struct {
 
 func (x *DestroyRequest) Reset() {
 	*x = DestroyRequest{}
-	mi := &file_runner_runner_proto_msgTypes[36]
+	mi := &file_runner_runner_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1955,7 +2038,7 @@ func (x *DestroyRequest) String() string {
 func (*DestroyRequest) ProtoMessage() {}
 
 func (x *DestroyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[36]
+	mi := &file_runner_runner_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1968,7 +2051,7 @@ func (x *DestroyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DestroyRequest.ProtoReflect.Descriptor instead.
 func (*DestroyRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{36}
+	return file_runner_runner_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *DestroyRequest) GetTfInstance() string {
@@ -1994,7 +2077,7 @@ type DestroyReply struct {
 
 func (x *DestroyReply) Reset() {
 	*x = DestroyReply{}
-	mi := &file_runner_runner_proto_msgTypes[37]
+	mi := &file_runner_runner_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2006,7 +2089,7 @@ func (x *DestroyReply) String() string {
 func (*DestroyReply) ProtoMessage() {}
 
 func (x *DestroyReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[37]
+	mi := &file_runner_runner_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2019,7 +2102,7 @@ func (x *DestroyReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DestroyReply.ProtoReflect.Descriptor instead.
 func (*DestroyReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{37}
+	return file_runner_runner_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *DestroyReply) GetMessage() string {
@@ -2038,7 +2121,7 @@ type OutputRequest struct {
 
 func (x *OutputRequest) Reset() {
 	*x = OutputRequest{}
-	mi := &file_runner_runner_proto_msgTypes[38]
+	mi := &file_runner_runner_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2050,7 +2133,7 @@ func (x *OutputRequest) String() string {
 func (*OutputRequest) ProtoMessage() {}
 
 func (x *OutputRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[38]
+	mi := &file_runner_runner_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2063,7 +2146,7 @@ func (x *OutputRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OutputRequest.ProtoReflect.Descriptor instead.
 func (*OutputRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{38}
+	return file_runner_runner_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *OutputRequest) GetTfInstance() string {
@@ -2082,7 +2165,7 @@ type OutputReply struct {
 
 func (x *OutputReply) Reset() {
 	*x = OutputReply{}
-	mi := &file_runner_runner_proto_msgTypes[39]
+	mi := &file_runner_runner_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2094,7 +2177,7 @@ func (x *OutputReply) String() string {
 func (*OutputReply) ProtoMessage() {}
 
 func (x *OutputReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[39]
+	mi := &file_runner_runner_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2107,7 +2190,7 @@ func (x *OutputReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OutputReply.ProtoReflect.Descriptor instead.
 func (*OutputReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{39}
+	return file_runner_runner_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *OutputReply) GetOutputs() map[string]*OutputMeta {
@@ -2128,7 +2211,7 @@ type OutputMeta struct {
 
 func (x *OutputMeta) Reset() {
 	*x = OutputMeta{}
-	mi := &file_runner_runner_proto_msgTypes[40]
+	mi := &file_runner_runner_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2140,7 +2223,7 @@ func (x *OutputMeta) String() string {
 func (*OutputMeta) ProtoMessage() {}
 
 func (x *OutputMeta) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[40]
+	mi := &file_runner_runner_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2153,7 +2236,7 @@ func (x *OutputMeta) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OutputMeta.ProtoReflect.Descriptor instead.
 func (*OutputMeta) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{40}
+	return file_runner_runner_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *OutputMeta) GetSensitive() bool {
@@ -2192,7 +2275,7 @@ type WriteOutputsRequest struct {
 
 func (x *WriteOutputsRequest) Reset() {
 	*x = WriteOutputsRequest{}
-	mi := &file_runner_runner_proto_msgTypes[41]
+	mi := &file_runner_runner_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2204,7 +2287,7 @@ func (x *WriteOutputsRequest) String() string {
 func (*WriteOutputsRequest) ProtoMessage() {}
 
 func (x *WriteOutputsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[41]
+	mi := &file_runner_runner_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2217,7 +2300,7 @@ func (x *WriteOutputsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WriteOutputsRequest.ProtoReflect.Descriptor instead.
 func (*WriteOutputsRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{41}
+	return file_runner_runner_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *WriteOutputsRequest) GetNamespace() string {
@@ -2279,7 +2362,7 @@ type WriteOutputsReply struct {
 
 func (x *WriteOutputsReply) Reset() {
 	*x = WriteOutputsReply{}
-	mi := &file_runner_runner_proto_msgTypes[42]
+	mi := &file_runner_runner_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2291,7 +2374,7 @@ func (x *WriteOutputsReply) String() string {
 func (*WriteOutputsReply) ProtoMessage() {}
 
 func (x *WriteOutputsReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[42]
+	mi := &file_runner_runner_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2304,7 +2387,7 @@ func (x *WriteOutputsReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WriteOutputsReply.ProtoReflect.Descriptor instead.
 func (*WriteOutputsReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{42}
+	return file_runner_runner_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *WriteOutputsReply) GetMessage() string {
@@ -2331,7 +2414,7 @@ type GetOutputsRequest struct {
 
 func (x *GetOutputsRequest) Reset() {
 	*x = GetOutputsRequest{}
-	mi := &file_runner_runner_proto_msgTypes[43]
+	mi := &file_runner_runner_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2343,7 +2426,7 @@ func (x *GetOutputsRequest) String() string {
 func (*GetOutputsRequest) ProtoMessage() {}
 
 func (x *GetOutputsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[43]
+	mi := &file_runner_runner_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2356,7 +2439,7 @@ func (x *GetOutputsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOutputsRequest.ProtoReflect.Descriptor instead.
 func (*GetOutputsRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{43}
+	return file_runner_runner_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *GetOutputsRequest) GetNamespace() string {
@@ -2382,7 +2465,7 @@ type GetOutputsReply struct {
 
 func (x *GetOutputsReply) Reset() {
 	*x = GetOutputsReply{}
-	mi := &file_runner_runner_proto_msgTypes[44]
+	mi := &file_runner_runner_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2394,7 +2477,7 @@ func (x *GetOutputsReply) String() string {
 func (*GetOutputsReply) ProtoMessage() {}
 
 func (x *GetOutputsReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[44]
+	mi := &file_runner_runner_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2407,7 +2490,7 @@ func (x *GetOutputsReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOutputsReply.ProtoReflect.Descriptor instead.
 func (*GetOutputsReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{44}
+	return file_runner_runner_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *GetOutputsReply) GetOutputs() map[string]string {
@@ -2428,7 +2511,7 @@ type InitRequest struct {
 
 func (x *InitRequest) Reset() {
 	*x = InitRequest{}
-	mi := &file_runner_runner_proto_msgTypes[45]
+	mi := &file_runner_runner_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2440,7 +2523,7 @@ func (x *InitRequest) String() string {
 func (*InitRequest) ProtoMessage() {}
 
 func (x *InitRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[45]
+	mi := &file_runner_runner_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2453,7 +2536,7 @@ func (x *InitRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InitRequest.ProtoReflect.Descriptor instead.
 func (*InitRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{45}
+	return file_runner_runner_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *InitRequest) GetTfInstance() string {
@@ -2486,7 +2569,7 @@ type InitReply struct {
 
 func (x *InitReply) Reset() {
 	*x = InitReply{}
-	mi := &file_runner_runner_proto_msgTypes[46]
+	mi := &file_runner_runner_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2498,7 +2581,7 @@ func (x *InitReply) String() string {
 func (*InitReply) ProtoMessage() {}
 
 func (x *InitReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[46]
+	mi := &file_runner_runner_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2511,7 +2594,7 @@ func (x *InitReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InitReply.ProtoReflect.Descriptor instead.
 func (*InitReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{46}
+	return file_runner_runner_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *InitReply) GetMessage() string {
@@ -2530,7 +2613,7 @@ type WorkspaceRequest struct {
 
 func (x *WorkspaceRequest) Reset() {
 	*x = WorkspaceRequest{}
-	mi := &file_runner_runner_proto_msgTypes[47]
+	mi := &file_runner_runner_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2542,7 +2625,7 @@ func (x *WorkspaceRequest) String() string {
 func (*WorkspaceRequest) ProtoMessage() {}
 
 func (x *WorkspaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[47]
+	mi := &file_runner_runner_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2555,7 +2638,7 @@ func (x *WorkspaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{47}
+	return file_runner_runner_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *WorkspaceRequest) GetTfInstance() string {
@@ -2574,7 +2657,7 @@ type WorkspaceReply struct {
 
 func (x *WorkspaceReply) Reset() {
 	*x = WorkspaceReply{}
-	mi := &file_runner_runner_proto_msgTypes[48]
+	mi := &file_runner_runner_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2586,7 +2669,7 @@ func (x *WorkspaceReply) String() string {
 func (*WorkspaceReply) ProtoMessage() {}
 
 func (x *WorkspaceReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[48]
+	mi := &file_runner_runner_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2599,7 +2682,7 @@ func (x *WorkspaceReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceReply.ProtoReflect.Descriptor instead.
 func (*WorkspaceReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{48}
+	return file_runner_runner_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *WorkspaceReply) GetMessage() string {
@@ -2622,7 +2705,7 @@ type FinalizeSecretsRequest struct {
 
 func (x *FinalizeSecretsRequest) Reset() {
 	*x = FinalizeSecretsRequest{}
-	mi := &file_runner_runner_proto_msgTypes[49]
+	mi := &file_runner_runner_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2634,7 +2717,7 @@ func (x *FinalizeSecretsRequest) String() string {
 func (*FinalizeSecretsRequest) ProtoMessage() {}
 
 func (x *FinalizeSecretsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[49]
+	mi := &file_runner_runner_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2647,7 +2730,7 @@ func (x *FinalizeSecretsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinalizeSecretsRequest.ProtoReflect.Descriptor instead.
 func (*FinalizeSecretsRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{49}
+	return file_runner_runner_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *FinalizeSecretsRequest) GetNamespace() string {
@@ -2694,7 +2777,7 @@ type FinalizeSecretsReply struct {
 
 func (x *FinalizeSecretsReply) Reset() {
 	*x = FinalizeSecretsReply{}
-	mi := &file_runner_runner_proto_msgTypes[50]
+	mi := &file_runner_runner_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2706,7 +2789,7 @@ func (x *FinalizeSecretsReply) String() string {
 func (*FinalizeSecretsReply) ProtoMessage() {}
 
 func (x *FinalizeSecretsReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[50]
+	mi := &file_runner_runner_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2719,7 +2802,7 @@ func (x *FinalizeSecretsReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinalizeSecretsReply.ProtoReflect.Descriptor instead.
 func (*FinalizeSecretsReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{50}
+	return file_runner_runner_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *FinalizeSecretsReply) GetMessage() string {
@@ -2739,7 +2822,7 @@ type ForceUnlockRequest struct {
 
 func (x *ForceUnlockRequest) Reset() {
 	*x = ForceUnlockRequest{}
-	mi := &file_runner_runner_proto_msgTypes[51]
+	mi := &file_runner_runner_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2751,7 +2834,7 @@ func (x *ForceUnlockRequest) String() string {
 func (*ForceUnlockRequest) ProtoMessage() {}
 
 func (x *ForceUnlockRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[51]
+	mi := &file_runner_runner_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2764,7 +2847,7 @@ func (x *ForceUnlockRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForceUnlockRequest.ProtoReflect.Descriptor instead.
 func (*ForceUnlockRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{51}
+	return file_runner_runner_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *ForceUnlockRequest) GetLockIdentifier() string {
@@ -2790,7 +2873,7 @@ type ForceUnlockReply struct {
 
 func (x *ForceUnlockReply) Reset() {
 	*x = ForceUnlockReply{}
-	mi := &file_runner_runner_proto_msgTypes[52]
+	mi := &file_runner_runner_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2802,7 +2885,7 @@ func (x *ForceUnlockReply) String() string {
 func (*ForceUnlockReply) ProtoMessage() {}
 
 func (x *ForceUnlockReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[52]
+	mi := &file_runner_runner_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2815,7 +2898,7 @@ func (x *ForceUnlockReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForceUnlockReply.ProtoReflect.Descriptor instead.
 func (*ForceUnlockReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{52}
+	return file_runner_runner_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *ForceUnlockReply) GetMessage() string {
@@ -2833,7 +2916,7 @@ type BreakTheGlassRequest struct {
 
 func (x *BreakTheGlassRequest) Reset() {
 	*x = BreakTheGlassRequest{}
-	mi := &file_runner_runner_proto_msgTypes[53]
+	mi := &file_runner_runner_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2845,7 +2928,7 @@ func (x *BreakTheGlassRequest) String() string {
 func (*BreakTheGlassRequest) ProtoMessage() {}
 
 func (x *BreakTheGlassRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[53]
+	mi := &file_runner_runner_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2858,7 +2941,7 @@ func (x *BreakTheGlassRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BreakTheGlassRequest.ProtoReflect.Descriptor instead.
 func (*BreakTheGlassRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{53}
+	return file_runner_runner_proto_rawDescGZIP(), []int{54}
 }
 
 type BreakTheGlassReply struct {
@@ -2871,7 +2954,7 @@ type BreakTheGlassReply struct {
 
 func (x *BreakTheGlassReply) Reset() {
 	*x = BreakTheGlassReply{}
-	mi := &file_runner_runner_proto_msgTypes[54]
+	mi := &file_runner_runner_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2883,7 +2966,7 @@ func (x *BreakTheGlassReply) String() string {
 func (*BreakTheGlassReply) ProtoMessage() {}
 
 func (x *BreakTheGlassReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[54]
+	mi := &file_runner_runner_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2896,7 +2979,7 @@ func (x *BreakTheGlassReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BreakTheGlassReply.ProtoReflect.Descriptor instead.
 func (*BreakTheGlassReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{54}
+	return file_runner_runner_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *BreakTheGlassReply) GetMessage() string {
@@ -2929,7 +3012,7 @@ type StateLock struct {
 
 func (x *StateLock) Reset() {
 	*x = StateLock{}
-	mi := &file_runner_runner_proto_msgTypes[55]
+	mi := &file_runner_runner_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2941,7 +3024,7 @@ func (x *StateLock) String() string {
 func (*StateLock) ProtoMessage() {}
 
 func (x *StateLock) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[55]
+	mi := &file_runner_runner_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2954,7 +3037,7 @@ func (x *StateLock) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StateLock.ProtoReflect.Descriptor instead.
 func (*StateLock) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{55}
+	return file_runner_runner_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *StateLock) GetId() string {
@@ -3121,9 +3204,17 @@ const file_runner_runner_proto_rawDesc = "" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1c\n" +
 	"\tnamespace\x18\x04 \x01(\tR\tnamespace\x12\x12\n" +
 	"\x04uuid\x18\x05 \x01(\tR\x04uuid\x12\x1a\n" +
-	"\brevision\x18\x06 \x01(\tR\brevision\"+\n" +
+	"\brevision\x18\x06 \x01(\tR\brevision\"s\n" +
+	"\vSavedObject\x12\x1e\n" +
+	"\n" +
+	"apiVersion\x18\x01 \x01(\tR\n" +
+	"apiVersion\x12\x12\n" +
+	"\x04kind\x18\x02 \x01(\tR\x04kind\x12\x1c\n" +
+	"\tnamespace\x18\x03 \x01(\tR\tnamespace\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\"d\n" +
 	"\x0fSaveTFPlanReply\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\"\xc3\x01\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\x127\n" +
+	"\fsavedObjects\x18\x02 \x03(\v2\x13.runner.SavedObjectR\fsavedObjects\"\xc3\x01\n" +
 	"\x11LoadTFPlanRequest\x12\x1e\n" +
 	"\n" +
 	"tfInstance\x18\x01 \x01(\tR\n" +
@@ -3295,7 +3386,7 @@ func file_runner_runner_proto_rawDescGZIP() []byte {
 	return file_runner_runner_proto_rawDescData
 }
 
-var file_runner_runner_proto_msgTypes = make([]protoimpl.MessageInfo, 62)
+var file_runner_runner_proto_msgTypes = make([]protoimpl.MessageInfo, 63)
 var file_runner_runner_proto_goTypes = []any{
 	(*LookPathRequest)(nil),           // 0: runner.LookPathRequest
 	(*LookPathReply)(nil),             // 1: runner.LookPathReply
@@ -3325,110 +3416,112 @@ var file_runner_runner_proto_goTypes = []any{
 	(*ShowPlanFileRawRequest)(nil),    // 25: runner.ShowPlanFileRawRequest
 	(*ShowPlanFileRawReply)(nil),      // 26: runner.ShowPlanFileRawReply
 	(*SaveTFPlanRequest)(nil),         // 27: runner.SaveTFPlanRequest
-	(*SaveTFPlanReply)(nil),           // 28: runner.SaveTFPlanReply
-	(*LoadTFPlanRequest)(nil),         // 29: runner.LoadTFPlanRequest
-	(*LoadTFPlanReply)(nil),           // 30: runner.LoadTFPlanReply
-	(*ApplyRequest)(nil),              // 31: runner.ApplyRequest
-	(*ApplyReply)(nil),                // 32: runner.ApplyReply
-	(*GetInventoryRequest)(nil),       // 33: runner.GetInventoryRequest
-	(*GetInventoryReply)(nil),         // 34: runner.GetInventoryReply
-	(*Inventory)(nil),                 // 35: runner.Inventory
-	(*DestroyRequest)(nil),            // 36: runner.DestroyRequest
-	(*DestroyReply)(nil),              // 37: runner.DestroyReply
-	(*OutputRequest)(nil),             // 38: runner.OutputRequest
-	(*OutputReply)(nil),               // 39: runner.OutputReply
-	(*OutputMeta)(nil),                // 40: runner.OutputMeta
-	(*WriteOutputsRequest)(nil),       // 41: runner.WriteOutputsRequest
-	(*WriteOutputsReply)(nil),         // 42: runner.WriteOutputsReply
-	(*GetOutputsRequest)(nil),         // 43: runner.GetOutputsRequest
-	(*GetOutputsReply)(nil),           // 44: runner.GetOutputsReply
-	(*InitRequest)(nil),               // 45: runner.InitRequest
-	(*InitReply)(nil),                 // 46: runner.InitReply
-	(*WorkspaceRequest)(nil),          // 47: runner.WorkspaceRequest
-	(*WorkspaceReply)(nil),            // 48: runner.WorkspaceReply
-	(*FinalizeSecretsRequest)(nil),    // 49: runner.FinalizeSecretsRequest
-	(*FinalizeSecretsReply)(nil),      // 50: runner.FinalizeSecretsReply
-	(*ForceUnlockRequest)(nil),        // 51: runner.ForceUnlockRequest
-	(*ForceUnlockReply)(nil),          // 52: runner.ForceUnlockReply
-	(*BreakTheGlassRequest)(nil),      // 53: runner.BreakTheGlassRequest
-	(*BreakTheGlassReply)(nil),        // 54: runner.BreakTheGlassReply
-	(*StateLock)(nil),                 // 55: runner.StateLock
-	nil,                               // 56: runner.SetEnvRequest.EnvsEntry
-	nil,                               // 57: runner.OutputReply.OutputsEntry
-	nil,                               // 58: runner.WriteOutputsRequest.DataEntry
-	nil,                               // 59: runner.WriteOutputsRequest.LabelsEntry
-	nil,                               // 60: runner.WriteOutputsRequest.AnnotationsEntry
-	nil,                               // 61: runner.GetOutputsReply.OutputsEntry
+	(*SavedObject)(nil),               // 28: runner.SavedObject
+	(*SaveTFPlanReply)(nil),           // 29: runner.SaveTFPlanReply
+	(*LoadTFPlanRequest)(nil),         // 30: runner.LoadTFPlanRequest
+	(*LoadTFPlanReply)(nil),           // 31: runner.LoadTFPlanReply
+	(*ApplyRequest)(nil),              // 32: runner.ApplyRequest
+	(*ApplyReply)(nil),                // 33: runner.ApplyReply
+	(*GetInventoryRequest)(nil),       // 34: runner.GetInventoryRequest
+	(*GetInventoryReply)(nil),         // 35: runner.GetInventoryReply
+	(*Inventory)(nil),                 // 36: runner.Inventory
+	(*DestroyRequest)(nil),            // 37: runner.DestroyRequest
+	(*DestroyReply)(nil),              // 38: runner.DestroyReply
+	(*OutputRequest)(nil),             // 39: runner.OutputRequest
+	(*OutputReply)(nil),               // 40: runner.OutputReply
+	(*OutputMeta)(nil),                // 41: runner.OutputMeta
+	(*WriteOutputsRequest)(nil),       // 42: runner.WriteOutputsRequest
+	(*WriteOutputsReply)(nil),         // 43: runner.WriteOutputsReply
+	(*GetOutputsRequest)(nil),         // 44: runner.GetOutputsRequest
+	(*GetOutputsReply)(nil),           // 45: runner.GetOutputsReply
+	(*InitRequest)(nil),               // 46: runner.InitRequest
+	(*InitReply)(nil),                 // 47: runner.InitReply
+	(*WorkspaceRequest)(nil),          // 48: runner.WorkspaceRequest
+	(*WorkspaceReply)(nil),            // 49: runner.WorkspaceReply
+	(*FinalizeSecretsRequest)(nil),    // 50: runner.FinalizeSecretsRequest
+	(*FinalizeSecretsReply)(nil),      // 51: runner.FinalizeSecretsReply
+	(*ForceUnlockRequest)(nil),        // 52: runner.ForceUnlockRequest
+	(*ForceUnlockReply)(nil),          // 53: runner.ForceUnlockReply
+	(*BreakTheGlassRequest)(nil),      // 54: runner.BreakTheGlassRequest
+	(*BreakTheGlassReply)(nil),        // 55: runner.BreakTheGlassReply
+	(*StateLock)(nil),                 // 56: runner.StateLock
+	nil,                               // 57: runner.SetEnvRequest.EnvsEntry
+	nil,                               // 58: runner.OutputReply.OutputsEntry
+	nil,                               // 59: runner.WriteOutputsRequest.DataEntry
+	nil,                               // 60: runner.WriteOutputsRequest.LabelsEntry
+	nil,                               // 61: runner.WriteOutputsRequest.AnnotationsEntry
+	nil,                               // 62: runner.GetOutputsReply.OutputsEntry
 }
 var file_runner_runner_proto_depIdxs = []int32{
-	56, // 0: runner.SetEnvRequest.envs:type_name -> runner.SetEnvRequest.EnvsEntry
+	57, // 0: runner.SetEnvRequest.envs:type_name -> runner.SetEnvRequest.EnvsEntry
 	6,  // 1: runner.CreateFileMappingsRequest.fileMappings:type_name -> runner.fileMapping
-	35, // 2: runner.GetInventoryReply.inventories:type_name -> runner.Inventory
-	57, // 3: runner.OutputReply.outputs:type_name -> runner.OutputReply.OutputsEntry
-	58, // 4: runner.WriteOutputsRequest.data:type_name -> runner.WriteOutputsRequest.DataEntry
-	59, // 5: runner.WriteOutputsRequest.labels:type_name -> runner.WriteOutputsRequest.LabelsEntry
-	60, // 6: runner.WriteOutputsRequest.annotations:type_name -> runner.WriteOutputsRequest.AnnotationsEntry
-	61, // 7: runner.GetOutputsReply.outputs:type_name -> runner.GetOutputsReply.OutputsEntry
-	40, // 8: runner.OutputReply.OutputsEntry.value:type_name -> runner.OutputMeta
-	0,  // 9: runner.Runner.LookPath:input_type -> runner.LookPathRequest
-	2,  // 10: runner.Runner.NewTerraform:input_type -> runner.NewTerraformRequest
-	4,  // 11: runner.Runner.SetEnv:input_type -> runner.SetEnvRequest
-	7,  // 12: runner.Runner.CreateFileMappings:input_type -> runner.CreateFileMappingsRequest
-	9,  // 13: runner.Runner.UploadAndExtract:input_type -> runner.UploadAndExtractRequest
-	11, // 14: runner.Runner.CleanupDir:input_type -> runner.CleanupDirRequest
-	13, // 15: runner.Runner.WriteBackendConfig:input_type -> runner.WriteBackendConfigRequest
-	15, // 16: runner.Runner.ProcessCliConfig:input_type -> runner.ProcessCliConfigRequest
-	17, // 17: runner.Runner.GenerateVarsForTF:input_type -> runner.GenerateVarsForTFRequest
-	19, // 18: runner.Runner.GenerateTemplate:input_type -> runner.GenerateTemplateRequest
-	21, // 19: runner.Runner.Plan:input_type -> runner.PlanRequest
-	25, // 20: runner.Runner.ShowPlanFileRaw:input_type -> runner.ShowPlanFileRawRequest
-	23, // 21: runner.Runner.ShowPlanFile:input_type -> runner.ShowPlanFileRequest
-	27, // 22: runner.Runner.SaveTFPlan:input_type -> runner.SaveTFPlanRequest
-	29, // 23: runner.Runner.LoadTFPlan:input_type -> runner.LoadTFPlanRequest
-	31, // 24: runner.Runner.Apply:input_type -> runner.ApplyRequest
-	33, // 25: runner.Runner.GetInventory:input_type -> runner.GetInventoryRequest
-	36, // 26: runner.Runner.Destroy:input_type -> runner.DestroyRequest
-	38, // 27: runner.Runner.Output:input_type -> runner.OutputRequest
-	41, // 28: runner.Runner.WriteOutputs:input_type -> runner.WriteOutputsRequest
-	43, // 29: runner.Runner.GetOutputs:input_type -> runner.GetOutputsRequest
-	45, // 30: runner.Runner.Init:input_type -> runner.InitRequest
-	47, // 31: runner.Runner.SelectWorkspace:input_type -> runner.WorkspaceRequest
-	49, // 32: runner.Runner.FinalizeSecrets:input_type -> runner.FinalizeSecretsRequest
-	51, // 33: runner.Runner.ForceUnlock:input_type -> runner.ForceUnlockRequest
-	53, // 34: runner.Runner.StartBreakTheGlassSession:input_type -> runner.BreakTheGlassRequest
-	53, // 35: runner.Runner.HasBreakTheGlassSessionDone:input_type -> runner.BreakTheGlassRequest
-	1,  // 36: runner.Runner.LookPath:output_type -> runner.LookPathReply
-	3,  // 37: runner.Runner.NewTerraform:output_type -> runner.NewTerraformReply
-	5,  // 38: runner.Runner.SetEnv:output_type -> runner.SetEnvReply
-	8,  // 39: runner.Runner.CreateFileMappings:output_type -> runner.CreateFileMappingsReply
-	10, // 40: runner.Runner.UploadAndExtract:output_type -> runner.UploadAndExtractReply
-	12, // 41: runner.Runner.CleanupDir:output_type -> runner.CleanupDirReply
-	14, // 42: runner.Runner.WriteBackendConfig:output_type -> runner.WriteBackendConfigReply
-	16, // 43: runner.Runner.ProcessCliConfig:output_type -> runner.ProcessCliConfigReply
-	18, // 44: runner.Runner.GenerateVarsForTF:output_type -> runner.GenerateVarsForTFReply
-	20, // 45: runner.Runner.GenerateTemplate:output_type -> runner.GenerateTemplateReply
-	22, // 46: runner.Runner.Plan:output_type -> runner.PlanReply
-	26, // 47: runner.Runner.ShowPlanFileRaw:output_type -> runner.ShowPlanFileRawReply
-	24, // 48: runner.Runner.ShowPlanFile:output_type -> runner.ShowPlanFileReply
-	28, // 49: runner.Runner.SaveTFPlan:output_type -> runner.SaveTFPlanReply
-	30, // 50: runner.Runner.LoadTFPlan:output_type -> runner.LoadTFPlanReply
-	32, // 51: runner.Runner.Apply:output_type -> runner.ApplyReply
-	34, // 52: runner.Runner.GetInventory:output_type -> runner.GetInventoryReply
-	37, // 53: runner.Runner.Destroy:output_type -> runner.DestroyReply
-	39, // 54: runner.Runner.Output:output_type -> runner.OutputReply
-	42, // 55: runner.Runner.WriteOutputs:output_type -> runner.WriteOutputsReply
-	44, // 56: runner.Runner.GetOutputs:output_type -> runner.GetOutputsReply
-	46, // 57: runner.Runner.Init:output_type -> runner.InitReply
-	48, // 58: runner.Runner.SelectWorkspace:output_type -> runner.WorkspaceReply
-	50, // 59: runner.Runner.FinalizeSecrets:output_type -> runner.FinalizeSecretsReply
-	52, // 60: runner.Runner.ForceUnlock:output_type -> runner.ForceUnlockReply
-	54, // 61: runner.Runner.StartBreakTheGlassSession:output_type -> runner.BreakTheGlassReply
-	54, // 62: runner.Runner.HasBreakTheGlassSessionDone:output_type -> runner.BreakTheGlassReply
-	36, // [36:63] is the sub-list for method output_type
-	9,  // [9:36] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	28, // 2: runner.SaveTFPlanReply.savedObjects:type_name -> runner.SavedObject
+	36, // 3: runner.GetInventoryReply.inventories:type_name -> runner.Inventory
+	58, // 4: runner.OutputReply.outputs:type_name -> runner.OutputReply.OutputsEntry
+	59, // 5: runner.WriteOutputsRequest.data:type_name -> runner.WriteOutputsRequest.DataEntry
+	60, // 6: runner.WriteOutputsRequest.labels:type_name -> runner.WriteOutputsRequest.LabelsEntry
+	61, // 7: runner.WriteOutputsRequest.annotations:type_name -> runner.WriteOutputsRequest.AnnotationsEntry
+	62, // 8: runner.GetOutputsReply.outputs:type_name -> runner.GetOutputsReply.OutputsEntry
+	41, // 9: runner.OutputReply.OutputsEntry.value:type_name -> runner.OutputMeta
+	0,  // 10: runner.Runner.LookPath:input_type -> runner.LookPathRequest
+	2,  // 11: runner.Runner.NewTerraform:input_type -> runner.NewTerraformRequest
+	4,  // 12: runner.Runner.SetEnv:input_type -> runner.SetEnvRequest
+	7,  // 13: runner.Runner.CreateFileMappings:input_type -> runner.CreateFileMappingsRequest
+	9,  // 14: runner.Runner.UploadAndExtract:input_type -> runner.UploadAndExtractRequest
+	11, // 15: runner.Runner.CleanupDir:input_type -> runner.CleanupDirRequest
+	13, // 16: runner.Runner.WriteBackendConfig:input_type -> runner.WriteBackendConfigRequest
+	15, // 17: runner.Runner.ProcessCliConfig:input_type -> runner.ProcessCliConfigRequest
+	17, // 18: runner.Runner.GenerateVarsForTF:input_type -> runner.GenerateVarsForTFRequest
+	19, // 19: runner.Runner.GenerateTemplate:input_type -> runner.GenerateTemplateRequest
+	21, // 20: runner.Runner.Plan:input_type -> runner.PlanRequest
+	25, // 21: runner.Runner.ShowPlanFileRaw:input_type -> runner.ShowPlanFileRawRequest
+	23, // 22: runner.Runner.ShowPlanFile:input_type -> runner.ShowPlanFileRequest
+	27, // 23: runner.Runner.SaveTFPlan:input_type -> runner.SaveTFPlanRequest
+	30, // 24: runner.Runner.LoadTFPlan:input_type -> runner.LoadTFPlanRequest
+	32, // 25: runner.Runner.Apply:input_type -> runner.ApplyRequest
+	34, // 26: runner.Runner.GetInventory:input_type -> runner.GetInventoryRequest
+	37, // 27: runner.Runner.Destroy:input_type -> runner.DestroyRequest
+	39, // 28: runner.Runner.Output:input_type -> runner.OutputRequest
+	42, // 29: runner.Runner.WriteOutputs:input_type -> runner.WriteOutputsRequest
+	44, // 30: runner.Runner.GetOutputs:input_type -> runner.GetOutputsRequest
+	46, // 31: runner.Runner.Init:input_type -> runner.InitRequest
+	48, // 32: runner.Runner.SelectWorkspace:input_type -> runner.WorkspaceRequest
+	50, // 33: runner.Runner.FinalizeSecrets:input_type -> runner.FinalizeSecretsRequest
+	52, // 34: runner.Runner.ForceUnlock:input_type -> runner.ForceUnlockRequest
+	54, // 35: runner.Runner.StartBreakTheGlassSession:input_type -> runner.BreakTheGlassRequest
+	54, // 36: runner.Runner.HasBreakTheGlassSessionDone:input_type -> runner.BreakTheGlassRequest
+	1,  // 37: runner.Runner.LookPath:output_type -> runner.LookPathReply
+	3,  // 38: runner.Runner.NewTerraform:output_type -> runner.NewTerraformReply
+	5,  // 39: runner.Runner.SetEnv:output_type -> runner.SetEnvReply
+	8,  // 40: runner.Runner.CreateFileMappings:output_type -> runner.CreateFileMappingsReply
+	10, // 41: runner.Runner.UploadAndExtract:output_type -> runner.UploadAndExtractReply
+	12, // 42: runner.Runner.CleanupDir:output_type -> runner.CleanupDirReply
+	14, // 43: runner.Runner.WriteBackendConfig:output_type -> runner.WriteBackendConfigReply
+	16, // 44: runner.Runner.ProcessCliConfig:output_type -> runner.ProcessCliConfigReply
+	18, // 45: runner.Runner.GenerateVarsForTF:output_type -> runner.GenerateVarsForTFReply
+	20, // 46: runner.Runner.GenerateTemplate:output_type -> runner.GenerateTemplateReply
+	22, // 47: runner.Runner.Plan:output_type -> runner.PlanReply
+	26, // 48: runner.Runner.ShowPlanFileRaw:output_type -> runner.ShowPlanFileRawReply
+	24, // 49: runner.Runner.ShowPlanFile:output_type -> runner.ShowPlanFileReply
+	29, // 50: runner.Runner.SaveTFPlan:output_type -> runner.SaveTFPlanReply
+	31, // 51: runner.Runner.LoadTFPlan:output_type -> runner.LoadTFPlanReply
+	33, // 52: runner.Runner.Apply:output_type -> runner.ApplyReply
+	35, // 53: runner.Runner.GetInventory:output_type -> runner.GetInventoryReply
+	38, // 54: runner.Runner.Destroy:output_type -> runner.DestroyReply
+	40, // 55: runner.Runner.Output:output_type -> runner.OutputReply
+	43, // 56: runner.Runner.WriteOutputs:output_type -> runner.WriteOutputsReply
+	45, // 57: runner.Runner.GetOutputs:output_type -> runner.GetOutputsReply
+	47, // 58: runner.Runner.Init:output_type -> runner.InitReply
+	49, // 59: runner.Runner.SelectWorkspace:output_type -> runner.WorkspaceReply
+	51, // 60: runner.Runner.FinalizeSecrets:output_type -> runner.FinalizeSecretsReply
+	53, // 61: runner.Runner.ForceUnlock:output_type -> runner.ForceUnlockReply
+	55, // 62: runner.Runner.StartBreakTheGlassSession:output_type -> runner.BreakTheGlassReply
+	55, // 63: runner.Runner.HasBreakTheGlassSessionDone:output_type -> runner.BreakTheGlassReply
+	37, // [37:64] is the sub-list for method output_type
+	10, // [10:37] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_runner_runner_proto_init() }
@@ -3442,7 +3535,7 @@ func file_runner_runner_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_runner_runner_proto_rawDesc), len(file_runner_runner_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   62,
+			NumMessages:   63,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
