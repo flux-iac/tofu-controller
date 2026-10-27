@@ -599,11 +599,15 @@
 
 <h1 id="3-workspace-blob-caching">3. Workspace BLOB Caching</h1>
 <ul>
-<li>Status: [ <strong>proposed</strong> | rejected | accepted | deprecated ]</li>
+<li>Status: [ proposed | rejected | accepted | <strong>deprecated</strong> ]</li>
 <li>Date: 2023-09-20 </li>
 <li>Authors: @chanwit</li>
 <li>Deciders: TBD </li>
 </ul>
+<blockquote>
+<p><strong>Deprecated:</strong> the controller does not use this. The <code>CreateWorkspaceBlob</code> RPC it
+describes has been removed from the runner.</p>
+</blockquote>
 <h2 id="context">Context</h2>
 <p>The Tofu Controller currently faces challenges related to the deletion of Terraform resources.
 These problems span across three categories:</p>
