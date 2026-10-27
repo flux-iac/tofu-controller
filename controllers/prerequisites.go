@@ -195,6 +195,13 @@ func (r *TerraformReconciler) shouldReconcile(terraform *infrav1.Terraform, sour
 		return true, "retry interval has elapsed since last failed reconciliation", 0
 	}
 
+	// reconcile if the last pass could not start the runner. That failure is
+	// not counted as a reconciliation failure, so without this the retry would
+	// wait for the full interval.
+	if runnerFailed(terraform) {
+		return true, "previously failed to start the runner", 0
+	}
+
 	if terraform.Status.LastSuccessfulReconcileAt == nil {
 		return true, "never successfuly reconciled before", 0
 	}

@@ -543,3 +543,45 @@ func TestShouldReconcileIgnoresResolvedDrift(t *testing.T) {
 	g.Expect(shouldReconcile).To(BeFalse())
 	g.Expect(reason).To(Equal("interval has not elapsed since last successful reconciliation"))
 }
+
+func TestShouldReconcileAfterRunnerFailure(t *testing.T) {
+	Spec("This spec covers a pass that failed to start the runner, for example because its pod was evicted.")
+	It("should reconcile again instead of waiting for the interval.")
+
+	for _, reason := range []string{infrav1.RunnerFailedReason, infrav1.RunnerQuotaExhaustedReason} {
+		t.Run(reason, func(t *testing.T) {
+			g := NewWithT(t)
+			reconciler := &TerraformReconciler{}
+
+			lastReconcile := time.Now().Add(-6 * 24 * time.Hour)
+			tf := &infrav1.Terraform{
+				ObjectMeta: metav1.ObjectMeta{
+					Generation: 1,
+				},
+				Spec: infrav1.TerraformSpec{
+					Interval: metav1.Duration{Duration: 168 * time.Hour},
+				},
+				Status: infrav1.TerraformStatus{
+					LastPlanAt:                &metav1.Time{Time: lastReconcile},
+					LastSuccessfulReconcileAt: &metav1.Time{Time: lastReconcile},
+					LastAttemptedRevision:     "main/1234",
+					LastPlannedRevision:       "main/1234",
+					ObservedGeneration:        1,
+					Conditions: []metav1.Condition{
+						{
+							Message: "failed to create and obtain pod ip",
+							Reason:  reason,
+							Type:    meta.ReadyCondition,
+							Status:  metav1.ConditionFalse,
+						},
+					},
+				},
+			}
+
+			shouldReconcile, why, requeueAfter := reconciler.shouldReconcile(tf, nil)
+			g.Expect(shouldReconcile).To(BeTrue())
+			g.Expect(why).To(Equal("previously failed to start the runner"))
+			g.Expect(requeueAfter).To(BeZero())
+		})
+	}
+}

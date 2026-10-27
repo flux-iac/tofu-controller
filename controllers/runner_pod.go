@@ -463,7 +463,7 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 
 	defer watcher.Stop()
 	// set a timeout for the watch
-	ctx, cancel := context.WithTimeout(ctx, timeout)
+	watchCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	for {
@@ -480,23 +480,69 @@ func (r *TerraformReconciler) reconcileRunnerPod(ctx context.Context, terraform 
 					return "", fmt.Errorf("failed to cast object to pod: %v", event.Object)
 				}
 
+				// A failed pod will never serve, for example one the kubelet
+				// rejects or evicts under disk pressure. One evicted after it
+				// ran still reports its last IP, so check before the IP.
+				if runnerPod.Status.Phase == corev1.PodFailed {
+					return "", r.deleteUnusableRunnerPod(ctx, runnerPod,
+						fmt.Errorf("runner pod failed: %s: %s", runnerPod.Status.Reason, runnerPod.Status.Message))
+				}
+
+				// The kubelet gives the pod its IP before it pulls the image
+				// or builds the container config, so this too comes first.
+				if waiting := runnerContainerCannotStart(runnerPod); waiting != nil {
+					return "", r.deleteUnusableRunnerPod(ctx, runnerPod,
+						fmt.Errorf("runner pod cannot start: %s: %s", waiting.Reason, waiting.Message))
+				}
+
 				if runnerPod.Status.PodIP != "" {
 					return runnerPod.Status.PodIP, nil
 				}
-
 			}
-		case <-ctx.Done():
-
-			if err := r.Delete(ctx, &runnerPod,
-				client.GracePeriodSeconds(1), // force kill = 1 second
-				client.PropagationPolicy(metav1.DeletePropagationForeground),
-			); err != nil {
-				return "", fmt.Errorf("failed to obtain pod ip and delete runner pod: %w", err)
-			}
-
-			return "", fmt.Errorf("failed to create and obtain pod ip")
+		case <-watchCtx.Done():
+			return "", r.deleteUnusableRunnerPod(ctx, &runnerPod, fmt.Errorf("failed to create and obtain pod ip"))
 		}
 	}
+}
+
+// containerCannotStartReasons are the kubelet's waiting reasons for a
+// container that will not start until someone fixes the pod's image, spec or
+// secrets. Image pull failures (ErrImagePull, ImagePullBackOff) are left out:
+// the kubelet reports them after a single failed pull, including a transient
+// registry error, and retries with its own backoff.
+var containerCannotStartReasons = map[string]bool{
+	"InvalidImageName":           true,
+	"ErrImageNeverPull":          true,
+	"CreateContainerConfigError": true,
+}
+
+// runnerContainerCannotStart returns the waiting state of a container in pod
+// that cannot start, or nil.
+func runnerContainerCannotStart(pod *corev1.Pod) *corev1.ContainerStateWaiting {
+	for _, status := range pod.Status.ContainerStatuses {
+		if waiting := status.State.Waiting; waiting != nil && containerCannotStartReasons[waiting.Reason] {
+			return waiting
+		}
+	}
+	return nil
+}
+
+// deleteUnusableRunnerPod force-deletes a runner pod that will never serve,
+// so the next pass creates a new one, and returns cause. The delete gets a
+// context of its own: the wait that gave up on the pod may have used up ctx's
+// deadline.
+func (r *TerraformReconciler) deleteUnusableRunnerPod(ctx context.Context, pod *corev1.Pod, cause error) error {
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+	defer cancel()
+
+	if err := r.Delete(ctx, pod,
+		client.GracePeriodSeconds(1), // force kill = 1 second
+		client.PropagationPolicy(metav1.DeletePropagationForeground),
+	); err != nil && !errors.IsNotFound(err) {
+		return fmt.Errorf("%w; failed to delete the runner pod: %v", cause, err)
+	}
+
+	return cause
 }
 
 // reconcileRunnerSecret reconciles the runner secret used for mTLS
