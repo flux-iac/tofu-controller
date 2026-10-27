@@ -39,6 +39,7 @@ kubectl patch deployment \
   "--log-encoding=json",
   "--enable-leader-election",
   "--concurrent=10",
+  "--feature-gates=ExternalArtifact=true",
 ]}]'
 
 kubectl -n tofu-system rollout status deploy/source-controller --timeout=1m

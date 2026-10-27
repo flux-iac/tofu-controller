@@ -76,6 +76,10 @@ type TerraformReconciler struct {
 	patchOptions      []patch.Option
 	requeueDependency time.Duration
 
+	// EnableExternalArtifact allows ExternalArtifact as a sourceRef kind. The kind only exists
+	// with Flux 2.7+, so watching it on an older cluster stops the controller from starting.
+	EnableExternalArtifact bool
+
 	// Quota retry configuration
 	QuotaRetryEnabled      bool
 	QuotaRetryDelay        time.Duration
@@ -719,10 +723,12 @@ func (r *TerraformReconciler) SetupWithManager(ctx context.Context, mgr ctrl.Man
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
-	// Index the Terraforms by the ExternalArtifact references they (may) point at.
-	if err := mgr.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.ExternalArtifactIndexKey,
-		r.IndexBy(sourcev1.ExternalArtifactKind)); err != nil {
-		return fmt.Errorf("failed setting index fields: %w", err)
+	if r.EnableExternalArtifact {
+		// Index the Terraforms by the ExternalArtifact references they (may) point at.
+		if err := mgr.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.ExternalArtifactIndexKey,
+			r.IndexBy(sourcev1.ExternalArtifactKind)); err != nil {
+			return fmt.Errorf("failed setting index fields: %w", err)
+		}
 	}
 
 	// Configure the retryable http client used for fetching artifacts.
@@ -737,7 +743,7 @@ func (r *TerraformReconciler) SetupWithManager(ctx context.Context, mgr ctrl.Man
 	r.requeueDependency = 30 * time.Second
 	recoverPanic := true
 
-	return ctrl.NewControllerManagedBy(mgr).
+	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
 		For(&infrav1.Terraform{}, builder.WithPredicates(
 			predicate.Or(predicate.GenerationChangedPredicate{}, predicates.ReconcileRequestedPredicate{}),
 		)).
@@ -757,11 +763,6 @@ func (r *TerraformReconciler) SetupWithManager(ctx context.Context, mgr ctrl.Man
 			builder.WithPredicates(SourceRevisionChangePredicate{}),
 		).
 		Watches(
-			&sourcev1.ExternalArtifact{},
-			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(infrav1.ExternalArtifactIndexKey)),
-			builder.WithPredicates(SourceRevisionChangePredicate{}),
-		).
-		Watches(
 			&corev1.Secret{},
 			handler.EnqueueRequestForOwner(mgr.GetScheme(), mgr.GetRESTMapper(), &infrav1.Terraform{}, handler.OnlyControllerOwner()),
 			builder.WithPredicates(SecretDeletePredicate{}),
@@ -769,8 +770,17 @@ func (r *TerraformReconciler) SetupWithManager(ctx context.Context, mgr ctrl.Man
 		WithOptions(controller.Options{
 			MaxConcurrentReconciles: maxConcurrentReconciles,
 			RecoverPanic:            &recoverPanic,
-		}).
-		Complete(r)
+		})
+
+	if r.EnableExternalArtifact {
+		controllerBuilder = controllerBuilder.Watches(
+			&sourcev1.ExternalArtifact{},
+			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(infrav1.ExternalArtifactIndexKey)),
+			builder.WithPredicates(SourceRevisionChangePredicate{}),
+		)
+	}
+
+	return controllerBuilder.Complete(r)
 }
 
 func (r *TerraformReconciler) checkDependencies(ctx context.Context, terraform *infrav1.Terraform, source sourcev1.Source) error {
@@ -936,6 +946,10 @@ func (r *TerraformReconciler) getSource(ctx context.Context, terraform *infrav1.
 		}
 		sourceObj = &repository
 	case sourcev1.ExternalArtifactKind:
+		if !r.EnableExternalArtifact {
+			return sourceObj, fmt.Errorf("source `%s` kind '%s' requires the ExternalArtifact feature gate (--feature-gates=ExternalArtifact=true)",
+				terraform.Spec.SourceRef.Name, terraform.Spec.SourceRef.Kind)
+		}
 		var artifact sourcev1.ExternalArtifact
 		err := r.Get(ctx, sourceReference, &artifact)
 		if err != nil {

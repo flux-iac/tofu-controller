@@ -182,6 +182,7 @@ func TestMain(m *testing.M) {
 		RunnerRPCTimeout:          30 * time.Minute,
 		RunnerGRPCMaxMessageSize:  4,
 		UsePodSubdomainResolution: false,
+		EnableExternalArtifact:    true,
 	}
 
 	// We use 1 concurrent and 10s httpRetry in the test

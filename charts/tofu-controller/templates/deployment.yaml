@@ -55,6 +55,7 @@ spec:
         - --quota-retry-enabled={{ .Values.quotaRetryEnabled }}
         - --quota-retry-delay={{ .Values.quotaRetryDelay }}
         - --quota-retry-jitter-factor={{ .Values.quotaRetryJitterFactor }}
+        - --feature-gates=ExternalArtifact={{ .Values.featureGates.externalArtifact }}
         env:
           {{- include "pod-namespace" . | indent 8 }}
         - name: RUNNER_POD_IMAGE
