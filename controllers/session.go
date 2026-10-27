@@ -127,9 +127,19 @@ func (s *runnerSession) Close(ctx context.Context) {
 	}
 }
 
-// cleanupDir asks the runner to remove tmpDir, whatever its value. Callers
-// defer it before setup, which sets tmpDir.
+// cleanupDir asks the runner to remove tmpDir. Callers defer it before setup,
+// which sets tmpDir.
+//
+// It sends nothing while tmpDir is empty: setup has no directory recorded,
+// because UploadAndExtract did not return one, and CleanupDir("") would remove
+// nothing anyway. That includes a runner that never came up. The call would
+// run on the reconcile context, which has no deadline, and the watchdog leaves
+// a runner it never reached alone, so it would block forever.
 func (s *runnerSession) cleanupDir(ctx context.Context) {
+	if s.tmpDir == "" {
+		return
+	}
+
 	log := ctrl.LoggerFrom(ctx)
 
 	cleanupDirReply, err := s.client.CleanupDir(ctx, &runner.CleanupDirRequest{TmpDir: s.tmpDir})

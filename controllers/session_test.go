@@ -84,6 +84,29 @@ func TestWorkingDirRemovedWhenSetupFails(t *testing.T) {
 	g.Expect(fr.Requests("CleanupDir")).To(HaveLen(1))
 }
 
+// TestPassEndsWhenRunnerNeverStarts checks a pass against a runner that never
+// serves, such as one crashlooping before it listens, ends once setup's
+// RunnerRPCTimeout expires. The deferred CleanupDir runs on the reconcile
+// context, which has no deadline, and the watchdog leaves a runner it never
+// reached alone, so a CleanupDir sent to it would block the pass forever.
+func TestPassEndsWhenRunnerNeverStarts(t *testing.T) {
+	g := NewWithT(t)
+	r, s, obj, _, _, _ := newLoggedPass(t, "runner-never-starts")
+	r.RunnerRPCTimeout = 500 * time.Millisecond
+	s.client = newWatchedRunnerClient(t, freeLocalAddr(t), 5*time.Minute)
+
+	// Cancelled at the end only so a hung pass does not leak past the test.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	result := make(chan error, 1)
+	go func() { result <- r.reconcileNormal(ctx, s, obj, helloWorldSource(newArtifactServer(t))) }()
+
+	var err error
+	g.Eventually(result, 10*time.Second).Should(Receive(&err))
+	g.Expect(status.Code(err)).To(Equal(codes.DeadlineExceeded))
+}
+
 // TestRunnerErrorSetsReadyFalse checks that a runner error sets Ready False and
 // keeps Reconciling. The reason is RunnerQuotaExhausted on the quota retry
 // path and RunnerFailed otherwise; the message is the error text.
