@@ -4,6 +4,12 @@ on:
       pattern:
         required: true
         type: string
+      timeout-minutes:
+        # timeout-minutes is not allowed on a job that calls a reusable
+        # workflow, so callers pass it here. 360 is the GitHub default.
+        required: false
+        type: number
+        default: 360
 
 permissions:
   contents: read # for actions/checkout to fetch code
@@ -11,6 +17,7 @@ permissions:
 jobs:
   targeted-test:
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.0.0

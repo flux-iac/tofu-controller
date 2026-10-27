@@ -1,0 +1,122 @@
+Segments:
+- Events:
+  - Action: ProvisionRunner
+    Message: runner pod creation blocked by resource quota, retrying
+    Reason: RunnerQuotaExhausted
+    Type: Warning
+  Name: create
+  Results:
+  - Error: nil
+    Panicked: false
+    Requeue: true
+    RequeueAfter: none
+  - Error: nil
+    Panicked: false
+    Requeue: false
+    RequeueAfter: other
+  Timeline:
+  - AvailableOutputs: null
+    Conditions: null
+    Finalizers: null
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 6d7d5df13f47
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions: null
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 6d7d5df13f47
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 6d7d5df13f47
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 6d7d5df13f47
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: 'pods "test-pod" is forbidden: exceeded quota'
+      Reason: RunnerQuotaExhausted
+      Status: "False"
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 6d7d5df13f47
+    TimesSet: null
+  TimesAdvanced: null

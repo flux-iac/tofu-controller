@@ -39,7 +39,7 @@ func Test_000191_missing_source_should_error(t *testing.T) {
 	}
 
 	It("should return a NotFound error")
-	_, err := reconciler.getSource(ctx, tfResource)
+	_, err := reconciler.resolveSource(ctx, tfResource)
 	g.Expect(apierrors.IsNotFound(err)).Should(BeTrue())
 
 	By("submitting a Terraform resource referencing a bucket source which does not exist")
@@ -58,6 +58,6 @@ func Test_000191_missing_source_should_error(t *testing.T) {
 	}
 
 	It("should return a NotFound error")
-	_, err = reconciler.getSource(ctx, tfResource)
+	_, err = reconciler.resolveSource(ctx, tfResource)
 	g.Expect(apierrors.IsNotFound(err)).Should(BeTrue())
 }

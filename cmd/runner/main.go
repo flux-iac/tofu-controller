@@ -20,8 +20,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/flux-iac/tofu-controller/mtls"
 	"github.com/fluxcd/pkg/runtime/logger"
@@ -78,17 +76,10 @@ func main() {
 		ctrl.SetLogger(logger.NewLogger(logOptions))
 	}
 
-	// catch the SIGTERM from the kubelet to gracefully terminate
-	sigterm := make(chan os.Signal, 1)
-	signal.Notify(sigterm, syscall.SIGTERM)
-	defer func() {
-		signal.Stop(sigterm)
-	}()
-
 	log.Println("Starting the runner...", "version", BuildVersion, "sha", BuildSHA)
 
-	err := mtls.RunnerServe(podNamespace, addr, tlsSecretName, sigterm, grpcMaxMessageSize)
-	if err != nil {
+	// RunnerServe returns once SIGTERM from the kubelet has stopped it.
+	if err := mtls.RunnerServe(podNamespace, addr, tlsSecretName, grpcMaxMessageSize); err != nil {
 		log.Fatal(err.Error())
 	}
 }

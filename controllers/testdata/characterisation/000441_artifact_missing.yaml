@@ -1,0 +1,84 @@
+Segments:
+- Events: null
+  Name: create
+  Results:
+  - Error: nil
+    Panicked: false
+    Requeue: true
+    RequeueAfter: none
+  - Error: nil
+    Panicked: false
+    Requeue: false
+    RequeueAfter: retry
+  Timeline:
+  - AvailableOutputs: null
+    Conditions: null
+    Finalizers: null
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 783d347480f3
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions: null
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 783d347480f3
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 783d347480f3
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Source is not ready, artifact not found
+      Reason: ArtifactFailed
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 783d347480f3
+    TimesSet: null

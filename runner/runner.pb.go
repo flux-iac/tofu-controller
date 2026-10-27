@@ -884,6 +884,7 @@ func (x *ProcessCliConfigReply) GetFilePath() string {
 type GenerateVarsForTFRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	WorkingDir    string                 `protobuf:"bytes,1,opt,name=workingDir,proto3" json:"workingDir,omitempty"`
+	TfInstance    string                 `protobuf:"bytes,2,opt,name=tfInstance,proto3" json:"tfInstance,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -921,6 +922,13 @@ func (*GenerateVarsForTFRequest) Descriptor() ([]byte, []int) {
 func (x *GenerateVarsForTFRequest) GetWorkingDir() string {
 	if x != nil {
 		return x.WorkingDir
+	}
+	return ""
+}
+
+func (x *GenerateVarsForTFRequest) GetTfInstance() string {
+	if x != nil {
+		return x.TfInstance
 	}
 	return ""
 }
@@ -972,6 +980,7 @@ func (x *GenerateVarsForTFReply) GetMessage() string {
 type GenerateTemplateRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	WorkingDir    string                 `protobuf:"bytes,1,opt,name=workingDir,proto3" json:"workingDir,omitempty"`
+	TfInstance    string                 `protobuf:"bytes,2,opt,name=tfInstance,proto3" json:"tfInstance,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1009,6 +1018,13 @@ func (*GenerateTemplateRequest) Descriptor() ([]byte, []int) {
 func (x *GenerateTemplateRequest) GetWorkingDir() string {
 	if x != nil {
 		return x.WorkingDir
+	}
+	return ""
+}
+
+func (x *GenerateTemplateRequest) GetTfInstance() string {
+	if x != nil {
+		return x.TfInstance
 	}
 	return ""
 }
@@ -1150,13 +1166,12 @@ func (x *PlanRequest) GetSourceRefRootDir() string {
 }
 
 type PlanReply struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	Drifted             bool                   `protobuf:"varint,1,opt,name=drifted,proto3" json:"drifted,omitempty"`
-	Message             string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	StateLockIdentifier string                 `protobuf:"bytes,3,opt,name=stateLockIdentifier,proto3" json:"stateLockIdentifier,omitempty"`
-	PlanCreated         bool                   `protobuf:"varint,4,opt,name=planCreated,proto3" json:"planCreated,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Drifted       bool                   `protobuf:"varint,1,opt,name=drifted,proto3" json:"drifted,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	PlanCreated   bool                   `protobuf:"varint,4,opt,name=planCreated,proto3" json:"planCreated,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PlanReply) Reset() {
@@ -1199,13 +1214,6 @@ func (x *PlanReply) GetDrifted() bool {
 func (x *PlanReply) GetMessage() string {
 	if x != nil {
 		return x.Message
-	}
-	return ""
-}
-
-func (x *PlanReply) GetStateLockIdentifier() string {
-	if x != nil {
-		return x.StateLockIdentifier
 	}
 	return ""
 }
@@ -1734,11 +1742,10 @@ func (x *ApplyRequest) GetParallelism() int32 {
 }
 
 type ApplyReply struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	Message             string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-	StateLockIdentifier string                 `protobuf:"bytes,2,opt,name=stateLockIdentifier,proto3" json:"stateLockIdentifier,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ApplyReply) Reset() {
@@ -1774,13 +1781,6 @@ func (*ApplyReply) Descriptor() ([]byte, []int) {
 func (x *ApplyReply) GetMessage() string {
 	if x != nil {
 		return x.Message
-	}
-	return ""
-}
-
-func (x *ApplyReply) GetStateLockIdentifier() string {
-	if x != nil {
-		return x.StateLockIdentifier
 	}
 	return ""
 }
@@ -1986,11 +1986,10 @@ func (x *DestroyRequest) GetTargets() []string {
 }
 
 type DestroyReply struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	Message             string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-	StateLockIdentifier string                 `protobuf:"bytes,2,opt,name=stateLockIdentifier,proto3" json:"stateLockIdentifier,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DestroyReply) Reset() {
@@ -2026,13 +2025,6 @@ func (*DestroyReply) Descriptor() ([]byte, []int) {
 func (x *DestroyReply) GetMessage() string {
 	if x != nil {
 		return x.Message
-	}
-	return ""
-}
-
-func (x *DestroyReply) GetStateLockIdentifier() string {
-	if x != nil {
-		return x.StateLockIdentifier
 	}
 	return ""
 }
@@ -2486,11 +2478,10 @@ func (x *InitRequest) GetForceCopy() bool {
 }
 
 type InitReply struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	Message             string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-	StateLockIdentifier string                 `protobuf:"bytes,2,opt,name=stateLockIdentifier,proto3" json:"stateLockIdentifier,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *InitReply) Reset() {
@@ -2526,13 +2517,6 @@ func (*InitReply) Descriptor() ([]byte, []int) {
 func (x *InitReply) GetMessage() string {
 	if x != nil {
 		return x.Message
-	}
-	return ""
-}
-
-func (x *InitReply) GetStateLockIdentifier() string {
-	if x != nil {
-		return x.StateLockIdentifier
 	}
 	return ""
 }
@@ -2625,206 +2609,6 @@ func (x *WorkspaceReply) GetMessage() string {
 	return ""
 }
 
-type CreateWorkspaceBlobRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TfInstance    string                 `protobuf:"bytes,1,opt,name=tfInstance,proto3" json:"tfInstance,omitempty"`
-	WorkingDir    string                 `protobuf:"bytes,2,opt,name=workingDir,proto3" json:"workingDir,omitempty"`
-	Namespace     string                 `protobuf:"bytes,3,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CreateWorkspaceBlobRequest) Reset() {
-	*x = CreateWorkspaceBlobRequest{}
-	mi := &file_runner_runner_proto_msgTypes[49]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CreateWorkspaceBlobRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreateWorkspaceBlobRequest) ProtoMessage() {}
-
-func (x *CreateWorkspaceBlobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[49]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CreateWorkspaceBlobRequest.ProtoReflect.Descriptor instead.
-func (*CreateWorkspaceBlobRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{49}
-}
-
-func (x *CreateWorkspaceBlobRequest) GetTfInstance() string {
-	if x != nil {
-		return x.TfInstance
-	}
-	return ""
-}
-
-func (x *CreateWorkspaceBlobRequest) GetWorkingDir() string {
-	if x != nil {
-		return x.WorkingDir
-	}
-	return ""
-}
-
-func (x *CreateWorkspaceBlobRequest) GetNamespace() string {
-	if x != nil {
-		return x.Namespace
-	}
-	return ""
-}
-
-type CreateWorkspaceBlobReply struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Blob           []byte                 `protobuf:"bytes,2,opt,name=blob,proto3" json:"blob,omitempty"`
-	Sha256Checksum []byte                 `protobuf:"bytes,3,opt,name=sha256Checksum,proto3" json:"sha256Checksum,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
-}
-
-func (x *CreateWorkspaceBlobReply) Reset() {
-	*x = CreateWorkspaceBlobReply{}
-	mi := &file_runner_runner_proto_msgTypes[50]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CreateWorkspaceBlobReply) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreateWorkspaceBlobReply) ProtoMessage() {}
-
-func (x *CreateWorkspaceBlobReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[50]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CreateWorkspaceBlobReply.ProtoReflect.Descriptor instead.
-func (*CreateWorkspaceBlobReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{50}
-}
-
-func (x *CreateWorkspaceBlobReply) GetBlob() []byte {
-	if x != nil {
-		return x.Blob
-	}
-	return nil
-}
-
-func (x *CreateWorkspaceBlobReply) GetSha256Checksum() []byte {
-	if x != nil {
-		return x.Sha256Checksum
-	}
-	return nil
-}
-
-type UploadRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Blob          []byte                 `protobuf:"bytes,1,opt,name=blob,proto3" json:"blob,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *UploadRequest) Reset() {
-	*x = UploadRequest{}
-	mi := &file_runner_runner_proto_msgTypes[51]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *UploadRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*UploadRequest) ProtoMessage() {}
-
-func (x *UploadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[51]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use UploadRequest.ProtoReflect.Descriptor instead.
-func (*UploadRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{51}
-}
-
-func (x *UploadRequest) GetBlob() []byte {
-	if x != nil {
-		return x.Blob
-	}
-	return nil
-}
-
-type UploadReply struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *UploadReply) Reset() {
-	*x = UploadReply{}
-	mi := &file_runner_runner_proto_msgTypes[52]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *UploadReply) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*UploadReply) ProtoMessage() {}
-
-func (x *UploadReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[52]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use UploadReply.ProtoReflect.Descriptor instead.
-func (*UploadReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{52}
-}
-
-func (x *UploadReply) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
 type FinalizeSecretsRequest struct {
 	state                    protoimpl.MessageState `protogen:"open.v1"`
 	Namespace                string                 `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
@@ -2838,7 +2622,7 @@ type FinalizeSecretsRequest struct {
 
 func (x *FinalizeSecretsRequest) Reset() {
 	*x = FinalizeSecretsRequest{}
-	mi := &file_runner_runner_proto_msgTypes[53]
+	mi := &file_runner_runner_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2850,7 +2634,7 @@ func (x *FinalizeSecretsRequest) String() string {
 func (*FinalizeSecretsRequest) ProtoMessage() {}
 
 func (x *FinalizeSecretsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[53]
+	mi := &file_runner_runner_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2863,7 +2647,7 @@ func (x *FinalizeSecretsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinalizeSecretsRequest.ProtoReflect.Descriptor instead.
 func (*FinalizeSecretsRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{53}
+	return file_runner_runner_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *FinalizeSecretsRequest) GetNamespace() string {
@@ -2904,14 +2688,13 @@ func (x *FinalizeSecretsRequest) GetOutputSecretName() string {
 type FinalizeSecretsReply struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-	NotFound      bool                   `protobuf:"varint,2,opt,name=notFound,proto3" json:"notFound,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *FinalizeSecretsReply) Reset() {
 	*x = FinalizeSecretsReply{}
-	mi := &file_runner_runner_proto_msgTypes[54]
+	mi := &file_runner_runner_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2923,7 +2706,7 @@ func (x *FinalizeSecretsReply) String() string {
 func (*FinalizeSecretsReply) ProtoMessage() {}
 
 func (x *FinalizeSecretsReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[54]
+	mi := &file_runner_runner_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2936,7 +2719,7 @@ func (x *FinalizeSecretsReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinalizeSecretsReply.ProtoReflect.Descriptor instead.
 func (*FinalizeSecretsReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{54}
+	return file_runner_runner_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *FinalizeSecretsReply) GetMessage() string {
@@ -2946,23 +2729,17 @@ func (x *FinalizeSecretsReply) GetMessage() string {
 	return ""
 }
 
-func (x *FinalizeSecretsReply) GetNotFound() bool {
-	if x != nil {
-		return x.NotFound
-	}
-	return false
-}
-
 type ForceUnlockRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	LockIdentifier string                 `protobuf:"bytes,1,opt,name=lockIdentifier,proto3" json:"lockIdentifier,omitempty"`
+	TfInstance     string                 `protobuf:"bytes,2,opt,name=tfInstance,proto3" json:"tfInstance,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ForceUnlockRequest) Reset() {
 	*x = ForceUnlockRequest{}
-	mi := &file_runner_runner_proto_msgTypes[55]
+	mi := &file_runner_runner_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2974,7 +2751,7 @@ func (x *ForceUnlockRequest) String() string {
 func (*ForceUnlockRequest) ProtoMessage() {}
 
 func (x *ForceUnlockRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[55]
+	mi := &file_runner_runner_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2987,7 +2764,7 @@ func (x *ForceUnlockRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForceUnlockRequest.ProtoReflect.Descriptor instead.
 func (*ForceUnlockRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{55}
+	return file_runner_runner_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *ForceUnlockRequest) GetLockIdentifier() string {
@@ -2997,17 +2774,23 @@ func (x *ForceUnlockRequest) GetLockIdentifier() string {
 	return ""
 }
 
+func (x *ForceUnlockRequest) GetTfInstance() string {
+	if x != nil {
+		return x.TfInstance
+	}
+	return ""
+}
+
 type ForceUnlockReply struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-	Success       bool                   `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ForceUnlockReply) Reset() {
 	*x = ForceUnlockReply{}
-	mi := &file_runner_runner_proto_msgTypes[56]
+	mi := &file_runner_runner_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3019,7 +2802,7 @@ func (x *ForceUnlockReply) String() string {
 func (*ForceUnlockReply) ProtoMessage() {}
 
 func (x *ForceUnlockReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[56]
+	mi := &file_runner_runner_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3032,7 +2815,7 @@ func (x *ForceUnlockReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForceUnlockReply.ProtoReflect.Descriptor instead.
 func (*ForceUnlockReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{56}
+	return file_runner_runner_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *ForceUnlockReply) GetMessage() string {
@@ -3040,13 +2823,6 @@ func (x *ForceUnlockReply) GetMessage() string {
 		return x.Message
 	}
 	return ""
-}
-
-func (x *ForceUnlockReply) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
 }
 
 type BreakTheGlassRequest struct {
@@ -3057,7 +2833,7 @@ type BreakTheGlassRequest struct {
 
 func (x *BreakTheGlassRequest) Reset() {
 	*x = BreakTheGlassRequest{}
-	mi := &file_runner_runner_proto_msgTypes[57]
+	mi := &file_runner_runner_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3069,7 +2845,7 @@ func (x *BreakTheGlassRequest) String() string {
 func (*BreakTheGlassRequest) ProtoMessage() {}
 
 func (x *BreakTheGlassRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[57]
+	mi := &file_runner_runner_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3082,7 +2858,7 @@ func (x *BreakTheGlassRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BreakTheGlassRequest.ProtoReflect.Descriptor instead.
 func (*BreakTheGlassRequest) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{57}
+	return file_runner_runner_proto_rawDescGZIP(), []int{53}
 }
 
 type BreakTheGlassReply struct {
@@ -3095,7 +2871,7 @@ type BreakTheGlassReply struct {
 
 func (x *BreakTheGlassReply) Reset() {
 	*x = BreakTheGlassReply{}
-	mi := &file_runner_runner_proto_msgTypes[58]
+	mi := &file_runner_runner_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3107,7 +2883,7 @@ func (x *BreakTheGlassReply) String() string {
 func (*BreakTheGlassReply) ProtoMessage() {}
 
 func (x *BreakTheGlassReply) ProtoReflect() protoreflect.Message {
-	mi := &file_runner_runner_proto_msgTypes[58]
+	mi := &file_runner_runner_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3120,7 +2896,7 @@ func (x *BreakTheGlassReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BreakTheGlassReply.ProtoReflect.Descriptor instead.
 func (*BreakTheGlassReply) Descriptor() ([]byte, []int) {
-	return file_runner_runner_proto_rawDescGZIP(), []int{58}
+	return file_runner_runner_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *BreakTheGlassReply) GetMessage() string {
@@ -3135,6 +2911,92 @@ func (x *BreakTheGlassReply) GetSuccess() bool {
 		return x.Success
 	}
 	return false
+}
+
+// StateLock describes a held Terraform state lock. The runner attaches it to
+// the status of calls that fail because of a lock.
+type StateLock struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Path          string                 `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	Operation     string                 `protobuf:"bytes,3,opt,name=operation,proto3" json:"operation,omitempty"`
+	Who           string                 `protobuf:"bytes,4,opt,name=who,proto3" json:"who,omitempty"`
+	Version       string                 `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
+	Created       string                 `protobuf:"bytes,6,opt,name=created,proto3" json:"created,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StateLock) Reset() {
+	*x = StateLock{}
+	mi := &file_runner_runner_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StateLock) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StateLock) ProtoMessage() {}
+
+func (x *StateLock) ProtoReflect() protoreflect.Message {
+	mi := &file_runner_runner_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StateLock.ProtoReflect.Descriptor instead.
+func (*StateLock) Descriptor() ([]byte, []int) {
+	return file_runner_runner_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *StateLock) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *StateLock) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *StateLock) GetOperation() string {
+	if x != nil {
+		return x.Operation
+	}
+	return ""
+}
+
+func (x *StateLock) GetWho() string {
+	if x != nil {
+		return x.Who
+	}
+	return ""
+}
+
+func (x *StateLock) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *StateLock) GetCreated() string {
+	if x != nil {
+		return x.Created
+	}
+	return ""
 }
 
 var File_runner_runner_proto protoreflect.FileDescriptor
@@ -3202,17 +3064,23 @@ const file_runner_runner_proto_rawDesc = "" +
 	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\"3\n" +
 	"\x15ProcessCliConfigReply\x12\x1a\n" +
-	"\bfilePath\x18\x01 \x01(\tR\bfilePath\":\n" +
+	"\bfilePath\x18\x01 \x01(\tR\bfilePath\"Z\n" +
 	"\x18GenerateVarsForTFRequest\x12\x1e\n" +
 	"\n" +
 	"workingDir\x18\x01 \x01(\tR\n" +
-	"workingDir\"2\n" +
+	"workingDir\x12\x1e\n" +
+	"\n" +
+	"tfInstance\x18\x02 \x01(\tR\n" +
+	"tfInstance\"2\n" +
 	"\x16GenerateVarsForTFReply\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\"9\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\"Y\n" +
 	"\x17GenerateTemplateRequest\x12\x1e\n" +
 	"\n" +
 	"workingDir\x18\x01 \x01(\tR\n" +
-	"workingDir\"1\n" +
+	"workingDir\x12\x1e\n" +
+	"\n" +
+	"tfInstance\x18\x02 \x01(\tR\n" +
+	"tfInstance\"1\n" +
 	"\x15GenerateTemplateReply\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\"\xdb\x01\n" +
 	"\vPlanRequest\x12\x1e\n" +
@@ -3224,12 +3092,11 @@ const file_runner_runner_proto_rawDesc = "" +
 	"\adestroy\x18\x04 \x01(\bR\adestroy\x12\x18\n" +
 	"\atargets\x18\x05 \x03(\tR\atargets\x12 \n" +
 	"\vlockTimeout\x18\x06 \x01(\tR\vlockTimeout\x12*\n" +
-	"\x10sourceRefRootDir\x18\a \x01(\tR\x10sourceRefRootDir\"\x93\x01\n" +
+	"\x10sourceRefRootDir\x18\a \x01(\tR\x10sourceRefRootDir\"|\n" +
 	"\tPlanReply\x12\x18\n" +
 	"\adrifted\x18\x01 \x01(\bR\adrifted\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\x120\n" +
-	"\x13stateLockIdentifier\x18\x03 \x01(\tR\x13stateLockIdentifier\x12 \n" +
-	"\vplanCreated\x18\x04 \x01(\bR\vplanCreated\"Q\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12 \n" +
+	"\vplanCreated\x18\x04 \x01(\bR\vplanCreatedJ\x04\b\x03\x10\x04R\x13stateLockIdentifier\"Q\n" +
 	"\x13ShowPlanFileRequest\x12\x1e\n" +
 	"\n" +
 	"tfInstance\x18\x01 \x01(\tR\n" +
@@ -3274,11 +3141,10 @@ const file_runner_runner_proto_rawDesc = "" +
 	"\tdirOrPlan\x18\x02 \x01(\tR\tdirOrPlan\x12.\n" +
 	"\x12refreshBeforeApply\x18\x03 \x01(\bR\x12refreshBeforeApply\x12\x18\n" +
 	"\atargets\x18\x04 \x03(\tR\atargets\x12 \n" +
-	"\vparallelism\x18\x05 \x01(\x05R\vparallelism\"X\n" +
+	"\vparallelism\x18\x05 \x01(\x05R\vparallelism\"A\n" +
 	"\n" +
 	"ApplyReply\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\x120\n" +
-	"\x13stateLockIdentifier\x18\x02 \x01(\tR\x13stateLockIdentifier\"5\n" +
+	"\amessage\x18\x01 \x01(\tR\amessageJ\x04\b\x02\x10\x03R\x13stateLockIdentifier\"5\n" +
 	"\x13GetInventoryRequest\x12\x1e\n" +
 	"\n" +
 	"tfInstance\x18\x01 \x01(\tR\n" +
@@ -3295,10 +3161,9 @@ const file_runner_runner_proto_rawDesc = "" +
 	"\n" +
 	"tfInstance\x18\x01 \x01(\tR\n" +
 	"tfInstance\x12\x18\n" +
-	"\atargets\x18\x02 \x03(\tR\atargets\"Z\n" +
+	"\atargets\x18\x02 \x03(\tR\atargets\"C\n" +
 	"\fDestroyReply\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\x120\n" +
-	"\x13stateLockIdentifier\x18\x02 \x01(\tR\x13stateLockIdentifier\"/\n" +
+	"\amessage\x18\x01 \x01(\tR\amessageJ\x04\b\x02\x10\x03R\x13stateLockIdentifier\"/\n" +
 	"\rOutputRequest\x12\x1e\n" +
 	"\n" +
 	"tfInstance\x18\x01 \x01(\tR\n" +
@@ -3350,49 +3215,41 @@ const file_runner_runner_proto_rawDesc = "" +
 	"tfInstance\x18\x01 \x01(\tR\n" +
 	"tfInstance\x12\x18\n" +
 	"\aupgrade\x18\x02 \x01(\bR\aupgrade\x12\x1c\n" +
-	"\tforceCopy\x18\x03 \x01(\bR\tforceCopy\"W\n" +
+	"\tforceCopy\x18\x03 \x01(\bR\tforceCopy\"@\n" +
 	"\tInitReply\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\x120\n" +
-	"\x13stateLockIdentifier\x18\x02 \x01(\tR\x13stateLockIdentifier\"2\n" +
+	"\amessage\x18\x01 \x01(\tR\amessageJ\x04\b\x02\x10\x03R\x13stateLockIdentifier\"2\n" +
 	"\x10WorkspaceRequest\x12\x1e\n" +
 	"\n" +
 	"tfInstance\x18\x01 \x01(\tR\n" +
 	"tfInstance\"*\n" +
 	"\x0eWorkspaceReply\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\"z\n" +
-	"\x1aCreateWorkspaceBlobRequest\x12\x1e\n" +
-	"\n" +
-	"tfInstance\x18\x01 \x01(\tR\n" +
-	"tfInstance\x12\x1e\n" +
-	"\n" +
-	"workingDir\x18\x02 \x01(\tR\n" +
-	"workingDir\x12\x1c\n" +
-	"\tnamespace\x18\x03 \x01(\tR\tnamespace\"V\n" +
-	"\x18CreateWorkspaceBlobReply\x12\x12\n" +
-	"\x04blob\x18\x02 \x01(\fR\x04blob\x12&\n" +
-	"\x0esha256Checksum\x18\x03 \x01(\fR\x0esha256Checksum\"#\n" +
-	"\rUploadRequest\x12\x12\n" +
-	"\x04blob\x18\x01 \x01(\fR\x04blob\"'\n" +
-	"\vUploadReply\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\"\xd0\x01\n" +
 	"\x16FinalizeSecretsRequest\x12\x1c\n" +
 	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1c\n" +
 	"\tworkspace\x18\x03 \x01(\tR\tworkspace\x12:\n" +
 	"\x18hasSpecifiedOutputSecret\x18\x04 \x01(\bR\x18hasSpecifiedOutputSecret\x12*\n" +
-	"\x10outputSecretName\x18\x05 \x01(\tR\x10outputSecretName\"L\n" +
+	"\x10outputSecretName\x18\x05 \x01(\tR\x10outputSecretName\"@\n" +
 	"\x14FinalizeSecretsReply\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\x12\x1a\n" +
-	"\bnotFound\x18\x02 \x01(\bR\bnotFound\"<\n" +
+	"\amessage\x18\x01 \x01(\tR\amessageJ\x04\b\x02\x10\x03R\bnotFound\"\\\n" +
 	"\x12ForceUnlockRequest\x12&\n" +
-	"\x0elockIdentifier\x18\x01 \x01(\tR\x0elockIdentifier\"F\n" +
+	"\x0elockIdentifier\x18\x01 \x01(\tR\x0elockIdentifier\x12\x1e\n" +
+	"\n" +
+	"tfInstance\x18\x02 \x01(\tR\n" +
+	"tfInstance\";\n" +
 	"\x10ForceUnlockReply\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\x12\x18\n" +
-	"\asuccess\x18\x02 \x01(\bR\asuccess\"\x16\n" +
+	"\amessage\x18\x01 \x01(\tR\amessageJ\x04\b\x02\x10\x03R\asuccess\"\x16\n" +
 	"\x14BreakTheGlassRequest\"H\n" +
 	"\x12BreakTheGlassReply\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\x12\x18\n" +
-	"\asuccess\x18\x02 \x01(\bR\asuccess2\xd4\x10\n" +
+	"\asuccess\x18\x02 \x01(\bR\asuccess\"\x93\x01\n" +
+	"\tStateLock\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04path\x18\x02 \x01(\tR\x04path\x12\x1c\n" +
+	"\toperation\x18\x03 \x01(\tR\toperation\x12\x10\n" +
+	"\x03who\x18\x04 \x01(\tR\x03who\x12\x18\n" +
+	"\aversion\x18\x05 \x01(\tR\aversion\x12\x18\n" +
+	"\acreated\x18\x06 \x01(\tR\acreated2\xbd\x0f\n" +
 	"\x06Runner\x12<\n" +
 	"\bLookPath\x12\x17.runner.LookPathRequest\x1a\x15.runner.LookPathReply\"\x00\x12H\n" +
 	"\fNewTerraform\x12\x1b.runner.NewTerraformRequest\x1a\x19.runner.NewTerraformReply\"\x00\x126\n" +
@@ -3420,9 +3277,7 @@ const file_runner_runner_proto_rawDesc = "" +
 	"\n" +
 	"GetOutputs\x12\x19.runner.GetOutputsRequest\x1a\x17.runner.GetOutputsReply\"\x00\x120\n" +
 	"\x04Init\x12\x13.runner.InitRequest\x1a\x11.runner.InitReply\"\x00\x12E\n" +
-	"\x0fSelectWorkspace\x12\x18.runner.WorkspaceRequest\x1a\x16.runner.WorkspaceReply\"\x00\x12]\n" +
-	"\x13CreateWorkspaceBlob\x12\".runner.CreateWorkspaceBlobRequest\x1a .runner.CreateWorkspaceBlobReply\"\x00\x126\n" +
-	"\x06Upload\x12\x15.runner.UploadRequest\x1a\x13.runner.UploadReply\"\x00\x12Q\n" +
+	"\x0fSelectWorkspace\x12\x18.runner.WorkspaceRequest\x1a\x16.runner.WorkspaceReply\"\x00\x12Q\n" +
 	"\x0fFinalizeSecrets\x12\x1e.runner.FinalizeSecretsRequest\x1a\x1c.runner.FinalizeSecretsReply\"\x00\x12E\n" +
 	"\vForceUnlock\x12\x1a.runner.ForceUnlockRequest\x1a\x18.runner.ForceUnlockReply\"\x00\x12W\n" +
 	"\x19StartBreakTheGlassSession\x12\x1c.runner.BreakTheGlassRequest\x1a\x1a.runner.BreakTheGlassReply\"\x00\x12Y\n" +
@@ -3440,83 +3295,80 @@ func file_runner_runner_proto_rawDescGZIP() []byte {
 	return file_runner_runner_proto_rawDescData
 }
 
-var file_runner_runner_proto_msgTypes = make([]protoimpl.MessageInfo, 65)
+var file_runner_runner_proto_msgTypes = make([]protoimpl.MessageInfo, 62)
 var file_runner_runner_proto_goTypes = []any{
-	(*LookPathRequest)(nil),            // 0: runner.LookPathRequest
-	(*LookPathReply)(nil),              // 1: runner.LookPathReply
-	(*NewTerraformRequest)(nil),        // 2: runner.NewTerraformRequest
-	(*NewTerraformReply)(nil),          // 3: runner.NewTerraformReply
-	(*SetEnvRequest)(nil),              // 4: runner.SetEnvRequest
-	(*SetEnvReply)(nil),                // 5: runner.SetEnvReply
-	(*FileMapping)(nil),                // 6: runner.fileMapping
-	(*CreateFileMappingsRequest)(nil),  // 7: runner.CreateFileMappingsRequest
-	(*CreateFileMappingsReply)(nil),    // 8: runner.CreateFileMappingsReply
-	(*UploadAndExtractRequest)(nil),    // 9: runner.UploadAndExtractRequest
-	(*UploadAndExtractReply)(nil),      // 10: runner.UploadAndExtractReply
-	(*CleanupDirRequest)(nil),          // 11: runner.CleanupDirRequest
-	(*CleanupDirReply)(nil),            // 12: runner.CleanupDirReply
-	(*WriteBackendConfigRequest)(nil),  // 13: runner.WriteBackendConfigRequest
-	(*WriteBackendConfigReply)(nil),    // 14: runner.WriteBackendConfigReply
-	(*ProcessCliConfigRequest)(nil),    // 15: runner.ProcessCliConfigRequest
-	(*ProcessCliConfigReply)(nil),      // 16: runner.ProcessCliConfigReply
-	(*GenerateVarsForTFRequest)(nil),   // 17: runner.GenerateVarsForTFRequest
-	(*GenerateVarsForTFReply)(nil),     // 18: runner.GenerateVarsForTFReply
-	(*GenerateTemplateRequest)(nil),    // 19: runner.GenerateTemplateRequest
-	(*GenerateTemplateReply)(nil),      // 20: runner.GenerateTemplateReply
-	(*PlanRequest)(nil),                // 21: runner.PlanRequest
-	(*PlanReply)(nil),                  // 22: runner.PlanReply
-	(*ShowPlanFileRequest)(nil),        // 23: runner.ShowPlanFileRequest
-	(*ShowPlanFileReply)(nil),          // 24: runner.ShowPlanFileReply
-	(*ShowPlanFileRawRequest)(nil),     // 25: runner.ShowPlanFileRawRequest
-	(*ShowPlanFileRawReply)(nil),       // 26: runner.ShowPlanFileRawReply
-	(*SaveTFPlanRequest)(nil),          // 27: runner.SaveTFPlanRequest
-	(*SaveTFPlanReply)(nil),            // 28: runner.SaveTFPlanReply
-	(*LoadTFPlanRequest)(nil),          // 29: runner.LoadTFPlanRequest
-	(*LoadTFPlanReply)(nil),            // 30: runner.LoadTFPlanReply
-	(*ApplyRequest)(nil),               // 31: runner.ApplyRequest
-	(*ApplyReply)(nil),                 // 32: runner.ApplyReply
-	(*GetInventoryRequest)(nil),        // 33: runner.GetInventoryRequest
-	(*GetInventoryReply)(nil),          // 34: runner.GetInventoryReply
-	(*Inventory)(nil),                  // 35: runner.Inventory
-	(*DestroyRequest)(nil),             // 36: runner.DestroyRequest
-	(*DestroyReply)(nil),               // 37: runner.DestroyReply
-	(*OutputRequest)(nil),              // 38: runner.OutputRequest
-	(*OutputReply)(nil),                // 39: runner.OutputReply
-	(*OutputMeta)(nil),                 // 40: runner.OutputMeta
-	(*WriteOutputsRequest)(nil),        // 41: runner.WriteOutputsRequest
-	(*WriteOutputsReply)(nil),          // 42: runner.WriteOutputsReply
-	(*GetOutputsRequest)(nil),          // 43: runner.GetOutputsRequest
-	(*GetOutputsReply)(nil),            // 44: runner.GetOutputsReply
-	(*InitRequest)(nil),                // 45: runner.InitRequest
-	(*InitReply)(nil),                  // 46: runner.InitReply
-	(*WorkspaceRequest)(nil),           // 47: runner.WorkspaceRequest
-	(*WorkspaceReply)(nil),             // 48: runner.WorkspaceReply
-	(*CreateWorkspaceBlobRequest)(nil), // 49: runner.CreateWorkspaceBlobRequest
-	(*CreateWorkspaceBlobReply)(nil),   // 50: runner.CreateWorkspaceBlobReply
-	(*UploadRequest)(nil),              // 51: runner.UploadRequest
-	(*UploadReply)(nil),                // 52: runner.UploadReply
-	(*FinalizeSecretsRequest)(nil),     // 53: runner.FinalizeSecretsRequest
-	(*FinalizeSecretsReply)(nil),       // 54: runner.FinalizeSecretsReply
-	(*ForceUnlockRequest)(nil),         // 55: runner.ForceUnlockRequest
-	(*ForceUnlockReply)(nil),           // 56: runner.ForceUnlockReply
-	(*BreakTheGlassRequest)(nil),       // 57: runner.BreakTheGlassRequest
-	(*BreakTheGlassReply)(nil),         // 58: runner.BreakTheGlassReply
-	nil,                                // 59: runner.SetEnvRequest.EnvsEntry
-	nil,                                // 60: runner.OutputReply.OutputsEntry
-	nil,                                // 61: runner.WriteOutputsRequest.DataEntry
-	nil,                                // 62: runner.WriteOutputsRequest.LabelsEntry
-	nil,                                // 63: runner.WriteOutputsRequest.AnnotationsEntry
-	nil,                                // 64: runner.GetOutputsReply.OutputsEntry
+	(*LookPathRequest)(nil),           // 0: runner.LookPathRequest
+	(*LookPathReply)(nil),             // 1: runner.LookPathReply
+	(*NewTerraformRequest)(nil),       // 2: runner.NewTerraformRequest
+	(*NewTerraformReply)(nil),         // 3: runner.NewTerraformReply
+	(*SetEnvRequest)(nil),             // 4: runner.SetEnvRequest
+	(*SetEnvReply)(nil),               // 5: runner.SetEnvReply
+	(*FileMapping)(nil),               // 6: runner.fileMapping
+	(*CreateFileMappingsRequest)(nil), // 7: runner.CreateFileMappingsRequest
+	(*CreateFileMappingsReply)(nil),   // 8: runner.CreateFileMappingsReply
+	(*UploadAndExtractRequest)(nil),   // 9: runner.UploadAndExtractRequest
+	(*UploadAndExtractReply)(nil),     // 10: runner.UploadAndExtractReply
+	(*CleanupDirRequest)(nil),         // 11: runner.CleanupDirRequest
+	(*CleanupDirReply)(nil),           // 12: runner.CleanupDirReply
+	(*WriteBackendConfigRequest)(nil), // 13: runner.WriteBackendConfigRequest
+	(*WriteBackendConfigReply)(nil),   // 14: runner.WriteBackendConfigReply
+	(*ProcessCliConfigRequest)(nil),   // 15: runner.ProcessCliConfigRequest
+	(*ProcessCliConfigReply)(nil),     // 16: runner.ProcessCliConfigReply
+	(*GenerateVarsForTFRequest)(nil),  // 17: runner.GenerateVarsForTFRequest
+	(*GenerateVarsForTFReply)(nil),    // 18: runner.GenerateVarsForTFReply
+	(*GenerateTemplateRequest)(nil),   // 19: runner.GenerateTemplateRequest
+	(*GenerateTemplateReply)(nil),     // 20: runner.GenerateTemplateReply
+	(*PlanRequest)(nil),               // 21: runner.PlanRequest
+	(*PlanReply)(nil),                 // 22: runner.PlanReply
+	(*ShowPlanFileRequest)(nil),       // 23: runner.ShowPlanFileRequest
+	(*ShowPlanFileReply)(nil),         // 24: runner.ShowPlanFileReply
+	(*ShowPlanFileRawRequest)(nil),    // 25: runner.ShowPlanFileRawRequest
+	(*ShowPlanFileRawReply)(nil),      // 26: runner.ShowPlanFileRawReply
+	(*SaveTFPlanRequest)(nil),         // 27: runner.SaveTFPlanRequest
+	(*SaveTFPlanReply)(nil),           // 28: runner.SaveTFPlanReply
+	(*LoadTFPlanRequest)(nil),         // 29: runner.LoadTFPlanRequest
+	(*LoadTFPlanReply)(nil),           // 30: runner.LoadTFPlanReply
+	(*ApplyRequest)(nil),              // 31: runner.ApplyRequest
+	(*ApplyReply)(nil),                // 32: runner.ApplyReply
+	(*GetInventoryRequest)(nil),       // 33: runner.GetInventoryRequest
+	(*GetInventoryReply)(nil),         // 34: runner.GetInventoryReply
+	(*Inventory)(nil),                 // 35: runner.Inventory
+	(*DestroyRequest)(nil),            // 36: runner.DestroyRequest
+	(*DestroyReply)(nil),              // 37: runner.DestroyReply
+	(*OutputRequest)(nil),             // 38: runner.OutputRequest
+	(*OutputReply)(nil),               // 39: runner.OutputReply
+	(*OutputMeta)(nil),                // 40: runner.OutputMeta
+	(*WriteOutputsRequest)(nil),       // 41: runner.WriteOutputsRequest
+	(*WriteOutputsReply)(nil),         // 42: runner.WriteOutputsReply
+	(*GetOutputsRequest)(nil),         // 43: runner.GetOutputsRequest
+	(*GetOutputsReply)(nil),           // 44: runner.GetOutputsReply
+	(*InitRequest)(nil),               // 45: runner.InitRequest
+	(*InitReply)(nil),                 // 46: runner.InitReply
+	(*WorkspaceRequest)(nil),          // 47: runner.WorkspaceRequest
+	(*WorkspaceReply)(nil),            // 48: runner.WorkspaceReply
+	(*FinalizeSecretsRequest)(nil),    // 49: runner.FinalizeSecretsRequest
+	(*FinalizeSecretsReply)(nil),      // 50: runner.FinalizeSecretsReply
+	(*ForceUnlockRequest)(nil),        // 51: runner.ForceUnlockRequest
+	(*ForceUnlockReply)(nil),          // 52: runner.ForceUnlockReply
+	(*BreakTheGlassRequest)(nil),      // 53: runner.BreakTheGlassRequest
+	(*BreakTheGlassReply)(nil),        // 54: runner.BreakTheGlassReply
+	(*StateLock)(nil),                 // 55: runner.StateLock
+	nil,                               // 56: runner.SetEnvRequest.EnvsEntry
+	nil,                               // 57: runner.OutputReply.OutputsEntry
+	nil,                               // 58: runner.WriteOutputsRequest.DataEntry
+	nil,                               // 59: runner.WriteOutputsRequest.LabelsEntry
+	nil,                               // 60: runner.WriteOutputsRequest.AnnotationsEntry
+	nil,                               // 61: runner.GetOutputsReply.OutputsEntry
 }
 var file_runner_runner_proto_depIdxs = []int32{
-	59, // 0: runner.SetEnvRequest.envs:type_name -> runner.SetEnvRequest.EnvsEntry
+	56, // 0: runner.SetEnvRequest.envs:type_name -> runner.SetEnvRequest.EnvsEntry
 	6,  // 1: runner.CreateFileMappingsRequest.fileMappings:type_name -> runner.fileMapping
 	35, // 2: runner.GetInventoryReply.inventories:type_name -> runner.Inventory
-	60, // 3: runner.OutputReply.outputs:type_name -> runner.OutputReply.OutputsEntry
-	61, // 4: runner.WriteOutputsRequest.data:type_name -> runner.WriteOutputsRequest.DataEntry
-	62, // 5: runner.WriteOutputsRequest.labels:type_name -> runner.WriteOutputsRequest.LabelsEntry
-	63, // 6: runner.WriteOutputsRequest.annotations:type_name -> runner.WriteOutputsRequest.AnnotationsEntry
-	64, // 7: runner.GetOutputsReply.outputs:type_name -> runner.GetOutputsReply.OutputsEntry
+	57, // 3: runner.OutputReply.outputs:type_name -> runner.OutputReply.OutputsEntry
+	58, // 4: runner.WriteOutputsRequest.data:type_name -> runner.WriteOutputsRequest.DataEntry
+	59, // 5: runner.WriteOutputsRequest.labels:type_name -> runner.WriteOutputsRequest.LabelsEntry
+	60, // 6: runner.WriteOutputsRequest.annotations:type_name -> runner.WriteOutputsRequest.AnnotationsEntry
+	61, // 7: runner.GetOutputsReply.outputs:type_name -> runner.GetOutputsReply.OutputsEntry
 	40, // 8: runner.OutputReply.OutputsEntry.value:type_name -> runner.OutputMeta
 	0,  // 9: runner.Runner.LookPath:input_type -> runner.LookPathRequest
 	2,  // 10: runner.Runner.NewTerraform:input_type -> runner.NewTerraformRequest
@@ -3541,43 +3393,39 @@ var file_runner_runner_proto_depIdxs = []int32{
 	43, // 29: runner.Runner.GetOutputs:input_type -> runner.GetOutputsRequest
 	45, // 30: runner.Runner.Init:input_type -> runner.InitRequest
 	47, // 31: runner.Runner.SelectWorkspace:input_type -> runner.WorkspaceRequest
-	49, // 32: runner.Runner.CreateWorkspaceBlob:input_type -> runner.CreateWorkspaceBlobRequest
-	51, // 33: runner.Runner.Upload:input_type -> runner.UploadRequest
-	53, // 34: runner.Runner.FinalizeSecrets:input_type -> runner.FinalizeSecretsRequest
-	55, // 35: runner.Runner.ForceUnlock:input_type -> runner.ForceUnlockRequest
-	57, // 36: runner.Runner.StartBreakTheGlassSession:input_type -> runner.BreakTheGlassRequest
-	57, // 37: runner.Runner.HasBreakTheGlassSessionDone:input_type -> runner.BreakTheGlassRequest
-	1,  // 38: runner.Runner.LookPath:output_type -> runner.LookPathReply
-	3,  // 39: runner.Runner.NewTerraform:output_type -> runner.NewTerraformReply
-	5,  // 40: runner.Runner.SetEnv:output_type -> runner.SetEnvReply
-	8,  // 41: runner.Runner.CreateFileMappings:output_type -> runner.CreateFileMappingsReply
-	10, // 42: runner.Runner.UploadAndExtract:output_type -> runner.UploadAndExtractReply
-	12, // 43: runner.Runner.CleanupDir:output_type -> runner.CleanupDirReply
-	14, // 44: runner.Runner.WriteBackendConfig:output_type -> runner.WriteBackendConfigReply
-	16, // 45: runner.Runner.ProcessCliConfig:output_type -> runner.ProcessCliConfigReply
-	18, // 46: runner.Runner.GenerateVarsForTF:output_type -> runner.GenerateVarsForTFReply
-	20, // 47: runner.Runner.GenerateTemplate:output_type -> runner.GenerateTemplateReply
-	22, // 48: runner.Runner.Plan:output_type -> runner.PlanReply
-	26, // 49: runner.Runner.ShowPlanFileRaw:output_type -> runner.ShowPlanFileRawReply
-	24, // 50: runner.Runner.ShowPlanFile:output_type -> runner.ShowPlanFileReply
-	28, // 51: runner.Runner.SaveTFPlan:output_type -> runner.SaveTFPlanReply
-	30, // 52: runner.Runner.LoadTFPlan:output_type -> runner.LoadTFPlanReply
-	32, // 53: runner.Runner.Apply:output_type -> runner.ApplyReply
-	34, // 54: runner.Runner.GetInventory:output_type -> runner.GetInventoryReply
-	37, // 55: runner.Runner.Destroy:output_type -> runner.DestroyReply
-	39, // 56: runner.Runner.Output:output_type -> runner.OutputReply
-	42, // 57: runner.Runner.WriteOutputs:output_type -> runner.WriteOutputsReply
-	44, // 58: runner.Runner.GetOutputs:output_type -> runner.GetOutputsReply
-	46, // 59: runner.Runner.Init:output_type -> runner.InitReply
-	48, // 60: runner.Runner.SelectWorkspace:output_type -> runner.WorkspaceReply
-	50, // 61: runner.Runner.CreateWorkspaceBlob:output_type -> runner.CreateWorkspaceBlobReply
-	52, // 62: runner.Runner.Upload:output_type -> runner.UploadReply
-	54, // 63: runner.Runner.FinalizeSecrets:output_type -> runner.FinalizeSecretsReply
-	56, // 64: runner.Runner.ForceUnlock:output_type -> runner.ForceUnlockReply
-	58, // 65: runner.Runner.StartBreakTheGlassSession:output_type -> runner.BreakTheGlassReply
-	58, // 66: runner.Runner.HasBreakTheGlassSessionDone:output_type -> runner.BreakTheGlassReply
-	38, // [38:67] is the sub-list for method output_type
-	9,  // [9:38] is the sub-list for method input_type
+	49, // 32: runner.Runner.FinalizeSecrets:input_type -> runner.FinalizeSecretsRequest
+	51, // 33: runner.Runner.ForceUnlock:input_type -> runner.ForceUnlockRequest
+	53, // 34: runner.Runner.StartBreakTheGlassSession:input_type -> runner.BreakTheGlassRequest
+	53, // 35: runner.Runner.HasBreakTheGlassSessionDone:input_type -> runner.BreakTheGlassRequest
+	1,  // 36: runner.Runner.LookPath:output_type -> runner.LookPathReply
+	3,  // 37: runner.Runner.NewTerraform:output_type -> runner.NewTerraformReply
+	5,  // 38: runner.Runner.SetEnv:output_type -> runner.SetEnvReply
+	8,  // 39: runner.Runner.CreateFileMappings:output_type -> runner.CreateFileMappingsReply
+	10, // 40: runner.Runner.UploadAndExtract:output_type -> runner.UploadAndExtractReply
+	12, // 41: runner.Runner.CleanupDir:output_type -> runner.CleanupDirReply
+	14, // 42: runner.Runner.WriteBackendConfig:output_type -> runner.WriteBackendConfigReply
+	16, // 43: runner.Runner.ProcessCliConfig:output_type -> runner.ProcessCliConfigReply
+	18, // 44: runner.Runner.GenerateVarsForTF:output_type -> runner.GenerateVarsForTFReply
+	20, // 45: runner.Runner.GenerateTemplate:output_type -> runner.GenerateTemplateReply
+	22, // 46: runner.Runner.Plan:output_type -> runner.PlanReply
+	26, // 47: runner.Runner.ShowPlanFileRaw:output_type -> runner.ShowPlanFileRawReply
+	24, // 48: runner.Runner.ShowPlanFile:output_type -> runner.ShowPlanFileReply
+	28, // 49: runner.Runner.SaveTFPlan:output_type -> runner.SaveTFPlanReply
+	30, // 50: runner.Runner.LoadTFPlan:output_type -> runner.LoadTFPlanReply
+	32, // 51: runner.Runner.Apply:output_type -> runner.ApplyReply
+	34, // 52: runner.Runner.GetInventory:output_type -> runner.GetInventoryReply
+	37, // 53: runner.Runner.Destroy:output_type -> runner.DestroyReply
+	39, // 54: runner.Runner.Output:output_type -> runner.OutputReply
+	42, // 55: runner.Runner.WriteOutputs:output_type -> runner.WriteOutputsReply
+	44, // 56: runner.Runner.GetOutputs:output_type -> runner.GetOutputsReply
+	46, // 57: runner.Runner.Init:output_type -> runner.InitReply
+	48, // 58: runner.Runner.SelectWorkspace:output_type -> runner.WorkspaceReply
+	50, // 59: runner.Runner.FinalizeSecrets:output_type -> runner.FinalizeSecretsReply
+	52, // 60: runner.Runner.ForceUnlock:output_type -> runner.ForceUnlockReply
+	54, // 61: runner.Runner.StartBreakTheGlassSession:output_type -> runner.BreakTheGlassReply
+	54, // 62: runner.Runner.HasBreakTheGlassSessionDone:output_type -> runner.BreakTheGlassReply
+	36, // [36:63] is the sub-list for method output_type
+	9,  // [9:36] is the sub-list for method input_type
 	9,  // [9:9] is the sub-list for extension type_name
 	9,  // [9:9] is the sub-list for extension extendee
 	0,  // [0:9] is the sub-list for field type_name
@@ -3594,7 +3442,7 @@ func file_runner_runner_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_runner_runner_proto_rawDesc), len(file_runner_runner_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   65,
+			NumMessages:   62,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

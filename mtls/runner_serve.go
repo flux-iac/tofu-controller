@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"os"
+	"os/signal"
+	"syscall"
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
@@ -18,7 +19,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func RunnerServe(namespace, addr string, tlsSecretName string, sigterm chan os.Signal, maxMessageSizeInMiB int) error {
+// RunnerServe serves the runner until it receives SIGTERM. It then interrupts
+// the terraform commands in flight, waits for their calls to return and
+// returns nil.
+func RunnerServe(namespace, addr string, tlsSecretName string, maxMessageSizeInMiB int) error {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM)
+	defer stop()
+
 	scheme := runtime.NewScheme()
 
 	if err := clientgoscheme.AddToScheme(scheme); err != nil {
@@ -40,11 +47,11 @@ func RunnerServe(namespace, addr string, tlsSecretName string, sigterm chan os.S
 		return fmt.Errorf("k8sClient cannot be nil")
 	}
 
-	// local runner, use the same client as the manager
+	shutdown := make(chan struct{})
 	runnerServer := &runner.TerraformRunnerServer{
-		Client: k8sClient,
-		Scheme: scheme,
-		Done:   sigterm,
+		Client:   k8sClient,
+		Scheme:   scheme,
+		Shutdown: shutdown,
 	}
 
 	listener, err := net.Listen("tcp", addr)
@@ -64,14 +71,15 @@ func RunnerServe(namespace, addr string, tlsSecretName string, sigterm chan os.S
 		return err
 	}
 
-	// 30 MB is the maximum allowed payload size for gRPC.
+	// Max message size comes from --grpc-max-message-size and must match the controller's --runner-grpc-max-message-size.
 	maxMsgSize := maxMessageSizeInMiB * 1024 * 1024
-	grpcServer := grpc.NewServer(grpc.Creds(credentials), grpc.MaxRecvMsgSize(maxMsgSize), grpc.MaxSendMsgSize(maxMsgSize))
+	grpcServer := grpc.NewServer(
+		grpc.Creds(credentials),
+		grpc.MaxRecvMsgSize(maxMsgSize),
+		grpc.MaxSendMsgSize(maxMsgSize),
+		grpc.ChainUnaryInterceptor(runnerServer.UnaryInterceptors()...),
+	)
 	runner.RegisterRunnerServer(grpcServer, runnerServer)
 
-	if err := grpcServer.Serve(listener); err != nil {
-		return err
-	}
-
-	return nil
+	return runner.Serve(listener, grpcServer, shutdown, ctx.Done())
 }
