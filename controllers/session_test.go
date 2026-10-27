@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"errors"
+	"slices"
 	"testing"
 	"time"
 
@@ -13,6 +14,8 @@ import (
 	"github.com/fluxcd/pkg/runtime/conditions"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	. "github.com/onsi/gomega"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -215,4 +218,52 @@ func TestRepeatedRunnerFailureWritesNoStatus(t *testing.T) {
 	_, err = r.Reconcile(context.Background(), req)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(writes).To(BeEmpty())
+}
+
+// TestForceUnlockAutoProceedsWhenNotLocked checks forceUnlock: auto when the
+// lock holder has already released the lock: the runner reports the lock as
+// not held, which counts as unlocked, so the pending lock is cleared and the
+// pass goes on to plan.
+func TestForceUnlockAutoProceedsWhenNotLocked(t *testing.T) {
+	g := NewWithT(t)
+	t.Setenv("DISABLE_TF_K8S_BACKEND", "1")
+
+	obj := fakeTerraform("force-unlock-not-locked")
+	obj.Spec.TFState = &infrav1.TFStateSpec{ForceUnlock: infrav1.ForceUnlockEnumAuto}
+	obj.Status.Lock.Pending = "abc"
+	c, patcher := newFakePatcher(t, obj)
+	r := newFakeReconciler(c)
+	src := helloWorldSource(newArtifactServer(t))
+	fr := newFakeRunner()
+	st, err := status.New(codes.FailedPrecondition, "state lock 'abc' is not held").WithDetails(&runner.StateLock{Id: "abc"})
+	g.Expect(err).NotTo(HaveOccurred())
+	fr.errs["ForceUnlock"] = st.Err()
+	// Snapshot the object, in memory and as stored, when plan starts.
+	var atPlan []*infrav1.Terraform
+	fr.onCall = func(name string) {
+		if name == "Plan" && atPlan == nil {
+			atPlan = []*infrav1.Terraform{obj.DeepCopy(), stored(t, c, obj)}
+		}
+	}
+	s := &runnerSession{client: fr, patcher: patcher, revision: src.GetArtifact().Revision, instanceID: "loop-1"}
+
+	g.Expect(r.reconcileNormal(context.Background(), s, obj, src)).To(Succeed())
+
+	calls := fr.Calls()
+	i := slices.Index(calls, "ForceUnlock")
+	g.Expect(i).To(BeNumerically(">=", 0), "ForceUnlock was not called")
+	g.Expect(calls[i+1]).To(Equal("Plan"))
+	g.Expect(fr.Requests("ForceUnlock")[0].(*runner.ForceUnlockRequest).LockIdentifier).To(Equal("abc"))
+
+	g.Expect(atPlan).To(HaveLen(2))
+	for _, got := range atPlan {
+		g.Expect(got.Status.Lock.Pending).To(BeEmpty())
+		g.Expect(got.Status.Lock.LastApplied).To(Equal("abc"))
+		locked := conditions.Get(got, infrav1.ConditionTypeStateLocked)
+		g.Expect(locked).NotTo(BeNil())
+		g.Expect(locked.Status).To(Equal(metav1.ConditionFalse))
+		g.Expect(locked.Reason).To(Equal(infrav1.TFExecForceUnlockReason))
+		g.Expect(locked.Message).To(Equal("Terraform Force Unlock with Lock Identifier: abc"))
+	}
+	g.Expect(obj.Status.Lock.Pending).To(BeEmpty())
 }

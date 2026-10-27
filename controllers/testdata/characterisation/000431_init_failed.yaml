@@ -1,9 +1,16 @@
 Segments:
 - Events:
   - Action: Reconcile
-    Message: "error running Init: rpc error: code = Internal desc = \nError: Unsupported
-      backend type\n\n  on backend_override.tf line 3, in terraform:\n   3:   backend
-      \"char-nonexistent\" {}\n\nThere is no backend type named \"char-nonexistent\".\n\n"
+    Message: |+
+      error running Init: exit status 1
+
+      Error: Unsupported backend type
+
+        on backend_override.tf line 3, in terraform:
+         3:   backend "char-nonexistent" {}
+
+      There is no backend type named "char-nonexistent".
+
     Reason: ReconciliationFailed
     Type: Warning
   Name: create
@@ -123,9 +130,16 @@ Segments:
     TimesSet: null
   - AvailableOutputs: null
     Conditions:
-    - Message: "error running Init: rpc error: code = Internal desc = \nError: Unsupported
-        backend type\n\n  on backend_override.tf line 3, in terraform:\n   3:   backend
-        \"char-nonexistent\" {}\n\nThere is no backend type named \"char-nonexistent\".\n\n"
+    - Message: |+
+        error running Init: exit status 1
+
+        Error: Unsupported backend type
+
+          on backend_override.tf line 3, in terraform:
+           3:   backend "char-nonexistent" {}
+
+        There is no backend type named "char-nonexistent".
+
       Reason: TFExecInitFailed
       Status: "False"
       Type: Ready
@@ -146,9 +160,16 @@ Segments:
     TimesSet: null
   - AvailableOutputs: null
     Conditions:
-    - Message: "error running Init: rpc error: code = Internal desc = \nError: Unsupported
-        backend type\n\n  on backend_override.tf line 3, in terraform:\n   3:   backend
-        \"char-nonexistent\" {}\n\nThere is no backend type named \"char-nonexistent\".\n\n"
+    - Message: |+
+        error running Init: exit status 1
+
+        Error: Unsupported backend type
+
+          on backend_override.tf line 3, in terraform:
+           3:   backend "char-nonexistent" {}
+
+        There is no backend type named "char-nonexistent".
+
       Reason: TFExecInitFailed
       Status: "False"
       Type: Ready

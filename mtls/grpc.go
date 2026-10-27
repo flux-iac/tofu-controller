@@ -35,7 +35,7 @@ func StartGRPCServerForTesting(server *runner.TerraformRunnerServer, namespace s
 		return err
 	}
 
-	grpcServer := grpc.NewServer(grpc.Creds(creds))
+	grpcServer := grpc.NewServer(grpc.Creds(creds), grpc.ChainUnaryInterceptor(server.UnaryInterceptors()...))
 
 	// local runner, use the same client as the manager
 	runner.RegisterRunnerServer(grpcServer, server)

@@ -2,7 +2,7 @@ Segments:
 - Events:
   - Action: Plan
     Message: |
-      Plan error: rpc error: code = Internal desc = exit status 1
+      Plan error: exit status 1
 
       Error: No value for required variable
 
@@ -34,7 +34,7 @@ Segments:
     Type: Warning
   - Action: Reconcile
     Message: |
-      error running Plan: rpc error: code = Internal desc = exit status 1
+      error running Plan: exit status 1
 
       Error: No value for required variable
 
@@ -207,7 +207,7 @@ Segments:
   - AvailableOutputs: null
     Conditions:
     - Message: |
-        error running Plan: rpc error: code = Internal desc = exit status 1
+        error running Plan: exit status 1
 
         Error: No value for required variable
 
@@ -256,7 +256,7 @@ Segments:
   - AvailableOutputs: null
     Conditions:
     - Message: |
-        error running Plan: rpc error: code = Internal desc = exit status 1
+        error running Plan: exit status 1
 
         Error: No value for required variable
 

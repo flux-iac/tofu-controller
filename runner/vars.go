@@ -13,7 +13,6 @@ import (
 	"github.com/flux-iac/tofu-controller/api/typeinfo"
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/utils"
-	"github.com/go-logr/logr"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/json"
 	v1 "k8s.io/api/core/v1"
@@ -59,20 +58,16 @@ func ctyValueToGoValue(ctyValue cty.Value) (any, error) {
 		return goValue, nil
 	}
 
+	// cty sets hold no duplicates, so every member is kept.
 	if ctyValue.Type().IsSetType() {
 		result := make([]any, 0, ctyValue.LengthInt())
-		set := make(map[any]struct{})
 		for it := ctyValue.ElementIterator(); it.Next(); {
 			_, v := it.Element()
 			goVal, err := ctyValueToGoValue(v)
 			if err != nil {
 				return nil, err
 			}
-
-			if _, exist := set[goVal]; !exist {
-				set[goVal] = struct{}{}
-				result = append(result, goVal)
-			}
+			result = append(result, goVal)
 		}
 		goValue = result
 		return goValue, nil
@@ -139,7 +134,7 @@ func ctyValueToGoValue(ctyValue cty.Value) (any, error) {
 	return nil, fmt.Errorf("unsupported type: %s", ctyValue.Type().FriendlyName())
 }
 
-func convertSecretDataToInputs(log logr.Logger, secret *v1.Secret) (map[string]any, error) {
+func convertSecretDataToInputs(secret *v1.Secret) (map[string]any, error) {
 	var keys []string
 	for k := range secret.Data {
 		if strings.HasSuffix(k, typeinfo.Suffix) {
@@ -155,14 +150,14 @@ func convertSecretDataToInputs(log logr.Logger, secret *v1.Secret) (map[string]a
 			raw := secret.Data[key]
 			ct, err := json.UnmarshalType(typeInfo)
 			if err != nil {
-				log.Error(err, "unable to unmarshal type", "type", string(typeInfo), "key", key)
 				return nil, err
 			}
 
+			// The decode error can quote part of the value, so it is not
+			// passed on.
 			cv, err := json.Unmarshal(raw, ct)
 			if err != nil {
-				log.Error(err, "unable to unmarshal value", "raw", string(raw), "key", key)
-				return nil, err
+				return nil, &InvalidInputError{Err: fmt.Errorf("secret %s key %q: value does not match its declared type", secret.Name, key)}
 			}
 
 			result, err := ctyValueToGoValue(cv)
@@ -178,26 +173,25 @@ func convertSecretDataToInputs(log logr.Logger, secret *v1.Secret) (map[string]a
 	return data, nil
 }
 
-func getSecretForReadInputs(ctx context.Context, log logr.Logger, r client.Client, objectKey client.ObjectKey) (*v1.Secret, error) {
+func getSecretForReadInputs(ctx context.Context, r client.Client, objectKey client.ObjectKey) (*v1.Secret, error) {
 	secret := &v1.Secret{}
 	err := r.Get(ctx, objectKey, secret)
 	if err != nil {
-		log.Error(err, "unable to get secret", "secret", objectKey)
 		return secret, err
 	}
 	return secret, nil
 }
 
-func readInputsForGenerateVarsForTF(ctx context.Context, log logr.Logger, c client.Client, terraform *infrav1.Terraform) (map[string]any, error) {
+func readInputsForGenerateVarsForTF(ctx context.Context, c client.Client, terraform *infrav1.Terraform) (map[string]any, error) {
 	inputs := map[string]any{}
 	if len(terraform.Spec.ReadInputsFromSecrets) > 0 {
 		for _, readSpec := range terraform.Spec.ReadInputsFromSecrets {
 			objectKey := types.NamespacedName{Namespace: terraform.Namespace, Name: readSpec.Name}
-			secret, err := getSecretForReadInputs(ctx, log, c, objectKey)
+			secret, err := getSecretForReadInputs(ctx, c, objectKey)
 			if err != nil {
 				return nil, err
 			}
-			data, err := convertSecretDataToInputs(log, secret)
+			data, err := convertSecretDataToInputs(secret)
 			if err != nil {
 				return nil, err
 			}
@@ -210,16 +204,16 @@ func readInputsForGenerateVarsForTF(ctx context.Context, log logr.Logger, c clie
 // GenerateVarsForTF renders the Terraform variables as a json file for the given inputs
 // variables supplied in the varsFrom field will override those specified in the spec
 func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *GenerateVarsForTFRequest) (*GenerateVarsForTFReply, error) {
-	log := controllerruntime.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
+	log := controllerruntime.LoggerFrom(ctx)
 	log.Info("setting up the input variables")
 
 	// use from the cached object
-	terraform := *r.terraform
+	terraform := *sessionFrom(ctx).terraform
 
 	vars := map[string]*apiextensionsv1.JSON{}
 
 	//inputs := map[string]interface{}{}
-	inputs, err := readInputsForGenerateVarsForTF(ctx, log, r.Client, &terraform)
+	inputs, err := readInputsForGenerateVarsForTF(ctx, r.Client, &terraform)
 	if err != nil {
 		return nil, err
 	}
@@ -230,13 +224,11 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 			Delims("${{", "}}").
 			Parse(string(terraform.Spec.Values.Raw))
 		if err != nil {
-			log.Error(err, "unable to parse values as template")
 			return nil, err
 		}
 
 		var buf bytes.Buffer
 		if err := tmpl.Execute(&buf, inputs); err != nil {
-			log.Error(err, "unable to execute values template")
 			return nil, err
 		}
 
@@ -262,7 +254,6 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 			var s v1.Secret
 			err := r.Get(ctx, objectKey, &s)
 			if err != nil && !vf.Optional {
-				log.Error(err, "unable to get object key", "objectKey", objectKey, "secret", s.Name)
 				return nil, err
 			}
 			// if VarsKeys is null, use all
@@ -270,24 +261,19 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 				for key, val := range s.Data {
 					vars[key], err = utils.JSONEncodeBytes(val)
 					if err != nil {
-						err := fmt.Errorf("failed to encode key %s with error: %w", key, err)
-						log.Error(err, "encoding failure")
-						return nil, err
+						return nil, fmt.Errorf("failed to encode key %s with error: %w", key, err)
 					}
 				}
 			} else {
 				for _, pattern := range vf.VarsKeys {
 					oldKey, newKey, err := parseRenamePattern(pattern)
 					if err != nil {
-						log.Error(err, "unable to parse rename pattern")
 						return nil, err
 					}
 
 					vars[newKey], err = utils.JSONEncodeBytes(s.Data[oldKey])
 					if err != nil {
-						err := fmt.Errorf("failed to encode key %q with error: %w", pattern, err)
-						log.Error(err, "encoding failure")
-						return nil, err
+						return nil, fmt.Errorf("failed to encode key %q with error: %w", pattern, err)
 					}
 				}
 			}
@@ -295,7 +281,6 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 			var cm v1.ConfigMap
 			err := r.Get(ctx, objectKey, &cm)
 			if err != nil && !vf.Optional {
-				log.Error(err, "unable to get object key", "objectKey", objectKey, "configmap", cm.Name)
 				return nil, err
 			}
 
@@ -304,39 +289,31 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 				for key, val := range cm.Data {
 					vars[key], err = utils.JSONEncodeBytes([]byte(val))
 					if err != nil {
-						err := fmt.Errorf("failed to encode key %s with error: %w", key, err)
-						log.Error(err, "encoding failure")
-						return nil, err
+						return nil, fmt.Errorf("failed to encode key %s with error: %w", key, err)
 					}
 				}
 				for key, val := range cm.BinaryData {
 					vars[key], err = utils.JSONEncodeBytes(val)
 					if err != nil {
-						err := fmt.Errorf("failed to encode key %s with error: %w", key, err)
-						log.Error(err, "encoding failure")
-						return nil, err
+						return nil, fmt.Errorf("failed to encode key %s with error: %w", key, err)
 					}
 				}
 			} else {
 				for _, pattern := range vf.VarsKeys {
 					oldKey, newKey, err := parseRenamePattern(pattern)
 					if err != nil {
-						log.Error(err, "unable to parse rename pattern")
 						return nil, err
 					}
 
 					if val, ok := cm.Data[oldKey]; ok {
 						vars[newKey], err = utils.JSONEncodeBytes([]byte(val))
 						if err != nil {
-							err := fmt.Errorf("failed to encode key %s with error: %w", pattern, err)
-							log.Error(err, "encoding failure")
-							return nil, err
+							return nil, fmt.Errorf("failed to encode key %s with error: %w", pattern, err)
 						}
 					}
 					if val, ok := cm.BinaryData[oldKey]; ok {
 						vars[newKey], err = utils.JSONEncodeBytes(val)
 						if err != nil {
-							log.Error(err, "encoding failure")
 							return nil, err
 						}
 					}
@@ -347,15 +324,12 @@ func (r *TerraformRunnerServer) GenerateVarsForTF(ctx context.Context, req *Gene
 
 	jsonBytes, err := json2.Marshal(vars)
 	if err != nil {
-		log.Error(err, "unable to marshal the data")
 		return nil, err
 	}
 
 	varFilePath := filepath.Join(req.WorkingDir, "generated.auto.tfvars.json")
 	if err := os.WriteFile(varFilePath, jsonBytes, 0644); err != nil {
-		err = fmt.Errorf("error generating var file: %s", err)
-		log.Error(err, "unable to write the data to file", "filePath", varFilePath)
-		return nil, err
+		return nil, fmt.Errorf("error generating var file: %s", err)
 	}
 
 	return &GenerateVarsForTFReply{Message: "ok"}, nil

@@ -288,6 +288,9 @@ func main() {
 	//+kubebuilder:scaffold:builder
 
 	if os.Getenv("INSECURE_LOCAL_RUNNER") == "1" {
+		if concurrent > 1 {
+			setupLog.Info("in-process runner serves one Terraform object at a time; set --concurrent=1", "concurrent", concurrent)
+		}
 		runnerServer := &runner.TerraformRunnerServer{
 			Client: mgr.GetClient(),
 			Scheme: mgr.GetScheme(),

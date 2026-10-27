@@ -107,6 +107,10 @@ normal-controller-test: manifests generate download-crd-deps fmt vet envtest api
 test-internal: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests in the internal directory.
 	$(TEST_SETTINGS) go test ./internal/... -coverprofile cover.out -v
 
+.PHONY: test-runner
+test-runner: manifests generate download-crd-deps fmt vet envtest api-docs ## Run tests in the runner directory.
+	$(TEST_SETTINGS) go test ./runner/... -coverprofile cover.out -v
+
 .PHONY: test-plan
 test-plan: ## Run plan package tests.
 	cd api && go test ./plan/... -coverprofile cover.out -v

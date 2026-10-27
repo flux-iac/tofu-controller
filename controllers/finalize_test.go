@@ -20,6 +20,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/events"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -300,12 +301,14 @@ func TestRunnerPodInstanceFallback(t *testing.T) {
 }
 
 // TestFinalizeSecretsUnexpectedErrorEmitsWarning checks that a FinalizeSecrets
-// error other than Internal, Unavailable and NotFound, gRPC or not, is reported as a
-// Warning event and deletion proceeds.
+// error other than Internal, Unavailable and NotFound is reported as a Warning
+// event and deletion proceeds. That includes a Kubernetes API call the runner
+// was refused, which it reports as PermissionDenied.
 func TestFinalizeSecretsUnexpectedErrorEmitsWarning(t *testing.T) {
 	for name, rpcErr := range map[string]error{
 		"PermissionDenied": status.Error(codes.PermissionDenied, "no access"),
-		"non-gRPC":         errors.New("boom"),
+		// The runner's service account may not list or delete secrets.
+		"Forbidden": apierrors.NewForbidden(schema.GroupResource{Resource: "secrets"}, "", errors.New("no list")),
 	} {
 		t.Run(name, func(t *testing.T) {
 			g := NewWithT(t)
@@ -322,7 +325,9 @@ func TestFinalizeSecretsUnexpectedErrorEmitsWarning(t *testing.T) {
 			g.Expect(recorded).To(HaveLen(1))
 			g.Expect(recorded[0]).To(ContainSubstring(corev1.EventTypeWarning))
 			g.Expect(recorded[0]).To(ContainSubstring(infrav1.FinalizeSecretsFailedReason))
-			g.Expect(recorded[0]).To(ContainSubstring(rpcErr.Error()))
+			// The event carries the status message, without the gRPC prefix.
+			g.Expect(recorded[0]).To(ContainSubstring(status.Convert(rpcErr).Message()))
+			g.Expect(recorded[0]).NotTo(ContainSubstring("rpc error:"))
 		})
 	}
 }
@@ -342,17 +347,26 @@ func TestFinalizeSecretsNotFoundIsSilent(t *testing.T) {
 }
 
 // TestFinalizeSecretsInternalBlocksDeletion: Internal is transient and still
-// returns the error, leaving the object in place.
+// returns the error, leaving the object in place. A plain error from the
+// FinalizeSecrets handler reaches the controller as Internal, so it blocks
+// deletion too.
 func TestFinalizeSecretsInternalBlocksDeletion(t *testing.T) {
-	g := NewWithT(t)
-	obj := fakeTerraform("finalize-secrets-internal")
-	f := newDeleteFixture(t, obj)
-	f.fr.errs["FinalizeSecrets"] = status.Error(codes.Internal, "transient")
+	for name, rpcErr := range map[string]error{
+		"Internal": status.Error(codes.Internal, "transient"),
+		"non-gRPC": errors.New("boom"),
+	} {
+		t.Run(name, func(t *testing.T) {
+			g := NewWithT(t)
+			obj := fakeTerraform("finalize-secrets-internal-" + strings.ToLower(name))
+			f := newDeleteFixture(t, obj)
+			f.fr.errs["FinalizeSecrets"] = rpcErr
 
-	_, err := f.reconcile(t, obj)
-	g.Expect(err).To(HaveOccurred())
-	g.Expect(f.gone(t, obj)).To(BeFalse())
-	g.Expect(drainEvents(f.r.EventRecorder.(*events.FakeRecorder))).To(BeEmpty())
+			_, err := f.reconcile(t, obj)
+			g.Expect(err).To(MatchError(ContainSubstring(status.Convert(rpcErr).Message())))
+			g.Expect(f.gone(t, obj)).To(BeFalse())
+			g.Expect(drainEvents(f.r.EventRecorder.(*events.FakeRecorder))).To(BeEmpty())
+		})
+	}
 }
 
 // TestFinalizeSecretsUnavailableBlocksDeletion: Unavailable means the runner
