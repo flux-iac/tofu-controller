@@ -85,10 +85,7 @@ func TestWorkingDirRemovedWhenSetupFails(t *testing.T) {
 }
 
 // TestPassEndsWhenRunnerNeverStarts checks a pass against a runner that never
-// serves, such as one crashlooping before it listens, ends once setup's
-// RunnerRPCTimeout expires. The deferred CleanupDir runs on the reconcile
-// context, which has no deadline, and the watchdog leaves a runner it never
-// reached alone, so a CleanupDir sent to it would block the pass forever.
+// serves ends once setup's RunnerRPCTimeout expires.
 func TestPassEndsWhenRunnerNeverStarts(t *testing.T) {
 	g := NewWithT(t)
 	r, s, obj, _, _, _ := newLoggedPass(t, "runner-never-starts")

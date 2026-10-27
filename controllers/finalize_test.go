@@ -386,10 +386,7 @@ func TestFinalizeSecretsUnavailableBlocksDeletion(t *testing.T) {
 }
 
 // TestFinalizeSecretsBlocksDeletionWhenRunnerNeverStarts checks a deletion
-// without destroy against a runner that never serves ends once
-// RunnerRPCTimeout expires, and blocks deletion like Unavailable. The
-// reconcile context has no deadline and the watchdog leaves a runner it never
-// reached alone, so an unbounded FinalizeSecrets would block the pass forever.
+// against a runner that never serves times out and blocks deletion.
 func TestFinalizeSecretsBlocksDeletionWhenRunnerNeverStarts(t *testing.T) {
 	g := NewWithT(t)
 	obj := fakeTerraform("finalize-secrets-runner-never-starts")

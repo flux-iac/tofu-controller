@@ -133,10 +133,8 @@ func (r *TerraformReconciler) finalize(ctx context.Context, s *runnerSession, ob
 		outputSecretName = obj.Spec.WriteOutputsToSecret.Name
 	}
 
-	// Bound the call as setup bounds its RPCs. Without destroy this is the first
-	// call to the runner, so the watchdog leaves it alone if the runner never
-	// came up, and on the reconcile context, which has no deadline, it would
-	// block forever.
+	// Bound the call as setup does: without destroy, a runner that never came up
+	// would block it forever.
 	finalizeCtx, cancel := context.WithTimeout(ctx, r.RunnerRPCTimeout)
 	defer cancel()
 	finalizeSecretsReply, err := s.client.FinalizeSecrets(finalizeCtx, &runner.FinalizeSecretsRequest{
