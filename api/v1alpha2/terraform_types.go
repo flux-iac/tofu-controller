@@ -648,8 +648,8 @@ func TerraformOutputsAvailable(terraform *Terraform, availableOutputs []string, 
 }
 
 func TerraformOutputsWritten(terraform *Terraform, revision string, message string) *Terraform {
-	conditions.MarkTrue(terraform, ConditionTypeOutput, "TerraformOutputsWritten", "%s", trimString(message, MaxConditionMessageLength))
-	SetTerraformReadiness(terraform, metav1.ConditionTrue, "TerraformOutputsWritten", message+": "+revision, revision)
+	conditions.MarkTrue(terraform, ConditionTypeOutput, OutputsWrittenReason, "%s", trimString(message, MaxConditionMessageLength))
+	SetTerraformReadiness(terraform, metav1.ConditionTrue, OutputsWrittenReason, message+": "+revision, revision)
 	return terraform
 }
 

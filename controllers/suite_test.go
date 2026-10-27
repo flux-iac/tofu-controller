@@ -43,8 +43,10 @@ import (
 	"github.com/fluxcd/pkg/runtime/events"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"k8s.io/client-go/rest"
+	toolscache "k8s.io/client-go/tools/cache"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	//+kubebuilder:scaffold:imports
@@ -177,10 +179,26 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
+	// Characterisation recorders: timeline (informer), events (recorder wrapper),
+	// results (observeReconcile). They record only keys a scenario has started.
+	tfInformer, err := k8sManager.GetCache().GetInformer(ctx, &infrav1.Terraform{})
+	if err != nil {
+		panic(err)
+	}
+	if _, err := tfInformer.AddEventHandler(toolscache.ResourceEventHandlerFuncs{
+		AddFunc:    recordTimeline,
+		UpdateFunc: func(_, obj interface{}) { recordTimeline(obj) },
+	}); err != nil {
+		panic(err)
+	}
+
 	reconciler = &TerraformReconciler{
-		Client:                    k8sManager.GetClient(),
+		Client: interceptor.NewClient(withoutWatch{k8sManager.GetClient()}, interceptor.Funcs{
+			Create: interceptPodCreate,
+		}),
 		Scheme:                    k8sManager.GetScheme(),
-		EventRecorder:             eventRecorder,
+		EventRecorder:             recordingEventRecorder{eventRecorder},
+		observeReconcile:          recordResult,
 		StatusPoller:              polling.NewStatusPoller(k8sManager.GetClient(), k8sManager.GetRESTMapper(), polling.Options{}),
 		CertRotator:               rotator,
 		RunnerGRPCPort:            30000,
@@ -257,6 +275,9 @@ func setupRouteHandlers() {
 	})
 	server.RouteToHandler("GET", "/tf-k8s-configmap.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/tf-k8s-configmap.tar.gz")
+	})
+	server.RouteToHandler("GET", "/tf-k8s-configmap-pinned.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
+		http.ServeFile(writer, request, "data/tf-k8s-configmap-pinned.tar.gz")
 	})
 	server.RouteToHandler("GET", "/tf-k8s-configmap-unrelated-change.tar.gz", func(writer http.ResponseWriter, request *http.Request) {
 		http.ServeFile(writer, request, "data/tf-k8s-configmap-unrelated-change.tar.gz")

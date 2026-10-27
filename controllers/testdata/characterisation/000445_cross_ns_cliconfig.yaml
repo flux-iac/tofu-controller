@@ -1,0 +1,159 @@
+Segments:
+- Events:
+  - Action: Reconcile
+    Message: cannot access secret char-000445-other/char-000445-cli, cross-namespace
+      references have been disabled
+    Reason: ReconciliationFailed
+    Type: Warning
+  Name: create
+  Results:
+  - Error: nil
+    Panicked: false
+    Requeue: true
+    RequeueAfter: none
+  - Error: nil
+    Panicked: false
+    Requeue: false
+    RequeueAfter: retry
+  Timeline:
+  - AvailableOutputs: null
+    Conditions: null
+    Finalizers: null
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 3a8ab3d83db1
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions: null
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 3a8ab3d83db1
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 3a8ab3d83db1
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Reconciliation in progress
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 3a8ab3d83db1
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Initializing
+      Reason: Progressing
+      Status: Unknown
+      Type: Ready
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 3a8ab3d83db1
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: cannot access secret char-000445-other/char-000445-cli, cross-namespace
+        references have been disabled
+      Reason: AccessDenied
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 3a8ab3d83db1
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: cannot access secret char-000445-other/char-000445-cli, cross-namespace
+        references have been disabled
+      Reason: AccessDenied
+      Status: "False"
+      Type: Ready
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 1
+    SpecHash: 3a8ab3d83db1
+    TimesSet: null

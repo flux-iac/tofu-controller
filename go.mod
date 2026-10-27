@@ -54,6 +54,7 @@ require (
 	sigs.k8s.io/cli-utils v0.37.2
 	sigs.k8s.io/controller-runtime v0.25.2
 	sigs.k8s.io/kustomize/kyaml v0.21.2
+	sigs.k8s.io/yaml v1.6.0
 )
 
 require (
@@ -246,7 +247,6 @@ require (
 	sigs.k8s.io/kustomize/api v0.21.2 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.4.2 // indirect
-	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
 // tfctl/printer.go and tfctl/get.go use the v0.0.x API (SetHeader,

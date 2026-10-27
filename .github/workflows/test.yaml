@@ -48,6 +48,18 @@ jobs:
     uses: ./.github/workflows/targeted-test.yaml
     with:
       pattern: "^Test_0003"
+  test-40x-42x:
+    name: "Controller Tests: 40x-42x"
+    uses: ./.github/workflows/targeted-test.yaml
+    with:
+      pattern: "^Test_0004[0-2]"
+      timeout-minutes: 40
+  test-43x-46x:
+    name: "Controller Tests: 43x-46x"
+    uses: ./.github/workflows/targeted-test.yaml
+    with:
+      pattern: "^Test_0004[3-6]"
+      timeout-minutes: 40
   test-99xx:
     name: "Controller Tests: 99xx"
     uses: ./.github/workflows/targeted-test.yaml

@@ -1,0 +1,127 @@
+Segments:
+- Events:
+  - Action: CheckDependencies
+    Message: cannot access char-000444-other/char-000444-dependency, cross-namespace
+      references have been disabled
+    Reason: AccessDenied
+    Type: Warning
+  Name: create
+  Results:
+  - Error: nil
+    Panicked: false
+    Requeue: true
+    RequeueAfter: none
+  - Error: terminal
+    Panicked: false
+    Requeue: false
+    RequeueAfter: none
+  Timeline:
+  - AvailableOutputs: null
+    Conditions: null
+    Finalizers: null
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 7dd8291bbb6f
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions: null
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 7dd8291bbb6f
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: Fulfilling prerequisites
+      Reason: Progressing
+      Status: "True"
+      Type: Reconciling
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 7dd8291bbb6f
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: cannot access char-000444-other/char-000444-dependency, cross-namespace
+        references have been disabled
+      Reason: AccessDenied
+      Status: "False"
+      Type: Ready
+    - Message: cannot access char-000444-other/char-000444-dependency, cross-namespace
+        references have been disabled
+      Reason: AccessDenied
+      Status: "True"
+      Type: Stalled
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: ""
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: -1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 7dd8291bbb6f
+    TimesSet: null
+  - AvailableOutputs: null
+    Conditions:
+    - Message: cannot access char-000444-other/char-000444-dependency, cross-namespace
+        references have been disabled
+      Reason: AccessDenied
+      Status: "False"
+      Type: Ready
+    - Message: cannot access char-000444-other/char-000444-dependency, cross-namespace
+        references have been disabled
+      Reason: AccessDenied
+      Status: "True"
+      Type: Stalled
+    Finalizers:
+    - finalizers.tf.contrib.fluxcd.io
+    Generation: 1
+    InventoryEntries: -1
+    LastAppliedRevision: ""
+    LastAttemptedRevision: master/b8e362c206e3d0cbb7ed22ced771a0056455a2fb
+    LastHandledReconcileAt: ""
+    LastPlannedGeneration: 0
+    LastPlannedRevision: ""
+    Lock: {}
+    ObservedGeneration: 1
+    Plan: {}
+    ReconciliationFailures: 0
+    SpecHash: 7dd8291bbb6f
+    TimesSet: null
+  TimesAdvanced: null

@@ -48,6 +48,10 @@ const (
 	// cannot be created because the namespace resource quota is exhausted.
 	RunnerQuotaExhaustedReason = "RunnerQuotaExhausted"
 
+	// RunnerFailedReason represents the fact that the runner could not be
+	// made ready: the TLS secret, the runner pod or the gRPC connection failed.
+	RunnerFailedReason = "RunnerFailed"
+
 	// ArtifactFailedReason represents the fact that the artifact download
 	// for the Teraform failed.
 	ArtifactFailedReason = "ArtifactFailed"
@@ -85,6 +89,10 @@ const (
 	// outputs for the Terraform resource status failed.
 	OutputsWritingFailedReason = "OutputsWritingFailed"
 
+	// OutputsWrittenReason represents the fact that the outputs of the
+	// Terraform resource were written successfully.
+	OutputsWrittenReason = "TerraformOutputsWritten"
+
 	// PlannedNoChangesReason represents the fact that Terraform
 	// planned no changes during reconciliation.
 	PlannedNoChangesReason = "TerraformPlannedNoChanges"
@@ -112,6 +120,16 @@ const (
 	// TFExecDestroySucceedReason represents the fact that the execution
 	// of 'terraform destroy' succeeded.
 	TFExecDestroySucceedReason = "TerraformDestroySucceed"
+
+	// DestroySkippedReason represents the fact that destroyResourcesOnDeletion
+	// is set but the Terraform object is suspended, so it is deleted without
+	// destroying its resources.
+	DestroySkippedReason = "DestroySkipped"
+
+	// FinalizeSecretsFailedReason represents the fact that the runner failed
+	// to finalize the Terraform object's secrets during deletion. Deletion
+	// proceeds.
+	FinalizeSecretsFailedReason = "FinalizeSecretsFailed"
 
 	// TFExecForceUnlockReason represents the fact that the controller
 	// is attempting to force unlock the Terraform state.
