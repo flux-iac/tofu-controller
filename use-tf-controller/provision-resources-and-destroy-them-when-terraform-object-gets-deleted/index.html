@@ -562,6 +562,7 @@
 If you recreate a new Terraform object with the same name, namespace, and workspace, it will continue to use the tfstate inside the cluster as the starting point to reconcile.</p>
 <p>However, you may want to destroy provisioned resources when deleting the Terraform object. To enable destroy resources on object deletion, set <code>.spec.destroyResourcesOnDeletion</code> to <code>true</code>.</p>
 <p>~&gt; <strong>WARNING:</strong> This feature will destroy your resources on the cloud if the Terraform object gets deleted. Use it with caution.</p>
+<p>Destroy does not run if the Terraform object is suspended (<code>.spec.suspend: true</code>) when you delete it: the object is deleted and the provisioned resources are left in place. The same applies if you suspend an object that is already being deleted: any destroy that has not yet run is skipped. In both cases the controller emits a <code>DestroySkipped</code> event.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">infra.contrib.fluxcd.io/v1alpha2</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Terraform</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">metadata</span><span class="p">:</span>
