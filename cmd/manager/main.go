@@ -122,7 +122,8 @@ func main() {
 	flag.DurationVar(&runnerCreationTimeout, "runner-creation-timeout", 120*time.Second, "Timeout for creating a runner pod.")
 	flag.DurationVar(&runnerRPCTimeout, "runner-rpc-timeout", 30*time.Minute,
 		"Maximum duration for the batch of runner RPCs that set up Terraform (upload, "+
-			"backend config, init, workspace select). Bounds the reconcile so a runner pod "+
+			"backend config, init, workspace select), and for finalizing the runner's secrets on "+
+			"deletion. Bounds the reconcile so a runner pod "+
 			"that dies mid-RPC surfaces as an error and requeues instead of hanging forever.")
 	flag.DurationVar(&runnerUnreachableTimeout, "runner-unreachable-timeout", 5*time.Minute,
 		"Cancel a runner RPC once the connection to a runner that was reachable has not been "+

@@ -133,7 +133,11 @@ func (r *TerraformReconciler) finalize(ctx context.Context, s *runnerSession, ob
 		outputSecretName = obj.Spec.WriteOutputsToSecret.Name
 	}
 
-	finalizeSecretsReply, err := s.client.FinalizeSecrets(ctx, &runner.FinalizeSecretsRequest{
+	// Bound the call as setup does: without destroy, a runner that never came up
+	// would block it forever.
+	finalizeCtx, cancel := context.WithTimeout(ctx, r.RunnerRPCTimeout)
+	defer cancel()
+	finalizeSecretsReply, err := s.client.FinalizeSecrets(finalizeCtx, &runner.FinalizeSecretsRequest{
 		Namespace:                obj.Namespace,
 		Name:                     obj.Name,
 		Workspace:                obj.WorkspaceName(),
@@ -141,15 +145,16 @@ func (r *TerraformReconciler) finalize(ctx context.Context, s *runnerSession, ob
 		OutputSecretName:         outputSecretName,
 	})
 	if err != nil {
-		// Internal is transient and Unavailable means the runner could not be
-		// reached; both block deletion, as removing the finalizer now would leave
-		// the plan secrets behind. NotFound means there was nothing to delete.
+		// Internal is transient, and Unavailable and DeadlineExceeded mean the
+		// runner could not be reached; all block deletion, as removing the
+		// finalizer now would leave the plan secrets behind. NotFound means there
+		// was nothing to delete.
 		// Anything else is reported as an event and deletion proceeds. That
 		// includes PermissionDenied, which the runner reports when its service
 		// account may not read or delete the secrets: retrying does not fix it,
 		// so it must not block deletion forever.
 		switch status.Code(err) {
-		case codes.Internal, codes.Unavailable:
+		case codes.Internal, codes.Unavailable, codes.DeadlineExceeded:
 			return ctrl.Result{}, err
 		case codes.NotFound:
 			// do nothing, fall through

@@ -385,6 +385,36 @@ func TestFinalizeSecretsUnavailableBlocksDeletion(t *testing.T) {
 	g.Expect(drainEvents(f.r.EventRecorder.(*events.FakeRecorder))).To(BeEmpty())
 }
 
+// TestFinalizeSecretsBlocksDeletionWhenRunnerNeverStarts checks a deletion
+// against a runner that never serves times out and blocks deletion.
+func TestFinalizeSecretsBlocksDeletionWhenRunnerNeverStarts(t *testing.T) {
+	g := NewWithT(t)
+	obj := fakeTerraform("finalize-secrets-runner-never-starts")
+	f := newDeleteFixture(t, obj)
+	f.r.RunnerRPCTimeout = 500 * time.Millisecond
+	runnerClient := newWatchedRunnerClient(t, freeLocalAddr(t), 5*time.Minute)
+	f.r.lookupOrCreateRunner = func(context.Context, *infrav1.Terraform, string) (runner.RunnerClient, func() error, error) {
+		return runnerClient, func() error { return nil }, nil
+	}
+
+	// Cancelled at the end only so a hung pass does not leak past the test.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	result := make(chan error, 1)
+	go func() {
+		_, err := f.r.Reconcile(ctx, ctrl.Request{NamespacedName: client.ObjectKeyFromObject(obj)})
+		result <- err
+	}()
+
+	var err error
+	g.Eventually(result, 10*time.Second).Should(Receive(&err))
+	g.Expect(status.Code(err)).To(Equal(codes.DeadlineExceeded))
+	g.Expect(f.gone(t, obj)).To(BeFalse())
+	g.Expect(stored(t, f.c, obj).Finalizers).To(ContainElement(infrav1.TerraformFinalizer))
+	g.Expect(drainEvents(f.r.EventRecorder.(*events.FakeRecorder))).To(BeEmpty())
+}
+
 // TestFinalizeTreatsMissingDependencyAsReleased checks that a dependsOn target
 // that no longer exists has nothing to release, so deletion completes.
 func TestFinalizeTreatsMissingDependencyAsReleased(t *testing.T) {

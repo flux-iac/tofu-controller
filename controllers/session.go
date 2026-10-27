@@ -127,9 +127,15 @@ func (s *runnerSession) Close(ctx context.Context) {
 	}
 }
 
-// cleanupDir asks the runner to remove tmpDir, whatever its value. Callers
-// defer it before setup, which sets tmpDir.
+// cleanupDir asks the runner to remove tmpDir. Callers defer it before setup,
+// which sets tmpDir. It sends nothing while tmpDir is empty: there is no
+// directory to name, and a runner that never came up would block the call
+// forever (see runnerUnreachableInterceptor).
 func (s *runnerSession) cleanupDir(ctx context.Context) {
+	if s.tmpDir == "" {
+		return
+	}
+
 	log := ctrl.LoggerFrom(ctx)
 
 	cleanupDirReply, err := s.client.CleanupDir(ctx, &runner.CleanupDirRequest{TmpDir: s.tmpDir})
