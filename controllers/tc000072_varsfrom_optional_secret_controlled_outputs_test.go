@@ -122,7 +122,7 @@ func Test_000072_varsfrom_optional_secret_and_controlled_outputs_test(t *testing
 		return helloWorldTF.Status
 	}, timeout, interval).Should(Equal(map[string]any{
 		"Reason":  "VarsGenerationFailed",
-		"Message": "rpc error: code = Unknown desc = Secret \"my-vars-helloworld-vars-from-optional-secret-controlled-output\" not found",
+		"Message": "Secret \"my-vars-helloworld-vars-from-optional-secret-controlled-output\" not found",
 		"Status":  metav1.ConditionFalse,
 		"Type":    "Ready",
 	}))

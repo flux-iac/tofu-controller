@@ -11,7 +11,6 @@ import (
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
-	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
@@ -88,21 +87,13 @@ func (r *TerraformReconciler) detectDrift(ctx context.Context, s *runnerSession,
 		planRequest.Refresh = true
 	}
 
-	eventSent := false
 	planReply, err := s.client.Plan(ctx, planRequest)
 	if err != nil {
-		if st, ok := status.FromError(err); ok {
-			for _, detail := range st.Details() {
-				if reply, ok := detail.(*runner.PlanReply); ok {
-					msg := fmt.Sprintf("Drift detection error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-					r.Eventf(terraform, nil, corev1.EventTypeWarning, infrav1.DriftDetectionFailedReason, infrav1.ActionDriftDetection.String(), "%s", msg)
-					eventSent = true
-					infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
-				}
-			}
-		}
-
-		if !eventSent {
+		if lock, ok := stateLockFrom(err); ok {
+			msg := fmt.Sprintf("Drift detection error: State locked with Lock Identifier %s", lock.Id)
+			r.Eventf(terraform, nil, corev1.EventTypeWarning, infrav1.DriftDetectionFailedReason, infrav1.ActionDriftDetection.String(), "%s", msg)
+			infrav1.TerraformStateLocked(terraform, lock.Id, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", lock.Id))
+		} else {
 			msg := fmt.Sprintf("Drift detection error: %s", err.Error())
 			r.Eventf(terraform, nil, corev1.EventTypeWarning, infrav1.DriftDetectionFailedReason, infrav1.ActionDriftDetection.String(), "%s", msg)
 		}

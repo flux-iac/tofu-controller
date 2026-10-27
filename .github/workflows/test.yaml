@@ -119,6 +119,33 @@ jobs:
         run: |
           make install-envtest
           make test-internal
+  runner:
+    name: "Runner Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.0.0
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            **/go.sum
+            **/go.mod
+      - name: Setup OpenTofu
+        run: |
+          export TOFU_VERSION=1.12.1
+          wget https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_amd64.zip
+          unzip -q tofu_${TOFU_VERSION}_linux_amd64.zip tofu
+          mv tofu /usr/local/bin
+          tofu --version
+      - name: Setup Kustomize
+        if: "!github.event.pull_request.head.repo.fork"
+        uses: fluxcd/pkg/actions/kustomize@e2cfd1a2d1815a81b3e77ef750e6528282ccccd6 # main
+      - name: Run tests
+        run: |
+          make install-envtest
+          make test-runner
   plan:
     name: "Plan Package Tests"
     runs-on: ubuntu-latest

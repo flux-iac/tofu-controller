@@ -9,7 +9,6 @@ import (
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
-	"google.golang.org/grpc/status"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -68,20 +67,11 @@ func (r *TerraformReconciler) plan(ctx context.Context, s *runnerSession, terraf
 
 	planReply, err := s.client.Plan(ctx, planRequest)
 	if err != nil {
-
-		eventSent := false
-		if st, ok := status.FromError(err); ok {
-			for _, detail := range st.Details() {
-				if reply, ok := detail.(*runner.PlanReply); ok {
-					msg := fmt.Sprintf("Plan error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-					r.Eventf(terraform, nil, corev1.EventTypeWarning, infrav1.TFExecPlanFailedReason, infrav1.ActionPlan.String(), "%s", msg)
-					eventSent = true
-					infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
-				}
-			}
-		}
-
-		if !eventSent {
+		if lock, ok := stateLockFrom(err); ok {
+			msg := fmt.Sprintf("Plan error: State locked with Lock Identifier %s", lock.Id)
+			r.Eventf(terraform, nil, corev1.EventTypeWarning, infrav1.TFExecPlanFailedReason, infrav1.ActionPlan.String(), "%s", msg)
+			infrav1.TerraformStateLocked(terraform, lock.Id, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", lock.Id))
+		} else {
 			msg := fmt.Sprintf("Plan error: %s", err.Error())
 			r.Eventf(terraform, nil, corev1.EventTypeWarning, infrav1.TFExecPlanFailedReason, infrav1.ActionPlan.String(), "%s", msg)
 		}

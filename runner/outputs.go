@@ -3,60 +3,19 @@ package runner
 import (
 	"context"
 	"fmt"
-	"io"
 	"reflect"
 
-	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
-	"github.com/hashicorp/terraform-exec/tfexec"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+
+	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 )
 
-func (r *TerraformRunnerServer) tfOutput(ctx context.Context, opts ...tfexec.OutputOption) (map[string]tfexec.OutputMeta, error) {
-	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
-
-	// This is the only place where we disable the logger
-	r.tf.SetStdout(io.Discard)
-	r.tf.SetStderr(io.Discard)
-
-	defer r.initLogger(log)
-
-	return r.tf.Output(ctx, opts...)
-}
-
-func (r *TerraformRunnerServer) Output(ctx context.Context, req *OutputRequest) (*OutputReply, error) {
-	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
-	log.Info("creating outputs")
-
-	if err := r.ValidateInstanceID(req.TfInstance); err != nil {
-		log.Error(err, "terraform session mismatch when creating outputs")
-
-		return nil, err
-	}
-
-	outputs, err := r.tfOutput(ctx)
-	if err != nil {
-		log.Error(err, "unable to get outputs")
-		return nil, err
-	}
-
-	outputReply := &OutputReply{Outputs: map[string]*OutputMeta{}}
-	for k, v := range outputs {
-		outputReply.Outputs[k] = &OutputMeta{
-			Sensitive: v.Sensitive,
-			Type:      v.Type,
-			Value:     v.Value,
-		}
-	}
-	return outputReply, nil
-}
-
 func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutputsRequest) (*WriteOutputsReply, error) {
-	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
-	log.Info("write outputs to secret")
+	ctrl.LoggerFrom(ctx).Info("write outputs to secret")
 
 	objectKey := types.NamespacedName{Namespace: req.Namespace, Name: req.SecretName}
 	var outputSecret corev1.Secret
@@ -72,7 +31,6 @@ func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutp
 			create = false
 		}
 	} else if !apierrors.IsNotFound(err) {
-		log.Error(err, "unable to get output secret")
 		return nil, err
 	}
 
@@ -99,16 +57,12 @@ func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutp
 				Data: req.Data,
 			}
 
-			err := r.Create(ctx, &outputSecret)
-			if err != nil {
-				log.Error(err, "unable to create secret")
+			if err := r.Create(ctx, &outputSecret); err != nil {
 				return nil, err
 			}
 		} else {
 			outputSecret.Data = req.Data
-			err := r.Update(ctx, &outputSecret)
-			if err != nil {
-				log.Error(err, "unable to update secret")
+			if err := r.Update(ctx, &outputSecret); err != nil {
 				return nil, err
 			}
 		}
@@ -120,15 +74,11 @@ func (r *TerraformRunnerServer) WriteOutputs(ctx context.Context, req *WriteOutp
 }
 
 func (r *TerraformRunnerServer) GetOutputs(ctx context.Context, req *GetOutputsRequest) (*GetOutputsReply, error) {
-	log := ctrl.LoggerFrom(ctx, "instance-id", r.InstanceID).WithName(loggerName)
-	log.Info("get outputs")
+	ctrl.LoggerFrom(ctx).Info("get outputs")
 	outputKey := types.NamespacedName{Namespace: req.Namespace, Name: req.SecretName}
 	outputSecret := corev1.Secret{}
-	err := r.Get(ctx, outputKey, &outputSecret)
-	if err != nil {
-		err = fmt.Errorf("error getting terraform output for health checks: %s", err)
-		log.Error(err, "unable to check terraform health")
-		return nil, err
+	if err := r.Get(ctx, outputKey, &outputSecret); err != nil {
+		return nil, fmt.Errorf("error getting terraform output for health checks: %s", err)
 	}
 
 	outputs := map[string]string{}

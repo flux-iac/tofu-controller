@@ -42,8 +42,6 @@ const (
 	Runner_GetOutputs_FullMethodName                  = "/runner.Runner/GetOutputs"
 	Runner_Init_FullMethodName                        = "/runner.Runner/Init"
 	Runner_SelectWorkspace_FullMethodName             = "/runner.Runner/SelectWorkspace"
-	Runner_CreateWorkspaceBlob_FullMethodName         = "/runner.Runner/CreateWorkspaceBlob"
-	Runner_Upload_FullMethodName                      = "/runner.Runner/Upload"
 	Runner_FinalizeSecrets_FullMethodName             = "/runner.Runner/FinalizeSecrets"
 	Runner_ForceUnlock_FullMethodName                 = "/runner.Runner/ForceUnlock"
 	Runner_StartBreakTheGlassSession_FullMethodName   = "/runner.Runner/StartBreakTheGlassSession"
@@ -77,8 +75,6 @@ type RunnerClient interface {
 	GetOutputs(ctx context.Context, in *GetOutputsRequest, opts ...grpc.CallOption) (*GetOutputsReply, error)
 	Init(ctx context.Context, in *InitRequest, opts ...grpc.CallOption) (*InitReply, error)
 	SelectWorkspace(ctx context.Context, in *WorkspaceRequest, opts ...grpc.CallOption) (*WorkspaceReply, error)
-	CreateWorkspaceBlob(ctx context.Context, in *CreateWorkspaceBlobRequest, opts ...grpc.CallOption) (*CreateWorkspaceBlobReply, error)
-	Upload(ctx context.Context, in *UploadRequest, opts ...grpc.CallOption) (*UploadReply, error)
 	FinalizeSecrets(ctx context.Context, in *FinalizeSecretsRequest, opts ...grpc.CallOption) (*FinalizeSecretsReply, error)
 	ForceUnlock(ctx context.Context, in *ForceUnlockRequest, opts ...grpc.CallOption) (*ForceUnlockReply, error)
 	StartBreakTheGlassSession(ctx context.Context, in *BreakTheGlassRequest, opts ...grpc.CallOption) (*BreakTheGlassReply, error)
@@ -323,26 +319,6 @@ func (c *runnerClient) SelectWorkspace(ctx context.Context, in *WorkspaceRequest
 	return out, nil
 }
 
-func (c *runnerClient) CreateWorkspaceBlob(ctx context.Context, in *CreateWorkspaceBlobRequest, opts ...grpc.CallOption) (*CreateWorkspaceBlobReply, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateWorkspaceBlobReply)
-	err := c.cc.Invoke(ctx, Runner_CreateWorkspaceBlob_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *runnerClient) Upload(ctx context.Context, in *UploadRequest, opts ...grpc.CallOption) (*UploadReply, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UploadReply)
-	err := c.cc.Invoke(ctx, Runner_Upload_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *runnerClient) FinalizeSecrets(ctx context.Context, in *FinalizeSecretsRequest, opts ...grpc.CallOption) (*FinalizeSecretsReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(FinalizeSecretsReply)
@@ -410,8 +386,6 @@ type RunnerServer interface {
 	GetOutputs(context.Context, *GetOutputsRequest) (*GetOutputsReply, error)
 	Init(context.Context, *InitRequest) (*InitReply, error)
 	SelectWorkspace(context.Context, *WorkspaceRequest) (*WorkspaceReply, error)
-	CreateWorkspaceBlob(context.Context, *CreateWorkspaceBlobRequest) (*CreateWorkspaceBlobReply, error)
-	Upload(context.Context, *UploadRequest) (*UploadReply, error)
 	FinalizeSecrets(context.Context, *FinalizeSecretsRequest) (*FinalizeSecretsReply, error)
 	ForceUnlock(context.Context, *ForceUnlockRequest) (*ForceUnlockReply, error)
 	StartBreakTheGlassSession(context.Context, *BreakTheGlassRequest) (*BreakTheGlassReply, error)
@@ -494,12 +468,6 @@ func (UnimplementedRunnerServer) Init(context.Context, *InitRequest) (*InitReply
 }
 func (UnimplementedRunnerServer) SelectWorkspace(context.Context, *WorkspaceRequest) (*WorkspaceReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SelectWorkspace not implemented")
-}
-func (UnimplementedRunnerServer) CreateWorkspaceBlob(context.Context, *CreateWorkspaceBlobRequest) (*CreateWorkspaceBlobReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateWorkspaceBlob not implemented")
-}
-func (UnimplementedRunnerServer) Upload(context.Context, *UploadRequest) (*UploadReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Upload not implemented")
 }
 func (UnimplementedRunnerServer) FinalizeSecrets(context.Context, *FinalizeSecretsRequest) (*FinalizeSecretsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FinalizeSecrets not implemented")
@@ -948,42 +916,6 @@ func _Runner_SelectWorkspace_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Runner_CreateWorkspaceBlob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateWorkspaceBlobRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RunnerServer).CreateWorkspaceBlob(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Runner_CreateWorkspaceBlob_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RunnerServer).CreateWorkspaceBlob(ctx, req.(*CreateWorkspaceBlobRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Runner_Upload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UploadRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RunnerServer).Upload(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Runner_Upload_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RunnerServer).Upload(ctx, req.(*UploadRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Runner_FinalizeSecrets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(FinalizeSecretsRequest)
 	if err := dec(in); err != nil {
@@ -1154,14 +1086,6 @@ var Runner_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SelectWorkspace",
 			Handler:    _Runner_SelectWorkspace_Handler,
-		},
-		{
-			MethodName: "CreateWorkspaceBlob",
-			Handler:    _Runner_CreateWorkspaceBlob_Handler,
-		},
-		{
-			MethodName: "Upload",
-			Handler:    _Runner_Upload_Handler,
 		},
 		{
 			MethodName: "FinalizeSecrets",

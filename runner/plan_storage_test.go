@@ -6,7 +6,6 @@ import (
 
 	"github.com/flux-iac/tofu-controller/api/plan"
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
-	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/afero"
 	corev1 "k8s.io/api/core/v1"
@@ -17,7 +16,6 @@ import (
 func TestLoadTFPlanWithForceTrue(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := t.Context()
-	log := logr.Discard()
 	fs := afero.NewMemMapFs()
 
 	req := &LoadTFPlanRequest{
@@ -62,7 +60,7 @@ func TestLoadTFPlanWithForceTrue(t *testing.T) {
 	client := fake.NewClientBuilder().WithObjects(tfplanSecret).Build()
 
 	// Act: Call the function under test.
-	reply, loadPlanErr := loadTFPlan(ctx, log, req, terraform, workingDir, client, fs)
+	reply, loadPlanErr := loadTFPlan(ctx, req, terraform, workingDir, client, fs)
 
 	// Assert: Check that the function behaved as expected.
 	g.Expect(loadPlanErr).NotTo(HaveOccurred(), "should not return an error")
@@ -77,7 +75,6 @@ func TestLoadTFPlanWithForceTrue(t *testing.T) {
 func TestLoadTFPlanWithForceFalse(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := t.Context()
-	log := logr.Discard()
 	fs := afero.NewMemMapFs()
 
 	req := &LoadTFPlanRequest{
@@ -122,7 +119,7 @@ func TestLoadTFPlanWithForceFalse(t *testing.T) {
 	client := fake.NewClientBuilder().WithObjects(tfplanSecret).Build()
 
 	// Act: Call the function under test.
-	reply, loadPlanErr := loadTFPlan(ctx, log, req, terraform, workingDir, client, fs)
+	reply, loadPlanErr := loadTFPlan(ctx, req, terraform, workingDir, client, fs)
 
 	// Assert: loadPlanErr should contain an error
 	g.Expect(loadPlanErr).To(HaveOccurred(), "should return an error")

@@ -144,8 +144,10 @@ func (r *TerraformReconciler) finalize(ctx context.Context, s *runnerSession, ob
 		// Internal is transient and Unavailable means the runner could not be
 		// reached; both block deletion, as removing the finalizer now would leave
 		// the plan secrets behind. NotFound means there was nothing to delete.
-		// Anything else, including a non-gRPC error (code Unknown), is reported
-		// and deletion proceeds.
+		// Anything else is reported as an event and deletion proceeds. That
+		// includes PermissionDenied, which the runner reports when its service
+		// account may not read or delete the secrets: retrying does not fix it,
+		// so it must not block deletion forever.
 		switch status.Code(err) {
 		case codes.Internal, codes.Unavailable:
 			return ctrl.Result{}, err

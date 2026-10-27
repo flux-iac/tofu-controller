@@ -1,21 +1,74 @@
 package runner
 
 import (
+	"errors"
 	"testing"
-
-	. "github.com/onsi/gomega"
 
 	"github.com/flux-iac/tofu-controller/api/typeinfo"
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
-	"github.com/go-logr/logr"
 	"github.com/hashicorp/hcl2/hcldec"
 	"github.com/hashicorp/hcl2/hclparse"
+	. "github.com/onsi/gomega"
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
+
+// Here goes your parseRenamePattern function.
+func TestParseRenamePattern(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	tests := []struct {
+		pattern   string
+		oldKey    string
+		newKey    string
+		expectErr error
+	}{
+		{
+			pattern:   "oldKey:newKey",
+			oldKey:    "oldKey",
+			newKey:    "newKey",
+			expectErr: nil,
+		},
+		{
+			pattern:   "onlyOldKey",
+			oldKey:    "onlyOldKey",
+			newKey:    "onlyOldKey",
+			expectErr: nil,
+		},
+		{
+			pattern:   "key1:key2:key3",
+			oldKey:    "",
+			newKey:    "",
+			expectErr: errors.New("invalid rename pattern \"key1:key2:key3\""),
+		},
+		{
+			pattern:   ":newKey",
+			oldKey:    "",
+			newKey:    "",
+			expectErr: errors.New("invalid rename pattern old name: \":newKey\""),
+		},
+		{
+			pattern:   "oldKey:",
+			oldKey:    "",
+			newKey:    "",
+			expectErr: errors.New("invalid rename pattern new name: \"oldKey:\""),
+		},
+	}
+
+	for _, tt := range tests {
+		oldKey, newKey, err := parseRenamePattern(tt.pattern)
+		if tt.expectErr == nil {
+			g.Expect(err).To(BeNil())
+		} else {
+			g.Expect(err).To(Equal(tt.expectErr))
+		}
+		g.Expect(oldKey).To(Equal(tt.oldKey))
+		g.Expect(newKey).To(Equal(tt.newKey))
+	}
+}
 
 func TestReadInputsForGenerateVarsForTF(t *testing.T) {
 	g := NewGomegaWithT(t)
@@ -90,7 +143,7 @@ j = { a = 1, b = 2, c = 3 }
 
 	cli := fake.NewClientBuilder().WithObjects(fixture).Build()
 
-	inputs, err2 := readInputsForGenerateVarsForTF(t.Context(), logr.Discard(), cli, terraform)
+	inputs, err2 := readInputsForGenerateVarsForTF(t.Context(), cli, terraform)
 	g.Expect(err2).To(BeNil())
 	g.Expect(inputs["secret_1"]).To(Equal(map[string]any{
 		"a": float64(42),

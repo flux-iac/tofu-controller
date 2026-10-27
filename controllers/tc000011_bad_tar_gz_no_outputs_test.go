@@ -140,7 +140,7 @@ spec:
 	}, timeout, interval).Should(Equal(map[string]any{
 		"Type":    "Ready",
 		"Reason":  "ArtifactFailed",
-		"Message": "rpc error: code = Unknown desc = failed to untar artifact, error: requires gzip-compressed body: gzip: invalid header",
+		"Message": "failed to untar artifact, error: requires gzip-compressed body: gzip: invalid header",
 		"Status":  metav1.ConditionFalse,
 	}))
 }

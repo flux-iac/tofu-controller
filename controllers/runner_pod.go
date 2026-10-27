@@ -131,7 +131,10 @@ func (r *TerraformReconciler) getRunnerConnection(ctx context.Context, tlsSecret
 			grpc.MaxCallRecvMsgSize(maxMsgSize),
 			grpc.MaxCallSendMsgSize(maxMsgSize),
 		),
-		grpc.WithChainUnaryInterceptor(runnerUnreachableInterceptor(r.RunnerUnreachableTimeout)),
+		grpc.WithChainUnaryInterceptor(
+			runnerErrorInterceptor(),
+			runnerUnreachableInterceptor(r.RunnerUnreachableTimeout),
+		),
 	}
 	if r.RunnerUnreachableTimeout > 0 {
 		// If the runner's node disappears without closing the TCP connection, a

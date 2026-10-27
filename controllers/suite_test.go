@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -35,6 +36,9 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 
 	"github.com/onsi/gomega/ghttp"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/test/bufconn"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
@@ -215,11 +219,11 @@ func TestMain(m *testing.M) {
 		panic(err.Error())
 	}
 
-	stopRunnerServer := make(chan os.Signal)
+	runnerShutdown := make(chan struct{})
 	runnerServer = &runner.TerraformRunnerServer{
-		Client: k8sManager.GetClient(),
-		Scheme: k8sManager.GetScheme(),
-		Done:   stopRunnerServer,
+		Client:   k8sManager.GetClient(),
+		Scheme:   k8sManager.GetScheme(),
+		Shutdown: runnerShutdown,
 	}
 
 	go func() {
@@ -236,10 +240,9 @@ func TestMain(m *testing.M) {
 	}()
 
 	code := m.Run()
-	// stopRunnerServer <- os.Interrupt
 	server.Close()
 	cancel()
-	close(stopRunnerServer)
+	close(runnerShutdown)
 
 	// "tearing down the test environment"
 	err = testEnv.Stop()
@@ -386,4 +389,37 @@ func normaliseConditions(conditions []metav1.Condition) []normalisedCondition {
 	}
 
 	return parsed
+}
+
+// newInProcessRunner serves a fresh runner, with its interceptors, over an
+// in-memory connection and returns a client for it. Tests that drive runner
+// RPCs themselves use it rather than the reconciler's shared runner server.
+func newInProcessRunner(t *testing.T) runner.RunnerClient {
+	t.Helper()
+
+	server := &runner.TerraformRunnerServer{
+		Client: runnerServer.Client,
+		Scheme: runnerServer.Scheme,
+	}
+	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(server.UnaryInterceptors()...))
+	runner.RegisterRunnerServer(grpcServer, server)
+
+	lis := bufconn.Listen(1 << 20)
+	go func() { _ = grpcServer.Serve(lis) }()
+
+	conn, err := grpc.NewClient("passthrough:///bufnet",
+		grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) { return lis.Dial() }),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithChainUnaryInterceptor(runnerErrorInterceptor()),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Cleanup(func() {
+		_ = conn.Close()
+		grpcServer.Stop()
+	})
+
+	return runner.NewRunnerClient(conn)
 }

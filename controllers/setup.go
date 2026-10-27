@@ -10,7 +10,6 @@ import (
 	"github.com/flux-iac/tofu-controller/runner"
 	"github.com/fluxcd/pkg/runtime/acl"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -220,6 +219,7 @@ func (r *TerraformReconciler) setup(ctx context.Context, s *runnerSession, terra
 	}
 
 	generateVarsForTFReply, err := s.client.GenerateVarsForTF(ctx, &runner.GenerateVarsForTFRequest{
+		TfInstance: s.tfInstance,
 		WorkingDir: workingDir,
 	})
 	if err != nil {
@@ -231,6 +231,7 @@ func (r *TerraformReconciler) setup(ctx context.Context, s *runnerSession, terra
 	log.Info("generated var files from spec")
 
 	generateTemplateReply, err := s.client.GenerateTemplate(ctx, &runner.GenerateTemplateRequest{
+		TfInstance: s.tfInstance,
 		WorkingDir: workingDir,
 	})
 	if err != nil {
@@ -255,12 +256,8 @@ func (r *TerraformReconciler) setup(ctx context.Context, s *runnerSession, terra
 
 	initReply, err := s.client.Init(ctx, initRequest)
 	if err != nil {
-		if st, ok := status.FromError(err); ok {
-			for _, detail := range st.Details() {
-				if reply, ok := detail.(*runner.InitReply); ok {
-					infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
-				}
-			}
+		if lock, ok := stateLockFrom(err); ok {
+			infrav1.TerraformStateLocked(terraform, lock.Id, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", lock.Id))
 		}
 
 		err = fmt.Errorf("error running Init: %s", err)
@@ -297,10 +294,23 @@ func (r *TerraformReconciler) setup(ctx context.Context, s *runnerSession, terra
 	// If we have a lock id need to force unlock it
 	if lockIdentifier != "" {
 		_, err := s.client.ForceUnlock(ctx, &runner.ForceUnlockRequest{
+			TfInstance:     s.tfInstance,
 			LockIdentifier: lockIdentifier,
 		})
 
-		if err != nil {
+		// A lock that is no longer held (its holder released it meanwhile)
+		// needs no unlocking, so it counts as unlocked. A lock now held by
+		// another holder is recorded like any held lock: it becomes the
+		// pending lock, and forceUnlock decides about it on the next pass.
+		if err != nil && !isNotLocked(err) {
+			if lock, ok := stateLockFrom(err); ok {
+				infrav1.TerraformStateLocked(terraform, lock.Id, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", lock.Id))
+
+				err = fmt.Errorf("error running ForceUnlock: %s", err)
+
+				return notReady(terraform, s.revision, infrav1.TFExecLockHeldReason, err)
+			}
+
 			return err
 		}
 

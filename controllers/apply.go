@@ -9,7 +9,6 @@ import (
 
 	infrav1 "github.com/flux-iac/tofu-controller/api/v1alpha2"
 	"github.com/flux-iac/tofu-controller/runner"
-	"google.golang.org/grpc/status"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -96,20 +95,12 @@ func (r *TerraformReconciler) apply(ctx context.Context, s *runnerSession, terra
 			Targets:    terraform.Spec.Targets,
 		})
 
-		eventSent := false
 		if err != nil {
-			if st, ok := status.FromError(err); ok {
-				for _, detail := range st.Details() {
-					if reply, ok := detail.(*runner.DestroyReply); ok {
-						msg := fmt.Sprintf("Destroy error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-						r.Eventf(terraform, nil, corev1.EventTypeWarning, infrav1.TFExecDestroyFailedReason, infrav1.ActionDestroy.String(), "%s", msg)
-						eventSent = true
-						infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
-					}
-				}
-			}
-
-			if !eventSent {
+			if lock, ok := stateLockFrom(err); ok {
+				msg := fmt.Sprintf("Destroy error: State locked with Lock Identifier %s", lock.Id)
+				r.Eventf(terraform, nil, corev1.EventTypeWarning, infrav1.TFExecDestroyFailedReason, infrav1.ActionDestroy.String(), "%s", msg)
+				infrav1.TerraformStateLocked(terraform, lock.Id, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", lock.Id))
+			} else {
 				msg := fmt.Sprintf("Destroy error: %s", err.Error())
 				r.Eventf(terraform, nil, corev1.EventTypeWarning, infrav1.TFExecDestroyFailedReason, infrav1.ActionDestroy.String(), "%s", msg)
 			}
@@ -127,21 +118,13 @@ func (r *TerraformReconciler) apply(ctx context.Context, s *runnerSession, terra
 		log.Info("destroy", "message", destroyReply.Message)
 		isDestroyApplied = true
 	} else {
-		eventSent := false
 		applyReply, err := s.client.Apply(ctx, applyRequest)
 		if err != nil {
-			if st, ok := status.FromError(err); ok {
-				for _, detail := range st.Details() {
-					if reply, ok := detail.(*runner.ApplyReply); ok {
-						msg := fmt.Sprintf("Apply error: State locked with Lock Identifier %s", reply.StateLockIdentifier)
-						r.Eventf(terraform, nil, corev1.EventTypeWarning, infrav1.TFExecApplyFailedReason, infrav1.ActionApply.String(), "%s", msg)
-						eventSent = true
-						infrav1.TerraformStateLocked(terraform, reply.StateLockIdentifier, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", reply.StateLockIdentifier))
-					}
-				}
-			}
-
-			if !eventSent {
+			if lock, ok := stateLockFrom(err); ok {
+				msg := fmt.Sprintf("Apply error: State locked with Lock Identifier %s", lock.Id)
+				r.Eventf(terraform, nil, corev1.EventTypeWarning, infrav1.TFExecApplyFailedReason, infrav1.ActionApply.String(), "%s", msg)
+				infrav1.TerraformStateLocked(terraform, lock.Id, fmt.Sprintf("Terraform Locked with Lock Identifier: %s", lock.Id))
+			} else {
 				msg := fmt.Sprintf("Apply error: %s", err.Error())
 				r.Eventf(terraform, nil, corev1.EventTypeWarning, infrav1.TFExecApplyFailedReason, infrav1.ActionApply.String(), "%s", msg)
 			}

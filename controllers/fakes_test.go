@@ -30,6 +30,10 @@ import (
 // fakeRunner is a runner.RunnerClient that records every RPC it receives, in
 // order. Each RPC returns the error in errs[name] if set, else the reply in
 // replies[name] if set (it must be the RPC's reply type), else a default reply.
+// Errors go through the runner server's status mapping and then the
+// conversion runnerErrorInterceptor applies on a real connection, so tests see
+// the errors the reconciler sees in production: a plain Go error arrives as
+// Internal, as any unexpected handler error does.
 // RPCs it does not override hit the nil embedded interface and panic, so an
 // unexpected call fails the test loudly.
 type fakeRunner struct {
@@ -81,7 +85,7 @@ func fakeRPC[T any](f *fakeRunner, name string, req any, def *T) (*T, error) {
 		onCall(name)
 	}
 	if err != nil {
-		return nil, err
+		return nil, newRunnerError(runner.ToStatus(err))
 	}
 	if hasReply {
 		return r.(*T), nil
