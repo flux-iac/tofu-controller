@@ -29,6 +29,7 @@ import (
 	"github.com/fluxcd/pkg/runtime/client"
 	runtimeCtrl "github.com/fluxcd/pkg/runtime/controller"
 	"github.com/fluxcd/pkg/runtime/events"
+	"github.com/fluxcd/pkg/runtime/features"
 	"github.com/fluxcd/pkg/runtime/leaderelection"
 	"github.com/fluxcd/pkg/runtime/logger"
 	"github.com/fluxcd/pkg/runtime/metrics"
@@ -53,7 +54,12 @@ import (
 	//+kubebuilder:scaffold:imports
 )
 
-const controllerName = "tf-controller"
+const (
+	controllerName = "tf-controller"
+
+	// featureGateExternalArtifact enables ExternalArtifact as a sourceRef kind; it requires Flux 2.7+.
+	featureGateExternalArtifact = "ExternalArtifact"
+)
 
 var (
 	scheme   = runtime.NewScheme()
@@ -104,6 +110,7 @@ func main() {
 		quotaRetryEnabled         bool
 		quotaRetryDelay           time.Duration
 		quotaRetryJitterFactor    float64
+		featureGates              features.FeatureGates
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
@@ -153,6 +160,7 @@ func main() {
 	leaderElectionOptions.BindFlags(flag.CommandLine)
 	// this adds the flag `--no-cross-namespace-refs`, for backward-compatibility of deployments that use that Flux-like flag.
 	aclOptions.BindFlags(flag.CommandLine)
+	featureGates.BindFlags(flag.CommandLine)
 	// this flag exists so that the default is to _disallow_ cross-namespace refs. If supplied, it'll override `--no-cross-namespace-refs`; in other words, you can supply `--allow-cross-namespace-refs` with or without a value, and it will be observed.
 	flag.BoolVar(&allowCrossNamespaceRefs, "allow-cross-namespace-refs", false,
 		"Enable following cross-namespace references. Overrides --no-cross-namespace-refs")
@@ -160,6 +168,16 @@ func main() {
 	flag.Parse()
 
 	ctrl.SetLogger(logger.NewLogger(logOptions))
+
+	if err := featureGates.WithLogger(setupLog).SupportedFeatures(map[string]bool{featureGateExternalArtifact: false}); err != nil {
+		setupLog.Error(err, "unable to load feature gates")
+		os.Exit(1)
+	}
+	enableExternalArtifact, err := features.Enabled(featureGateExternalArtifact)
+	if err != nil {
+		setupLog.Error(err, "unable to read feature gate", "feature", featureGateExternalArtifact)
+		os.Exit(1)
+	}
 
 	runtimeNamespace := os.Getenv("RUNTIME_NAMESPACE")
 
@@ -277,12 +295,13 @@ func main() {
 		Clientset:                 clientset,
 		FieldManager:              "tf-controller",
 		ShutdownTimeout:           gracefulShutdownTimeout,
+		EnableExternalArtifact:    enableExternalArtifact,
 		QuotaRetryEnabled:         quotaRetryEnabled,
 		QuotaRetryDelay:           quotaRetryDelay,
 		QuotaRetryJitterFactor:    quotaRetryJitterFactor,
 	}
 
-	if err = reconciler.SetupWithManager(mgr, concurrent, httpRetry); err != nil {
+	if err = reconciler.SetupWithManager(signalHandlerContext, mgr, concurrent, httpRetry); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Terraform")
 		os.Exit(1)
 	}

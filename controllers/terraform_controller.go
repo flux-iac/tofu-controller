@@ -61,6 +61,10 @@ type TerraformReconciler struct {
 	patchOptions      []patch.Option
 	requeueDependency time.Duration
 
+	// EnableExternalArtifact allows ExternalArtifact as a sourceRef kind. The kind only exists
+	// with Flux 2.7+, so watching it on an older cluster stops the controller from starting.
+	EnableExternalArtifact bool
+
 	// Quota retry configuration
 	QuotaRetryEnabled      bool
 	QuotaRetryDelay        time.Duration
@@ -97,8 +101,8 @@ type TerraformReconciler struct {
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=infra.contrib.fluxcd.io,resources=terraforms/finalizers,verbs=get;create;update;patch;delete
-//+kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=buckets;gitrepositories;ocirepositories,verbs=get;list;watch
-//+kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=buckets/status;gitrepositories/status;ocirepositories/status,verbs=get
+//+kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=buckets;externalartifacts;gitrepositories;ocirepositories,verbs=get;list;watch
+//+kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=buckets/status;externalartifacts/status;gitrepositories/status;ocirepositories/status,verbs=get
 //+kubebuilder:rbac:groups="",resources=configmaps;secrets;serviceaccounts,verbs=get;list;watch
 //+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 
@@ -256,23 +260,31 @@ func (r *TerraformReconciler) waitForCertificates() {
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentReconciles int, httpRetry int) error {
+func (r *TerraformReconciler) SetupWithManager(ctx context.Context, mgr ctrl.Manager, maxConcurrentReconciles int, httpRetry int) error {
 	// Index the Terraforms by the GitRepository references they (may) point at.
-	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, infrav1.GitRepositoryIndexKey,
+	if err := mgr.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.GitRepositoryIndexKey,
 		r.IndexBy(sourcev1.GitRepositoryKind)); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
 	// Index the Terraforms by the Bucket references they (may) point at.
-	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, infrav1.BucketIndexKey,
+	if err := mgr.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.BucketIndexKey,
 		r.IndexBy(sourcev1.BucketKind)); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
 	}
 
 	// Index the Terraforms by the OCIRepository references they (may) point at.
-	if err := mgr.GetCache().IndexField(context.TODO(), &infrav1.Terraform{}, infrav1.OCIRepositoryIndexKey,
+	if err := mgr.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.OCIRepositoryIndexKey,
 		r.IndexBy(sourcev1.OCIRepositoryKind)); err != nil {
 		return fmt.Errorf("failed setting index fields: %w", err)
+	}
+
+	if r.EnableExternalArtifact {
+		// Index the Terraforms by the ExternalArtifact references they (may) point at.
+		if err := mgr.GetCache().IndexField(ctx, &infrav1.Terraform{}, infrav1.ExternalArtifactIndexKey,
+			r.IndexBy(sourcev1.ExternalArtifactKind)); err != nil {
+			return fmt.Errorf("failed setting index fields: %w", err)
+		}
 	}
 
 	// Configure the retryable http client used for fetching artifacts.
@@ -287,7 +299,7 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 	r.requeueDependency = 30 * time.Second
 	recoverPanic := true
 
-	return ctrl.NewControllerManagedBy(mgr).
+	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
 		For(&infrav1.Terraform{}, builder.WithPredicates(
 			predicate.Or(predicate.GenerationChangedPredicate{}, predicates.ReconcileRequestedPredicate{}),
 		)).
@@ -314,8 +326,17 @@ func (r *TerraformReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentRe
 		WithOptions(controller.Options{
 			MaxConcurrentReconciles: maxConcurrentReconciles,
 			RecoverPanic:            &recoverPanic,
-		}).
-		Complete(r)
+		})
+
+	if r.EnableExternalArtifact {
+		controllerBuilder = controllerBuilder.Watches(
+			&sourcev1.ExternalArtifact{},
+			handler.EnqueueRequestsFromMapFunc(r.requestsForRevisionChangeOf(infrav1.ExternalArtifactIndexKey)),
+			builder.WithPredicates(SourceRevisionChangePredicate{}),
+		)
+	}
+
+	return controllerBuilder.Complete(r)
 }
 
 func (r *TerraformReconciler) requestsForRevisionChangeOf(indexKey string) handler.MapFunc {

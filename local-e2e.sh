@@ -39,6 +39,7 @@ kubectl patch deployment \
   "--log-encoding=json",
   "--enable-leader-election",
   "--concurrent=10",
+  "--feature-gates=ExternalArtifact=true",
 ]}]'
 
 kubectl -n tofu-system rollout status deploy/source-controller --timeout=1m
@@ -103,6 +104,27 @@ kubectl -n tofu-system wait terraform/helloworld-vars --for=condition=ready --ti
 
 # delete after tests
 kubectl -n tofu-system delete -f ./config/testdata/vars
+
+echo "==================== Run ExternalArtifact source tests"
+
+kustomize build ./config/testdata/source-watcher | kubectl apply --server-side -f -
+kubectl -n tofu-system rollout status deploy/source-watcher --timeout=2m
+
+kubectl -n tofu-system apply -f ./config/testdata/external-artifact/generator.yaml
+kubectl -n tofu-system wait artifactgenerator/helloworld --for=condition=ready --timeout=4m
+
+kubectl -n tofu-system apply -f ./config/testdata/external-artifact/terraform.yaml
+kubectl -n tofu-system wait terraform/helloworld-external-artifact --for=condition=ready --timeout=4m
+
+# the Terraform object must have applied the ExternalArtifact's revision
+artifact_revision=$(kubectl -n tofu-system get externalartifact/helloworld-module -o jsonpath='{.status.artifact.revision}')
+applied_revision=$(kubectl -n tofu-system get terraform/helloworld-external-artifact -o jsonpath='{.status.lastAppliedRevision}')
+echo "artifact revision: $artifact_revision, applied revision: $applied_revision"
+[[ -n "$artifact_revision" && "$applied_revision" == "$artifact_revision" ]]
+
+# delete the Terraform object before its source: finalizing it needs the ExternalArtifact
+kubectl -n tofu-system delete -f ./config/testdata/external-artifact/terraform.yaml --timeout=4m
+kubectl -n tofu-system delete -f ./config/testdata/external-artifact/generator.yaml --timeout=2m
 
 source ./config/testdata/assert-helpers.sh
 

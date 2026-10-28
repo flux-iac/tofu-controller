@@ -98,6 +98,22 @@ func (r *TerraformReconciler) resolveSource(ctx context.Context, terraform *infr
 			return sourceObj, fmt.Errorf("unable to get source '%s': %w", sourceReference, err)
 		}
 		sourceObj = &repository
+	case sourcev1.ExternalArtifactKind:
+		if !r.EnableExternalArtifact {
+			// Terminal: the sourceRef can only work after a restart with the gate on, or once it changes.
+			return sourceObj, acl.AccessDeniedError(
+				fmt.Sprintf("cannot access %s/%s, the ExternalArtifact feature gate is disabled (--feature-gates=ExternalArtifact=true)", terraform.Spec.SourceRef.Kind, sourceReference),
+			)
+		}
+		var artifact sourcev1.ExternalArtifact
+		err := r.Get(ctx, sourceReference, &artifact)
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				return sourceObj, err
+			}
+			return sourceObj, fmt.Errorf("unable to get source '%s': %w", sourceReference, err)
+		}
+		sourceObj = &artifact
 	default:
 		return sourceObj, fmt.Errorf("source `%s` kind '%s' not supported",
 			terraform.Spec.SourceRef.Name, terraform.Spec.SourceRef.Kind)

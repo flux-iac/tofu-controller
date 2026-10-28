@@ -120,6 +120,10 @@ quotaRetryDelay: 5s
 # -- Argument for `--quota-retry-jitter-factor` (Controller).
 #  Jitter factor applied to quota retry delay (e.g. 0.4 means up to 40% added to the base delay).
 quotaRetryJitterFactor: "0.4"
+featureGates:
+  # -- Argument for `--feature-gates=ExternalArtifact=...` (Controller).
+  #  Allow `ExternalArtifact` as a Terraform source. Requires Flux 2.7 or higher, whose `ExternalArtifact` CRD must be installed.
+  externalArtifact: false
 # -- Grace period for controller pod termination.
 #  Argument for `--graceful-shutdown-timeout` (Controller) is (terminationGracePeriodSeconds - 10) or 0, whichever is higher.
 #  Graceful shutdown will wait for active runners to finish without starting new ones.

@@ -50,6 +50,7 @@ __Note__: If you need to use the `imagePullSecrets` it would be best to set `ser
 | eksSecurityGroupPolicy.ids | list | `[]` | List of AWS Security Group IDs |
 | eventsAddress | string | `"http://notification-controller.flux-system.svc.cluster.local./"` | Argument for `--events-addr` (Controller). The event address, default to the address of the Notification Controller |
 | extraEnv | object | `{}` | Additional container environment variables. |
+| featureGates.externalArtifact | bool | `false` | Argument for `--feature-gates=ExternalArtifact=...` (Controller).  Allow `ExternalArtifact` as a Terraform source. Requires Flux 2.7 or higher, whose `ExternalArtifact` CRD must be installed. |
 | fullnameOverride | string | `""` | Provide a fullname |
 | image.pullPolicy | string | `"IfNotPresent"` | Controller image pull policy |
 | image.repository | string | `"ghcr.io/flux-iac/tofu-controller"` | Controller image repository |

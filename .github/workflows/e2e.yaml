@@ -100,6 +100,7 @@ jobs:
             "--log-encoding=json",
             "--enable-leader-election",
             "--concurrent=10",
+            "--feature-gates=ExternalArtifact=true",
             "--cert-rotation-check-frequency=6m0s",
           ]}]'
 
@@ -165,6 +166,26 @@ jobs:
 
           # delete after tests
           kubectl -n tofu-system delete -f ./config/testdata/vars
+      - name: Run ExternalArtifact source tests
+        run: |
+          kustomize build ./config/testdata/source-watcher | kubectl apply --server-side -f -
+          kubectl -n tofu-system rollout status deploy/source-watcher --timeout=2m
+
+          kubectl -n tofu-system apply -f ./config/testdata/external-artifact/generator.yaml
+          kubectl -n tofu-system wait artifactgenerator/helloworld --for=condition=ready --timeout=4m
+
+          kubectl -n tofu-system apply -f ./config/testdata/external-artifact/terraform.yaml
+          kubectl -n tofu-system wait terraform/helloworld-external-artifact --for=condition=ready --timeout=4m
+
+          # the Terraform object must have applied the ExternalArtifact's revision
+          artifact_revision=$(kubectl -n tofu-system get externalartifact/helloworld-module -o jsonpath='{.status.artifact.revision}')
+          applied_revision=$(kubectl -n tofu-system get terraform/helloworld-external-artifact -o jsonpath='{.status.lastAppliedRevision}')
+          echo "artifact revision: $artifact_revision, applied revision: $applied_revision"
+          [[ -n "$artifact_revision" && "$applied_revision" == "$artifact_revision" ]]
+
+          # delete the Terraform object before its source: finalizing it needs the ExternalArtifact
+          kubectl -n tofu-system delete -f ./config/testdata/external-artifact/terraform.yaml --timeout=4m
+          kubectl -n tofu-system delete -f ./config/testdata/external-artifact/generator.yaml --timeout=2m
       - name: Run multi-tenancy test
         run: |
           kubectl -n tofu-system scale --replicas=3 deploy/tofu-controller
@@ -250,6 +271,7 @@ jobs:
       - name: Logs
         run: |
           kubectl -n tofu-system logs deploy/source-controller
+          kubectl -n tofu-system logs deploy/source-watcher
           kubectl -n tofu-system logs deploy/tofu-controller
       - name: Debug failure
         if: failure()
@@ -260,6 +282,8 @@ jobs:
           kubectl -n tofu-system logs deploy/source-controller
           kubectl -n tofu-system describe deploy/source-controller
           kubectl -n tofu-system describe pod source-controller
+          kubectl -n tofu-system logs deploy/source-watcher
+          kubectl -n tofu-system get artifactgenerators,externalartifacts -oyaml
           kubectl -n tofu-system logs deploy/tofu-controller
           kubectl -n tofu-system describe deploy/tofu-controller
           kubectl -n tofu-system describe pod tofu-controller

@@ -1,0 +1,16 @@
+---
+apiVersion: source.extensions.fluxcd.io/v1beta1
+kind: ArtifactGenerator
+metadata:
+  name: helloworld
+spec:
+  sources:
+  - alias: repo
+    kind: GitRepository
+    name: helloworld
+  artifacts:
+  - name: helloworld-module
+    originRevision: "@repo"
+    copy:
+    - from: "@repo/*.tf"
+      to: "@artifact/"
