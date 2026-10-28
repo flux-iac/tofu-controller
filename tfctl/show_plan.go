@@ -34,13 +34,19 @@ func (c *CLI) ShowPlan(ctx context.Context, out io.Writer, resource string) erro
 		return nil
 	}
 
-	if terraform.Status.Plan.Pending == "" {
+	// Prefer Status.ArtifactRefs.Plan as the "is there a plan?" signal — it
+	// is the typed status surface from newer controllers. Fall back to the
+	// pre-existing string field for backward compatibility with older
+	// controllers that have not yet populated ArtifactRefs.
+	if !planExists(terraform) {
 		fmt.Fprintln(out, "There is no plan pending.")
 		return nil
 	}
 
+	planNamespace := planRefNamespace(terraform, c.namespace)
+
 	if terraform.Spec.StoreReadablePlan == "human" {
-		plan, err := readPlanFromConfigmap(ctx, c.client, resource, c.namespace, terraform.WorkspaceName(), uuid)
+		plan, err := readPlanFromConfigmap(ctx, c.client, resource, planNamespace, terraform.WorkspaceName(), uuid)
 		if err != nil {
 			return err
 		}
@@ -58,7 +64,7 @@ func (c *CLI) ShowPlan(ctx context.Context, out io.Writer, resource string) erro
 		}
 
 	} else if terraform.Spec.StoreReadablePlan == "json" {
-		plan, err := readPlanFromSecret(ctx, c.client, resource, c.namespace, terraform.WorkspaceName(), uuid)
+		plan, err := readPlanFromSecret(ctx, c.client, resource, planNamespace, terraform.WorkspaceName(), uuid)
 		if err != nil {
 			return err
 		}
@@ -67,6 +73,31 @@ func (c *CLI) ShowPlan(ctx context.Context, out io.Writer, resource string) erro
 	}
 
 	return nil
+}
+
+// planExists reports whether the Terraform resource has a plan to display.
+// It prefers the typed Status.ArtifactRefs.Plan reference and falls back to
+// the legacy Status.Plan.Pending string field for controllers that have not
+// yet populated the typed refs.
+func planExists(terraform *infrav1.Terraform) bool {
+	if terraform.Status.ArtifactRefs != nil && terraform.Status.ArtifactRefs.Plan != nil {
+		return true
+	}
+	return terraform.Status.Plan.Pending != ""
+}
+
+// planRefNamespace returns the namespace to scan for plan chunks. When the
+// typed reference is present it is authoritative; otherwise we fall back to
+// the CLI's configured namespace, matching the legacy assumption that the
+// plan lives in the same namespace as the Terraform CR.
+func planRefNamespace(terraform *infrav1.Terraform, fallback string) string {
+	if refs := terraform.Status.ArtifactRefs; refs != nil && refs.Plan != nil {
+		// Only an in-cluster locator names a namespace this CLI can read.
+		if ref, ok := refs.Plan.Locator.KubernetesRef(); ok && ref.Namespace != "" {
+			return ref.Namespace
+		}
+	}
+	return fallback
 }
 
 func readPlanFromConfigmap(ctx context.Context, kubeClient client.Client, resource string, namespace string, workspace string, uuid string) (string, error) {

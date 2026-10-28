@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"crypto/rand"
 	"path/filepath"
 	"testing"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/spf13/afero"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -126,4 +128,58 @@ func TestLoadTFPlanWithForceFalse(t *testing.T) {
 
 	// Assert: reply should be nil
 	g.Expect(reply).To(BeNil(), "should return nil reply")
+}
+
+func TestWritePlanAsSecretReportsSavedObjects(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := t.Context()
+
+	server := &TerraformRunnerServer{Client: fake.NewClientBuilder().Build()}
+
+	tfPlan, err := plan.NewFromBytes("a-plan", "terraform", "default", "plan-uuid-1", "plan-abc", []byte("plan data"))
+	g.Expect(err).NotTo(HaveOccurred())
+
+	saved, err := server.writePlanAsSecret(ctx, "a-plan", "terraform", "default", tfPlan, "")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(saved).To(HaveLen(1))
+	g.Expect(saved[0].ApiVersion).To(Equal("v1"))
+	g.Expect(saved[0].Kind).To(Equal("Secret"))
+	g.Expect(saved[0].Namespace).To(Equal("terraform"))
+	g.Expect(saved[0].Name).To(Equal("tfplan-default-a-plan"))
+
+	// api/plan is the single place that owns the ownerReference; the runner
+	// must not add a second one pointing at the same Terraform.
+	written := &corev1.Secret{}
+	g.Expect(server.Get(ctx, types.NamespacedName{Namespace: "terraform", Name: saved[0].Name}, written)).To(Succeed())
+	g.Expect(written.OwnerReferences).To(HaveLen(1))
+	g.Expect(written.OwnerReferences[0].Kind).To(Equal(infrav1.TerraformKind))
+	g.Expect(string(written.OwnerReferences[0].UID)).To(Equal("plan-uuid-1"))
+}
+
+func TestWritePlanAsSecretReportsEveryChunk(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := t.Context()
+
+	server := &TerraformRunnerServer{Client: fake.NewClientBuilder().Build()}
+
+	// Genuinely random, so it does not compress below the chunk threshold. A
+	// patterned filler would gzip to a single chunk and silently skip the case
+	// this test exists for.
+	planData := make([]byte, 4*1024*1024)
+	_, err := rand.Read(planData)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	tfPlan, err := plan.NewFromBytes("a-large-plan", "terraform", "default", "plan-uuid-1", "plan-abc", planData)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	expected, err := tfPlan.ToSecret("")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(len(expected)).To(BeNumerically(">", 1), "test needs a chunked plan")
+
+	saved, err := server.writePlanAsSecret(ctx, "a-large-plan", "terraform", "default", tfPlan, "")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(saved).To(HaveLen(len(expected)), "every chunk must be reported so status.chunks is accurate")
+	g.Expect(saved[0].Name).To(Equal(expected[0].Name), "the first entry must be chunk 0")
 }

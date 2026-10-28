@@ -16,11 +16,7 @@ import (
 )
 
 func (r *TerraformReconciler) backendCompletelyDisable(terraform *infrav1.Terraform) bool {
-	if terraform.Spec.Cloud != nil {
-		return true
-	}
-
-	return terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.Disable
+	return resolveBackend(terraform, os.Getenv("DISABLE_TF_K8S_BACKEND") == "1").completelyDisabled()
 }
 
 // setup prepares the runner for this pass: it patches the
@@ -70,7 +66,11 @@ func (r *TerraformReconciler) setup(ctx context.Context, s *runnerSession, terra
 	s.tmpDir = uploadAndExtractReply.TmpDir
 
 	DisableTFK8SBackend := os.Getenv("DISABLE_TF_K8S_BACKEND") == "1"
-	backendConfig, writeBackendConfig := backendConfigFor(terraform, DisableTFK8SBackend)
+	// One resolution of the backend configuration drives both the HCL the
+	// runner executes and the locator published in status, so the two cannot
+	// describe different things.
+	backend := resolveBackend(terraform, DisableTFK8SBackend)
+	backendConfig, writeBackendConfig := backend.HCL()
 
 	if r.backendCompletelyDisable(terraform) {
 		log.Info("backendConfig is completely disabled. When Spec.Cloud is not nil, backendConfig is disabled by default too.")
@@ -93,6 +93,8 @@ func (r *TerraformReconciler) setup(ctx context.Context, s *runnerSession, terra
 		}
 		log.Info("write config", "kind", configKind, "message", writeBackendConfigReply.Message)
 	}
+
+	setStateArtifactRef(terraform, backend.StateLocator(terraform))
 
 	var tfrcFilepath string
 	if terraform.Spec.CliConfigSecretRef != nil {
@@ -332,68 +334,7 @@ func (r *TerraformReconciler) setup(ctx context.Context, s *runnerSession, terra
 // is written: the backend is completely disabled and spec.cloud is not set.
 // disableK8SBackend carries DISABLE_TF_K8S_BACKEND=1, read by the caller.
 func backendConfigFor(terraform *infrav1.Terraform, disableK8SBackend bool) (hcl string, write bool) {
-	// spec.cloud completely disables the backend and writes the cloud block instead.
-	if terraform.Spec.Cloud != nil {
-		return terraform.Spec.Cloud.ToHCL(), true
-	}
-
-	// backend completely disabled without cloud: nothing is written.
-	if terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.Disable {
-		return "", false
-	}
-
-	var backendConfig string
-	if terraform.Spec.BackendConfig != nil && terraform.Spec.BackendConfig.CustomConfiguration != "" {
-		backendConfig = fmt.Sprintf(`
-terraform {
-  %v
-}
-`,
-			terraform.Spec.BackendConfig.CustomConfiguration)
-	} else if terraform.Spec.BackendConfig != nil {
-		backendConfig = fmt.Sprintf(`
-terraform {
-  backend "kubernetes" {
-    secret_suffix     = "%s"
-    in_cluster_config = %v
-    config_path       = "%s"
-    namespace         = "%s"
-    labels            = {
-      %s
-    }
-  }
-}
-`,
-			terraform.Spec.BackendConfig.SecretSuffix,
-			terraform.Spec.BackendConfig.InClusterConfig,
-			terraform.Spec.BackendConfig.ConfigPath,
-			terraform.Namespace,
-			getLabelsAsHCL(terraform.Spec.BackendConfig.Labels, 6))
-	} else if disableK8SBackend && terraform.Spec.BackendConfig == nil {
-		backendConfig = `
-terraform {
-  backend "local" { }
-}`
-	} else if terraform.Spec.BackendConfig == nil {
-		// TODO must be tested in cluster only
-		backendConfig = fmt.Sprintf(`
-terraform {
-  backend "kubernetes" {
-    secret_suffix     = "%s"
-    in_cluster_config = true
-    namespace         = "%s"
-    labels            = {
-      %s
-    }
-  }
-}
-`,
-			terraform.Name,
-			terraform.Namespace,
-			getLabelsAsHCL(nil, 6))
-	}
-
-	return backendConfig, true
+	return resolveBackend(terraform, disableK8SBackend).HCL()
 }
 
 func getLabelsAsHCL(labels map[string]string, indent int) string {

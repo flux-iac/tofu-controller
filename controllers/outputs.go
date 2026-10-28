@@ -163,6 +163,7 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, s *runnerSession,
 	}
 
 	if len(data) == 0 || terraform.Spec.Destroy {
+		clearOutputsArtifactRef(terraform)
 		infrav1.TerraformOutputsWritten(terraform, s.revision, "No Outputs written")
 		return nil
 	}
@@ -180,6 +181,8 @@ func (r *TerraformReconciler) writeOutput(ctx context.Context, s *runnerSession,
 		return notReady(terraform, s.revision, infrav1.OutputsWritingFailedReason, err)
 	}
 	log.Info("write outputs", "message", writeOutputsReply.Message, "changed", writeOutputsReply.Changed)
+
+	setOutputsArtifactRef(terraform, wots.Name)
 
 	if writeOutputsReply.Changed {
 		keysWritten := []string{}

@@ -46,7 +46,12 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 		return nil, err
 	}
 
-	if err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, workspace, tfPlan, ""); err != nil {
+	// savedObjects reports the canonical (gzipped) plan Secrets only. The
+	// readable representations written below are a different artifact with a
+	// different Kind and suffix; including them would inflate the chunk count
+	// the controller publishes in status.artifactRefs.plan.
+	saved, err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, workspace, tfPlan, "")
+	if err != nil {
 		return nil, err
 	}
 
@@ -74,7 +79,7 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 			return nil, err
 		}
 
-		if err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, workspace, jsonPlan, ".json"); err != nil {
+		if _, err := r.writePlanAsSecret(ctx, req.Name, req.Namespace, workspace, jsonPlan, ".json"); err != nil {
 			return nil, err
 		}
 	case "human":
@@ -93,10 +98,10 @@ func (r *TerraformRunnerServer) SaveTFPlan(ctx context.Context, req *SaveTFPlanR
 		}
 	}
 
-	return &SaveTFPlanReply{Message: "ok"}, nil
+	return &SaveTFPlanReply{Message: "ok", SavedObjects: saved}, nil
 }
 
-func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name, namespace, workspace string, tfPlan *plan.Plan, suffix string) error {
+func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name, namespace, workspace string, tfPlan *plan.Plan, suffix string) ([]*SavedObject, error) {
 	existingSecrets := &v1.SecretList{}
 
 	// Try to get any secrets by using the plan labels
@@ -105,7 +110,7 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name, nam
 		plan.TFPlanNameLabel:      plan.SafeLabelValue(name + suffix),
 		plan.TFPlanWorkspaceLabel: plan.SafeLabelValue(workspace),
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Check for a legacy secret if none found with the
@@ -121,25 +126,32 @@ func (r *TerraformRunnerServer) writePlanAsSecret(ctx context.Context, name, nam
 	// Clear up any of the old secrets first
 	for _, s := range existingSecrets.Items {
 		if err := r.Delete(ctx, &s); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	secrets, err := tfPlan.ToSecret(suffix)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// We shouldn't have to check whether any of these already exist, as we've done
 	// that above
+	saved := make([]*SavedObject, 0, len(secrets))
 	for _, secret := range secrets {
 		// now create the seecret
 		if err := r.Create(ctx, secret); err != nil {
-			return fmt.Errorf("error recording plan status: %s", err)
+			return nil, fmt.Errorf("error recording plan status: %s", err)
 		}
+		saved = append(saved, &SavedObject{
+			ApiVersion: "v1",
+			Kind:       "Secret",
+			Namespace:  secret.Namespace,
+			Name:       secret.Name,
+		})
 	}
 
-	return nil
+	return saved, nil
 }
 
 func (r *TerraformRunnerServer) writePlanAsConfigMap(ctx context.Context, name, namespace, workspace string, tfPlan *plan.Plan, suffix string) error {
