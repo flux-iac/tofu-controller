@@ -159,8 +159,11 @@ func (cr *CertRotator) Start(ctx context.Context) error {
 	// if we're not, we're blocked here and don't do any cert rotation until we become the leader.
 	<-cr.mgr.Elected()
 
-	// referenceTime is used to calculate the old cert GC threshold
-	var referenceTime = time.Now()
+	// referenceTime is used to calculate the old cert GC threshold.
+	// Truncate to second precision to match metav1.Time from the API server;
+	// otherwise a secret created in the same wall-clock second as Start can
+	// look older than referenceTime and be deleted by the first periodic GC (#1930).
+	var referenceTime = time.Now().Truncate(time.Second)
 
 	// lastGCTime is the last time we GCed old certs
 	lastGCTime := referenceTime
@@ -302,6 +305,32 @@ tickerLoop:
 	return nil
 }
 
+
+
+// shouldDeleteTLSSecret reports whether a runner TLS secret is eligible for GC.
+// Secrets created in the same second as referenceTime are kept (API timestamps
+// are second-precision), and the current CA secret names are always kept.
+func shouldDeleteTLSSecret(name string, created, referenceTime time.Time, currentSecrets map[string]struct{}) bool {
+	if _, current := currentSecrets[name]; current {
+		return false
+	}
+	return created.Before(referenceTime)
+}
+
+// currentRunnerTLSSecretNames returns the Secret names of every CA still
+// held in artifactCaches. GC must never delete these; they are the certs
+// GetKnownNamespaceTLS keeps handing to new runners.
+func (cr *CertRotator) currentRunnerTLSSecretNames() map[string]struct{} {
+	names := make(map[string]struct{}, len(cr.artifactCaches))
+	for _, artifact := range cr.artifactCaches {
+		if artifact == nil || artifact.ca == nil {
+			continue
+		}
+		names[fmt.Sprintf("%s-%d", infrav1.RunnerTLSSecretName, artifact.ca.validUntil.Unix())] = struct{}{}
+	}
+	return names
+}
+
 func (cr *CertRotator) garbageCollectTLSCertsForcefully(namespace string, referenceTime time.Time) error {
 	crLog.Info("startup gc: scanning old TLS artifacts", "namespace", namespace)
 
@@ -316,9 +345,10 @@ func (cr *CertRotator) garbageCollectTLSCertsForcefully(namespace string, refere
 
 	crLog.Info("startup gc: found TLS artifacts", "namespace", namespace, "count", len(secretList.Items))
 	count := 0
-	// Filter Secrets by creation time (before referenceTime)
+	currentSecrets := cr.currentRunnerTLSSecretNames()
+	// Filter Secrets by creation time (before referenceTime), never the current CA
 	for _, secret := range secretList.Items {
-		if secret.CreationTimestamp.Time.Before(referenceTime) {
+		if shouldDeleteTLSSecret(secret.Name, secret.CreationTimestamp.Time, referenceTime, currentSecrets) {
 			crLog.Info("startup gc: deleting old TLS artifact ...", "namespace", namespace, "secret", secret.Name)
 			if err := cr.writer.Delete(context.TODO(), &secret, client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil {
 				crLog.Error(err, "startup gc: could not delete old TLS artifact", "namespace", namespace, "secret", secret.Name)
@@ -356,9 +386,10 @@ func (cr *CertRotator) garbageCollectTLSCerts(namespaces []string, referenceTime
 			return err
 		}
 
-		// Filter Secrets by creation time (before referenceTime)
+		currentSecrets := cr.currentRunnerTLSSecretNames()
+		// Filter Secrets by creation time (before referenceTime), never the current CA
 		for i := range secretList.Items {
-			if secretList.Items[i].CreationTimestamp.Time.Before(referenceTime) {
+			if shouldDeleteTLSSecret(secretList.Items[i].Name, secretList.Items[i].CreationTimestamp.Time, referenceTime, currentSecrets) {
 				secretsToDelete = append(secretsToDelete, &secretList.Items[i])
 				if len(secretsToDelete) >= deletionThreshold {
 					break
