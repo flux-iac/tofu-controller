@@ -99,6 +99,7 @@ func main() {
 		runnerCreationTimeout     time.Duration
 		runnerRPCTimeout          time.Duration
 		runnerUnreachableTimeout  time.Duration
+		runnerTopologySpread      string
 		runnerGRPCMaxMessageSize  int
 		allowBreakTheGlass        bool
 		clusterDomain             string
@@ -132,6 +133,10 @@ func main() {
 			"backend config, init, workspace select), and for finalizing the runner's secrets on "+
 			"deletion. Bounds the reconcile so a runner pod "+
 			"that dies mid-RPC surfaces as an error and requeues instead of hanging forever.")
+	flag.StringVar(&runnerTopologySpread, "runner-topology-spread-constraints", "",
+		"Default topologySpreadConstraints for runner pods, as a JSON or YAML list. "+
+			"A non-empty runnerPodTemplate.spec.topologySpreadConstraints on a Terraform "+
+			"resource replaces it. Empty (the default) adds no constraints.")
 	flag.DurationVar(&runnerUnreachableTimeout, "runner-unreachable-timeout", 5*time.Minute,
 		"Cancel a runner RPC once the connection to a runner that was reachable has not been "+
 			"ready for this long, so a runner pod that dies mid-plan or mid-apply surfaces as an "+
@@ -168,6 +173,12 @@ func main() {
 	flag.Parse()
 
 	ctrl.SetLogger(logger.NewLogger(logOptions))
+
+	runnerTopologySpreadConstraints, err := controllers.ParseRunnerTopologySpreadConstraints(runnerTopologySpread)
+	if err != nil {
+		setupLog.Error(err, "invalid --runner-topology-spread-constraints")
+		os.Exit(1)
+	}
 
 	if err := featureGates.WithLogger(setupLog).SupportedFeatures(map[string]bool{featureGateExternalArtifact: false}); err != nil {
 		setupLog.Error(err, "unable to load feature gates")
@@ -299,6 +310,8 @@ func main() {
 		QuotaRetryEnabled:         quotaRetryEnabled,
 		QuotaRetryDelay:           quotaRetryDelay,
 		QuotaRetryJitterFactor:    quotaRetryJitterFactor,
+
+		RunnerTopologySpreadConstraints: runnerTopologySpreadConstraints,
 	}
 
 	if err = reconciler.SetupWithManager(signalHandlerContext, mgr, concurrent, httpRetry); err != nil {

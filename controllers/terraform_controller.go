@@ -84,6 +84,11 @@ type TerraformReconciler struct {
 	UsePodSubdomainResolution bool
 	Clientset                 *kubernetes.Clientset
 
+	// RunnerTopologySpreadConstraints is the default topologySpreadConstraints for
+	// runner pods. A non-empty runnerPodTemplate.spec.topologySpreadConstraints on
+	// the Terraform resource replaces it entirely.
+	RunnerTopologySpreadConstraints []corev1.TopologySpreadConstraint
+
 	// Graceful shutdown fields
 	ShutdownTimeout       time.Duration
 	shutdownStarted       atomic.Bool

@@ -56,6 +56,9 @@ spec:
         - --quota-retry-delay={{ .Values.quotaRetryDelay }}
         - --quota-retry-jitter-factor={{ .Values.quotaRetryJitterFactor }}
         - --feature-gates=ExternalArtifact={{ .Values.featureGates.externalArtifact }}
+        {{- with .Values.runner.topologySpreadConstraints }}
+        - {{ printf "--runner-topology-spread-constraints=%s" (toJson .) | quote }}
+        {{- end }}
         env:
           {{- include "pod-namespace" . | indent 8 }}
         - name: RUNNER_POD_IMAGE

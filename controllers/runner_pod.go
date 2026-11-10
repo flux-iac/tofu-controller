@@ -292,13 +292,14 @@ func (r *TerraformReconciler) runnerPodSpec(terraform *infrav1.Terraform, tlsSec
 				Resources:       resources,
 			},
 		},
-		Volumes:            podVolumes,
-		ServiceAccountName: serviceAccountName,
-		NodeSelector:       terraform.Spec.RunnerPodTemplate.Spec.NodeSelector,
-		Affinity:           terraform.Spec.RunnerPodTemplate.Spec.Affinity,
-		Tolerations:        terraform.Spec.RunnerPodTemplate.Spec.Tolerations,
-		HostAliases:        terraform.Spec.RunnerPodTemplate.Spec.HostAliases,
-		PriorityClassName:  terraform.Spec.RunnerPodTemplate.Spec.PriorityClassName,
+		Volumes:                   podVolumes,
+		ServiceAccountName:        serviceAccountName,
+		NodeSelector:              terraform.Spec.RunnerPodTemplate.Spec.NodeSelector,
+		Affinity:                  terraform.Spec.RunnerPodTemplate.Spec.Affinity,
+		Tolerations:               terraform.Spec.RunnerPodTemplate.Spec.Tolerations,
+		TopologySpreadConstraints: r.runnerTopologySpreadConstraints(terraform),
+		HostAliases:               terraform.Spec.RunnerPodTemplate.Spec.HostAliases,
+		PriorityClassName:         terraform.Spec.RunnerPodTemplate.Spec.PriorityClassName,
 	}
 
 	if r.UsePodSubdomainResolution {
