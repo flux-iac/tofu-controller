@@ -266,6 +266,7 @@ _Appears in:_
 | `nodeSelector` _object (keys:string, values:string)_ | Set the NodeSelector for the Runner Pod |  | Optional: \{\} <br /> |
 | `affinity` _[Affinity](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#affinity-v1-core)_ | Set the Affinity for the Runner Pod |  | Optional: \{\} <br /> |
 | `tolerations` _[Toleration](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#toleration-v1-core) array_ | Set the Tolerations for the Runner Pod |  | Optional: \{\} <br /> |
+| `topologySpreadConstraints` _[TopologySpreadConstraint](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#topologyspreadconstraint-v1-core) array_ | Set the TopologySpreadConstraints for the Runner Pod |  | Optional: \{\} <br /> |
 | `volumeMounts` _[VolumeMount](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volumemount-v1-core) array_ | Set Volume Mounts for the Runner Pod |  | Optional: \{\} <br /> |
 | `volumes` _[Volume](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volume-v1-core) array_ | Set Volumes for the Runner Pod |  | Optional: \{\} <br /> |
 | `initContainers` _[Container](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#container-v1-core) array_ | Set up Init Containers for the Runner |  | Optional: \{\} <br /> |
