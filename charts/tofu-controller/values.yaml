@@ -145,12 +145,6 @@ runner:
     maxMessageSize: 4
   # -- Timeout for runner-creation (Controller)
   creationTimeout: 5m0s
-  # -- Default `topologySpreadConstraints` for runner pods, rendered as the
-  # `--runner-topology-spread-constraints` flag. A non-empty
-  # `runnerPodTemplate.spec.topologySpreadConstraints` on a Terraform resource replaces it.
-  # Include a `labelSelector` that matches the runner pods
-  # (`app.kubernetes.io/created-by: tofu-controller`). Empty adds no constraints.
-  topologySpreadConstraints: []
   serviceAccount:
     # -- If `true`, create a new runner service account
     create: true

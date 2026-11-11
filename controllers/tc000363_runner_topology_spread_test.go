@@ -40,71 +40,28 @@ func Test_000363_runner_topology_spread_test(t *testing.T) {
 		}
 	}
 
-	newReconciler := func(defaults []corev1.TopologySpreadConstraint) *TerraformReconciler {
-		return &TerraformReconciler{
-			RunnerGRPCPort:                  30000,
-			RunnerTopologySpreadConstraints: defaults,
-		}
+	newReconciler := func() *TerraformReconciler {
+		return &TerraformReconciler{RunnerGRPCPort: 30000}
 	}
 
 	t.Run("CR value is copied into the runner pod", func(t *testing.T) {
 		g := NewWithT(t)
-		Given("a Terraform resource with topologySpreadConstraints and no controller default")
+		Given("a Terraform resource with topologySpreadConstraints")
 		crValue := []corev1.TopologySpreadConstraint{newConstraint(10)}
 
-		spec := newReconciler(nil).runnerPodSpec(newTerraform(crValue), "runner.tls-123")
+		spec := newReconciler().runnerPodSpec(newTerraform(crValue), "runner.tls-123")
 
 		By("checking the runner pod carries the CR value")
 		g.Expect(spec.TopologySpreadConstraints).To(Equal(crValue))
 	})
 
-	t.Run("controller default is used when the CR is empty", func(t *testing.T) {
-		g := NewWithT(t)
-		Given("a controller default and a Terraform resource without constraints")
-		defaults := []corev1.TopologySpreadConstraint{newConstraint(10)}
-
-		spec := newReconciler(defaults).runnerPodSpec(newTerraform(nil), "runner.tls-123")
-
-		By("checking the runner pod carries the default")
-		g.Expect(spec.TopologySpreadConstraints).To(Equal(defaults))
-	})
-
-	t.Run("CR value replaces the controller default without merging", func(t *testing.T) {
-		g := NewWithT(t)
-		Given("a controller default and a Terraform resource with its own constraints")
-		defaults := []corev1.TopologySpreadConstraint{newConstraint(10)}
-		crValue := []corev1.TopologySpreadConstraint{newConstraint(3)}
-
-		spec := newReconciler(defaults).runnerPodSpec(newTerraform(crValue), "runner.tls-123")
-
-		By("checking the runner pod carries only the CR value")
-		g.Expect(spec.TopologySpreadConstraints).To(Equal(crValue))
-	})
-
 	t.Run("no constraints are set when nothing is configured", func(t *testing.T) {
 		g := NewWithT(t)
-		Given("no controller default and a Terraform resource without constraints")
+		Given("a Terraform resource without constraints")
 
-		spec := newReconciler(nil).runnerPodSpec(newTerraform(nil), "runner.tls-123")
+		spec := newReconciler().runnerPodSpec(newTerraform(nil), "runner.tls-123")
 
 		By("checking the runner pod has no constraints")
 		g.Expect(spec.TopologySpreadConstraints).To(BeNil())
-	})
-
-	t.Run("the controller default is copied per pod", func(t *testing.T) {
-		g := NewWithT(t)
-		Given("a controller default used to build a runner pod")
-		defaults := []corev1.TopologySpreadConstraint{newConstraint(10)}
-		r := newReconciler(defaults)
-
-		spec := r.runnerPodSpec(newTerraform(nil), "runner.tls-123")
-
-		By("mutating the pod's constraints")
-		spec.TopologySpreadConstraints[0].MaxSkew = 99
-		spec.TopologySpreadConstraints[0].MinDomains = ptr.To(int32(1))
-		spec.TopologySpreadConstraints[0].LabelSelector.MatchLabels["app.kubernetes.io/created-by"] = "changed"
-
-		By("checking the controller default is unchanged")
-		g.Expect(r.RunnerTopologySpreadConstraints).To(Equal([]corev1.TopologySpreadConstraint{newConstraint(10)}))
 	})
 }

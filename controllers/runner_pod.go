@@ -297,7 +297,7 @@ func (r *TerraformReconciler) runnerPodSpec(terraform *infrav1.Terraform, tlsSec
 		NodeSelector:              terraform.Spec.RunnerPodTemplate.Spec.NodeSelector,
 		Affinity:                  terraform.Spec.RunnerPodTemplate.Spec.Affinity,
 		Tolerations:               terraform.Spec.RunnerPodTemplate.Spec.Tolerations,
-		TopologySpreadConstraints: r.runnerTopologySpreadConstraints(terraform),
+		TopologySpreadConstraints: terraform.Spec.RunnerPodTemplate.Spec.TopologySpreadConstraints,
 		HostAliases:               terraform.Spec.RunnerPodTemplate.Spec.HostAliases,
 		PriorityClassName:         terraform.Spec.RunnerPodTemplate.Spec.PriorityClassName,
 	}
