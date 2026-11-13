@@ -538,6 +538,53 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#removal-of-the-v1alpha1-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removal of the v1alpha1 API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Removal of the v1alpha1 API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-clear-stale-v1alpha1-managed-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Clear stale v1alpha1 managed fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-remove-v1alpha1-from-the-crds-stored-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Remove v1alpha1 from the CRD's stored versions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -567,8 +614,7 @@
 <li>Disable <a href="https://flux-iac.github.io/tofu-controller/use-tf-controller/provision-resources-and-auto-approve/">auto-approval</a> by either removing the approvePlan value or setting it to "".</li>
 <li>To prevent unintentional resource deletions, set the <code>spec.destroyResourcesOnDeletion</code> flag to <code>false</code> for critical or production systems (the default value is <code>false</code>)</li>
 <li>If the Flux upgrade goes well, proceed to upgrade the Tofu Controller via its image tag. Adjust the values in the HelmRelease to match the new version to which you are upgrading.</li>
-<li>Check the pod logs for the Tofu Controller deployment and any runner logs in order to identify potential issues. If you check the <code>warnings</code> in the logs, you can also identify any required API changes. For example:
-<code>v1alpha1 Terraform is deprecated, upgrade to v1alpha2</code>.</li>
+<li>Check the pod logs for the Tofu Controller deployment and any runner logs in order to identify potential issues. If you check the <code>warnings</code> in the logs, you can also identify any required API changes.</li>
 <li>Push the changes you made.</li>
 <li>Resume your Terraform resources—either one-by-one for critical resources, or all of them with <code>tfctl resume --all</code></li>
 <li>Ensure no changes are planned for deletion. If you changed the value in step 6 from <code>spec.destroyResourcesOnDeletion</code> to <code>false</code>, resources will not be automatically removed.</li>
@@ -576,10 +622,55 @@
 <li>Resume any suspended Kustomization objects to restore GitOps automation.</li>
 <li>Restore <code>spec.destroyResourcesOnDeletion</code>, if this has been disabled for any resources in critical or production systems.</li>
 </ol>
-<p>TFTofu Controller supports v1alpha1 for backward compatibility. This means that you need v1alpha2 for newer (as of September 2023) features such as:
-- the branch planner
-- pod sub-domain DNS resolutions
-- new PodSpec fields like PriorityClass, SecurityContext, and ResourceRequirements (Limits / Requests)</p>
+<h2 id="removal-of-the-v1alpha1-api">Removal of the v1alpha1 API</h2>
+<p>The <code>v1alpha1</code> Terraform API was deprecated in 2023 and is <strong>removed in
+v0.17.0</strong>. From v0.17.0 the CRD only defines <code>v1alpha2</code>. Do the following
+<strong>before</strong> upgrading to v0.17.0 or later. If your HelmRelease uses a chart
+version range such as <code>&gt;=0.16.6</code> (as the <code>release.yaml</code> in these docs does),
+it upgrades automatically when v0.17.0 is published, so pin it to <code>0.16.x</code>
+until these steps are done:</p>
+<ul>
+<li>Change every manifest that still uses <code>infra.contrib.fluxcd.io/v1alpha1</code>,
+  including those in Git, to <code>infra.contrib.fluxcd.io/v1alpha2</code>. Otherwise
+  applying them fails with <code>no matches for kind "Terraform" in version
+  "infra.contrib.fluxcd.io/v1alpha1"</code>.</li>
+<li>Follow the two steps below to clear any references to <code>v1alpha1</code> left in the
+  cluster.</li>
+</ul>
+<h3 id="1-clear-stale-v1alpha1-managed-fields">1. Clear stale <code>v1alpha1</code> managed fields</h3>
+<p>If a Terraform object was ever written via <code>v1alpha1</code> (for example by an old
+<code>tfctl</code>), its <code>metadata.managedFields</code> keeps a <code>v1alpha1</code> entry. Server-side
+apply of that object then fails, for example in a Flux Kustomization, with
+errors such as <code>.spec.retryStrategy: field not declared in schema</code> or, after
+the upgrade, <code>request to convert CR to an invalid group/version</code>. The fix below
+works both before and after the upgrade.</p>
+<p>Find the affected objects:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>terraforms<span class="w"> </span>-A<span class="w"> </span>-o<span class="w"> </span>json<span class="w"> </span>--show-managed-fields<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">'.items[]</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="s1">  | select(any(.metadata.managedFields[]?; .apiVersion == "infra.contrib.fluxcd.io/v1alpha1"))</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="s1">  | "\(.metadata.namespace) \(.metadata.name)"'</span>
+</code></pre></div>
+<p>Reset the managed fields of each one. The next server-side apply (for example
+by kustomize-controller, which force-applies) takes ownership again:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>&lt;namespace&gt;<span class="w"> </span>patch<span class="w"> </span>terraform<span class="w"> </span>&lt;name&gt;<span class="w"> </span>--type<span class="o">=</span>json<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>-p<span class="w"> </span><span class="s1">'[{"op":"replace","path":"/metadata/managedFields","value":[{}]}]'</span>
+</code></pre></div>
+<h3 id="2-remove-v1alpha1-from-the-crds-stored-versions">2. Remove <code>v1alpha1</code> from the CRD's stored versions</h3>
+<p>Clusters that ran Tofu Controller before <code>v1alpha2</code> became the storage version
+may still list <code>v1alpha1</code> in the CRD status. Kubernetes refuses to remove a
+version from a CRD while it is listed there, so the CRD update in the upgrade
+fails until this is done, with an error starting
+<code>status.storedVersions[0]: Invalid value: "v1alpha1"</code>.
+Check:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>crd<span class="w"> </span>terraforms.infra.contrib.fluxcd.io<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.status.storedVersions}'</span>
+</code></pre></div>
+<p>If the output includes <code>v1alpha1</code>, rewrite every Terraform object so it is
+stored as <code>v1alpha2</code>, then update the CRD status:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>terraforms<span class="w"> </span>-A<span class="w"> </span>-o<span class="w"> </span>json<span class="w"> </span><span class="p">|</span><span class="w"> </span>kubectl<span class="w"> </span>replace<span class="w"> </span>-f<span class="w"> </span>-
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>kubectl<span class="w"> </span>patch<span class="w"> </span>crd<span class="w"> </span>terraforms.infra.contrib.fluxcd.io<span class="w"> </span>--subresource<span class="o">=</span>status<span class="w"> </span>--type<span class="o">=</span>merge<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>-p<span class="w"> </span><span class="s1">'{"status":{"storedVersions":["v1alpha2"]}}'</span>
+</code></pre></div>
+<p>If <code>kubectl replace</code> reports a conflict for an object, the controller updated
+it at the same time; run the command again.</p>
 
 
 
