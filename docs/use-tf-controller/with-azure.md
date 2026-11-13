@@ -16,7 +16,7 @@ Set env variables on the runner pod:
 Example yaml:
 
 ```yaml
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: terraformhello
