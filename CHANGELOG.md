@@ -2,6 +2,62 @@
 
 All notable changes of this project are documented in this file.
 
+## v0.17.0
+
+**Release date:** 2026-11-16
+
+## ⚠️ Breaking changes — read before upgrading
+
+**v1alpha1 API removed ([#1941](https://github.com/flux-iac/tofu-controller/pull/1941)).** The Terraform CRD now only defines `v1alpha2`.
+Complete the steps in [Removal of the v1alpha1 API](docs/use-tf-controller/upgrade-tf-controller.md#removal-of-the-v1alpha1-api) **before** upgrading:
+- Move any manifest still using `infra.contrib.fluxcd.io/v1alpha1` to `v1alpha2`.
+- Reset stale `v1alpha1` managedFields, or server-side apply will fail on those objects.
+- Clear `v1alpha1` from the CRD's `status.storedVersions`, or the CRD update will be rejected.
+- If your HelmRelease uses a floating range such as `>=0.16.6`, pin it to `0.16.x` until these steps are done.
+- Go importers: `github.com/flux-iac/tofu-controller/api/v1alpha1` no longer exists.
+
+**Runner and controller must run the same version ([#1917](https://github.com/flux-iac/tofu-controller/pull/1917)).** The gRPC contract between them has changed.
+Custom runner images built on an older `tf-runner` base image must be rebuilt from v0.17.0.
+
+**Error messages no longer start with `rpc error: code = … desc =` ([#1917](https://github.com/flux-iac/tofu-controller/pull/1917)).**
+Alerts, dashboards or scripts that match the full message text in conditions or events need updating.
+
+## Behaviour changes
+
+From [#1913](https://github.com/flux-iac/tofu-controller/pull/1913):
+- **Deleting a suspended Terraform no longer runs destroy**, even with `destroyResourcesOnDeletion: true`. Resources are left in place and a `DestroySkipped` event is emitted.
+- **Ready now waits for health checks when `writeOutputsToSecret` is set.** A failed health check sets Ready False with `HealthChecksFailed`. Previously Ready could go True before the checks ran, so `dependsOn` dependants could start too early.
+- **Drift no longer counts as a reconciliation failure.** It can't trigger `RetryLimitReached` any more.
+- **A denied cross-namespace `dependsOn` is now Stalled** with `AccessDenied`.
+- **Plan approvals by ID prefix now apply**, as the docs describe.
+- **New or changed condition and event reasons:** `RunnerFailed`, `FinalizeSecretsFailed`, `DestroySkipped` and `HealthChecksFailed`. The success event for written outputs is now `TerraformOutputsWritten`; it used to be `OutputsWritingFailed`. Check any alerts keyed on these.
+
+From [#1917](https://github.com/flux-iac/tofu-controller/pull/1917):
+- **Secret values are no longer written to runner logs, conditions or events.** This covers `SetEnv`, bad secret inputs and `var.x is "<value>"` diagnostics.
+- **`forceUnlock: auto` no longer gets stuck** when the lock is already gone.
+- **The runner exits promptly on SIGTERM.** A cancelled apply now gets the full `runnerTerminationGracePeriodSeconds` instead of a hard 60s.
+- **`DISABLE_TF_LOGS=1` now also silences** stderr from Init and Plan.
+
+## What's Changed
+* refactor: restructure the Terraform reconciler by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1913
+* refactor: restructure the runner by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1917
+* fix: recover from runner pods that fail or cannot start by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1921
+* feat(tfctl): add --all flag to 'reconcile' command for bulk reconciliation by @cschindlbeck in https://github.com/flux-iac/tofu-controller/pull/1744
+* fix: stop a pass hanging on a runner that never started by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1923
+* feat: support ExternalArtifact as a Terraform source by @agentydragon in https://github.com/flux-iac/tofu-controller/pull/1901
+* chore(deps): bump golang.org/x/net to v0.62.0 by @adonispd in https://github.com/flux-iac/tofu-controller/pull/1938
+* feat: add topologySpreadConstraints to runner pods by @adonispd in https://github.com/flux-iac/tofu-controller/pull/1936
+* chore(deps): bump the go-minor group across 3 directories with 12 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1932
+* chore(deps): bump the go-patch group across 3 directories with 14 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1933
+* chore(deps): bump the gh-minor group across 1 directory with 16 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1942
+* chore(deps): bump the gh-patch group across 1 directory with 3 updates by @dependabot[bot] in https://github.com/flux-iac/tofu-controller/pull/1931
+* Remove unused tf-runner.cache-encryption secret by @Wieneo in https://github.com/flux-iac/tofu-controller/pull/1944
+* feat!: remove the deprecated v1alpha1 Terraform API by @alexandermarston in https://github.com/flux-iac/tofu-controller/pull/1941
+* feat(runner): Set controller instance ID in environment by @cgroschupp in https://github.com/flux-iac/tofu-controller/pull/1943
+
+## New Contributors
+* @Wieneo made their first contribution in https://github.com/flux-iac/tofu-controller/pull/1944
+
 ## v0.16.6
 
 **Release date:** 2026-10-26

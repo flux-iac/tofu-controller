@@ -23,9 +23,8 @@ Please follow these steps to upgrade Tofu Controller:
 The `v1alpha1` Terraform API was deprecated in 2023 and is **removed in
 v0.17.0**. From v0.17.0 the CRD only defines `v1alpha2`. Do the following
 **before** upgrading to v0.17.0 or later. If your HelmRelease uses a chart
-version range such as `>=0.16.6` (as the `release.yaml` in these docs does),
-it upgrades automatically when v0.17.0 is published, so pin it to `0.16.x`
-until these steps are done:
+version range such as `>=0.16.6`, it upgrades automatically when v0.17.0
+is published, so pin it to `0.16.x` until these steps are done:
 
 - Change every manifest that still uses `infra.contrib.fluxcd.io/v1alpha1`,
   including those in Git, to `infra.contrib.fluxcd.io/v1alpha2`. Otherwise
