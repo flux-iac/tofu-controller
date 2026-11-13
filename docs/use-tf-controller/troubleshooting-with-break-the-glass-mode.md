@@ -5,8 +5,6 @@
 "Break the glass" refers to a troubleshooting mode specifically designed
 to provide a manual solution when Tofu Controller is not performing as expected. This feature is available in the Terraform controller *v0.15.0* and above.
 
-~> **WARNING:** Please note that you cannot use this feature to fix the Terraform resources with `v1alpha1` version of the Terraform CRD.  It works only with `v1alpha2` version of the Terraform CRD.
-
 ~> **WARNING:** Please also make sure that you have enough privileges to exec pods in your namespaces. Otherwise, you will not be able to use this feature.
 
 There are two primary methods of initiating this mode:
