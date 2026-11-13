@@ -11,15 +11,6 @@ resources:
   domain: contrib.fluxcd.io
   group: infra
   kind: Terraform
-  path: github.com/flux-iac/tofu-controller/api/v1alpha1
-  version: v1alpha1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: contrib.fluxcd.io
-  group: infra
-  kind: Terraform
   path: github.com/flux-iac/tofu-controller/api/v1alpha2
   version: v1alpha2
 version: "3"

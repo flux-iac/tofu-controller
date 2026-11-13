@@ -50,6 +50,7 @@ func (r *TerraformRunnerServer) SetEnv(ctx context.Context, req *SetEnvRequest) 
 
 	envs := utils.EnvMap(os.Environ())
 	maps.Copy(envs, req.Envs)
+	envs["TOFU_CONTROLLER_INSTANCE_ID"] = sessionFrom(ctx).id
 	if err := sessionFrom(ctx).tf.SetEnv(envs); err != nil {
 		return nil, err
 	}

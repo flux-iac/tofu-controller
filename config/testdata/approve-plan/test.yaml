@@ -1,5 +1,5 @@
 ---
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld-auto-approve
@@ -11,7 +11,7 @@ spec:
     kind: GitRepository
     name: helloworld
 ---
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld-manual-approve
@@ -23,7 +23,7 @@ spec:
     kind: GitRepository
     name: helloworld
 ---
-apiVersion: infra.contrib.fluxcd.io/v1alpha1
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
 kind: Terraform
 metadata:
   name: helloworld-oci-auto-approve
