@@ -43,7 +43,7 @@ func Test_000012_src_ocirepository_no_outputs_test(t *testing.T) {
 			Reference: &sourcev1.OCIRepositoryRef{
 				Tag: "v4.38.0-v1alpha11",
 			},
-			Interval: metav1.Duration{Duration: time.Second * 30},
+			Interval: &metav1.Duration{Duration: time.Second * 30},
 		},
 	}
 
