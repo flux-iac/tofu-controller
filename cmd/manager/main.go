@@ -169,7 +169,7 @@ func main() {
 
 	ctrl.SetLogger(logger.NewLogger(logOptions))
 
-	if err := featureGates.WithLogger(setupLog).SupportedFeatures(map[string]bool{featureGateExternalArtifact: false}); err != nil {
+	if err := featureGates.WithLogger(setupLog).SupportedFeatures(map[string]bool{featureGateExternalArtifact: false}, nil); err != nil {
 		setupLog.Error(err, "unable to load feature gates")
 		os.Exit(1)
 	}
