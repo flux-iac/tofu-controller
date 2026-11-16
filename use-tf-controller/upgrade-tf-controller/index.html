@@ -626,9 +626,8 @@
 <p>The <code>v1alpha1</code> Terraform API was deprecated in 2023 and is <strong>removed in
 v0.17.0</strong>. From v0.17.0 the CRD only defines <code>v1alpha2</code>. Do the following
 <strong>before</strong> upgrading to v0.17.0 or later. If your HelmRelease uses a chart
-version range such as <code>&gt;=0.16.6</code> (as the <code>release.yaml</code> in these docs does),
-it upgrades automatically when v0.17.0 is published, so pin it to <code>0.16.x</code>
-until these steps are done:</p>
+version range such as <code>&gt;=0.16.6</code>, it upgrades automatically when v0.17.0
+is published, so pin it to <code>0.16.x</code> until these steps are done:</p>
 <ul>
 <li>Change every manifest that still uses <code>infra.contrib.fluxcd.io/v1alpha1</code>,
   including those in Git, to <code>infra.contrib.fluxcd.io/v1alpha2</code>. Otherwise
