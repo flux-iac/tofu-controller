@@ -49,6 +49,7 @@ builds:
     goos:
       - darwin
       - linux
+      - windows
     goarch:
       - amd64
       - arm64
@@ -56,6 +57,9 @@ builds:
     goarm:
       - "6"
       - "7"
+    ignore:
+      - goos: windows
+        goarch: arm
 
 archives:
   - id: tfctl
@@ -63,6 +67,9 @@ archives:
       - tfctl
     name_template: "tfctl_{{ title .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
     formats: [ 'tar.gz' ]
+    format_overrides:
+      - goos: windows
+        formats: [ 'zip' ]
 
 # signs the checksum file
 # all files (including the sboms) are included in the checksum
