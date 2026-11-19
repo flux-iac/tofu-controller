@@ -74,7 +74,7 @@ func (r *TerraformReconciler) reconcileNormal(ctx context.Context, s *runnerSess
 	if r.shouldApply(obj) {
 		// A manual approval is re-checked against a fresh plan, so a plan
 		// that changed since it was approved is not applied.
-		if r.needsApprovalRecheck(obj) {
+		if r.needsApprovalRecheck(obj, s.revision) {
 			if err := r.plan(ctx, s, obj); err != nil {
 				return err
 			}
@@ -83,6 +83,12 @@ func (r *TerraformReconciler) reconcileNormal(ctx context.Context, s *runnerSess
 					"approvedPlan", obj.Spec.ApprovePlan, "pendingPlan", obj.Status.Plan.Pending)
 				return nil
 			}
+		}
+		// Record the apply against the revision the plan was made from, not
+		// the newer source revision: nothing was planned from that one, so
+		// drift detection and shouldReconcile would both skip it.
+		if obj.Status.LastPlannedRevision != "" {
+			s.revision = obj.Status.LastPlannedRevision
 		}
 		if err := r.apply(ctx, s, obj); err != nil {
 			return err
@@ -109,8 +115,12 @@ func (r *TerraformReconciler) reconcileNormal(ctx context.Context, s *runnerSess
 
 // needsApprovalRecheck reports whether a manually approved plan must be
 // re-planned before it is applied, to make sure the approval still matches.
-func (r *TerraformReconciler) needsApprovalRecheck(obj *infrav1.Terraform) bool {
+// Plan IDs derive from the source revision, so once the revision moved (for
+// example, the commit that sets spec.approvePlan), a replan would mint a new
+// ID and the approval could never match (#1878).
+func (r *TerraformReconciler) needsApprovalRecheck(obj *infrav1.Terraform, revision string) bool {
 	return !r.forceOrAutoApply(obj) &&
 		obj.Spec.ApprovePlan != "" &&
-		obj.Spec.ApprovePlan != infrav1.ApprovePlanAutoValue
+		obj.Spec.ApprovePlan != infrav1.ApprovePlanAutoValue &&
+		revision == obj.Status.LastPlannedRevision
 }
