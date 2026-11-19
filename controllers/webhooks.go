@@ -149,10 +149,9 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, s
 			log.Info("webhook URL parsed", "host", u.Host)
 
 			caCertPath := "/etc/certs/" + u.Hostname() + "/ca.crt"
-			caCertPool := x509.NewCertPool()
-			caCert, err := os.ReadFile(caCertPath)
-			if err == nil {
-				caCertPool.AppendCertsFromPEM(caCert)
+			caCertPool, err := loadWebhookCACertPool(caCertPath)
+			if err != nil {
+				return err
 			}
 
 			log.Info("webhook CA cert loaded", "path", caCertPath)
@@ -259,4 +258,22 @@ func (r *TerraformReconciler) processPostPlanningWebhooks(ctx context.Context, s
 	}
 
 	return nil
+}
+
+// loadWebhookCACertPool reads the PEM CA bundle used to verify a webhook
+// server. A missing file or one without any PEM certificate is an error:
+// an empty pool would make every TLS handshake fail with an "unknown
+// authority" error that does not point at the CA file.
+func loadWebhookCACertPool(caCertPath string) (*x509.CertPool, error) {
+	caCert, err := os.ReadFile(caCertPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read webhook CA certificate: %w", err)
+	}
+
+	caCertPool := x509.NewCertPool()
+	if !caCertPool.AppendCertsFromPEM(caCert) {
+		return nil, fmt.Errorf("failed to load webhook CA certificate %s: no PEM certificates found", caCertPath)
+	}
+
+	return caCertPool, nil
 }
