@@ -34,7 +34,7 @@ jobs:
         with:
           version: 4.14.1
       - name: Setup Kustomize
-        uses: fluxcd/pkg/actions/kustomize@4bf3ea935541baf8b254aa52aeff62335b563113 # main
+        uses: fluxcd/pkg/actions/kustomize@5e6f942cdd300f4092c0be92c7ef54c72af65476 # main
       - name: Setup Cosign
         uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
       - name: Setup Syft
@@ -192,7 +192,7 @@ jobs:
           kustomize build ./config/package > ./config/release/${{ env.CONTROLLER }}.packages.yaml
           echo '[CHANGELOG](${{ github.server_url }}/${{ github.repository }}/blob/main/CHANGELOG.md)' > ./config/release/notes.md
       - name: Setup Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version-file: go.mod
       - name: Create release
