@@ -22,7 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.0.0
       - name: Setup Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version-file: go.mod
           cache-dependency-path: |
@@ -37,7 +37,7 @@ jobs:
           tofu --version
       - name: Setup Kustomize
         if: "!github.event.pull_request.head.repo.fork"
-        uses: fluxcd/pkg/actions/kustomize@4bf3ea935541baf8b254aa52aeff62335b563113 # main
+        uses: fluxcd/pkg/actions/kustomize@5e6f942cdd300f4092c0be92c7ef54c72af65476 # main
       - name: Run tests
         run: |
           make install-envtest
