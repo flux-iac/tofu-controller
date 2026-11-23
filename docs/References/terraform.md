@@ -1,3 +1,4 @@
+---
 
 # API Reference
 
@@ -453,3 +454,26 @@ _Appears in:_
 | `annotations` _object (keys:string, values:string)_ | Annotations to add to the outputted secret |  | Optional: \{\} <br /> |
 | `outputs` _string array_ | Outputs contain the selected names of outputs to be written<br />to the secret. Empty array means writing all outputs, which is default. |  | Optional: \{\} <br /> |
 
+## Variables vs Values
+
+When providing input to your Terraform modules, you have two primary mechanisms available in the `Terraform` API: `vars` and `values`. Choosing the right one depends on how your Terraform code is structured.
+
+### Using `vars`
+The `vars` field is the standard way to map specific variables to your Terraform module inputs. Use this when your Terraform configuration explicitly defines input variables using `variable "name" {}` blocks.
+
+- **Best for:** Explicit configuration, type safety, and individual variable management.
+- **Reference:** Data can be passed directly via the `value` field or pulled from a `Secret` or `ConfigMap` using `varsFrom`.
+
+### Using `values`
+The `values` field is a convenience mechanism to pass a single JSON object to your Terraform configuration. This object is passed to a specific Terraform variable named `values`.
+
+- **Best for:** Passing complex, structured configuration or large sets of arbitrary data without needing to define every single variable in your Terraform code.
+- **Requirement:** Your Terraform module must contain a definition for an input variable named `values` (e.g., `variable "values" { type = any }`).
+
+### Summary of Differences
+
+| Feature | `vars` | `values` |
+| :--- | :--- | :--- |
+| **Terraform Requirement** | Defined `variable` blocks for each key. | One `variable "values"` block of `type = any`. |
+| **Configuration Style** | Declarative, granular. | Flexible, object-based. |
+| **Use Case** | Standard module inputs. | Arbitrary, bulk, or dynamic configurations. |
